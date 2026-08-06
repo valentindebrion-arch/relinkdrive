@@ -67,31 +67,33 @@ export function LiveDriversMap({
             new maps.Marker({ position: path[path.length - 1], map, label: "B" });
           }
 
-          // Halo de position du client
-          new maps.Circle({
-            map,
-            center,
-            radius: 260,
-            strokeColor: "#00a86b",
-            strokeOpacity: 0.35,
-            strokeWeight: 1,
-            fillColor: "#00a86b",
-            fillOpacity: 0.12,
-          });
-          new maps.Marker({
-            map,
-            position: center,
-            title: "Vous êtes ici",
-            icon: {
-              path: maps.SymbolPath.CIRCLE,
-              scale: 7,
+          if (!path.length) {
+            // Halo de position du client
+            new maps.Circle({
+              map,
+              center,
+              radius: 260,
+              strokeColor: "#00a86b",
+              strokeOpacity: 0.35,
+              strokeWeight: 1,
               fillColor: "#00a86b",
-              fillOpacity: 1,
-              strokeColor: "#ffffff",
-              strokeWeight: 3,
-            },
-            zIndex: 50,
-          });
+              fillOpacity: 0.12,
+            });
+            new maps.Marker({
+              map,
+              position: center,
+              title: "Vous êtes ici",
+              icon: {
+                path: maps.SymbolPath.CIRCLE,
+                scale: 7,
+                fillColor: "#00a86b",
+                fillOpacity: 1,
+                strokeColor: "#ffffff",
+                strokeWeight: 3,
+              },
+              zIndex: 50,
+            });
+          }
 
           const drivers = makeDrivers(center, 5);
           const markers = drivers.map(
