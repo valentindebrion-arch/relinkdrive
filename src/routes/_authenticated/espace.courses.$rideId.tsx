@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, MapPin, Clock, Users, Euro, FileText, User } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Users, Euro, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { PageHeader, EmptyState } from "@/components/Ui";
