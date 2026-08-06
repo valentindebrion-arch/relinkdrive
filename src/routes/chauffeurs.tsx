@@ -155,7 +155,7 @@ function DriversPage() {
           </div>
           <Link
             to={signedInDriver ? "/pro/verification" : "/auth"}
-            search={signedInDriver ? undefined : { mode: "signup", role: "driver" }}
+            search={signedInDriver ? {} : { mode: "signup", role: "driver" }}
             className="shrink-0 rounded-xl bg-primary px-5 py-3 text-center text-sm font-medium text-primary-foreground"
           >
             {signedInDriver ? "Compléter ma vérification" : "Commencer maintenant"}
