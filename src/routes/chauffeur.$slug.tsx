@@ -98,10 +98,14 @@ function DriverPublicPage() {
     return (
       <div className="flex min-h-screen items-center justify-center px-5 text-center">
         <div>
-          <h1 className="text-xl font-semibold">Chauffeur introuvable</h1>
+          <h1 className="text-xl font-semibold">Page chauffeur indisponible</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Ce lien n'est pas valide, ou le compte n'est pas encore validé par {BRAND.name}.
+            Ce lien n'est pas valide, ou la page de ce chauffeur n'est pas encore publiée / validée par{" "}
+            {BRAND.name}.
           </p>
+          <Button asChild variant="outline" className="mt-5">
+            <Link to="/">Retour à l'accueil</Link>
+          </Button>
         </div>
       </div>
     );
