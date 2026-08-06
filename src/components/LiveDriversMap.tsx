@@ -142,7 +142,7 @@ export function LiveDriversMap({
       cancelled = true;
       if (timer) clearInterval(timer);
     };
-  }, []);
+  }, [polyline]);
 
   if (error) {
     return (
@@ -159,7 +159,7 @@ export function LiveDriversMap({
       <div ref={ref} className="size-full" />
       {!ready ? <div className="absolute inset-0 animate-pulse bg-muted" /> : null}
       <div className="animate-fade-in pointer-events-none absolute bottom-2 left-2 rounded-full bg-card/90 px-2.5 py-1 text-[11px] font-semibold shadow-sm backdrop-blur">
-        Chauffeurs autour de vous
+        {polyline ? "Votre itinéraire" : "Chauffeurs autour de vous"}
       </div>
     </div>
   );
