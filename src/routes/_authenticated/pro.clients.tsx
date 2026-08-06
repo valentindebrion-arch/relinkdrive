@@ -80,38 +80,37 @@ function DriverClients() {
       ) : (
         <div className="space-y-3">
           {list.map((c) => (
-            <div key={c.id} className="surface p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="font-medium">{c.profile?.full_name ?? "Client"}</p>
-                  <p className="text-sm text-muted-foreground">
+            <div key={c.id} className="surface p-3 sm:p-4">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{c.profile?.full_name ?? "Client"}</p>
+                  <p className="truncate text-xs text-muted-foreground sm:text-sm">
                     {c.ridesCount} course(s)
                     {c.lastRide ? ` · dernière le ${formatDateTime(c.lastRide.scheduled_at)}` : ""}
                   </p>
-                  <p className="text-sm text-muted-foreground">Ajouté le {formatDateTime(c.created_at)}</p>
-                  {c.note ? <p className="mt-2 text-sm">Note : {c.note.note}</p> : null}
+                  <p className="truncate text-xs text-muted-foreground">Ajouté le {formatDateTime(c.created_at)}</p>
+                  {c.note ? <p className="mt-1 line-clamp-2 text-xs">Note : {c.note.note}</p> : null}
                 </div>
-                <div className="flex flex-col items-end gap-2">
-                  <StatusBadge status={c.crm_status} labels={CRM_LABELS} />
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => setCrm(c.id, "regular")}>
-                      Marquer régulier
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => setCrm(c.id, "inactive")}>
-                      Inactif
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setNoteFor(noteFor === c.client_id ? null : c.client_id);
-                        setNote(c.note?.note ?? "");
-                      }}
-                    >
-                      Note
-                    </Button>
-                  </div>
-                </div>
+                <StatusBadge status={c.crm_status} labels={CRM_LABELS} />
+              </div>
+              <div className="mt-2 flex gap-2 overflow-x-auto">
+                <Button size="sm" variant="outline" className="shrink-0" onClick={() => setCrm(c.id, "regular")}>
+                  Régulier
+                </Button>
+                <Button size="sm" variant="outline" className="shrink-0" onClick={() => setCrm(c.id, "inactive")}>
+                  Inactif
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="shrink-0"
+                  onClick={() => {
+                    setNoteFor(noteFor === c.client_id ? null : c.client_id);
+                    setNote(c.note?.note ?? "");
+                  }}
+                >
+                  Note
+                </Button>
               </div>
               {noteFor === c.client_id ? (
                 <div className="mt-3 space-y-2">
