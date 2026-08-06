@@ -842,34 +842,35 @@ export type Database = {
       }
     }
     Views: {
-      public_driver_pages: {
-        Row: {
-          accessible: boolean | null
-          avatar_url: string | null
-          bio: string | null
-          business_name: string | null
-          chargers: boolean | null
-          child_seat: boolean | null
-          city: string | null
-          full_name: string | null
-          languages: string[] | null
-          luggage_capacity: number | null
-          max_passengers: number | null
-          pets_allowed: boolean | null
-          services: string[] | null
-          slug: string | null
-          user_id: string | null
-          vehicle_brand: string | null
-          vehicle_color: string | null
-          vehicle_model: string | null
-          vehicle_photo_url: string | null
-          water: boolean | null
-          zone: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
+      get_public_driver_page: {
+        Args: { _slug: string }
+        Returns: {
+          accessible: boolean
+          avatar_url: string
+          bio: string
+          business_name: string
+          chargers: boolean
+          child_seat: boolean
+          city: string
+          full_name: string
+          languages: string[]
+          luggage_capacity: number
+          max_passengers: number
+          pets_allowed: boolean
+          services: string[]
+          slug: string
+          user_id: string
+          vehicle_brand: string
+          vehicle_color: string
+          vehicle_model: string
+          vehicle_photo_url: string
+          water: boolean
+          zone: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
