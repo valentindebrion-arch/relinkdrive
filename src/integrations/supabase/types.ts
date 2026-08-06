@@ -234,20 +234,28 @@ export type Database = {
       }
       driver_profiles: {
         Row: {
+          accepting_requests: boolean
           admin_note: string | null
+          airports: string[]
+          availability: string[]
           billing_legal_info: string | null
           bio: string | null
+          booking_notice: string | null
           business_name: string | null
           city: string | null
           created_at: string
           languages: string[]
+          long_distance: boolean
           on_duty: boolean
           page_published: boolean
           professional_address: string | null
+          public_intro: string | null
           rejection_reason: string | null
+          service_areas: string[]
           services: string[]
           siret: string | null
           slug: string
+          stations: string[]
           updated_at: string
           user_id: string
           vat_applicable: boolean
@@ -256,20 +264,28 @@ export type Database = {
           zone: string | null
         }
         Insert: {
+          accepting_requests?: boolean
           admin_note?: string | null
+          airports?: string[]
+          availability?: string[]
           billing_legal_info?: string | null
           bio?: string | null
+          booking_notice?: string | null
           business_name?: string | null
           city?: string | null
           created_at?: string
           languages?: string[]
+          long_distance?: boolean
           on_duty?: boolean
           page_published?: boolean
           professional_address?: string | null
+          public_intro?: string | null
           rejection_reason?: string | null
+          service_areas?: string[]
           services?: string[]
           siret?: string | null
           slug: string
+          stations?: string[]
           updated_at?: string
           user_id: string
           vat_applicable?: boolean
@@ -278,20 +294,28 @@ export type Database = {
           zone?: string | null
         }
         Update: {
+          accepting_requests?: boolean
           admin_note?: string | null
+          airports?: string[]
+          availability?: string[]
           billing_legal_info?: string | null
           bio?: string | null
+          booking_notice?: string | null
           business_name?: string | null
           city?: string | null
           created_at?: string
           languages?: string[]
+          long_distance?: boolean
           on_duty?: boolean
           page_published?: boolean
           professional_address?: string | null
+          public_intro?: string | null
           rejection_reason?: string | null
+          service_areas?: string[]
           services?: string[]
           siret?: string | null
           slug?: string
+          stations?: string[]
           updated_at?: string
           user_id?: string
           vat_applicable?: boolean
@@ -720,7 +744,10 @@ export type Database = {
       vehicles: {
         Row: {
           accessible: boolean
+          air_conditioning: boolean
           brand: string | null
+          card_payment: boolean
+          category: string | null
           chargers: boolean
           child_seat: boolean
           color: string | null
@@ -733,20 +760,26 @@ export type Database = {
           insurance_provider: string | null
           is_primary: boolean
           luggage_capacity: number
+          luggage_help: boolean
           max_passengers: number
           mileage: number | null
           model: string | null
           next_service_date: string | null
           pets_allowed: boolean
+          photo_interior_url: string | null
           photo_url: string | null
           plate: string | null
+          quiet_ride: boolean
           updated_at: string
           water: boolean
           year: number | null
         }
         Insert: {
           accessible?: boolean
+          air_conditioning?: boolean
           brand?: string | null
+          card_payment?: boolean
+          category?: string | null
           chargers?: boolean
           child_seat?: boolean
           color?: string | null
@@ -759,20 +792,26 @@ export type Database = {
           insurance_provider?: string | null
           is_primary?: boolean
           luggage_capacity?: number
+          luggage_help?: boolean
           max_passengers?: number
           mileage?: number | null
           model?: string | null
           next_service_date?: string | null
           pets_allowed?: boolean
+          photo_interior_url?: string | null
           photo_url?: string | null
           plate?: string | null
+          quiet_ride?: boolean
           updated_at?: string
           water?: boolean
           year?: number | null
         }
         Update: {
           accessible?: boolean
+          air_conditioning?: boolean
           brand?: string | null
+          card_payment?: boolean
+          category?: string | null
           chargers?: boolean
           child_seat?: boolean
           color?: string | null
@@ -785,13 +824,16 @@ export type Database = {
           insurance_provider?: string | null
           is_primary?: boolean
           luggage_capacity?: number
+          luggage_help?: boolean
           max_passengers?: number
           mileage?: number | null
           model?: string | null
           next_service_date?: string | null
           pets_allowed?: boolean
+          photo_interior_url?: string | null
           photo_url?: string | null
           plate?: string | null
+          quiet_ride?: boolean
           updated_at?: string
           water?: boolean
           year?: number | null
@@ -848,25 +890,41 @@ export type Database = {
       get_public_driver_page: {
         Args: { _slug: string }
         Returns: {
-          accessible: boolean
+          accepting_requests: boolean
+          air_conditioning: boolean
+          airports: string[]
+          availability: string[]
           avatar_url: string
           bio: string
+          booking_notice: string
           business_name: string
+          card_payment: boolean
           chargers: boolean
-          child_seat: boolean
           city: string
+          company_verified: boolean
           full_name: string
           languages: string[]
+          long_distance: boolean
           luggage_capacity: number
+          luggage_help: boolean
           max_passengers: number
+          member_since: string
           pets_allowed: boolean
+          public_intro: string
+          quiet_ride: boolean
+          service_areas: string[]
           services: string[]
           slug: string
+          stations: string[]
           user_id: string
           vehicle_brand: string
+          vehicle_category: string
           vehicle_color: string
+          vehicle_interior_photo_url: string
           vehicle_model: string
           vehicle_photo_url: string
+          vehicle_year: number
+          verified_docs: string[]
           water: boolean
           zone: string
         }[]
@@ -884,6 +942,10 @@ export type Database = {
         Returns: boolean
       }
       is_verified_driver: { Args: { _driver: string }; Returns: boolean }
+      track_driver_event: {
+        Args: { _event: string; _slug: string }
+        Returns: undefined
+      }
       track_driver_page_view: { Args: { _slug: string }; Returns: undefined }
     }
     Enums: {
