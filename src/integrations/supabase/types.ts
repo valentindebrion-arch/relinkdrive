@@ -244,23 +244,31 @@ export type Database = {
           business_name: string | null
           city: string | null
           created_at: string
+          facebook_url: string | null
+          instagram_url: string | null
           languages: string[]
+          linkedin_url: string | null
           long_distance: boolean
           on_duty: boolean
           page_published: boolean
           professional_address: string | null
           public_intro: string | null
+          public_phone: string | null
           rejection_reason: string | null
           service_areas: string[]
           services: string[]
+          show_public_phone: boolean
+          show_whatsapp: boolean
           siret: string | null
           slug: string
           stations: string[]
+          tiktok_url: string | null
           updated_at: string
           user_id: string
           vat_applicable: boolean
           verification_status: Database["public"]["Enums"]["verification_status"]
           vtc_card_number: string | null
+          whatsapp_number: string | null
           zone: string | null
         }
         Insert: {
@@ -274,23 +282,31 @@ export type Database = {
           business_name?: string | null
           city?: string | null
           created_at?: string
+          facebook_url?: string | null
+          instagram_url?: string | null
           languages?: string[]
+          linkedin_url?: string | null
           long_distance?: boolean
           on_duty?: boolean
           page_published?: boolean
           professional_address?: string | null
           public_intro?: string | null
+          public_phone?: string | null
           rejection_reason?: string | null
           service_areas?: string[]
           services?: string[]
+          show_public_phone?: boolean
+          show_whatsapp?: boolean
           siret?: string | null
           slug: string
           stations?: string[]
+          tiktok_url?: string | null
           updated_at?: string
           user_id: string
           vat_applicable?: boolean
           verification_status?: Database["public"]["Enums"]["verification_status"]
           vtc_card_number?: string | null
+          whatsapp_number?: string | null
           zone?: string | null
         }
         Update: {
@@ -304,23 +320,31 @@ export type Database = {
           business_name?: string | null
           city?: string | null
           created_at?: string
+          facebook_url?: string | null
+          instagram_url?: string | null
           languages?: string[]
+          linkedin_url?: string | null
           long_distance?: boolean
           on_duty?: boolean
           page_published?: boolean
           professional_address?: string | null
           public_intro?: string | null
+          public_phone?: string | null
           rejection_reason?: string | null
           service_areas?: string[]
           services?: string[]
+          show_public_phone?: boolean
+          show_whatsapp?: boolean
           siret?: string | null
           slug?: string
           stations?: string[]
+          tiktok_url?: string | null
           updated_at?: string
           user_id?: string
           vat_applicable?: boolean
           verification_status?: Database["public"]["Enums"]["verification_status"]
           vtc_card_number?: string | null
+          whatsapp_number?: string | null
           zone?: string | null
         }
         Relationships: []
@@ -902,8 +926,11 @@ export type Database = {
           chargers: boolean
           city: string
           company_verified: boolean
+          facebook_url: string
           full_name: string
+          instagram_url: string
           languages: string[]
+          linkedin_url: string
           long_distance: boolean
           luggage_capacity: number
           luggage_help: boolean
@@ -911,11 +938,13 @@ export type Database = {
           member_since: string
           pets_allowed: boolean
           public_intro: string
+          public_phone: string
           quiet_ride: boolean
           service_areas: string[]
           services: string[]
           slug: string
           stations: string[]
+          tiktok_url: string
           user_id: string
           vehicle_brand: string
           vehicle_category: string
@@ -926,6 +955,7 @@ export type Database = {
           vehicle_year: number
           verified_docs: string[]
           water: boolean
+          whatsapp_number: string
           zone: string
         }[]
       }

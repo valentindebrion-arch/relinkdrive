@@ -11,10 +11,16 @@ import {
   Clock,
   Dog,
   Droplets,
+  Facebook,
+  Instagram,
   Languages,
+  Linkedin,
   Luggage,
   MapPin,
+  MessageCircle,
   Moon,
+  Music2,
+  Phone,
   PlugZap,
   ShieldCheck,
   Snowflake,
@@ -219,6 +225,17 @@ function DriverPublicPage() {
     { label: "Animaux acceptés", icon: Dog, on: !!d.pets_allowed },
   ].filter((e) => e.on);
 
+  const publicPhone: string | null = d.public_phone ?? null;
+  const whatsapp: string | null = d.whatsapp_number ?? null;
+  const socials: { label: string; url: string; icon: typeof Car }[] = [
+    { label: "Instagram", url: d.instagram_url, icon: Instagram },
+    { label: "Facebook", url: d.facebook_url, icon: Facebook },
+    { label: "TikTok", url: d.tiktok_url, icon: Music2 },
+    { label: "LinkedIn", url: d.linkedin_url, icon: Linkedin },
+  ].filter((s): s is { label: string; url: string; icon: typeof Car } => !!s.url);
+
+
+
   function startAdd(mode: "signin" | "signup" = "signup") {
     void supabase.rpc("track_driver_event", { _slug: slug, _event: "driver_add_click" });
     if (!session) {
@@ -335,6 +352,48 @@ function DriverPublicPage() {
             <p className="whitespace-pre-line text-muted-foreground">{d.public_intro ?? d.bio}</p>
           </Section>
         ) : null}
+
+        {/* 2 bis. Contact et réseaux (uniquement ce que le chauffeur a rendu public) */}
+        {publicPhone || whatsapp || socials.length ? (
+          <Section title={`Contacter ${firstName}`}>
+            <div className="space-y-2">
+              {publicPhone ? (
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <a href={`tel:${publicPhone.replace(/\s/g, "")}`}>
+                    <Phone className="size-4" /> Appeler {publicPhone}
+                  </a>
+                </Button>
+              ) : null}
+              {whatsapp ? (
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <a
+                    href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <MessageCircle className="size-4" /> Écrire sur WhatsApp
+                  </a>
+                </Button>
+              ) : null}
+              {socials.length ? (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {socials.map((s) => (
+                    <Button key={s.label} asChild variant="secondary" size="sm">
+                      <a href={s.url} target="_blank" rel="noopener noreferrer" aria-label={s.label}>
+                        <s.icon className="size-4" /> {s.label}
+                      </a>
+                    </Button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Seules les coordonnées que {firstName} a choisi de rendre publiques sont affichées.
+            </p>
+          </Section>
+        ) : null}
+
+
 
         {/* 3. Véhicule */}
         {d.vehicle_brand || d.max_passengers ? (
@@ -483,10 +542,17 @@ function DriverPublicPage() {
         {/* 11. Bouton final */}
         <div className="surface p-5">{primaryAction}</div>
 
-        <p className="pb-2 text-center text-xs text-muted-foreground">
-          {BRAND.name} — carnet privé de chauffeurs. Aucune donnée personnelle du chauffeur n'est diffusée
-          publiquement.
-        </p>
+        <div className="space-y-1 pb-2 text-center text-xs text-muted-foreground">
+          <p>
+            {BRAND.name} — carnet privé de chauffeurs. Seules les informations que le chauffeur a choisi de
+            publier sont visibles ici : aucune coordonnée personnelle n'est diffusée automatiquement.
+          </p>
+          <p>
+            Mentions légales · Confidentialité — {BRAND.name} n'organise aucune mise en relation publique et
+            ne prélève aucune commission. Les données des passagers ne sont utilisées que pour la relation
+            avec les chauffeurs de leur carnet.
+          </p>
+        </div>
       </div>
 
       {/* Barre d'action mobile */}
