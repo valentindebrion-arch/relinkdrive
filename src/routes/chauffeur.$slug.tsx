@@ -23,7 +23,7 @@ import {
   Phone,
   PlugZap,
   Quote,
-  Star,
+  Star as StarIcon,
   ThumbsUp,
   UserRound,
   ChevronRight,
@@ -309,7 +309,7 @@ function DriverPublicPage() {
                 {lastInitial ? ` ${lastInitial}.` : ""}
               </h1>
               <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Star className="size-4 fill-warning text-warning" />
+                <StarIcon className="size-4 fill-warning text-warning" />
                 <span className="font-semibold text-foreground">
                   {ratingAvg ? ratingAvg.toFixed(2) : "Nouveau"}
                 </span>
@@ -359,7 +359,7 @@ function DriverPublicPage() {
                   value: (d.languages ?? []).join(", ") || "Français",
                 },
                 {
-                  icon: Star,
+                  icon: StarIcon,
                   label: "Note moyenne",
                   value: ratingAvg ? `${ratingAvg.toFixed(2)}/5` : "Pas encore noté",
                 },
@@ -395,7 +395,7 @@ function DriverPublicPage() {
                   </p>
                   <div className="mt-1 flex justify-center gap-0.5">
                     {[1, 2, 3, 4, 5].map((i) => (
-                      <Star key={i} className="size-4 fill-primary text-primary" />
+                      <StarIcon key={i} className="size-4 fill-primary text-primary" />
                     ))}
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">Basé sur {ratingCount} avis</p>
@@ -422,7 +422,7 @@ function DriverPublicPage() {
                     <p className="text-xs text-muted-foreground">{r.date}</p>
                     <div className="mt-1 flex gap-0.5">
                       {Array.from({ length: r.stars }).map((_, i) => (
-                        <Star key={i} className="size-3.5 fill-primary text-primary" />
+                        <StarIcon key={i} className="size-3.5 fill-primary text-primary" />
                       ))}
                     </div>
                     <p className="mt-2 text-sm text-muted-foreground">{r.text}</p>
@@ -433,7 +433,7 @@ function DriverPublicPage() {
           ) : (
             <div className="rounded-2xl bg-muted/60 p-5 text-center">
               <div className="mx-auto grid size-10 place-items-center rounded-full bg-primary/10 text-primary">
-                <Star className="size-5" />
+                <StarIcon className="size-5" />
               </div>
               <p className="mt-2 font-semibold">Pas encore d'avis</p>
               <p className="mt-1 text-sm text-muted-foreground">
