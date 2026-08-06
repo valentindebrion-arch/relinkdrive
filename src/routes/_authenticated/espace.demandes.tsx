@@ -470,39 +470,53 @@ function ClientRequests() {
 
           {step === 1 ? (
             <>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-2xl border border-border bg-card px-3 py-2">
-                  <Label htmlFor="pa" className="flex items-center gap-1.5 text-xs font-bold">
-                    <Users className="size-3.5 text-primary" /> Passagers
-                  </Label>
-                  <Input
-                    id="pa"
-                    type="number"
-                    min="1"
-                    max="8"
-                    className="mt-1 h-9 rounded-xl"
-                    value={form.passengers}
-                    onChange={(e) => setForm({ ...form, passengers: e.target.value })}
-                  />
-                </div>
-                <div className="rounded-2xl border border-border bg-card px-3 py-2">
-                  <Label htmlFor="lu" className="flex items-center gap-1.5 text-xs font-bold">
-                    <Luggage className="size-3.5 text-primary" /> Bagages
-                  </Label>
-                  <Input
-                    id="lu"
-                    type="number"
-                    min="0"
-                    max="10"
-                    className="mt-1 h-9 rounded-xl"
-                    value={form.luggage}
-                    onChange={(e) => setForm({ ...form, luggage: e.target.value })}
-                  />
-                </div>
+              <div className="grid grid-cols-2 gap-2.5">
+                {(
+                  [
+                    { key: "passengers", label: "Passagers", icon: Users, min: 1, max: 8 },
+                    { key: "luggage", label: "Bagages", icon: Luggage, min: 0, max: 10 },
+                  ] as const
+                ).map((f) => {
+                  const Icon = f.icon;
+                  const val = Number(form[f.key]) || 0;
+                  const set = (n: number) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      [f.key]: String(Math.min(f.max, Math.max(f.min, n))),
+                    }));
+                  return (
+                    <div key={f.key} className="tap rounded-2xl border border-border bg-card px-3 py-3">
+                      <p className="flex items-center gap-1.5 text-xs font-bold">
+                        <Icon className="size-3.5 text-primary" /> {f.label}
+                      </p>
+                      <div className="mt-2 flex items-center justify-between">
+                        <button
+                          type="button"
+                          aria-label={`Moins de ${f.label}`}
+                          onClick={() => set(val - 1)}
+                          className="tap tap-active flex size-9 items-center justify-center rounded-xl bg-muted text-lg font-bold hover:bg-accent"
+                        >
+                          −
+                        </button>
+                        <span key={val} className="animate-scale-in text-xl font-extrabold">
+                          {val}
+                        </span>
+                        <button
+                          type="button"
+                          aria-label={`Plus de ${f.label}`}
+                          onClick={() => set(val + 1)}
+                          className="tap tap-active flex size-9 items-center justify-center rounded-xl bg-primary/10 text-lg font-bold text-primary hover:bg-primary/20"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
-              <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-3 py-2.5">
-                <Label htmlFor="rt" className="text-[13px] font-bold">
+              <div className="tap flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-3.5 py-3">
+                <Label htmlFor="rt" className="text-[14px] font-bold">
                   Aller-retour
                 </Label>
                 <Switch
@@ -514,7 +528,7 @@ function ClientRequests() {
 
               <Input
                 aria-label="Type de trajet"
-                className="h-11 rounded-2xl"
+                className="h-12 rounded-2xl text-[15px]"
                 maxLength={60}
                 placeholder="Type de trajet : aéroport, gare, événement…"
                 value={form.trip_type}
@@ -523,7 +537,7 @@ function ClientRequests() {
 
               <Input
                 aria-label="Besoins particuliers"
-                className="h-11 rounded-2xl"
+                className="h-12 rounded-2xl text-[15px]"
                 maxLength={200}
                 placeholder="Besoins particuliers : siège enfant, PMR…"
                 value={form.special_needs}
