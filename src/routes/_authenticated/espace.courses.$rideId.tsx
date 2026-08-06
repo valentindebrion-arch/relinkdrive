@@ -5,7 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { PageHeader, EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
-import { RIDE_STATUS_LABELS, INVOICE_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
+import { InvoiceDownloadCard } from "@/components/InvoiceDownloadCard";
+import { RIDE_STATUS_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
 
 export const Route = createFileRoute("/_authenticated/espace/courses/$rideId")({
   head: () => ({
