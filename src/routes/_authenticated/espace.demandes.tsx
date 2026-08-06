@@ -25,7 +25,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { formatDateTime, formatEuro } from "@/lib/labels";
-import { RouteMiniMap } from "@/components/RouteMiniMap";
 import { LiveDriversMap } from "@/components/LiveDriversMap";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { estimateRoute, reverseGeocode } from "@/lib/route-estimate.functions";
@@ -56,6 +55,16 @@ const STEPS = [
   { label: "Récapitulatif", icon: FileText },
   { label: "Confirmation", icon: CheckCircle2 },
 ];
+
+const TRIP_TYPES = [
+  "Aéroport",
+  "Gare",
+  "Événement",
+  "Trajet urbain",
+  "Longue distance",
+  "Mise à disposition",
+  "Autre",
+] as const;
 
 const HEADINGS = [
   { title: "Où allez-vous ?", sub: "Renseignez votre trajet en quelques secondes." },
@@ -470,94 +479,112 @@ function ClientRequests() {
 
           {step === 1 ? (
             <>
-              <div className="grid grid-cols-2 gap-2.5">
-                {(
-                  [
-                    { key: "passengers", label: "Passagers", icon: Users, min: 1, max: 8 },
-                    { key: "luggage", label: "Bagages", icon: Luggage, min: 0, max: 10 },
-                  ] as const
-                ).map((f) => {
-                  const Icon = f.icon;
-                  const val = Number(form[f.key]) || 0;
-                  const set = (n: number) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      [f.key]: String(Math.min(f.max, Math.max(f.min, n))),
-                    }));
-                  return (
-                    <div key={f.key} className="tap rounded-2xl border border-border bg-card px-3 py-3">
-                      <p className="flex items-center gap-1.5 text-xs font-bold">
-                        <Icon className="size-3.5 text-primary" /> {f.label}
-                      </p>
-                      <div className="mt-2 flex items-center justify-between">
-                        <button
-                          type="button"
-                          aria-label={`Moins de ${f.label}`}
-                          onClick={() => set(val - 1)}
-                          className="tap tap-active flex size-9 items-center justify-center rounded-xl bg-muted text-lg font-bold hover:bg-accent"
-                        >
-                          −
-                        </button>
-                        <span key={val} className="animate-scale-in text-xl font-extrabold">
-                          {val}
-                        </span>
-                        <button
-                          type="button"
-                          aria-label={`Plus de ${f.label}`}
-                          onClick={() => set(val + 1)}
-                          className="tap tap-active flex size-9 items-center justify-center rounded-xl bg-primary/10 text-lg font-bold text-primary hover:bg-primary/20"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <LiveDriversMap className="h-32 shrink-0" />
 
-              <div className="tap flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-3.5 py-3">
-                <Label htmlFor="rt" className="text-[14px] font-bold">
-                  Aller-retour
-                </Label>
-                <Switch
-                  id="rt"
-                  checked={form.round_trip}
-                  onCheckedChange={(v) => setForm({ ...form, round_trip: v })}
+              <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto pb-1">
+                <div className="grid grid-cols-2 gap-2.5">
+                  {(
+                    [
+                      { key: "passengers", label: "Passagers", icon: Users, min: 1, max: 8 },
+                      { key: "luggage", label: "Bagages", icon: Luggage, min: 0, max: 10 },
+                    ] as const
+                  ).map((f) => {
+                    const Icon = f.icon;
+                    const val = Number(form[f.key]) || 0;
+                    const set = (n: number) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        [f.key]: String(Math.min(f.max, Math.max(f.min, n))),
+                      }));
+                    return (
+                      <div
+                        key={f.key}
+                        className="tap rounded-2xl border border-border bg-card px-3 py-2.5"
+                      >
+                        <p className="flex items-center gap-1.5 text-xs font-bold">
+                          <Icon className="size-3.5 text-primary" /> {f.label}
+                        </p>
+                        <div className="mt-1.5 flex items-center justify-between">
+                          <button
+                            type="button"
+                            aria-label={`Moins de ${f.label}`}
+                            onClick={() => set(val - 1)}
+                            className="tap tap-active flex size-8 items-center justify-center rounded-xl bg-muted text-lg font-bold hover:bg-accent"
+                          >
+                            −
+                          </button>
+                          <span key={val} className="animate-scale-in text-xl font-extrabold">
+                            {val}
+                          </span>
+                          <button
+                            type="button"
+                            aria-label={`Plus de ${f.label}`}
+                            onClick={() => set(val + 1)}
+                            className="tap tap-active flex size-8 items-center justify-center rounded-xl bg-primary/10 text-lg font-bold text-primary hover:bg-primary/20"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="tap flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-3.5 py-2.5">
+                  <Label htmlFor="rt" className="text-[14px] font-bold">
+                    Aller-retour
+                  </Label>
+                  <Switch
+                    id="rt"
+                    checked={form.round_trip}
+                    onCheckedChange={(v) => setForm({ ...form, round_trip: v })}
+                  />
+                </div>
+
+                <div className="tap flex items-center gap-2.5 rounded-2xl border border-border bg-card px-3.5 py-1.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Car className="size-4" />
+                  </span>
+                  <select
+                    aria-label="Type de trajet"
+                    className="h-10 w-full appearance-none bg-transparent text-[15px] font-medium focus:outline-none"
+                    value={form.trip_type}
+                    onChange={(e) => setForm({ ...form, trip_type: e.target.value })}
+                  >
+                    <option value="">Type de trajet</option>
+                    {TRIP_TYPES.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <Input
+                  aria-label="Besoins particuliers"
+                  className="h-11 rounded-2xl text-[14px]"
+                  maxLength={200}
+                  placeholder="Besoins particuliers (facultatif)"
+                  value={form.special_needs}
+                  onChange={(e) => setForm({ ...form, special_needs: e.target.value })}
+                />
+
+                <Input
+                  aria-label="Informations complémentaires"
+                  className="h-11 rounded-2xl text-[14px]"
+                  maxLength={500}
+                  placeholder="Précisions : n° de vol, étage… (facultatif)"
+                  value={form.comment}
+                  onChange={(e) => setForm({ ...form, comment: e.target.value })}
                 />
               </div>
-
-              <Input
-                aria-label="Type de trajet"
-                className="h-12 rounded-2xl text-[15px]"
-                maxLength={60}
-                placeholder="Type de trajet : aéroport, gare, événement…"
-                value={form.trip_type}
-                onChange={(e) => setForm({ ...form, trip_type: e.target.value })}
-              />
-
-              <Input
-                aria-label="Besoins particuliers"
-                className="h-12 rounded-2xl text-[15px]"
-                maxLength={200}
-                placeholder="Besoins particuliers : siège enfant, PMR…"
-                value={form.special_needs}
-                onChange={(e) => setForm({ ...form, special_needs: e.target.value })}
-              />
-
-              <Textarea
-                aria-label="Informations complémentaires"
-                className="min-h-0 flex-1 resize-none rounded-2xl"
-                maxLength={500}
-                placeholder="Informations complémentaires : numéro de vol, étage, précisions…"
-                value={form.comment}
-                onChange={(e) => setForm({ ...form, comment: e.target.value })}
-              />
             </>
           ) : null}
 
+
           {step >= 2 && estimate ? (
             <>
-              <RouteMiniMap polyline={estimate.polyline} className="min-h-24 flex-1" />
+              <LiveDriversMap polyline={estimate.polyline} className="min-h-24 flex-1" />
 
               <div className="animate-scale-in flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-accent px-3 py-2">
                 <div>

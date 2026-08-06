@@ -15,8 +15,15 @@ function makeDrivers(center: { lat: number; lng: number }, count: number): FakeD
   }));
 }
 
-/** Carte d'ambiance : position du client + chauffeurs fictifs qui circulent autour. */
-export function LiveDriversMap({ className }: { className?: string }) {
+/** Carte d'ambiance : position du client + chauffeurs fictifs qui circulent autour.
+ *  Avec `polyline`, elle affiche en plus l'itinéraire A → B du trajet. */
+export function LiveDriversMap({
+  className,
+  polyline,
+}: {
+  className?: string;
+  polyline?: string;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -30,40 +37,63 @@ export function LiveDriversMap({ className }: { className?: string }) {
         .then(() => {
           if (cancelled || !ref.current || !window.google) return;
           const maps = window.google.maps;
+          const path: any[] = polyline
+            ? maps.geometry.encoding.decodePath(polyline)
+            : [];
+          if (path.length) {
+            center = { lat: path[0].lat(), lng: path[0].lng() };
+          }
           const map = new maps.Map(ref.current, {
             disableDefaultUI: true,
-            gestureHandling: "none",
+            gestureHandling: polyline ? "cooperative" : "none",
             keyboardShortcuts: false,
             zoom: 14,
             center,
             styles: RELINK_MAP_STYLE,
           });
 
-          // Halo de position du client
-          new maps.Circle({
-            map,
-            center,
-            radius: 260,
-            strokeColor: "#00a86b",
-            strokeOpacity: 0.35,
-            strokeWeight: 1,
-            fillColor: "#00a86b",
-            fillOpacity: 0.12,
-          });
-          new maps.Marker({
-            map,
-            position: center,
-            title: "Vous êtes ici",
-            icon: {
-              path: maps.SymbolPath.CIRCLE,
-              scale: 7,
+          if (path.length) {
+            new maps.Polyline({
+              path,
+              map,
+              strokeColor: "#00a86b",
+              strokeWeight: 5,
+              strokeOpacity: 0.95,
+            });
+            const bounds = new maps.LatLngBounds();
+            path.forEach((p: any) => bounds.extend(p));
+            map.fitBounds(bounds, 32);
+            new maps.Marker({ position: path[0], map, label: "A" });
+            new maps.Marker({ position: path[path.length - 1], map, label: "B" });
+          }
+
+          if (!path.length) {
+            // Halo de position du client
+            new maps.Circle({
+              map,
+              center,
+              radius: 260,
+              strokeColor: "#00a86b",
+              strokeOpacity: 0.35,
+              strokeWeight: 1,
               fillColor: "#00a86b",
-              fillOpacity: 1,
-              strokeColor: "#ffffff",
-              strokeWeight: 3,
-            },
-            zIndex: 50,
-          });
+              fillOpacity: 0.12,
+            });
+            new maps.Marker({
+              map,
+              position: center,
+              title: "Vous êtes ici",
+              icon: {
+                path: maps.SymbolPath.CIRCLE,
+                scale: 7,
+                fillColor: "#00a86b",
+                fillOpacity: 1,
+                strokeColor: "#ffffff",
+                strokeWeight: 3,
+              },
+              zIndex: 50,
+            });
+          }
 
           const drivers = makeDrivers(center, 5);
           const markers = drivers.map(
@@ -112,7 +142,7 @@ export function LiveDriversMap({ className }: { className?: string }) {
       cancelled = true;
       if (timer) clearInterval(timer);
     };
-  }, []);
+  }, [polyline]);
 
   if (error) {
     return (
@@ -129,7 +159,7 @@ export function LiveDriversMap({ className }: { className?: string }) {
       <div ref={ref} className="size-full" />
       {!ready ? <div className="absolute inset-0 animate-pulse bg-muted" /> : null}
       <div className="animate-fade-in pointer-events-none absolute bottom-2 left-2 rounded-full bg-card/90 px-2.5 py-1 text-[11px] font-semibold shadow-sm backdrop-blur">
-        Chauffeurs autour de vous
+        {polyline ? "Votre itinéraire" : "Chauffeurs autour de vous"}
       </div>
     </div>
   );
