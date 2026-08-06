@@ -245,11 +245,19 @@ function DriverPublicPage() {
             </>
           ) : (
             <>
-              <Button className="w-full" onClick={addDriver} disabled={adding}>
-                <UserPlus className="size-4" /> Ajouter à mes chauffeurs
+              <Button className="w-full" onClick={() => addDriver("signup")} disabled={adding}>
+                <UserPlus className="size-4" />{" "}
+                {session ? "Ajouter à mes chauffeurs" : "Créer un compte et ajouter"}
               </Button>
+              {!session ? (
+                <Button variant="outline" className="w-full" onClick={() => addDriver("signin")}>
+                  J'ai déjà un compte — me connecter
+                </Button>
+              ) : null}
               <p className="text-center text-xs text-muted-foreground">
-                Vous pourrez lui envoyer une demande de trajet une fois ajouté.
+                {session
+                  ? "Vous pourrez lui envoyer une demande de trajet une fois ajouté."
+                  : "Un compte est nécessaire pour ajouter ce chauffeur ; il sera ajouté automatiquement après connexion."}
               </p>
             </>
           )}
