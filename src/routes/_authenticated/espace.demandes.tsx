@@ -339,7 +339,7 @@ function ClientRequests() {
                 </span>
                 <select
                   aria-label="Chauffeur"
-                  className="h-9 w-full appearance-none bg-transparent text-sm focus:outline-none"
+                  className="h-11 w-full appearance-none bg-transparent text-[15px] font-medium focus:outline-none"
                   value={form.driver_id}
                   onChange={(e) => {
                     const id = e.target.value;
@@ -357,7 +357,8 @@ function ClientRequests() {
                 </select>
               </div>
 
-              <div className="rounded-2xl border border-border bg-card px-3 py-2">
+              <div className="tap rounded-2xl border border-border bg-card px-3.5 py-3 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+
                 <AddressAutocomplete
                   bare
                   label="Lieu de départ"
