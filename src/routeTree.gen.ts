@@ -43,6 +43,7 @@ import { Route as AuthenticatedProVehiculeRouteImport } from './routes/_authenti
 import { Route as AuthenticatedProVerificationRouteImport } from './routes/_authenticated/pro.verification'
 import { Route as AuthenticatedEspaceCoursesIndexRouteImport } from './routes/_authenticated/espace.courses.index'
 import { Route as AuthenticatedEspaceCoursesRideIdRouteImport } from './routes/_authenticated/espace.courses.$rideId'
+import { Route as AuthenticatedEspaceCoursesAnnuleesRouteImport } from './routes/_authenticated/espace.courses.annulees'
 import { Route as AuthenticatedEspaceCoursesTermineesRouteImport } from './routes/_authenticated/espace.courses.terminees'
 import { Route as AuthenticatedEspaceSuiviIdRouteImport } from './routes/_authenticated/espace.suivi.$id'
 
@@ -235,6 +236,12 @@ const AuthenticatedEspaceCoursesRideIdRoute =
     path: '/$rideId',
     getParentRoute: () => AuthenticatedEspaceCoursesRoute,
   } as any)
+const AuthenticatedEspaceCoursesAnnuleesRoute =
+  AuthenticatedEspaceCoursesAnnuleesRouteImport.update({
+    id: '/annulees',
+    path: '/annulees',
+    getParentRoute: () => AuthenticatedEspaceCoursesRoute,
+  } as any)
 const AuthenticatedEspaceCoursesTermineesRoute =
   AuthenticatedEspaceCoursesTermineesRouteImport.update({
     id: '/terminees',
@@ -281,6 +288,7 @@ export interface FileRoutesByFullPath {
   '/espace/': typeof AuthenticatedEspaceIndexRoute
   '/pro/': typeof AuthenticatedProIndexRoute
   '/espace/courses/$rideId': typeof AuthenticatedEspaceCoursesRideIdRoute
+  '/espace/courses/annulees': typeof AuthenticatedEspaceCoursesAnnuleesRoute
   '/espace/courses/terminees': typeof AuthenticatedEspaceCoursesTermineesRoute
   '/espace/suivi/$id': typeof AuthenticatedEspaceSuiviIdRoute
   '/espace/courses/': typeof AuthenticatedEspaceCoursesIndexRoute
@@ -314,6 +322,7 @@ export interface FileRoutesByTo {
   '/espace': typeof AuthenticatedEspaceIndexRoute
   '/pro': typeof AuthenticatedProIndexRoute
   '/espace/courses/$rideId': typeof AuthenticatedEspaceCoursesRideIdRoute
+  '/espace/courses/annulees': typeof AuthenticatedEspaceCoursesAnnuleesRoute
   '/espace/courses/terminees': typeof AuthenticatedEspaceCoursesTermineesRoute
   '/espace/suivi/$id': typeof AuthenticatedEspaceSuiviIdRoute
   '/espace/courses': typeof AuthenticatedEspaceCoursesIndexRoute
@@ -353,6 +362,7 @@ export interface FileRoutesById {
   '/_authenticated/espace/': typeof AuthenticatedEspaceIndexRoute
   '/_authenticated/pro/': typeof AuthenticatedProIndexRoute
   '/_authenticated/espace/courses/$rideId': typeof AuthenticatedEspaceCoursesRideIdRoute
+  '/_authenticated/espace/courses/annulees': typeof AuthenticatedEspaceCoursesAnnuleesRoute
   '/_authenticated/espace/courses/terminees': typeof AuthenticatedEspaceCoursesTermineesRoute
   '/_authenticated/espace/suivi/$id': typeof AuthenticatedEspaceSuiviIdRoute
   '/_authenticated/espace/courses/': typeof AuthenticatedEspaceCoursesIndexRoute
@@ -392,6 +402,7 @@ export interface FileRouteTypes {
     | '/espace/'
     | '/pro/'
     | '/espace/courses/$rideId'
+    | '/espace/courses/annulees'
     | '/espace/courses/terminees'
     | '/espace/suivi/$id'
     | '/espace/courses/'
@@ -425,6 +436,7 @@ export interface FileRouteTypes {
     | '/espace'
     | '/pro'
     | '/espace/courses/$rideId'
+    | '/espace/courses/annulees'
     | '/espace/courses/terminees'
     | '/espace/suivi/$id'
     | '/espace/courses'
@@ -463,6 +475,7 @@ export interface FileRouteTypes {
     | '/_authenticated/espace/'
     | '/_authenticated/pro/'
     | '/_authenticated/espace/courses/$rideId'
+    | '/_authenticated/espace/courses/annulees'
     | '/_authenticated/espace/courses/terminees'
     | '/_authenticated/espace/suivi/$id'
     | '/_authenticated/espace/courses/'
@@ -717,6 +730,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEspaceCoursesRideIdRouteImport
       parentRoute: typeof AuthenticatedEspaceCoursesRoute
     }
+    '/_authenticated/espace/courses/annulees': {
+      id: '/_authenticated/espace/courses/annulees'
+      path: '/annulees'
+      fullPath: '/espace/courses/annulees'
+      preLoaderRoute: typeof AuthenticatedEspaceCoursesAnnuleesRouteImport
+      parentRoute: typeof AuthenticatedEspaceCoursesRoute
+    }
     '/_authenticated/espace/courses/terminees': {
       id: '/_authenticated/espace/courses/terminees'
       path: '/terminees'
@@ -755,6 +775,7 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedEspaceCoursesRouteChildren {
   AuthenticatedEspaceCoursesRideIdRoute: typeof AuthenticatedEspaceCoursesRideIdRoute
+  AuthenticatedEspaceCoursesAnnuleesRoute: typeof AuthenticatedEspaceCoursesAnnuleesRoute
   AuthenticatedEspaceCoursesTermineesRoute: typeof AuthenticatedEspaceCoursesTermineesRoute
   AuthenticatedEspaceCoursesIndexRoute: typeof AuthenticatedEspaceCoursesIndexRoute
 }
@@ -763,6 +784,8 @@ const AuthenticatedEspaceCoursesRouteChildren: AuthenticatedEspaceCoursesRouteCh
   {
     AuthenticatedEspaceCoursesRideIdRoute:
       AuthenticatedEspaceCoursesRideIdRoute,
+    AuthenticatedEspaceCoursesAnnuleesRoute:
+      AuthenticatedEspaceCoursesAnnuleesRoute,
     AuthenticatedEspaceCoursesTermineesRoute:
       AuthenticatedEspaceCoursesTermineesRoute,
     AuthenticatedEspaceCoursesIndexRoute: AuthenticatedEspaceCoursesIndexRoute,
