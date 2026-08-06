@@ -12,7 +12,9 @@ import {
   Car,
   Clock,
   ChevronRight,
+  Power,
 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useDriverProfile, useMyVehicle, useMyDocuments } from "@/lib/driver-queries";
