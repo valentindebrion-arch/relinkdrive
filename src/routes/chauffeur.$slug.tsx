@@ -22,6 +22,11 @@ import {
   Music2,
   Phone,
   PlugZap,
+  Quote,
+  Star,
+  ThumbsUp,
+  UserRound,
+  ChevronRight,
   ShieldCheck,
   Snowflake,
   Sparkles,
@@ -261,91 +266,183 @@ function DriverPublicPage() {
     </Button>
   );
 
+  const experienceLabel = memberSince ? `Depuis ${memberSince}` : "Nouveau";
+  const vehicleLabel = [d.vehicle_brand, d.vehicle_model].filter(Boolean).join(" ") || "Véhicule";
+  const vehicleSub = [d.vehicle_color, d.vehicle_category].filter(Boolean).join(" • ") || "Berline";
+
+  const reviews: { name: string; date: string; stars: number; text: string }[] = [];
+  const ratingAvg = null as number | null;
+  const ratingCount = reviews.length;
+  const distribution = [5, 4, 3, 2, 1].map((s) => ({
+    stars: s,
+    count: reviews.filter((r) => r.stars === s).length,
+  }));
+
   return (
     <div className="min-h-screen bg-muted/30 pb-28 sm:pb-10">
-      <div className="mx-auto max-w-lg space-y-4 px-4 py-6">
+      <div className="mx-auto max-w-lg space-y-3 px-4 py-6">
         <p className="text-center text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {BRAND.name}
         </p>
 
         {/* 1. En-tête */}
-        <section className="surface overflow-hidden">
-          <div className="flex items-center gap-4 p-5">
-            {d.avatar_url ? (
-              <img src={d.avatar_url} alt={firstName} className="size-20 rounded-full object-cover" />
-            ) : (
-              <div className="flex size-20 items-center justify-center rounded-full bg-accent text-2xl font-semibold text-accent-foreground">
-                {firstName.charAt(0)}
-              </div>
-            )}
-            <div className="min-w-0">
-              <h1 className="text-xl font-semibold">
-                {firstName}
-                {lastInitial ? ` ${lastInitial}.` : ""}, votre chauffeur de confiance
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                {d.business_name ?? "Chauffeur VTC indépendant"}
-              </p>
-              <p className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary">
+        <section className="space-y-4 pt-1">
+          <div className="flex items-start gap-4">
+            <div className="relative shrink-0">
+              {d.avatar_url ? (
+                <img src={d.avatar_url} alt={firstName} className="size-24 rounded-full object-cover" />
+              ) : (
+                <div className="flex size-24 items-center justify-center rounded-full bg-accent text-3xl font-semibold text-accent-foreground">
+                  {firstName.charAt(0)}
+                </div>
+              )}
+              <span
+                className={`absolute right-1 bottom-1 size-5 rounded-full border-2 border-background ${accepting ? "bg-primary" : "bg-muted-foreground"}`}
+              />
+            </div>
+            <div className="min-w-0 pt-1">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                 <BadgeCheck className="size-4" /> Chauffeur vérifié
+              </span>
+              <h1 className="mt-2 truncate text-3xl font-black tracking-tight">
+                {firstName}
+                {lastInitial ? ` ${lastInitial}.` : ""}
+              </h1>
+              <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Star className="size-4 fill-warning text-warning" />
+                <span className="font-semibold text-foreground">
+                  {ratingAvg ? ratingAvg.toFixed(2) : "Nouveau"}
+                </span>
+                {ratingCount ? <span>• {ratingCount} avis</span> : null}
               </p>
             </div>
           </div>
-          {d.city || d.zone ? (
-            <p className="flex items-center gap-2 border-t border-border px-5 py-3 text-sm text-muted-foreground">
-              <MapPin className="size-4 text-primary" />
-              Chauffeur professionnel vérifié à {d.city ?? "votre ville"}
-              {d.zone ? ` et ${d.zone}` : " et dans ses alentours"}
-            </p>
-          ) : null}
-          {vehiclePhoto ? (
-            <img src={vehiclePhoto} alt="Véhicule" className="h-48 w-full object-cover" />
-          ) : null}
-          {d.vehicle_brand || d.vehicle_model ? (
-            <p className="flex items-center gap-2 border-t border-border px-5 py-3 text-sm">
-              <Car className="size-4 text-primary" />
-              {[d.vehicle_brand, d.vehicle_model].filter(Boolean).join(" ")}
-            </p>
-          ) : null}
 
-          <div className="space-y-2 border-t border-border p-5">
-            {!accepting ? (
-              <p className="rounded-lg bg-muted p-3 text-center text-sm text-muted-foreground">
-                Ce chauffeur n'accepte actuellement pas de nouvelles demandes.
-              </p>
-            ) : null}
-            {primaryAction}
-            {connected ? (
-              <>
-                <p className="text-center text-sm text-primary">
-                  {firstName} fait partie de vos chauffeurs de confiance.
-                </p>
-                <Button asChild variant="outline" className="w-full">
-                  <Link to="/espace/chauffeurs">Voir dans mes chauffeurs</Link>
-                </Button>
-              </>
-            ) : (
-              <>
-                {!session ? (
-                  <Button variant="outline" className="w-full" onClick={() => startAdd("signin")}>
-                    J'ai déjà un compte — me connecter
-                  </Button>
-                ) : null}
-                <p className="text-center text-xs text-muted-foreground">
-                  Retrouvez facilement {firstName} pour vos prochains déplacements. Vous restez libre de le
-                  retirer de votre carnet à tout moment.
-                </p>
-              </>
-            )}
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { icon: UserRound, title: experienceLabel, sub: "Expérience" },
+              { icon: MapPin, title: d.city ?? "—", sub: "Zone d'activité" },
+              { icon: Car, title: vehicleLabel, sub: vehicleSub },
+            ].map((s) => (
+              <div key={s.sub} className="surface min-w-0 p-3">
+                <span className="grid size-8 place-items-center rounded-full bg-primary/10 text-primary">
+                  <s.icon className="size-4" />
+                </span>
+                <p className="mt-2 truncate text-sm font-bold">{s.title}</p>
+                <p className="truncate text-xs text-muted-foreground">{s.sub}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-3 rounded-2xl bg-primary/10 p-4">
+            <ShieldCheck className="size-7 shrink-0 text-primary" />
+            <div className="min-w-0 flex-1">
+              <p className="font-bold">Chauffeur professionnel vérifié</p>
+              <p className="text-sm text-muted-foreground">Identité, permis et assurance contrôlés.</p>
+            </div>
+            <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
           </div>
         </section>
 
         {/* 2. Présentation */}
         {d.public_intro || d.bio ? (
-          <Section title={`Bonjour, je suis ${firstName}`}>
-            <p className="whitespace-pre-line text-muted-foreground">{d.public_intro ?? d.bio}</p>
+          <Section title={`À propos de ${firstName}`}>
+            <p className="flex gap-2 whitespace-pre-line text-muted-foreground">
+              <Quote className="size-4 shrink-0 fill-primary text-primary" />
+              {d.public_intro ?? d.bio}
+            </p>
+            <div className="mt-4 grid grid-cols-2 gap-3 border-t border-border pt-4 sm:grid-cols-3">
+              {[
+                {
+                  icon: Languages,
+                  label: "Langues",
+                  value: (d.languages ?? []).join(", ") || "Français",
+                },
+                {
+                  icon: Star,
+                  label: "Note moyenne",
+                  value: ratingAvg ? `${ratingAvg.toFixed(2)}/5` : "Pas encore noté",
+                },
+                {
+                  icon: ThumbsUp,
+                  label: "Apprécié pour",
+                  value: (d.services ?? []).slice(0, 2).join(", ") || "Ponctualité",
+                },
+              ].map((m) => (
+                <div key={m.label} className="flex min-w-0 items-center gap-2">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+                    <m.icon className="size-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground">{m.label}</p>
+                    <p className="truncate text-sm font-semibold">{m.value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </Section>
         ) : null}
+
+        {/* 2 ter. Note et avis */}
+        <Section title="Avis des passagers">
+          {ratingCount ? (
+            <>
+              <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-5">
+                <div className="text-center">
+                  <p className="text-4xl font-black">
+                    {ratingAvg?.toFixed(2)}
+                    <span className="text-base font-medium text-muted-foreground"> /5</span>
+                  </p>
+                  <div className="mt-1 flex justify-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Star key={i} className="size-4 fill-primary text-primary" />
+                    ))}
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">Basé sur {ratingCount} avis</p>
+                </div>
+                <div className="space-y-1.5 border-l border-border pl-5">
+                  {distribution.map((r) => (
+                    <div key={r.stars} className="flex items-center gap-2 text-xs">
+                      <span className="w-8 shrink-0 text-muted-foreground">{r.stars} ★</span>
+                      <span className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-muted">
+                        <span
+                          className="block h-full rounded-full bg-primary"
+                          style={{ width: `${ratingCount ? (r.count / ratingCount) * 100 : 0}%` }}
+                        />
+                      </span>
+                      <span className="w-8 shrink-0 text-right text-muted-foreground">{r.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {reviews.slice(0, 2).map((r) => (
+                  <div key={r.name} className="rounded-2xl bg-muted/60 p-4">
+                    <p className="font-semibold">{r.name}</p>
+                    <p className="text-xs text-muted-foreground">{r.date}</p>
+                    <div className="mt-1 flex gap-0.5">
+                      {Array.from({ length: r.stars }).map((_, i) => (
+                        <Star key={i} className="size-3.5 fill-primary text-primary" />
+                      ))}
+                    </div>
+                    <p className="mt-2 text-sm text-muted-foreground">{r.text}</p>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="rounded-2xl bg-muted/60 p-5 text-center">
+              <div className="mx-auto grid size-10 place-items-center rounded-full bg-primary/10 text-primary">
+                <Star className="size-5" />
+              </div>
+              <p className="mt-2 font-semibold">Pas encore d'avis</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Les avis apparaîtront ici après les premiers trajets réalisés avec {firstName}.
+              </p>
+            </div>
+          )}
+        </Section>
+
 
         {/* 2 bis. Contact et réseaux (uniquement ce que le chauffeur a rendu public) */}
         {publicPhone || whatsapp || socials.length ? (
