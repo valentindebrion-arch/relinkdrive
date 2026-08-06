@@ -26,6 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { formatDateTime, formatEuro } from "@/lib/labels";
 import { RouteMiniMap } from "@/components/RouteMiniMap";
+import { LiveDriversMap } from "@/components/LiveDriversMap";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { estimateRoute, reverseGeocode } from "@/lib/route-estimate.functions";
 import { Button } from "@/components/ui/button";
@@ -114,7 +115,12 @@ function ClientRequests() {
   const estimateFn = useServerFn(estimateRoute);
   const geocodeFn = useServerFn(reverseGeocode);
 
-  const [step, setStep] = useState(0);
+  const [step, setStepRaw] = useState(0);
+  const [dir, setDir] = useState<1 | -1>(1);
+  const setStep = (n: number) => {
+    setDir(n >= step ? 1 : -1);
+    setStepRaw(n);
+  };
   const [busy, setBusy] = useState(false);
   const [locating, setLocating] = useState(false);
   const [pickupOk, setPickupOk] = useState(false);
@@ -314,21 +320,27 @@ function ClientRequests() {
       </div>
 
       <div className="mx-auto flex w-full max-w-2xl min-h-0 flex-1 flex-col px-3 pb-2">
-        <div className="shrink-0">
-          <h2 className="text-lg font-extrabold tracking-tight">{heading.title}</h2>
+        <div key={`h-${step}`} className="rise-in shrink-0">
+          <h2 className="text-xl font-extrabold tracking-tight">{heading.title}</h2>
           <p className="text-xs text-muted-foreground">{heading.sub}</p>
         </div>
 
-        <div key={step} className="animate-fade-in mt-2 flex min-h-0 flex-1 flex-col gap-2.5 overflow-hidden">
+        <div
+          key={step}
+          className={cn(
+            "mt-2.5 flex min-h-0 flex-1 flex-col gap-3 overflow-hidden",
+            dir === 1 ? "step-in-right" : "step-in-left",
+          )}
+        >
           {step === 0 ? (
             <>
-              <div className="flex items-center gap-2.5 rounded-2xl border border-border bg-card px-3 py-2">
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <UserRound className="size-4" />
+              <div className="tap tap-active flex items-center gap-2.5 rounded-2xl border border-border bg-card px-3.5 py-2.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <UserRound className="size-4.5" />
                 </span>
                 <select
                   aria-label="Chauffeur"
-                  className="h-9 w-full appearance-none bg-transparent text-sm focus:outline-none"
+                  className="h-11 w-full appearance-none bg-transparent text-[15px] font-medium focus:outline-none"
                   value={form.driver_id}
                   onChange={(e) => {
                     const id = e.target.value;
@@ -346,7 +358,8 @@ function ClientRequests() {
                 </select>
               </div>
 
-              <div className="rounded-2xl border border-border bg-card px-3 py-2">
+              <div className="tap rounded-2xl border border-border bg-card px-3.5 py-3 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+
                 <AddressAutocomplete
                   bare
                   label="Lieu de départ"
@@ -403,7 +416,7 @@ function ClientRequests() {
                 />
               </div>
 
-              <div>
+              <div className="shrink-0">
                 <SectionTitle>Date et heure</SectionTitle>
                 <div className="grid grid-cols-2 gap-2">
                   {(
@@ -422,7 +435,7 @@ function ClientRequests() {
                         disabled={disabled}
                         onClick={() => setWhenMode(o.key)}
                         className={cn(
-                          "flex items-center justify-center gap-2 rounded-2xl border py-2.5 text-sm font-medium transition-all",
+                          "tap tap-active flex items-center justify-center gap-2 rounded-2xl border py-3.5 text-[15px] font-semibold",
                           disabled
                             ? "cursor-not-allowed border-border bg-muted text-muted-foreground opacity-60"
                             : on
@@ -430,7 +443,7 @@ function ClientRequests() {
                               : "border-border bg-card text-foreground",
                         )}
                       >
-                        <Icon className="size-4" /> {o.label}
+                        <Icon className={cn("size-4.5", on && "animate-scale-in")} /> {o.label}
                       </button>
                     );
                   })}
@@ -439,59 +452,71 @@ function ClientRequests() {
                   <Input
                     aria-label="Date et heure du départ"
                     type="datetime-local"
-                    className="animate-fade-in mt-2 h-11 rounded-2xl"
+                    className="rise-in mt-2 h-12 rounded-2xl text-[15px]"
                     value={form.scheduled_at}
                     onChange={(e) => setForm({ ...form, scheduled_at: e.target.value })}
                   />
-                ) : (
-                  <p className="mt-1.5 text-[11px] text-muted-foreground">
-                    Départ dès que possible — le chauffeur peut proposer un autre horaire.
-                  </p>
-                )}
+                ) : null}
                 {!driverAvailable && form.driver_id ? (
-                  <p className="mt-1 text-[11px] text-muted-foreground">
+                  <p className="rise-in mt-1 text-[11px] text-muted-foreground">
                     Chauffeur indisponible : réservation « plus tard » uniquement.
                   </p>
                 ) : null}
               </div>
+
+              <LiveDriversMap className="min-h-28 flex-1" />
             </>
           ) : null}
 
           {step === 1 ? (
             <>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-2xl border border-border bg-card px-3 py-2">
-                  <Label htmlFor="pa" className="flex items-center gap-1.5 text-xs font-bold">
-                    <Users className="size-3.5 text-primary" /> Passagers
-                  </Label>
-                  <Input
-                    id="pa"
-                    type="number"
-                    min="1"
-                    max="8"
-                    className="mt-1 h-9 rounded-xl"
-                    value={form.passengers}
-                    onChange={(e) => setForm({ ...form, passengers: e.target.value })}
-                  />
-                </div>
-                <div className="rounded-2xl border border-border bg-card px-3 py-2">
-                  <Label htmlFor="lu" className="flex items-center gap-1.5 text-xs font-bold">
-                    <Luggage className="size-3.5 text-primary" /> Bagages
-                  </Label>
-                  <Input
-                    id="lu"
-                    type="number"
-                    min="0"
-                    max="10"
-                    className="mt-1 h-9 rounded-xl"
-                    value={form.luggage}
-                    onChange={(e) => setForm({ ...form, luggage: e.target.value })}
-                  />
-                </div>
+              <div className="grid grid-cols-2 gap-2.5">
+                {(
+                  [
+                    { key: "passengers", label: "Passagers", icon: Users, min: 1, max: 8 },
+                    { key: "luggage", label: "Bagages", icon: Luggage, min: 0, max: 10 },
+                  ] as const
+                ).map((f) => {
+                  const Icon = f.icon;
+                  const val = Number(form[f.key]) || 0;
+                  const set = (n: number) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      [f.key]: String(Math.min(f.max, Math.max(f.min, n))),
+                    }));
+                  return (
+                    <div key={f.key} className="tap rounded-2xl border border-border bg-card px-3 py-3">
+                      <p className="flex items-center gap-1.5 text-xs font-bold">
+                        <Icon className="size-3.5 text-primary" /> {f.label}
+                      </p>
+                      <div className="mt-2 flex items-center justify-between">
+                        <button
+                          type="button"
+                          aria-label={`Moins de ${f.label}`}
+                          onClick={() => set(val - 1)}
+                          className="tap tap-active flex size-9 items-center justify-center rounded-xl bg-muted text-lg font-bold hover:bg-accent"
+                        >
+                          −
+                        </button>
+                        <span key={val} className="animate-scale-in text-xl font-extrabold">
+                          {val}
+                        </span>
+                        <button
+                          type="button"
+                          aria-label={`Plus de ${f.label}`}
+                          onClick={() => set(val + 1)}
+                          className="tap tap-active flex size-9 items-center justify-center rounded-xl bg-primary/10 text-lg font-bold text-primary hover:bg-primary/20"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
-              <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-3 py-2.5">
-                <Label htmlFor="rt" className="text-[13px] font-bold">
+              <div className="tap flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-3.5 py-3">
+                <Label htmlFor="rt" className="text-[14px] font-bold">
                   Aller-retour
                 </Label>
                 <Switch
@@ -503,7 +528,7 @@ function ClientRequests() {
 
               <Input
                 aria-label="Type de trajet"
-                className="h-11 rounded-2xl"
+                className="h-12 rounded-2xl text-[15px]"
                 maxLength={60}
                 placeholder="Type de trajet : aéroport, gare, événement…"
                 value={form.trip_type}
@@ -512,7 +537,7 @@ function ClientRequests() {
 
               <Input
                 aria-label="Besoins particuliers"
-                className="h-11 rounded-2xl"
+                className="h-12 rounded-2xl text-[15px]"
                 maxLength={200}
                 placeholder="Besoins particuliers : siège enfant, PMR…"
                 value={form.special_needs}

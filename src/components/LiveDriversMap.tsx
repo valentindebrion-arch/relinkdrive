@@ -1,0 +1,136 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useEffect, useRef, useState } from "react";
+import { CAR_SVG, RELINK_MAP_STYLE, loadMaps } from "@/lib/google-maps";
+
+const FALLBACK = { lat: 45.7772, lng: 3.087 }; // Clermont-Ferrand
+
+type FakeDriver = { lat: number; lng: number; heading: number; speed: number };
+
+function makeDrivers(center: { lat: number; lng: number }, count: number): FakeDriver[] {
+  return Array.from({ length: count }, (_, i) => ({
+    lat: center.lat + (Math.random() - 0.5) * 0.014,
+    lng: center.lng + (Math.random() - 0.5) * 0.02,
+    heading: (i * 360) / count + Math.random() * 40,
+    speed: 0.00007 + Math.random() * 0.00009,
+  }));
+}
+
+/** Carte d'ambiance : position du client + chauffeurs fictifs qui circulent autour. */
+export function LiveDriversMap({ className }: { className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    let timer: ReturnType<typeof setInterval> | undefined;
+
+    const start = (center: { lat: number; lng: number }) => {
+      loadMaps()
+        .then(() => {
+          if (cancelled || !ref.current || !window.google) return;
+          const maps = window.google.maps;
+          const map = new maps.Map(ref.current, {
+            disableDefaultUI: true,
+            gestureHandling: "none",
+            keyboardShortcuts: false,
+            zoom: 14,
+            center,
+            styles: RELINK_MAP_STYLE,
+          });
+
+          // Halo de position du client
+          new maps.Circle({
+            map,
+            center,
+            radius: 260,
+            strokeColor: "#00a86b",
+            strokeOpacity: 0.35,
+            strokeWeight: 1,
+            fillColor: "#00a86b",
+            fillOpacity: 0.12,
+          });
+          new maps.Marker({
+            map,
+            position: center,
+            title: "Vous êtes ici",
+            icon: {
+              path: maps.SymbolPath.CIRCLE,
+              scale: 7,
+              fillColor: "#00a86b",
+              fillOpacity: 1,
+              strokeColor: "#ffffff",
+              strokeWeight: 3,
+            },
+            zIndex: 50,
+          });
+
+          const drivers = makeDrivers(center, 5);
+          const markers = drivers.map(
+            (d) =>
+              new maps.Marker({
+                map,
+                position: { lat: d.lat, lng: d.lng },
+                icon: {
+                  url: `data:image/svg+xml;charset=UTF-8,${CAR_SVG}`,
+                  scaledSize: new maps.Size(30, 30),
+                  anchor: new maps.Point(15, 15),
+                },
+              }),
+          );
+
+          setReady(true);
+
+          timer = setInterval(() => {
+            drivers.forEach((d, i) => {
+              d.heading += (Math.random() - 0.5) * 26;
+              const rad = (d.heading * Math.PI) / 180;
+              d.lat += Math.cos(rad) * d.speed;
+              d.lng += Math.sin(rad) * d.speed * 1.4;
+              // Reste dans la zone autour du client
+              if (Math.abs(d.lat - center.lat) > 0.012) d.heading += 180;
+              if (Math.abs(d.lng - center.lng) > 0.018) d.heading += 180;
+              markers[i]!.setPosition({ lat: d.lat, lng: d.lng });
+            });
+          }, 900);
+        })
+        .catch((e: Error) => !cancelled && setError(e.message));
+    };
+
+    if (typeof navigator !== "undefined" && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) =>
+          !cancelled && start({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => !cancelled && start(FALLBACK),
+        { timeout: 6000 },
+      );
+    } else {
+      start(FALLBACK);
+    }
+
+    return () => {
+      cancelled = true;
+      if (timer) clearInterval(timer);
+    };
+  }, []);
+
+  if (error) {
+    return (
+      <div
+        className={`flex items-center justify-center rounded-2xl border border-border bg-muted text-xs text-muted-foreground ${className ?? "h-40"}`}
+      >
+        Aperçu de carte indisponible
+      </div>
+    );
+  }
+
+  return (
+    <div className={`relative overflow-hidden rounded-2xl border border-border ${className ?? "h-40"}`}>
+      <div ref={ref} className="size-full" />
+      {!ready ? <div className="absolute inset-0 animate-pulse bg-muted" /> : null}
+      <div className="animate-fade-in pointer-events-none absolute bottom-2 left-2 rounded-full bg-card/90 px-2.5 py-1 text-[11px] font-semibold shadow-sm backdrop-blur">
+        Chauffeurs autour de vous
+      </div>
+    </div>
+  );
+}

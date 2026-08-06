@@ -1,51 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
-type MapsNamespace = any;
-
-declare global {
-  interface Window {
-    google?: { maps: MapsNamespace };
-    __relinkMapsReady?: Promise<void>;
-  }
-}
-
-// Palette carte alignée sur l'identité verte du projet
-const RELINK_MAP_STYLE = [
-  { elementType: "geometry", stylers: [{ color: "#f2f7f4" }] },
-  { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
-  { elementType: "labels.text.fill", stylers: [{ color: "#5b6b64" }] },
-  { elementType: "labels.text.stroke", stylers: [{ color: "#ffffff" }] },
-  { featureType: "administrative", elementType: "geometry", stylers: [{ color: "#d8e6de" }] },
-  { featureType: "poi", stylers: [{ visibility: "off" }] },
-  { featureType: "landscape.natural", elementType: "geometry", stylers: [{ color: "#e8f2eb" }] },
-  { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
-  { featureType: "road.arterial", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
-  { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#d6f0e2" }] },
-  { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#b6e3cd" }] },
-  { featureType: "transit", stylers: [{ visibility: "off" }] },
-  { featureType: "water", elementType: "geometry", stylers: [{ color: "#c8e6dd" }] },
-];
-
-function loadMaps(): Promise<void> {
-  if (typeof window === "undefined") return Promise.reject(new Error("no window"));
-  if (window.__relinkMapsReady) return window.__relinkMapsReady;
-  const key = import.meta.env["VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY"] as string | undefined;
-  const channel = import.meta.env["VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_TRACKING_ID"] as string | undefined;
-  if (!key) return Promise.reject(new Error("Clé cartographie manquante"));
-  window.__relinkMapsReady = new Promise<void>((resolve, reject) => {
-    const cbName = "__relinkMapsInit";
-    (window as unknown as Record<string, unknown>)[cbName] = () => resolve();
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&loading=async&libraries=geometry&callback=${cbName}${
-      channel ? `&channel=${channel}` : ""
-    }`;
-    script.async = true;
-    script.onerror = () => reject(new Error("Chargement de la carte impossible"));
-    document.head.appendChild(script);
-  });
-  return window.__relinkMapsReady;
-}
+import { useEffect, useRef, useState } from "react";
+import { RELINK_MAP_STYLE, loadMaps } from "@/lib/google-maps";
 
 export function RouteMiniMap({ polyline, className }: { polyline: string; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
