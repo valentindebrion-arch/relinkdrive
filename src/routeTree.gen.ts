@@ -10,33 +10,295 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedEspaceRouteImport } from './routes/_authenticated/espace'
+import { Route as AuthenticatedProRouteImport } from './routes/_authenticated/pro'
+import { Route as ChauffeurSlugRouteImport } from './routes/chauffeur.$slug'
+import { Route as AuthenticatedEspaceIndexRouteImport } from './routes/_authenticated/espace.index'
+import { Route as AuthenticatedEspaceChauffeursRouteImport } from './routes/_authenticated/espace.chauffeurs'
+import { Route as AuthenticatedEspaceDemandesRouteImport } from './routes/_authenticated/espace.demandes'
+import { Route as AuthenticatedProIndexRouteImport } from './routes/_authenticated/pro.index'
+import { Route as AuthenticatedProActiviteRouteImport } from './routes/_authenticated/pro.activite'
+import { Route as AuthenticatedProAssistantRouteImport } from './routes/_authenticated/pro.assistant'
+import { Route as AuthenticatedProClientsRouteImport } from './routes/_authenticated/pro.clients'
+import { Route as AuthenticatedProCoursesRouteImport } from './routes/_authenticated/pro.courses'
+import { Route as AuthenticatedProDemandesRouteImport } from './routes/_authenticated/pro.demandes'
+import { Route as AuthenticatedProEntrepriseRouteImport } from './routes/_authenticated/pro.entreprise'
+import { Route as AuthenticatedProFacturesRouteImport } from './routes/_authenticated/pro.factures'
+import { Route as AuthenticatedProParametresRouteImport } from './routes/_authenticated/pro.parametres'
+import { Route as AuthenticatedProPlanningRouteImport } from './routes/_authenticated/pro.planning'
+import { Route as AuthenticatedProQrRouteImport } from './routes/_authenticated/pro.qr'
+import { Route as AuthenticatedProVehiculeRouteImport } from './routes/_authenticated/pro.vehicule'
+import { Route as AuthenticatedProVerificationRouteImport } from './routes/_authenticated/pro.verification'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedEspaceRoute = AuthenticatedEspaceRouteImport.update({
+  id: '/espace',
+  path: '/espace',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProRoute = AuthenticatedProRouteImport.update({
+  id: '/pro',
+  path: '/pro',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const ChauffeurSlugRoute = ChauffeurSlugRouteImport.update({
+  id: '/chauffeur/$slug',
+  path: '/chauffeur/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedEspaceIndexRoute =
+  AuthenticatedEspaceIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedEspaceRoute,
+  } as any)
+const AuthenticatedEspaceChauffeursRoute =
+  AuthenticatedEspaceChauffeursRouteImport.update({
+    id: '/chauffeurs',
+    path: '/chauffeurs',
+    getParentRoute: () => AuthenticatedEspaceRoute,
+  } as any)
+const AuthenticatedEspaceDemandesRoute =
+  AuthenticatedEspaceDemandesRouteImport.update({
+    id: '/demandes',
+    path: '/demandes',
+    getParentRoute: () => AuthenticatedEspaceRoute,
+  } as any)
+const AuthenticatedProIndexRoute = AuthenticatedProIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedProRoute,
+} as any)
+const AuthenticatedProActiviteRoute =
+  AuthenticatedProActiviteRouteImport.update({
+    id: '/activite',
+    path: '/activite',
+    getParentRoute: () => AuthenticatedProRoute,
+  } as any)
+const AuthenticatedProAssistantRoute =
+  AuthenticatedProAssistantRouteImport.update({
+    id: '/assistant',
+    path: '/assistant',
+    getParentRoute: () => AuthenticatedProRoute,
+  } as any)
+const AuthenticatedProClientsRoute = AuthenticatedProClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
+  getParentRoute: () => AuthenticatedProRoute,
+} as any)
+const AuthenticatedProCoursesRoute = AuthenticatedProCoursesRouteImport.update({
+  id: '/courses',
+  path: '/courses',
+  getParentRoute: () => AuthenticatedProRoute,
+} as any)
+const AuthenticatedProDemandesRoute =
+  AuthenticatedProDemandesRouteImport.update({
+    id: '/demandes',
+    path: '/demandes',
+    getParentRoute: () => AuthenticatedProRoute,
+  } as any)
+const AuthenticatedProEntrepriseRoute =
+  AuthenticatedProEntrepriseRouteImport.update({
+    id: '/entreprise',
+    path: '/entreprise',
+    getParentRoute: () => AuthenticatedProRoute,
+  } as any)
+const AuthenticatedProFacturesRoute =
+  AuthenticatedProFacturesRouteImport.update({
+    id: '/factures',
+    path: '/factures',
+    getParentRoute: () => AuthenticatedProRoute,
+  } as any)
+const AuthenticatedProParametresRoute =
+  AuthenticatedProParametresRouteImport.update({
+    id: '/parametres',
+    path: '/parametres',
+    getParentRoute: () => AuthenticatedProRoute,
+  } as any)
+const AuthenticatedProPlanningRoute =
+  AuthenticatedProPlanningRouteImport.update({
+    id: '/planning',
+    path: '/planning',
+    getParentRoute: () => AuthenticatedProRoute,
+  } as any)
+const AuthenticatedProQrRoute = AuthenticatedProQrRouteImport.update({
+  id: '/qr',
+  path: '/qr',
+  getParentRoute: () => AuthenticatedProRoute,
+} as any)
+const AuthenticatedProVehiculeRoute =
+  AuthenticatedProVehiculeRouteImport.update({
+    id: '/vehicule',
+    path: '/vehicule',
+    getParentRoute: () => AuthenticatedProRoute,
+  } as any)
+const AuthenticatedProVerificationRoute =
+  AuthenticatedProVerificationRouteImport.update({
+    id: '/verification',
+    path: '/verification',
+    getParentRoute: () => AuthenticatedProRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/espace': typeof AuthenticatedEspaceRouteWithChildren
+  '/pro': typeof AuthenticatedProRouteWithChildren
+  '/chauffeur/$slug': typeof ChauffeurSlugRoute
+  '/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
+  '/espace/demandes': typeof AuthenticatedEspaceDemandesRoute
+  '/pro/activite': typeof AuthenticatedProActiviteRoute
+  '/pro/assistant': typeof AuthenticatedProAssistantRoute
+  '/pro/clients': typeof AuthenticatedProClientsRoute
+  '/pro/courses': typeof AuthenticatedProCoursesRoute
+  '/pro/demandes': typeof AuthenticatedProDemandesRoute
+  '/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
+  '/pro/factures': typeof AuthenticatedProFacturesRoute
+  '/pro/parametres': typeof AuthenticatedProParametresRoute
+  '/pro/planning': typeof AuthenticatedProPlanningRoute
+  '/pro/qr': typeof AuthenticatedProQrRoute
+  '/pro/vehicule': typeof AuthenticatedProVehiculeRoute
+  '/pro/verification': typeof AuthenticatedProVerificationRoute
+  '/espace/': typeof AuthenticatedEspaceIndexRoute
+  '/pro/': typeof AuthenticatedProIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/chauffeur/$slug': typeof ChauffeurSlugRoute
+  '/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
+  '/espace/demandes': typeof AuthenticatedEspaceDemandesRoute
+  '/pro/activite': typeof AuthenticatedProActiviteRoute
+  '/pro/assistant': typeof AuthenticatedProAssistantRoute
+  '/pro/clients': typeof AuthenticatedProClientsRoute
+  '/pro/courses': typeof AuthenticatedProCoursesRoute
+  '/pro/demandes': typeof AuthenticatedProDemandesRoute
+  '/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
+  '/pro/factures': typeof AuthenticatedProFacturesRoute
+  '/pro/parametres': typeof AuthenticatedProParametresRoute
+  '/pro/planning': typeof AuthenticatedProPlanningRoute
+  '/pro/qr': typeof AuthenticatedProQrRoute
+  '/pro/vehicule': typeof AuthenticatedProVehiculeRoute
+  '/pro/verification': typeof AuthenticatedProVerificationRoute
+  '/espace': typeof AuthenticatedEspaceIndexRoute
+  '/pro': typeof AuthenticatedProIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/espace': typeof AuthenticatedEspaceRouteWithChildren
+  '/_authenticated/pro': typeof AuthenticatedProRouteWithChildren
+  '/chauffeur/$slug': typeof ChauffeurSlugRoute
+  '/_authenticated/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
+  '/_authenticated/espace/demandes': typeof AuthenticatedEspaceDemandesRoute
+  '/_authenticated/pro/activite': typeof AuthenticatedProActiviteRoute
+  '/_authenticated/pro/assistant': typeof AuthenticatedProAssistantRoute
+  '/_authenticated/pro/clients': typeof AuthenticatedProClientsRoute
+  '/_authenticated/pro/courses': typeof AuthenticatedProCoursesRoute
+  '/_authenticated/pro/demandes': typeof AuthenticatedProDemandesRoute
+  '/_authenticated/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
+  '/_authenticated/pro/factures': typeof AuthenticatedProFacturesRoute
+  '/_authenticated/pro/parametres': typeof AuthenticatedProParametresRoute
+  '/_authenticated/pro/planning': typeof AuthenticatedProPlanningRoute
+  '/_authenticated/pro/qr': typeof AuthenticatedProQrRoute
+  '/_authenticated/pro/vehicule': typeof AuthenticatedProVehiculeRoute
+  '/_authenticated/pro/verification': typeof AuthenticatedProVerificationRoute
+  '/_authenticated/espace/': typeof AuthenticatedEspaceIndexRoute
+  '/_authenticated/pro/': typeof AuthenticatedProIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/espace'
+    | '/pro'
+    | '/chauffeur/$slug'
+    | '/espace/chauffeurs'
+    | '/espace/demandes'
+    | '/pro/activite'
+    | '/pro/assistant'
+    | '/pro/clients'
+    | '/pro/courses'
+    | '/pro/demandes'
+    | '/pro/entreprise'
+    | '/pro/factures'
+    | '/pro/parametres'
+    | '/pro/planning'
+    | '/pro/qr'
+    | '/pro/vehicule'
+    | '/pro/verification'
+    | '/espace/'
+    | '/pro/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/chauffeur/$slug'
+    | '/espace/chauffeurs'
+    | '/espace/demandes'
+    | '/pro/activite'
+    | '/pro/assistant'
+    | '/pro/clients'
+    | '/pro/courses'
+    | '/pro/demandes'
+    | '/pro/entreprise'
+    | '/pro/factures'
+    | '/pro/parametres'
+    | '/pro/planning'
+    | '/pro/qr'
+    | '/pro/vehicule'
+    | '/pro/verification'
+    | '/espace'
+    | '/pro'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/espace'
+    | '/_authenticated/pro'
+    | '/chauffeur/$slug'
+    | '/_authenticated/espace/chauffeurs'
+    | '/_authenticated/espace/demandes'
+    | '/_authenticated/pro/activite'
+    | '/_authenticated/pro/assistant'
+    | '/_authenticated/pro/clients'
+    | '/_authenticated/pro/courses'
+    | '/_authenticated/pro/demandes'
+    | '/_authenticated/pro/entreprise'
+    | '/_authenticated/pro/factures'
+    | '/_authenticated/pro/parametres'
+    | '/_authenticated/pro/planning'
+    | '/_authenticated/pro/qr'
+    | '/_authenticated/pro/vehicule'
+    | '/_authenticated/pro/verification'
+    | '/_authenticated/espace/'
+    | '/_authenticated/pro/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  ChauffeurSlugRoute: typeof ChauffeurSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +310,225 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/espace': {
+      id: '/_authenticated/espace'
+      path: '/espace'
+      fullPath: '/espace'
+      preLoaderRoute: typeof AuthenticatedEspaceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/pro': {
+      id: '/_authenticated/pro'
+      path: '/pro'
+      fullPath: '/pro'
+      preLoaderRoute: typeof AuthenticatedProRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/chauffeur/$slug': {
+      id: '/chauffeur/$slug'
+      path: '/chauffeur/$slug'
+      fullPath: '/chauffeur/$slug'
+      preLoaderRoute: typeof ChauffeurSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/espace/': {
+      id: '/_authenticated/espace/'
+      path: '/'
+      fullPath: '/espace/'
+      preLoaderRoute: typeof AuthenticatedEspaceIndexRouteImport
+      parentRoute: typeof AuthenticatedEspaceRoute
+    }
+    '/_authenticated/espace/chauffeurs': {
+      id: '/_authenticated/espace/chauffeurs'
+      path: '/chauffeurs'
+      fullPath: '/espace/chauffeurs'
+      preLoaderRoute: typeof AuthenticatedEspaceChauffeursRouteImport
+      parentRoute: typeof AuthenticatedEspaceRoute
+    }
+    '/_authenticated/espace/demandes': {
+      id: '/_authenticated/espace/demandes'
+      path: '/demandes'
+      fullPath: '/espace/demandes'
+      preLoaderRoute: typeof AuthenticatedEspaceDemandesRouteImport
+      parentRoute: typeof AuthenticatedEspaceRoute
+    }
+    '/_authenticated/pro/': {
+      id: '/_authenticated/pro/'
+      path: '/'
+      fullPath: '/pro/'
+      preLoaderRoute: typeof AuthenticatedProIndexRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
+    '/_authenticated/pro/activite': {
+      id: '/_authenticated/pro/activite'
+      path: '/activite'
+      fullPath: '/pro/activite'
+      preLoaderRoute: typeof AuthenticatedProActiviteRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
+    '/_authenticated/pro/assistant': {
+      id: '/_authenticated/pro/assistant'
+      path: '/assistant'
+      fullPath: '/pro/assistant'
+      preLoaderRoute: typeof AuthenticatedProAssistantRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
+    '/_authenticated/pro/clients': {
+      id: '/_authenticated/pro/clients'
+      path: '/clients'
+      fullPath: '/pro/clients'
+      preLoaderRoute: typeof AuthenticatedProClientsRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
+    '/_authenticated/pro/courses': {
+      id: '/_authenticated/pro/courses'
+      path: '/courses'
+      fullPath: '/pro/courses'
+      preLoaderRoute: typeof AuthenticatedProCoursesRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
+    '/_authenticated/pro/demandes': {
+      id: '/_authenticated/pro/demandes'
+      path: '/demandes'
+      fullPath: '/pro/demandes'
+      preLoaderRoute: typeof AuthenticatedProDemandesRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
+    '/_authenticated/pro/entreprise': {
+      id: '/_authenticated/pro/entreprise'
+      path: '/entreprise'
+      fullPath: '/pro/entreprise'
+      preLoaderRoute: typeof AuthenticatedProEntrepriseRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
+    '/_authenticated/pro/factures': {
+      id: '/_authenticated/pro/factures'
+      path: '/factures'
+      fullPath: '/pro/factures'
+      preLoaderRoute: typeof AuthenticatedProFacturesRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
+    '/_authenticated/pro/parametres': {
+      id: '/_authenticated/pro/parametres'
+      path: '/parametres'
+      fullPath: '/pro/parametres'
+      preLoaderRoute: typeof AuthenticatedProParametresRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
+    '/_authenticated/pro/planning': {
+      id: '/_authenticated/pro/planning'
+      path: '/planning'
+      fullPath: '/pro/planning'
+      preLoaderRoute: typeof AuthenticatedProPlanningRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
+    '/_authenticated/pro/qr': {
+      id: '/_authenticated/pro/qr'
+      path: '/qr'
+      fullPath: '/pro/qr'
+      preLoaderRoute: typeof AuthenticatedProQrRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
+    '/_authenticated/pro/vehicule': {
+      id: '/_authenticated/pro/vehicule'
+      path: '/vehicule'
+      fullPath: '/pro/vehicule'
+      preLoaderRoute: typeof AuthenticatedProVehiculeRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
+    '/_authenticated/pro/verification': {
+      id: '/_authenticated/pro/verification'
+      path: '/verification'
+      fullPath: '/pro/verification'
+      preLoaderRoute: typeof AuthenticatedProVerificationRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
   }
 }
 
+interface AuthenticatedEspaceRouteChildren {
+  AuthenticatedEspaceChauffeursRoute: typeof AuthenticatedEspaceChauffeursRoute
+  AuthenticatedEspaceDemandesRoute: typeof AuthenticatedEspaceDemandesRoute
+  AuthenticatedEspaceIndexRoute: typeof AuthenticatedEspaceIndexRoute
+}
+
+const AuthenticatedEspaceRouteChildren: AuthenticatedEspaceRouteChildren = {
+  AuthenticatedEspaceChauffeursRoute: AuthenticatedEspaceChauffeursRoute,
+  AuthenticatedEspaceDemandesRoute: AuthenticatedEspaceDemandesRoute,
+  AuthenticatedEspaceIndexRoute: AuthenticatedEspaceIndexRoute,
+}
+
+const AuthenticatedEspaceRouteWithChildren =
+  AuthenticatedEspaceRoute._addFileChildren(AuthenticatedEspaceRouteChildren)
+
+interface AuthenticatedProRouteChildren {
+  AuthenticatedProActiviteRoute: typeof AuthenticatedProActiviteRoute
+  AuthenticatedProAssistantRoute: typeof AuthenticatedProAssistantRoute
+  AuthenticatedProClientsRoute: typeof AuthenticatedProClientsRoute
+  AuthenticatedProCoursesRoute: typeof AuthenticatedProCoursesRoute
+  AuthenticatedProDemandesRoute: typeof AuthenticatedProDemandesRoute
+  AuthenticatedProEntrepriseRoute: typeof AuthenticatedProEntrepriseRoute
+  AuthenticatedProFacturesRoute: typeof AuthenticatedProFacturesRoute
+  AuthenticatedProParametresRoute: typeof AuthenticatedProParametresRoute
+  AuthenticatedProPlanningRoute: typeof AuthenticatedProPlanningRoute
+  AuthenticatedProQrRoute: typeof AuthenticatedProQrRoute
+  AuthenticatedProVehiculeRoute: typeof AuthenticatedProVehiculeRoute
+  AuthenticatedProVerificationRoute: typeof AuthenticatedProVerificationRoute
+  AuthenticatedProIndexRoute: typeof AuthenticatedProIndexRoute
+}
+
+const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
+  AuthenticatedProActiviteRoute: AuthenticatedProActiviteRoute,
+  AuthenticatedProAssistantRoute: AuthenticatedProAssistantRoute,
+  AuthenticatedProClientsRoute: AuthenticatedProClientsRoute,
+  AuthenticatedProCoursesRoute: AuthenticatedProCoursesRoute,
+  AuthenticatedProDemandesRoute: AuthenticatedProDemandesRoute,
+  AuthenticatedProEntrepriseRoute: AuthenticatedProEntrepriseRoute,
+  AuthenticatedProFacturesRoute: AuthenticatedProFacturesRoute,
+  AuthenticatedProParametresRoute: AuthenticatedProParametresRoute,
+  AuthenticatedProPlanningRoute: AuthenticatedProPlanningRoute,
+  AuthenticatedProQrRoute: AuthenticatedProQrRoute,
+  AuthenticatedProVehiculeRoute: AuthenticatedProVehiculeRoute,
+  AuthenticatedProVerificationRoute: AuthenticatedProVerificationRoute,
+  AuthenticatedProIndexRoute: AuthenticatedProIndexRoute,
+}
+
+const AuthenticatedProRouteWithChildren =
+  AuthenticatedProRoute._addFileChildren(AuthenticatedProRouteChildren)
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedEspaceRoute: typeof AuthenticatedEspaceRouteWithChildren
+  AuthenticatedProRoute: typeof AuthenticatedProRouteWithChildren
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedEspaceRoute: AuthenticatedEspaceRouteWithChildren,
+  AuthenticatedProRoute: AuthenticatedProRouteWithChildren,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  ChauffeurSlugRoute: ChauffeurSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
