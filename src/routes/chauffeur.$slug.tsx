@@ -84,13 +84,10 @@ function DriverPublicPage() {
 
   useEffect(() => {
     if (driverQuery.data?.driver.user_id) {
-      void supabase.from("analytics_events").insert({
-        event: "driver_page_view",
-        driver_id: driverQuery.data.driver.user_id,
-        city: driverQuery.data.driver.city,
-      });
+      void supabase.rpc("track_driver_page_view", { _slug: slug });
     }
-  }, [driverQuery.data?.driver.user_id, driverQuery.data?.driver.city]);
+  }, [driverQuery.data?.driver.user_id, slug]);
+
 
   const vehiclePhoto = useSignedUrl("vehicles", driverQuery.data?.vehicle?.photo_url).data;
 
