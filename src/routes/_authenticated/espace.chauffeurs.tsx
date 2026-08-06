@@ -2,10 +2,9 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import { Car, ChevronRight, MapPin, Plus, Star, User, Users, CalendarDays } from "lucide-react";
+import { Car, MapPin, Plus, QrCode, Star, User, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { formatDateTime } from "@/lib/labels";
 import { QrScannerDialog } from "@/components/QrScannerDialog";
 
 export const Route = createFileRoute("/_authenticated/espace/chauffeurs")({
@@ -50,8 +49,6 @@ function ClientDrivers() {
     [navigate],
   );
 
-
-
   const drivers = useQuery({
     queryKey: ["client-drivers", user?.id],
     enabled: !!user?.id,
@@ -83,143 +80,111 @@ function ClientDrivers() {
   const list = drivers.data ?? [];
 
   return (
-    <div className="space-y-5 pb-6">
-      <header className="space-y-2">
-        <h1 className="text-3xl font-black tracking-tight sm:text-4xl">Mes chauffeurs</h1>
-        <p className="text-muted-foreground">Les chauffeurs que vous avez ajoutés à votre carnet.</p>
-        <div className="inline-flex items-center gap-2 rounded-full bg-muted px-4 py-2 text-sm font-medium">
-          <Users className="h-4 w-4 shrink-0 text-primary" />
-          {list.length} chauffeur{list.length > 1 ? "s" : ""} enregistré{list.length > 1 ? "s" : ""}
+    <div className="flex h-[calc(100dvh-8rem)] flex-col gap-3 lg:h-[calc(100dvh-4rem)]">
+      <header className="grid shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-black tracking-tight sm:text-2xl">Mes chauffeurs</h1>
+          <p className="truncate text-xs text-muted-foreground">Votre carnet de chauffeurs de confiance.</p>
         </div>
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
+          <Users className="size-3.5" /> {list.length}
+        </span>
       </header>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-0.5">
         {list.map((d) => {
           const name = d.driver?.business_name || d.profile?.full_name || "Chauffeur";
           const available = !!d.driver?.on_duty;
+          const vehicle = d.vehicle ? [d.vehicle.brand, d.vehicle.model].filter(Boolean).join(" ") : null;
           return (
-            <article key={d.id} className="surface animate-fade-in space-y-4 rounded-3xl p-5 shadow-sm">
-              <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-4">
+            <article key={d.id} className="surface rounded-2xl p-3">
+              <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
                 <div className="relative shrink-0">
                   {d.profile?.avatar_url ? (
                     <img
                       src={d.profile.avatar_url}
                       alt={name}
-                      className="h-16 w-16 rounded-full object-cover"
+                      className="size-12 rounded-full object-cover"
                       loading="lazy"
                     />
                   ) : (
-                    <div className="grid h-16 w-16 place-items-center rounded-full bg-primary/10 text-lg font-bold text-primary">
+                    <div className="grid size-12 place-items-center rounded-full bg-primary/10 text-sm font-bold text-primary">
                       {initials(d.profile?.full_name)}
                     </div>
                   )}
                   <span
-                    className={`absolute bottom-0 right-0 h-4 w-4 rounded-full border-2 border-card ${available ? "bg-primary" : "bg-muted-foreground"}`}
+                    className={`absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full border-2 border-card ${available ? "bg-primary" : "bg-muted-foreground"}`}
                   />
                 </div>
-                <div className="min-w-0 space-y-1.5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="truncate text-xl font-bold">{name}</h2>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-                      <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Vérifié
-                    </span>
+                <div className="min-w-0">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <h2 className="truncate text-sm font-bold">{name}</h2>
                     <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${available ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${available ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}
                     >
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${available ? "bg-primary" : "bg-muted-foreground"}`}
-                      />
-                      {available ? "Disponible" : "Indisponible"}
+                      {available ? "Dispo" : "Indispo"}
                     </span>
                   </div>
-
-                  <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Star className="h-4 w-4 shrink-0 fill-primary text-primary" />
-                    <span className="font-semibold text-foreground">Nouveau</span>
-                  </p>
-                  {d.vehicle ? (
-                    <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Car className="h-4 w-4 shrink-0" />
-                      <span className="truncate">
-                        {[d.vehicle.brand, d.vehicle.model].filter(Boolean).join(" ")}
+                  <p className="mt-0.5 flex min-w-0 items-center gap-2 text-[11px] text-muted-foreground">
+                    <span className="inline-flex shrink-0 items-center gap-1">
+                      <Star className="size-3 fill-primary text-primary" /> Nouveau
+                    </span>
+                    {vehicle ? (
+                      <span className="inline-flex min-w-0 items-center gap-1">
+                        <Car className="size-3 shrink-0" /> <span className="truncate">{vehicle}</span>
                       </span>
-                    </p>
-                  ) : null}
-                  {d.driver?.city ? (
-                    <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <MapPin className="h-4 w-4 shrink-0" />
-                      <span className="truncate">{d.driver.city}</span>
-                    </p>
-                  ) : null}
+                    ) : null}
+                    {d.driver?.city ? (
+                      <span className="inline-flex min-w-0 items-center gap-1">
+                        <MapPin className="size-3 shrink-0" /> <span className="truncate">{d.driver.city}</span>
+                      </span>
+                    ) : null}
+                  </p>
                 </div>
               </div>
 
-              <div className="border-t border-border pt-4">
-                <p className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <CalendarDays className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span>
-                    Ajouté le
-                    <br />
-                    {formatDateTime(d.created_at)}
-                  </span>
-                </p>
-              </div>
-
-              <div className="flex flex-wrap justify-end gap-2">
+              <div className="mt-2.5 grid grid-cols-[minmax(0,1fr)_auto] gap-2">
                 <Link
                   to="/espace/demandes"
                   search={{ driver: d.driver_id }}
-                  className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground transition active:scale-[0.98]"
                 >
-                  <Car className="h-4 w-4" /> Demander un trajet
+                  <Car className="size-4" /> Demander un trajet
                 </Link>
                 {d.driver?.slug ? (
                   <Link
                     to="/chauffeur/$slug"
                     params={{ slug: d.driver.slug }}
-                    className="inline-flex items-center gap-2 rounded-full border border-border px-5 py-3 text-sm font-semibold transition hover:bg-muted"
+                    aria-label="Voir le profil"
+                    className="grid size-10 place-items-center rounded-full border border-border transition active:scale-95"
                   >
-                    <User className="h-4 w-4" /> Voir le profil
+                    <User className="size-4" />
                   </Link>
                 ) : null}
               </div>
             </article>
           );
         })}
-      </div>
 
-      {list.length > 0 ? (
-        <div className="flex items-center gap-4 rounded-3xl bg-primary/5 p-5">
-          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
-            <Star className="h-5 w-5" />
+        {!list.length ? (
+          <div className="grid h-full place-items-center rounded-2xl border-2 border-dashed border-border p-6 text-center">
+            <div>
+              <QrCode className="mx-auto size-8 text-primary" />
+              <p className="mt-2 text-sm font-semibold">Aucun chauffeur enregistré</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Scannez le QR code de votre chauffeur en fin de course.
+              </p>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="font-bold">Un chauffeur de confiance</p>
-            <p className="text-sm text-muted-foreground">
-              Réservez en toute sérénité avec vos chauffeurs préférés.
-            </p>
-          </div>
-          <Link
-            to="/espace/demandes"
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-card shadow-sm"
-            aria-label="Demander un trajet"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </Link>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
 
       <button
         type="button"
         onClick={() => setScanOpen(true)}
-        className="w-full rounded-3xl border-2 border-dashed border-border p-8 text-center transition hover:border-primary hover:bg-primary/5"
+        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground transition active:scale-[0.98]"
       >
-        <span className="inline-flex items-center gap-2 text-base font-semibold text-primary">
-          <Plus className="h-5 w-5" /> Ajouter un chauffeur
-        </span>
-        <span className="mt-2 block text-sm text-muted-foreground">
-          Scannez le QR code de votre chauffeur en fin de course pour l'enregistrer ici.
-        </span>
+        <Plus className="size-4" /> Ajouter un chauffeur
       </button>
 
       <QrScannerDialog open={scanOpen} onClose={() => setScanOpen(false)} onResult={handleScan} />
