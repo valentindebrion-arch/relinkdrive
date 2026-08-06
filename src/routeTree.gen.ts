@@ -13,9 +13,15 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ChauffeursRouteImport } from './routes/chauffeurs'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedEspaceRouteImport } from './routes/_authenticated/espace'
 import { Route as AuthenticatedProRouteImport } from './routes/_authenticated/pro'
 import { Route as ChauffeurSlugRouteImport } from './routes/chauffeur.$slug'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as AuthenticatedAdminChauffeursRouteImport } from './routes/_authenticated/admin.chauffeurs'
+import { Route as AuthenticatedAdminCoursesRouteImport } from './routes/_authenticated/admin.courses'
+import { Route as AuthenticatedAdminSignalementsRouteImport } from './routes/_authenticated/admin.signalements'
+import { Route as AuthenticatedAdminUtilisateursRouteImport } from './routes/_authenticated/admin.utilisateurs'
 import { Route as AuthenticatedEspaceIndexRouteImport } from './routes/_authenticated/espace.index'
 import { Route as AuthenticatedEspaceChauffeursRouteImport } from './routes/_authenticated/espace.chauffeurs'
 import { Route as AuthenticatedEspaceCoursesRouteImport } from './routes/_authenticated/espace.courses'
@@ -54,6 +60,11 @@ const ChauffeursRoute = ChauffeursRouteImport.update({
   path: '/chauffeurs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedEspaceRoute = AuthenticatedEspaceRouteImport.update({
   id: '/espace',
   path: '/espace',
@@ -69,6 +80,35 @@ const ChauffeurSlugRoute = ChauffeurSlugRouteImport.update({
   path: '/chauffeur/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminChauffeursRoute =
+  AuthenticatedAdminChauffeursRouteImport.update({
+    id: '/chauffeurs',
+    path: '/chauffeurs',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminCoursesRoute =
+  AuthenticatedAdminCoursesRouteImport.update({
+    id: '/courses',
+    path: '/courses',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminSignalementsRoute =
+  AuthenticatedAdminSignalementsRouteImport.update({
+    id: '/signalements',
+    path: '/signalements',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminUtilisateursRoute =
+  AuthenticatedAdminUtilisateursRouteImport.update({
+    id: '/utilisateurs',
+    path: '/utilisateurs',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedEspaceIndexRoute =
   AuthenticatedEspaceIndexRouteImport.update({
     id: '/',
@@ -178,9 +218,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/chauffeurs': typeof ChauffeursRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/espace': typeof AuthenticatedEspaceRouteWithChildren
   '/pro': typeof AuthenticatedProRouteWithChildren
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
+  '/admin/chauffeurs': typeof AuthenticatedAdminChauffeursRoute
+  '/admin/courses': typeof AuthenticatedAdminCoursesRoute
+  '/admin/signalements': typeof AuthenticatedAdminSignalementsRoute
+  '/admin/utilisateurs': typeof AuthenticatedAdminUtilisateursRoute
   '/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
   '/espace/courses': typeof AuthenticatedEspaceCoursesRoute
   '/espace/demandes': typeof AuthenticatedEspaceDemandesRoute
@@ -197,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/pro/qr': typeof AuthenticatedProQrRoute
   '/pro/vehicule': typeof AuthenticatedProVehiculeRoute
   '/pro/verification': typeof AuthenticatedProVerificationRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/espace/': typeof AuthenticatedEspaceIndexRoute
   '/pro/': typeof AuthenticatedProIndexRoute
 }
@@ -205,6 +251,10 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/chauffeurs': typeof ChauffeursRoute
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
+  '/admin/chauffeurs': typeof AuthenticatedAdminChauffeursRoute
+  '/admin/courses': typeof AuthenticatedAdminCoursesRoute
+  '/admin/signalements': typeof AuthenticatedAdminSignalementsRoute
+  '/admin/utilisateurs': typeof AuthenticatedAdminUtilisateursRoute
   '/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
   '/espace/courses': typeof AuthenticatedEspaceCoursesRoute
   '/espace/demandes': typeof AuthenticatedEspaceDemandesRoute
@@ -221,6 +271,7 @@ export interface FileRoutesByTo {
   '/pro/qr': typeof AuthenticatedProQrRoute
   '/pro/vehicule': typeof AuthenticatedProVehiculeRoute
   '/pro/verification': typeof AuthenticatedProVerificationRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/espace': typeof AuthenticatedEspaceIndexRoute
   '/pro': typeof AuthenticatedProIndexRoute
 }
@@ -230,9 +281,14 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/chauffeurs': typeof ChauffeursRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/espace': typeof AuthenticatedEspaceRouteWithChildren
   '/_authenticated/pro': typeof AuthenticatedProRouteWithChildren
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
+  '/_authenticated/admin/chauffeurs': typeof AuthenticatedAdminChauffeursRoute
+  '/_authenticated/admin/courses': typeof AuthenticatedAdminCoursesRoute
+  '/_authenticated/admin/signalements': typeof AuthenticatedAdminSignalementsRoute
+  '/_authenticated/admin/utilisateurs': typeof AuthenticatedAdminUtilisateursRoute
   '/_authenticated/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
   '/_authenticated/espace/courses': typeof AuthenticatedEspaceCoursesRoute
   '/_authenticated/espace/demandes': typeof AuthenticatedEspaceDemandesRoute
@@ -249,6 +305,7 @@ export interface FileRoutesById {
   '/_authenticated/pro/qr': typeof AuthenticatedProQrRoute
   '/_authenticated/pro/vehicule': typeof AuthenticatedProVehiculeRoute
   '/_authenticated/pro/verification': typeof AuthenticatedProVerificationRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/espace/': typeof AuthenticatedEspaceIndexRoute
   '/_authenticated/pro/': typeof AuthenticatedProIndexRoute
 }
@@ -258,9 +315,14 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/chauffeurs'
+    | '/admin'
     | '/espace'
     | '/pro'
     | '/chauffeur/$slug'
+    | '/admin/chauffeurs'
+    | '/admin/courses'
+    | '/admin/signalements'
+    | '/admin/utilisateurs'
     | '/espace/chauffeurs'
     | '/espace/courses'
     | '/espace/demandes'
@@ -277,6 +339,7 @@ export interface FileRouteTypes {
     | '/pro/qr'
     | '/pro/vehicule'
     | '/pro/verification'
+    | '/admin/'
     | '/espace/'
     | '/pro/'
   fileRoutesByTo: FileRoutesByTo
@@ -285,6 +348,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/chauffeurs'
     | '/chauffeur/$slug'
+    | '/admin/chauffeurs'
+    | '/admin/courses'
+    | '/admin/signalements'
+    | '/admin/utilisateurs'
     | '/espace/chauffeurs'
     | '/espace/courses'
     | '/espace/demandes'
@@ -301,6 +368,7 @@ export interface FileRouteTypes {
     | '/pro/qr'
     | '/pro/vehicule'
     | '/pro/verification'
+    | '/admin'
     | '/espace'
     | '/pro'
   id:
@@ -309,9 +377,14 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/chauffeurs'
+    | '/_authenticated/admin'
     | '/_authenticated/espace'
     | '/_authenticated/pro'
     | '/chauffeur/$slug'
+    | '/_authenticated/admin/chauffeurs'
+    | '/_authenticated/admin/courses'
+    | '/_authenticated/admin/signalements'
+    | '/_authenticated/admin/utilisateurs'
     | '/_authenticated/espace/chauffeurs'
     | '/_authenticated/espace/courses'
     | '/_authenticated/espace/demandes'
@@ -328,6 +401,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pro/qr'
     | '/_authenticated/pro/vehicule'
     | '/_authenticated/pro/verification'
+    | '/_authenticated/admin/'
     | '/_authenticated/espace/'
     | '/_authenticated/pro/'
   fileRoutesById: FileRoutesById
@@ -370,6 +444,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChauffeursRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/espace': {
       id: '/_authenticated/espace'
       path: '/espace'
@@ -390,6 +471,41 @@ declare module '@tanstack/react-router' {
       fullPath: '/chauffeur/$slug'
       preLoaderRoute: typeof ChauffeurSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/chauffeurs': {
+      id: '/_authenticated/admin/chauffeurs'
+      path: '/chauffeurs'
+      fullPath: '/admin/chauffeurs'
+      preLoaderRoute: typeof AuthenticatedAdminChauffeursRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/courses': {
+      id: '/_authenticated/admin/courses'
+      path: '/courses'
+      fullPath: '/admin/courses'
+      preLoaderRoute: typeof AuthenticatedAdminCoursesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/signalements': {
+      id: '/_authenticated/admin/signalements'
+      path: '/signalements'
+      fullPath: '/admin/signalements'
+      preLoaderRoute: typeof AuthenticatedAdminSignalementsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/utilisateurs': {
+      id: '/_authenticated/admin/utilisateurs'
+      path: '/utilisateurs'
+      fullPath: '/admin/utilisateurs'
+      preLoaderRoute: typeof AuthenticatedAdminUtilisateursRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/espace/': {
       id: '/_authenticated/espace/'
@@ -520,6 +636,25 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminChauffeursRoute: typeof AuthenticatedAdminChauffeursRoute
+  AuthenticatedAdminCoursesRoute: typeof AuthenticatedAdminCoursesRoute
+  AuthenticatedAdminSignalementsRoute: typeof AuthenticatedAdminSignalementsRoute
+  AuthenticatedAdminUtilisateursRoute: typeof AuthenticatedAdminUtilisateursRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminChauffeursRoute: AuthenticatedAdminChauffeursRoute,
+  AuthenticatedAdminCoursesRoute: AuthenticatedAdminCoursesRoute,
+  AuthenticatedAdminSignalementsRoute: AuthenticatedAdminSignalementsRoute,
+  AuthenticatedAdminUtilisateursRoute: AuthenticatedAdminUtilisateursRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedEspaceRouteChildren {
   AuthenticatedEspaceChauffeursRoute: typeof AuthenticatedEspaceChauffeursRoute
   AuthenticatedEspaceCoursesRoute: typeof AuthenticatedEspaceCoursesRoute
@@ -575,11 +710,13 @@ const AuthenticatedProRouteWithChildren =
   AuthenticatedProRoute._addFileChildren(AuthenticatedProRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedEspaceRoute: typeof AuthenticatedEspaceRouteWithChildren
   AuthenticatedProRoute: typeof AuthenticatedProRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedEspaceRoute: AuthenticatedEspaceRouteWithChildren,
   AuthenticatedProRoute: AuthenticatedProRouteWithChildren,
 }

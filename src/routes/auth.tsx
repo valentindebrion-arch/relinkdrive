@@ -50,10 +50,11 @@ function AuthPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
+    const loginEmail = email.includes("@") ? email.trim() : `${email.trim().toLowerCase()}@relink.app`;
     try {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
-          email,
+          email: loginEmail,
           password,
           options: {
             emailRedirectTo: window.location.origin,
@@ -62,13 +63,13 @@ function AuthPage() {
         });
         if (error) throw error;
         toast.success("Compte créé. Vous pouvez maintenant vous connecter.");
-        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
         if (signInError) {
           toast.info("Vérifiez votre e-mail pour confirmer votre compte.");
           setMode("signin");
         }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
         if (error) throw error;
       }
     } catch (err) {
@@ -130,8 +131,16 @@ function AuthPage() {
               </>
             ) : null}
             <div>
-              <Label htmlFor="email">E-mail</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={255} />
+              <Label htmlFor="email">{mode === "signin" ? "E-mail ou identifiant" : "E-mail"}</Label>
+              <Input
+                id="email"
+                type={mode === "signin" ? "text" : "email"}
+                autoComplete="username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                maxLength={255}
+              />
             </div>
             <div>
               <Label htmlFor="password">Mot de passe</Label>
