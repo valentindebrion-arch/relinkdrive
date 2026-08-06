@@ -18,7 +18,7 @@ const items: NavItem[] = [
 
 function ClientLayout() {
   return (
-    <DashboardShell items={items} area="Espace client">
+    <DashboardShell items={items} area="Espace client" settingsTo="/espace/parametres">
       <Outlet />
     </DashboardShell>
   );

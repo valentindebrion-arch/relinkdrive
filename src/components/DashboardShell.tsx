@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Menu, LogOut, X } from "lucide-react";
+import { Menu, LogOut, UserRound, X } from "lucide-react";
 import { BRAND } from "@/lib/brand";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -12,11 +12,13 @@ export function DashboardShell({
   area,
   children,
   dense = false,
+  settingsTo,
 }: {
   items: NavItem[];
   area: string;
   children: ReactNode;
   dense?: boolean;
+  settingsTo?: string;
 }) {
   const [open, setOpen] = useState(false);
   const { profile, signOut } = useAuth();
@@ -56,12 +58,21 @@ export function DashboardShell({
           <p className="text-xs text-muted-foreground">{area}</p>
         </Link>
         <div className="flex-1 overflow-y-auto">{nav}</div>
+        {settingsTo ? (
+          <Link
+            to={settingsTo}
+            className="mt-4 flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
+          >
+            <UserRound className="size-4" />
+            <span className="truncate">{profile?.full_name?.split(" ")[0] ?? "Mon compte"}</span>
+          </Link>
+        ) : null}
         <button
           onClick={async () => {
             await signOut();
             navigate({ to: "/auth", replace: true });
           }}
-          className="mt-4 flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
+          className="mt-1 flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
         >
           <LogOut className="size-4" /> Déconnexion
         </button>
@@ -71,9 +82,23 @@ export function DashboardShell({
         <button onClick={() => setOpen(true)} aria-label="Ouvrir le menu">
           <Menu className="size-5" />
         </button>
-        <p className="font-semibold">{BRAND.name}</p>
-        <span className="text-xs text-muted-foreground">{profile?.full_name?.split(" ")[0]}</span>
+        <Link to="/" className="font-semibold">
+          {BRAND.name}
+        </Link>
+        {settingsTo ? (
+          <Link
+            to={settingsTo}
+            aria-label="Paramètres du compte"
+            className="flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground"
+          >
+            <UserRound className="size-3.5" />
+            {profile?.full_name?.split(" ")[0]}
+          </Link>
+        ) : (
+          <span className="text-xs text-muted-foreground">{profile?.full_name?.split(" ")[0]}</span>
+        )}
       </header>
+
 
       {open ? (
         <div className="fixed inset-0 z-50 lg:hidden">
