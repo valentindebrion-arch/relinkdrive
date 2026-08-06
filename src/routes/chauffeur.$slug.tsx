@@ -225,6 +225,17 @@ function DriverPublicPage() {
     { label: "Animaux acceptés", icon: Dog, on: !!d.pets_allowed },
   ].filter((e) => e.on);
 
+  const publicPhone: string | null = d.public_phone ?? null;
+  const whatsapp: string | null = d.whatsapp_number ?? null;
+  const socials: { label: string; url: string; icon: typeof Car }[] = [
+    { label: "Instagram", url: d.instagram_url, icon: Instagram },
+    { label: "Facebook", url: d.facebook_url, icon: Facebook },
+    { label: "TikTok", url: d.tiktok_url, icon: Music2 },
+    { label: "LinkedIn", url: d.linkedin_url, icon: Linkedin },
+  ].filter((s): s is { label: string; url: string; icon: typeof Car } => !!s.url);
+
+
+
   function startAdd(mode: "signin" | "signup" = "signup") {
     void supabase.rpc("track_driver_event", { _slug: slug, _event: "driver_add_click" });
     if (!session) {
