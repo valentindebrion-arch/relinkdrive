@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/NotificationBell";
 
-export type NavItem = { to: string; label: string; icon: ReactNode };
+export type NavItem = { to: string; label: string; icon: ReactNode; badge?: number | undefined };
 
 export function DashboardShell({
   items,
@@ -14,17 +14,20 @@ export function DashboardShell({
   children,
   dense = false,
   settingsTo,
+  bottomItems,
 }: {
   items: NavItem[];
   area: string;
   children: ReactNode;
   dense?: boolean;
   settingsTo?: string;
+  bottomItems?: NavItem[];
 }) {
   const [open, setOpen] = useState(false);
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
 
   const nav = (
     <nav className="flex flex-col gap-1">
@@ -44,7 +47,12 @@ export function DashboardShell({
             )}
           >
             <span className="shrink-0 [&_svg]:size-4">{item.icon}</span>
-            {item.label}
+            <span className="flex-1">{item.label}</span>
+            {item.badge ? (
+              <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground">
+                {item.badge}
+              </span>
+            ) : null}
           </Link>
         );
       })}
@@ -135,7 +143,48 @@ export function DashboardShell({
         </div>
       ) : null}
 
-      <main className="w-full max-w-full overflow-x-hidden px-4 py-6 lg:ml-64 lg:w-auto lg:px-8">{children}</main>
+      <main
+        className={cn(
+          "w-full max-w-full overflow-x-hidden px-4 py-6 lg:ml-64 lg:w-auto lg:px-8",
+          bottomItems ? "pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-6" : "",
+        )}
+      >
+        {children}
+      </main>
+
+      {bottomItems ? (
+        <nav
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur lg:hidden"
+          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        >
+          <ul className="flex items-stretch">
+            {bottomItems.map((item) => {
+              const active = pathname === item.to || (item.to !== "/" && pathname.startsWith(item.to + "/"));
+              return (
+                <li key={item.to} className="flex-1">
+                  <Link
+                    to={item.to}
+                    aria-current={active ? "page" : undefined}
+                    className={cn(
+                      "relative flex flex-col items-center gap-1 py-2 text-[11px] font-medium transition-colors",
+                      active ? "text-primary" : "text-muted-foreground",
+                    )}
+                  >
+                    <span className="[&_svg]:size-5">{item.icon}</span>
+                    {item.label}
+                    {item.badge ? (
+                      <span className="absolute top-1 right-1/2 translate-x-4 rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">
+                        {item.badge}
+                      </span>
+                    ) : null}
+                    {active ? <span className="absolute inset-x-6 top-0 h-0.5 rounded-full bg-primary" /> : null}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      ) : null}
     </div>
   );
 }

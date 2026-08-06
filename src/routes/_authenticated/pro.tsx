@@ -1,54 +1,46 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import {
-  LayoutDashboard,
-  Inbox,
-  CalendarDays,
-  Users,
-  Car,
-  Receipt,
-  Building2,
-  QrCode,
-  Activity,
-  Bot,
-  Settings,
-  ShieldCheck,
-} from "lucide-react";
+import { Home, Car, Users, Receipt, Bot, UserRound } from "lucide-react";
 import { DashboardShell, type NavItem } from "@/components/DashboardShell";
 import { useAuth } from "@/lib/auth";
 import { requireRoles } from "@/lib/role-guard";
+import { useNewRequestsCount } from "@/lib/driver-queries";
 
 export const Route = createFileRoute("/_authenticated/pro")({
   beforeLoad: () => requireRoles(["driver", "admin", "superadmin"]),
   component: ProLayout,
 });
 
-const items: NavItem[] = [
-  { to: "/pro", label: "Vue d'ensemble", icon: <LayoutDashboard /> },
-  { to: "/pro/demandes", label: "Demandes", icon: <Inbox /> },
-  { to: "/pro/planning", label: "Planning", icon: <CalendarDays /> },
-  { to: "/pro/clients", label: "Clients", icon: <Users /> },
-  { to: "/pro/courses", label: "Courses", icon: <Car /> },
-  { to: "/pro/factures", label: "Factures", icon: <Receipt /> },
-  { to: "/pro/entreprise", label: "Mon entreprise", icon: <Building2 /> },
-  { to: "/pro/vehicule", label: "Mon véhicule", icon: <Car /> },
-  { to: "/pro/verification", label: "Vérification", icon: <ShieldCheck /> },
-  { to: "/pro/qr", label: "Mon QR code", icon: <QrCode /> },
-  { to: "/pro/activite", label: "Activité", icon: <Activity /> },
-  { to: "/pro/assistant", label: "Assistant", icon: <Bot /> },
-  { to: "/pro/parametres", label: "Paramètres", icon: <Settings /> },
-];
-
 function ProLayout() {
   const { isDriver, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
+  const newRequests = useNewRequestsCount();
 
   useEffect(() => {
     if (!loading && !isDriver && !isAdmin) navigate({ to: "/espace", replace: true });
   }, [loading, isDriver, isAdmin, navigate]);
 
+  const badge = newRequests.data || undefined;
+
+  const items: NavItem[] = [
+    { to: "/pro", label: "Accueil", icon: <Home /> },
+    { to: "/pro/courses", label: "Mes courses", icon: <Car />, badge },
+    { to: "/pro/clients", label: "Mes clients", icon: <Users /> },
+    { to: "/pro/factures", label: "Facturation", icon: <Receipt /> },
+    { to: "/pro/assistant", label: "Assistant", icon: <Bot /> },
+    { to: "/pro/profil", label: "Mon profil", icon: <UserRound /> },
+  ];
+
+  const bottomItems: NavItem[] = [
+    { to: "/pro", label: "Accueil", icon: <Home /> },
+    { to: "/pro/courses", label: "Courses", icon: <Car />, badge },
+    { to: "/pro/clients", label: "Clients", icon: <Users /> },
+    { to: "/pro/assistant", label: "Assistant", icon: <Bot /> },
+    { to: "/pro/profil", label: "Profil", icon: <UserRound /> },
+  ];
+
   return (
-    <DashboardShell items={items} area="Espace chauffeur" settingsTo="/pro/parametres">
+    <DashboardShell items={items} bottomItems={bottomItems} area="Espace chauffeur" settingsTo="/pro/profil">
       <Outlet />
     </DashboardShell>
   );

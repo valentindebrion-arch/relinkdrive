@@ -353,13 +353,17 @@ export type Database = {
         Row: {
           amount_ht: number
           amount_ttc: number
+          auto_generated: boolean
           client_id: string | null
           created_at: string
           description: string | null
           driver_id: string
+          due_on: string | null
           id: string
           issued_on: string
           number: string
+          paid_at: string | null
+          payment_method: string | null
           ride_id: string | null
           status: Database["public"]["Enums"]["invoice_status"]
           updated_at: string
@@ -368,13 +372,17 @@ export type Database = {
         Insert: {
           amount_ht?: number
           amount_ttc?: number
+          auto_generated?: boolean
           client_id?: string | null
           created_at?: string
           description?: string | null
           driver_id: string
+          due_on?: string | null
           id?: string
           issued_on?: string
           number: string
+          paid_at?: string | null
+          payment_method?: string | null
           ride_id?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
           updated_at?: string
@@ -383,13 +391,17 @@ export type Database = {
         Update: {
           amount_ht?: number
           amount_ttc?: number
+          auto_generated?: boolean
           client_id?: string | null
           created_at?: string
           description?: string | null
           driver_id?: string
+          due_on?: string | null
           id?: string
           issued_on?: string
           number?: string
+          paid_at?: string | null
+          payment_method?: string | null
           ride_id?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
           updated_at?: string
@@ -481,6 +493,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          client_id: string | null
+          created_at: string
+          driver_id: string
+          id: string
+          invoice_id: string
+          method: string
+          note: string | null
+          paid_at: string
+        }
+        Insert: {
+          amount: number
+          client_id?: string | null
+          created_at?: string
+          driver_id: string
+          id?: string
+          invoice_id: string
+          method?: string
+          note?: string | null
+          paid_at?: string
+        }
+        Update: {
+          amount?: number
+          client_id?: string | null
+          created_at?: string
+          driver_id?: string
+          id?: string
+          invoice_id?: string
+          method?: string
+          note?: string | null
+          paid_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -636,33 +692,48 @@ export type Database = {
       }
       ride_reviews: {
         Row: {
+          cleanliness_rating: number | null
           client_id: string
           comment: string | null
           created_at: string
           driver_id: string
+          driving_rating: number | null
           id: string
+          punctuality_rating: number | null
           rating: number
           ride_id: string
+          service_rating: number | null
+          status: string
           updated_at: string
         }
         Insert: {
+          cleanliness_rating?: number | null
           client_id: string
           comment?: string | null
           created_at?: string
           driver_id: string
+          driving_rating?: number | null
           id?: string
+          punctuality_rating?: number | null
           rating: number
           ride_id: string
+          service_rating?: number | null
+          status?: string
           updated_at?: string
         }
         Update: {
+          cleanliness_rating?: number | null
           client_id?: string
           comment?: string | null
           created_at?: string
           driver_id?: string
+          driving_rating?: number | null
           id?: string
+          punctuality_rating?: number | null
           rating?: number
           ride_id?: string
+          service_rating?: number | null
+          status?: string
           updated_at?: string
         }
         Relationships: [
@@ -722,13 +793,16 @@ export type Database = {
           client_id: string | null
           client_label: string | null
           completed_at: string | null
+          completion_note: string | null
           created_at: string
           driver_id: string
           dropoff_address: string
           id: string
           is_block: boolean
+          mileage_km: number | null
           notes: string | null
           passengers: number
+          payment_method: string | null
           pickup_address: string
           price: number | null
           request_id: string | null
@@ -741,13 +815,16 @@ export type Database = {
           client_id?: string | null
           client_label?: string | null
           completed_at?: string | null
+          completion_note?: string | null
           created_at?: string
           driver_id: string
           dropoff_address: string
           id?: string
           is_block?: boolean
+          mileage_km?: number | null
           notes?: string | null
           passengers?: number
+          payment_method?: string | null
           pickup_address: string
           price?: number | null
           request_id?: string | null
@@ -760,13 +837,16 @@ export type Database = {
           client_id?: string | null
           client_label?: string | null
           completed_at?: string | null
+          completion_note?: string | null
           created_at?: string
           driver_id?: string
           dropoff_address?: string
           id?: string
           is_block?: boolean
+          mileage_km?: number | null
           notes?: string | null
           passengers?: number
+          payment_method?: string | null
           pickup_address?: string
           price?: number | null
           request_id?: string | null
@@ -1034,7 +1114,13 @@ export type Database = {
       app_role: "client" | "driver" | "admin" | "superadmin"
       crm_status: "new" | "active" | "regular" | "inactive"
       document_status: "pending" | "approved" | "rejected" | "expired"
-      invoice_status: "draft" | "sent" | "paid" | "cancelled"
+      invoice_status:
+        | "draft"
+        | "sent"
+        | "paid"
+        | "cancelled"
+        | "issued"
+        | "overdue"
       report_status: "new" | "in_progress" | "waiting" | "resolved" | "closed"
       ride_status:
         | "new"
@@ -1194,7 +1280,14 @@ export const Constants = {
       app_role: ["client", "driver", "admin", "superadmin"],
       crm_status: ["new", "active", "regular", "inactive"],
       document_status: ["pending", "approved", "rejected", "expired"],
-      invoice_status: ["draft", "sent", "paid", "cancelled"],
+      invoice_status: [
+        "draft",
+        "sent",
+        "paid",
+        "cancelled",
+        "issued",
+        "overdue",
+      ],
       report_status: ["new", "in_progress", "waiting", "resolved", "closed"],
       ride_status: [
         "new",

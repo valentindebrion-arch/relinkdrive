@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -7,16 +8,65 @@ import { PageHeader, EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { RIDE_STATUS_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DriverRequests } from "@/components/pro/DriverRequests";
+import { Planning } from "@/components/pro/Planning";
+import { useNewRequestsCount } from "@/lib/driver-queries";
 
 export const Route = createFileRoute("/_authenticated/pro/courses")({
-  component: DriverRides,
+  component: DriverRidesPage,
 });
 
-function DriverRides() {
+const IN_PROGRESS = ["driver_enroute", "driver_arrived", "client_onboard", "in_progress"];
+
+function DriverRidesPage() {
+  const [tab, setTab] = useState("demandes");
+  const newRequests = useNewRequestsCount();
+
+  return (
+    <>
+      <PageHeader title="Mes courses" description="Demandes, planning et suivi de vos courses au même endroit." />
+      <Tabs value={tab} onValueChange={setTab}>
+        <div className="-mx-4 mb-4 overflow-x-auto px-4 lg:mx-0 lg:px-0">
+          <TabsList className="w-max">
+            <TabsTrigger value="demandes" className="gap-1.5">
+              Demandes
+              {newRequests.data ? (
+                <span className="rounded-full bg-primary px-1.5 text-[11px] font-semibold text-primary-foreground">
+                  {newRequests.data}
+                </span>
+              ) : null}
+            </TabsTrigger>
+            <TabsTrigger value="planning">Planning</TabsTrigger>
+            <TabsTrigger value="avenir">À venir</TabsTrigger>
+            <TabsTrigger value="encours">En cours</TabsTrigger>
+            <TabsTrigger value="historique">Historique</TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="demandes">
+          <DriverRequests />
+        </TabsContent>
+        <TabsContent value="planning">
+          <Planning />
+        </TabsContent>
+        <TabsContent value="avenir">
+          <RideList filter="upcoming" />
+        </TabsContent>
+        <TabsContent value="encours">
+          <RideList filter="active" />
+        </TabsContent>
+        <TabsContent value="historique">
+          <RideList filter="history" />
+        </TabsContent>
+      </Tabs>
+    </>
+  );
+}
+
+function RideList({ filter }: { filter: "upcoming" | "active" | "history" }) {
   const { user } = useAuth();
   const qc = useQueryClient();
-
-
 
   const rides = useQuery({
     queryKey: ["driver-rides", user?.id],
@@ -33,87 +83,68 @@ function DriverRides() {
     },
   });
 
-  async function advance(rideId: string, clientId: string | null, status: string) {
-    const now = new Date().toISOString();
-    const patch = {
-      status: status as never,
-      ...(status === "in_progress" ? { started_at: now } : {}),
-      ...(status === "completed" ? { completed_at: now } : {}),
-    };
-    const { error } = await supabase.from("rides").update(patch).eq("id", rideId);
+  async function cancel(rideId: string, clientId: string | null) {
+    const { error } = await supabase.from("rides").update({ status: "cancelled" as never }).eq("id", rideId);
     if (error) {
       toast.error(error.message);
       return;
     }
-    await supabase.from("ride_status_history").insert({ ride_id: rideId, status: status as never, changed_by: user!.id });
-    if (clientId) {
-      await supabase.rpc("notify_counterparty", { _recipient: clientId, _kind: "ride_update" });
-    }
+    await supabase
+      .from("ride_status_history")
+      .insert({ ride_id: rideId, status: "cancelled" as never, changed_by: user!.id });
+    if (clientId) await supabase.rpc("notify_counterparty", { _recipient: clientId, _kind: "ride_update" });
+    toast.success("Course annulée");
     void qc.invalidateQueries({ queryKey: ["driver-rides"] });
+    void qc.invalidateQueries({ queryKey: ["driver-data"] });
   }
 
-  async function createInvoice(ride: { id: string; client_id: string | null; price: number | null; pickup_address: string }) {
-    const number = `F-${new Date().getFullYear()}-${Math.floor(Math.random() * 900000 + 100000)}`;
-    const ht = Number(ride.price ?? 0);
-    const { error } = await supabase.from("invoices").insert({
-      driver_id: user!.id,
-      client_id: ride.client_id,
-      ride_id: ride.id,
-      number,
-      amount_ht: ht,
-      amount_ttc: ht,
-      vat_rate: 0,
-      description: `Course — ${ride.pickup_address}`,
-      status: "draft",
-    });
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success("Facture créée");
-    void qc.invalidateQueries({ queryKey: ["driver-invoices"] });
-  }
+  const all = rides.data ?? [];
+  const list = all.filter((r) => {
+    if (filter === "active") return IN_PROGRESS.includes(r.status);
+    if (filter === "upcoming") return r.status === "confirmed";
+    return ["completed", "cancelled", "refused"].includes(r.status);
+  });
 
-  const list = rides.data ?? [];
+  if (!list.length) {
+    return (
+      <EmptyState
+        title="Aucune course"
+        description={
+          filter === "history"
+            ? "Vos courses terminées et annulées s'afficheront ici."
+            : "Les demandes acceptées apparaîtront ici."
+        }
+      />
+    );
+  }
 
   return (
-    <>
-      <PageHeader title="Courses" description="Suivez le déroulement de vos courses." />
-      {list.length === 0 ? (
-        <EmptyState title="Aucune course" description="Les demandes acceptées apparaîtront ici." />
-      ) : (
-        <div className="space-y-3">
-          {list.map((r) => {
-            return (
-              <div key={r.id} className="surface flex flex-wrap items-center justify-between gap-3 p-4">
-                <div>
-                  <p className="font-medium">
-                    {r.pickup_address} → {r.dropoff_address}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatDateTime(r.scheduled_at)} · {r.price ? formatEuro(Number(r.price)) : "Prix à définir"}
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge status={r.status} labels={RIDE_STATUS_LABELS} />
-                  {r.status === "completed" ? (
-                    <Button size="sm" variant="outline" onClick={() => createInvoice(r)}>
-                      Créer la facture
-                    </Button>
-                  ) : null}
-                  {["confirmed", "driver_enroute"].includes(r.status) ? (
-                    <Button size="sm" variant="destructive" onClick={() => advance(r.id, r.client_id, "cancelled")}>
-                      Annuler
-                    </Button>
-                  ) : null}
-                </div>
-              </div>
-            );
-
-
-          })}
+    <div className="space-y-3">
+      {list.map((r) => (
+        <div key={r.id} className="surface flex flex-wrap items-center justify-between gap-3 p-4">
+          <div className="min-w-0">
+            <p className="truncate font-medium">
+              {r.pickup_address} → {r.dropoff_address}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {formatDateTime(r.scheduled_at)} · {r.price ? formatEuro(Number(r.price)) : "Prix à définir"}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge status={r.status} labels={RIDE_STATUS_LABELS} />
+            {["confirmed", "driver_enroute"].includes(r.status) ? (
+              <Button size="sm" variant="destructive" onClick={() => cancel(r.id, r.client_id)}>
+                Annuler
+              </Button>
+            ) : null}
+          </div>
         </div>
-      )}
-    </>
+      ))}
+      {filter === "active" ? (
+        <p className="text-xs text-muted-foreground">
+          L'avancement des étapes se pilote depuis le bloc « Course en cours » de l'accueil.
+        </p>
+      ) : null}
+    </div>
   );
 }

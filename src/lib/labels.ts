@@ -50,10 +50,20 @@ export const CRM_LABELS: Record<string, string> = {
 };
 
 export const INVOICE_LABELS: Record<string, string> = {
-  draft: "Brouillon",
+  draft: "Brouillon à compléter",
+  issued: "Émise",
   sent: "Envoyée",
   paid: "Payée",
+  overdue: "En retard",
   cancelled: "Annulée",
+};
+
+export const PAYMENT_METHODS: Record<string, string> = {
+  card: "Carte bancaire",
+  cash: "Espèces",
+  transfer: "Virement",
+  invoice: "Sur facture",
+  other: "Autre",
 };
 
 export const REPORT_LABELS: Record<string, string> = {
@@ -78,12 +88,12 @@ export function statusTone(status: string): "success" | "warning" | "danger" | "
   if (["verified", "completed", "paid", "confirmed", "approved", "resolved"].includes(status))
     return "success";
   if (
-    ["pending", "reviewing", "proposal_sent", "awaiting_client", "changes_requested", "waiting", "sent", "in_progress", "new"].includes(
+    ["pending", "reviewing", "proposal_sent", "awaiting_client", "changes_requested", "waiting", "sent", "in_progress", "new", "issued"].includes(
       status,
     )
   )
     return "warning";
-  if (["cancelled", "refused", "rejected", "suspended", "expired"].includes(status)) return "danger";
+  if (["cancelled", "refused", "rejected", "suspended", "expired", "overdue"].includes(status)) return "danger";
   if (["driver_enroute", "driver_arrived", "client_onboard"].includes(status)) return "info";
   return "neutral";
 }
