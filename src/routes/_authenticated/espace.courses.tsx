@@ -39,8 +39,8 @@ function ClientRides() {
             return (
               <Link
                 key={r.id}
-                to="/espace/courses/$rideId"
-                params={{ rideId: r.id }}
+                to="/espace/suivi/$id"
+                params={{ id: r.id }}
                 className="surface flex flex-wrap items-center justify-between gap-3 p-4 transition-colors hover:border-primary/40 hover:bg-accent/40"
               >
                 <div>

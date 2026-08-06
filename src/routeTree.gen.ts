@@ -41,6 +41,7 @@ import { Route as AuthenticatedProQrRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedProVehiculeRouteImport } from './routes/_authenticated/pro.vehicule'
 import { Route as AuthenticatedProVerificationRouteImport } from './routes/_authenticated/pro.verification'
 import { Route as AuthenticatedEspaceCoursesRideIdRouteImport } from './routes/_authenticated/espace.courses.$rideId'
+import { Route as AuthenticatedEspaceSuiviIdRouteImport } from './routes/_authenticated/espace.suivi.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -220,6 +221,12 @@ const AuthenticatedEspaceCoursesRideIdRoute =
     path: '/$rideId',
     getParentRoute: () => AuthenticatedEspaceCoursesRoute,
   } as any)
+const AuthenticatedEspaceSuiviIdRoute =
+  AuthenticatedEspaceSuiviIdRouteImport.update({
+    id: '/suivi/$id',
+    path: '/suivi/$id',
+    getParentRoute: () => AuthenticatedEspaceRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -253,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/espace/': typeof AuthenticatedEspaceIndexRoute
   '/pro/': typeof AuthenticatedProIndexRoute
   '/espace/courses/$rideId': typeof AuthenticatedEspaceCoursesRideIdRoute
+  '/espace/suivi/$id': typeof AuthenticatedEspaceSuiviIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -283,6 +291,7 @@ export interface FileRoutesByTo {
   '/espace': typeof AuthenticatedEspaceIndexRoute
   '/pro': typeof AuthenticatedProIndexRoute
   '/espace/courses/$rideId': typeof AuthenticatedEspaceCoursesRideIdRoute
+  '/espace/suivi/$id': typeof AuthenticatedEspaceSuiviIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -318,6 +327,7 @@ export interface FileRoutesById {
   '/_authenticated/espace/': typeof AuthenticatedEspaceIndexRoute
   '/_authenticated/pro/': typeof AuthenticatedProIndexRoute
   '/_authenticated/espace/courses/$rideId': typeof AuthenticatedEspaceCoursesRideIdRoute
+  '/_authenticated/espace/suivi/$id': typeof AuthenticatedEspaceSuiviIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -353,6 +363,7 @@ export interface FileRouteTypes {
     | '/espace/'
     | '/pro/'
     | '/espace/courses/$rideId'
+    | '/espace/suivi/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -383,6 +394,7 @@ export interface FileRouteTypes {
     | '/espace'
     | '/pro'
     | '/espace/courses/$rideId'
+    | '/espace/suivi/$id'
   id:
     | '__root__'
     | '/'
@@ -417,6 +429,7 @@ export interface FileRouteTypes {
     | '/_authenticated/espace/'
     | '/_authenticated/pro/'
     | '/_authenticated/espace/courses/$rideId'
+    | '/_authenticated/espace/suivi/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -653,6 +666,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEspaceCoursesRideIdRouteImport
       parentRoute: typeof AuthenticatedEspaceCoursesRoute
     }
+    '/_authenticated/espace/suivi/$id': {
+      id: '/_authenticated/espace/suivi/$id'
+      path: '/suivi/$id'
+      fullPath: '/espace/suivi/$id'
+      preLoaderRoute: typeof AuthenticatedEspaceSuiviIdRouteImport
+      parentRoute: typeof AuthenticatedEspaceRoute
+    }
   }
 }
 
@@ -696,6 +716,7 @@ interface AuthenticatedEspaceRouteChildren {
   AuthenticatedEspaceDemandesRoute: typeof AuthenticatedEspaceDemandesRoute
   AuthenticatedEspaceParametresRoute: typeof AuthenticatedEspaceParametresRoute
   AuthenticatedEspaceIndexRoute: typeof AuthenticatedEspaceIndexRoute
+  AuthenticatedEspaceSuiviIdRoute: typeof AuthenticatedEspaceSuiviIdRoute
 }
 
 const AuthenticatedEspaceRouteChildren: AuthenticatedEspaceRouteChildren = {
@@ -704,6 +725,7 @@ const AuthenticatedEspaceRouteChildren: AuthenticatedEspaceRouteChildren = {
   AuthenticatedEspaceDemandesRoute: AuthenticatedEspaceDemandesRoute,
   AuthenticatedEspaceParametresRoute: AuthenticatedEspaceParametresRoute,
   AuthenticatedEspaceIndexRoute: AuthenticatedEspaceIndexRoute,
+  AuthenticatedEspaceSuiviIdRoute: AuthenticatedEspaceSuiviIdRoute,
 }
 
 const AuthenticatedEspaceRouteWithChildren =

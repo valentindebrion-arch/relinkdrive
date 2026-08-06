@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -694,7 +694,12 @@ function ClientRequests() {
                 </div>
                 <StatusBadge status={r.status} labels={RIDE_STATUS_LABELS} />
               </div>
-              <div className="mt-3 flex gap-2">
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button size="sm" variant="secondary" asChild>
+                  <Link to="/espace/suivi/$id" params={{ id: r.id }}>
+                    Suivre la course
+                  </Link>
+                </Button>
                 {r.status === "proposal_sent" ? (
                   <Button size="sm" onClick={() => accept(r.id)}>
                     Accepter la proposition
