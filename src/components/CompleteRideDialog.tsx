@@ -108,25 +108,16 @@ export function CompleteRideDialog({
         </div>
 
         <div className="grid gap-3">
-          <div>
-            <Label htmlFor="final-price">Montant final (€)</Label>
-            <Input
-              id="final-price"
-              type="number"
-              min="0"
-              step="0.5"
-              placeholder={ride.price ? String(ride.price) : "Ex. 24"}
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-            />
-            {amount > 0 ? (
-              <p className="mt-1 text-xs text-muted-foreground">Facture générée pour {formatEuro(amount)}.</p>
-            ) : (
-              <p className="mt-1 text-xs text-warning">
-                Sans montant, la facture sera créée en « Brouillon à compléter ».
-              </p>
-            )}
+          <div className="rounded-xl border border-border p-3">
+            <p className="text-sm text-muted-foreground">Montant de la course</p>
+            <p className="text-2xl font-bold">{formatEuro(amount)}</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {amount > 0
+                ? "Prix final fixé lors de la demande — facture générée automatiquement."
+                : "Aucun montant enregistré : la facture sera créée en « Brouillon à compléter »."}
+            </p>
           </div>
+
           <div>
             <Label htmlFor="method">Moyen de paiement</Label>
             <select
