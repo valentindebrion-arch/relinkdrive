@@ -238,6 +238,8 @@ function ClientHome() {
             </Link>
           ))}
         </div>
+        </>
+        )}
       </div>
 
       <QrScannerDialog open={scanOpen} onClose={() => setScanOpen(false)} onResult={handleScan} />
