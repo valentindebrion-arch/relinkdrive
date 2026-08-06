@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/NotificationBell";
 
-export type NavItem = { to: string; label: string; icon: ReactNode };
+export type NavItem = { to: string; label: string; icon: ReactNode; badge?: number };
 
 export function DashboardShell({
   items,
@@ -14,17 +14,20 @@ export function DashboardShell({
   children,
   dense = false,
   settingsTo,
+  bottomItems,
 }: {
   items: NavItem[];
   area: string;
   children: ReactNode;
   dense?: boolean;
   settingsTo?: string;
+  bottomItems?: NavItem[];
 }) {
   const [open, setOpen] = useState(false);
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
 
   const nav = (
     <nav className="flex flex-col gap-1">
