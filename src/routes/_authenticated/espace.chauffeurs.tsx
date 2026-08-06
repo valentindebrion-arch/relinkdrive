@@ -96,6 +96,7 @@ function ClientDrivers() {
       <div className="grid gap-4 md:grid-cols-2">
         {list.map((d) => {
           const name = d.driver?.business_name || d.profile?.full_name || "Chauffeur";
+          const available = !!d.driver?.on_duty;
           return (
             <article key={d.id} className="surface animate-fade-in space-y-4 rounded-3xl p-5 shadow-sm">
               <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-4">
