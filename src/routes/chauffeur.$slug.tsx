@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Car, Check, Languages, MapPin, Sparkles, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -88,6 +88,50 @@ function DriverPublicPage() {
     }
   }, [driverQuery.data?.driver.user_id, slug]);
 
+  const driverId = driverQuery.data?.driver.user_id;
+  const driverCity = driverQuery.data?.driver.city ?? null;
+
+  const connect = useCallback(async () => {
+    if (!user?.id || !driverId) return;
+    setAdding(true);
+    const { error } = await supabase
+      .from("driver_client_connections")
+      .insert({ client_id: user.id, driver_id: driverId, source: "link" });
+    setAdding(false);
+    if (error) {
+      if (error.code === "23505") {
+        toast.success("Ce chauffeur est déjà dans votre carnet");
+        void connQuery.refetch();
+        return;
+      }
+      toast.error(error.message);
+      return;
+    }
+    await supabase.from("analytics_events").insert({
+      event: "driver_added",
+      driver_id: driverId,
+      client_id: user.id,
+      city: driverCity,
+    });
+    await supabase.from("notifications").insert({
+      user_id: driverId,
+      title: "Nouveau client fidélisé",
+      body: "Un client vient de vous ajouter à son carnet.",
+      kind: "connection",
+      link: "/pro/clients",
+    });
+    toast.success("Chauffeur ajouté à votre carnet");
+    void connQuery.refetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, driverId, driverCity]);
+
+  // Ajout automatique après connexion / création de compte depuis ce lien
+  useEffect(() => {
+    if (!user?.id || !driverId || connQuery.isLoading || connQuery.data) return;
+    if (sessionStorage.getItem("relink:pending-driver") !== slug) return;
+    sessionStorage.removeItem("relink:pending-driver");
+    void connect();
+  }, [user?.id, driverId, connQuery.isLoading, connQuery.data, slug, connect]);
 
   const vehiclePhoto = useSignedUrl("vehicles", driverQuery.data?.vehicle?.photo_url).data;
 
@@ -98,10 +142,14 @@ function DriverPublicPage() {
     return (
       <div className="flex min-h-screen items-center justify-center px-5 text-center">
         <div>
-          <h1 className="text-xl font-semibold">Chauffeur introuvable</h1>
+          <h1 className="text-xl font-semibold">Page chauffeur indisponible</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Ce lien n'est pas valide, ou le compte n'est pas encore validé par {BRAND.name}.
+            Ce lien n'est pas valide, ou la page de ce chauffeur n'est pas encore publiée / validée par{" "}
+            {BRAND.name}.
           </p>
+          <Button asChild variant="outline" className="mt-5">
+            <Link to="/">Retour à l'accueil</Link>
+          </Button>
         </div>
       </div>
     );
@@ -111,37 +159,13 @@ function DriverPublicPage() {
   const connected = !!connQuery.data;
   const firstName = (profile?.full_name ?? "").split(" ")[0] || "Chauffeur";
 
-  async function addDriver() {
+  function addDriver(mode: "signin" | "signup" = "signup") {
     if (!session) {
-      navigate({ to: "/auth", search: { mode: "signup", role: "client", next: `/chauffeur/${slug}` } });
+      sessionStorage.setItem("relink:pending-driver", slug);
+      navigate({ to: "/auth", search: { mode, role: "client", next: `/chauffeur/${slug}` } });
       return;
     }
-    setAdding(true);
-    const { error } = await supabase.from("driver_client_connections").insert({
-      client_id: user!.id,
-      driver_id: driver.user_id,
-      source: "link",
-    });
-    setAdding(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    await supabase.from("analytics_events").insert({
-      event: "driver_added",
-      driver_id: driver.user_id,
-      client_id: user!.id,
-      city: driver.city,
-    });
-    await supabase.from("notifications").insert({
-      user_id: driver.user_id,
-      title: "Nouveau client fidélisé",
-      body: "Un client vient de vous ajouter à son carnet.",
-      kind: "connection",
-      link: "/pro/clients",
-    });
-    toast.success("Chauffeur ajouté à votre carnet");
-    void connQuery.refetch();
+    void connect();
   }
 
   return (
@@ -221,11 +245,19 @@ function DriverPublicPage() {
             </>
           ) : (
             <>
-              <Button className="w-full" onClick={addDriver} disabled={adding}>
-                <UserPlus className="size-4" /> Ajouter à mes chauffeurs
+              <Button className="w-full" onClick={() => addDriver("signup")} disabled={adding}>
+                <UserPlus className="size-4" />{" "}
+                {session ? "Ajouter à mes chauffeurs" : "Créer un compte et ajouter"}
               </Button>
+              {!session ? (
+                <Button variant="outline" className="w-full" onClick={() => addDriver("signin")}>
+                  J'ai déjà un compte — me connecter
+                </Button>
+              ) : null}
               <p className="text-center text-xs text-muted-foreground">
-                Vous pourrez lui envoyer une demande de trajet une fois ajouté.
+                {session
+                  ? "Vous pourrez lui envoyer une demande de trajet une fois ajouté."
+                  : "Un compte est nécessaire pour ajouter ce chauffeur ; il sera ajouté automatiquement après connexion."}
               </p>
             </>
           )}
