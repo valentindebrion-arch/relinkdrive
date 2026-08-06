@@ -73,9 +73,10 @@ export function buildInvoicePdf(opts: {
   doc.setFontSize(9);
   doc.setTextColor(GREY[0], GREY[1], GREY[2]);
   doc.text(`Date d'émission : ${formatDate(invoice.issued_on)}`, W - M, y, { align: "right" });
-
+  if (invoice.due_on) {
     doc.text(`Échéance : ${formatDate(invoice.due_on)}`, W - M, y + 5, { align: "right" });
   }
+
   y += 20;
 
   // Issuer / client blocks
