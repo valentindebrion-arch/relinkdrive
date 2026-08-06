@@ -617,8 +617,8 @@ function ClientRequests() {
               {step === 2 ? (
                 <p className="text-xs text-muted-foreground">
                   Base 1,90 €/km, minimum 9 € ({formatEuro(estimate.price.base)}), arrondi à l'euro
-                  supérieur — {formatEuro(estimate.price.tip)} de pourboire pour le chauffeur. Le tarif
-                  définitif est confirmé par le chauffeur.
+                  supérieur — {formatEuro(estimate.price.tip)} de pourboire pour le chauffeur. Ce prix
+                  est le prix final de la course, aucun supplément ne sera ajouté.
                 </p>
               ) : (
                 <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 text-sm">
