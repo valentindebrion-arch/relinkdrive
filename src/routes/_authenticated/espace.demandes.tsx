@@ -565,9 +565,10 @@ function ClientRequests() {
               <div className="animate-scale-in flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-accent p-4">
                 <div>
                   <p className="text-xs font-semibold tracking-wide text-accent-foreground uppercase">
-                    Prix estimé
+                    Prix final
                   </p>
                   <p className="text-3xl font-extrabold">{formatEuro(estimate.price.total)}</p>
+                  <p className="text-xs text-accent-foreground">Tarif garanti, aucun supplément</p>
                 </div>
                 <div className="text-right text-sm text-accent-foreground">
                   <p>{estimate.distanceKm} km</p>
