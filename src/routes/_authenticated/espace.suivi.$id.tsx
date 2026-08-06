@@ -10,6 +10,7 @@ import {
   MapPin,
   Star as StarIcon,
   Users,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
