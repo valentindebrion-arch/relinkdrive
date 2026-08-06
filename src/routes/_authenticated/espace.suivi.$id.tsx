@@ -129,7 +129,7 @@ function TrackingPage() {
         supabase.from("profiles").select("full_name, avatar_url").eq("id", request.driver_id).maybeSingle(),
         supabase.from("rides").select("*").eq("request_id", request.id).maybeSingle(),
       ]);
-      return { kind: "request" as const, ride: linked ?? null, request, driver, review: null };
+      return { kind: "request" as const, ride: linked ?? null, request, driver, review: null, invoice: null };
     },
   });
 
