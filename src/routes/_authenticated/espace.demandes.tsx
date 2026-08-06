@@ -268,7 +268,7 @@ function ClientRequests() {
   async function submit() {
     setBusy(true);
     const estimateLine = estimate
-      ? `Estimation Relink : ${estimate.distanceKm} km · ~${estimate.durationMin} min · ${formatEuro(estimate.price.total)}`
+      ? `Prix final Relink : ${formatEuro(estimate.price.total)} · ${estimate.distanceKm} km · ~${estimate.durationMin} min`
       : null;
     const comment = [form.comment.trim(), estimateLine].filter(Boolean).join("\n");
     const { error } = await supabase.from("ride_requests").insert({
@@ -565,9 +565,10 @@ function ClientRequests() {
               <div className="animate-scale-in flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-accent p-4">
                 <div>
                   <p className="text-xs font-semibold tracking-wide text-accent-foreground uppercase">
-                    Prix estimé
+                    Prix final
                   </p>
                   <p className="text-3xl font-extrabold">{formatEuro(estimate.price.total)}</p>
+                  <p className="text-xs text-accent-foreground">Tarif garanti, aucun supplément</p>
                 </div>
                 <div className="text-right text-sm text-accent-foreground">
                   <p>{estimate.distanceKm} km</p>
@@ -606,14 +607,18 @@ function ClientRequests() {
                       <dd className="text-right font-medium">{form.special_needs}</dd>
                     </>
                   ) : null}
+                  <dt className="border-t border-border pt-2 font-semibold">Prix final</dt>
+                  <dd className="border-t border-border pt-2 text-right text-base font-extrabold">
+                    {formatEuro(estimate.price.total)}
+                  </dd>
                 </dl>
               </div>
 
               {step === 2 ? (
                 <p className="text-xs text-muted-foreground">
                   Base 1,90 €/km, minimum 9 € ({formatEuro(estimate.price.base)}), arrondi à l'euro
-                  supérieur — {formatEuro(estimate.price.tip)} de pourboire pour le chauffeur. Le tarif
-                  définitif est confirmé par le chauffeur.
+                  supérieur — {formatEuro(estimate.price.tip)} de pourboire pour le chauffeur. Ce prix
+                  est le prix final de la course, aucun supplément ne sera ajouté.
                 </p>
               ) : (
                 <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 text-sm">
