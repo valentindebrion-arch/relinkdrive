@@ -25,7 +25,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { formatDateTime, formatEuro } from "@/lib/labels";
-import { RouteMiniMap } from "@/components/RouteMiniMap";
 import { LiveDriversMap } from "@/components/LiveDriversMap";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { estimateRoute, reverseGeocode } from "@/lib/route-estimate.functions";
@@ -56,6 +55,16 @@ const STEPS = [
   { label: "Récapitulatif", icon: FileText },
   { label: "Confirmation", icon: CheckCircle2 },
 ];
+
+const TRIP_TYPES = [
+  "Aéroport",
+  "Gare",
+  "Événement",
+  "Trajet urbain",
+  "Longue distance",
+  "Mise à disposition",
+  "Autre",
+] as const;
 
 const HEADINGS = [
   { title: "Où allez-vous ?", sub: "Renseignez votre trajet en quelques secondes." },
@@ -575,7 +584,7 @@ function ClientRequests() {
 
           {step >= 2 && estimate ? (
             <>
-              <RouteMiniMap polyline={estimate.polyline} className="min-h-24 flex-1" />
+              <LiveDriversMap polyline={estimate.polyline} className="min-h-24 flex-1" />
 
               <div className="animate-scale-in flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-accent px-3 py-2">
                 <div>
