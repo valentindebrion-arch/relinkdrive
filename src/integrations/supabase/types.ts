@@ -1034,7 +1034,13 @@ export type Database = {
       app_role: "client" | "driver" | "admin" | "superadmin"
       crm_status: "new" | "active" | "regular" | "inactive"
       document_status: "pending" | "approved" | "rejected" | "expired"
-      invoice_status: "draft" | "sent" | "paid" | "cancelled"
+      invoice_status:
+        | "draft"
+        | "sent"
+        | "paid"
+        | "cancelled"
+        | "issued"
+        | "overdue"
       report_status: "new" | "in_progress" | "waiting" | "resolved" | "closed"
       ride_status:
         | "new"
@@ -1194,7 +1200,14 @@ export const Constants = {
       app_role: ["client", "driver", "admin", "superadmin"],
       crm_status: ["new", "active", "regular", "inactive"],
       document_status: ["pending", "approved", "rejected", "expired"],
-      invoice_status: ["draft", "sent", "paid", "cancelled"],
+      invoice_status: [
+        "draft",
+        "sent",
+        "paid",
+        "cancelled",
+        "issued",
+        "overdue",
+      ],
       report_status: ["new", "in_progress", "waiting", "resolved", "closed"],
       ride_status: [
         "new",
