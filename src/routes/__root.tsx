@@ -93,7 +93,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: BRAND.name },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      
       { name: "theme-color", content: "#00b050" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
