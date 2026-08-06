@@ -75,7 +75,7 @@ function DriverRequests() {
     await log(r.id, status);
     await supabase.rpc("notify_counterparty", { _recipient: r.client_id, _kind: "request_update" });
     toast.success("Demande mise à jour");
-    setOpenId(null);
+    
     void qc.invalidateQueries({ queryKey: ["driver-requests"] });
   }
 
