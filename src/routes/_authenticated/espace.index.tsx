@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import { ArrowRight, CalendarDays, ChevronRight, MapPin, QrCode, Star, Users } from "lucide-react";
+import { ArrowRight, CalendarDays, ChevronRight, Loader2, MapPin, QrCode, Star, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { LiveDriversMap } from "@/components/LiveDriversMap";
