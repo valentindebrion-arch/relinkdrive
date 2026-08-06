@@ -206,10 +206,11 @@ function ClientHome() {
                   <StatusBadge status={next.status} labels={RIDE_STATUS_LABELS} />
                 </div>
                 <Link
-                  to="/espace/courses"
+                  to="/espace/suivi/$id"
+                  params={{ id: next.id }}
                   className="mt-3 inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-medium"
                 >
-                  Voir le trajet <ArrowRight className="size-4" />
+                  Suivre évolution de la course <ArrowRight className="size-4" />
                 </Link>
               </div>
             </div>
