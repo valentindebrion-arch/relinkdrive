@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { QrCode, ShieldCheck, Users, Receipt, CalendarClock, Sparkles } from "lucide-react";
 import { BRAND } from "@/lib/brand";
 import { useAuth, homeForRoles } from "@/lib/auth";
@@ -31,6 +32,13 @@ const steps = [
 
 function Landing() {
   const { session, roles, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && session) {
+      navigate({ to: homeForRoles(roles), replace: true });
+    }
+  }, [loading, session, roles, navigate]);
 
   return (
     <div className="min-h-screen">
