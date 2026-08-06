@@ -972,6 +972,10 @@ export type Database = {
         Returns: boolean
       }
       is_verified_driver: { Args: { _driver: string }; Returns: boolean }
+      notify_counterparty: {
+        Args: { _kind: string; _recipient: string }
+        Returns: undefined
+      }
       track_driver_event: {
         Args: { _event: string; _slug: string }
         Returns: undefined
