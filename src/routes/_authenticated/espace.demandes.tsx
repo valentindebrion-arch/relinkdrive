@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -7,16 +7,24 @@ import { z } from "zod";
 import {
   ArrowLeft,
   ArrowRight,
-  CalendarClock,
+  CalendarDays,
+  Car,
   Check,
+  CheckCircle2,
+  Clock,
+  FileText,
   Loader2,
   LocateFixed,
+  Luggage,
   MapPin,
+  SlidersHorizontal,
+  UserRound,
   Users,
+  X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { PageHeader, EmptyState } from "@/components/Ui";
+import { EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { RIDE_STATUS_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
 import { RouteMiniMap } from "@/components/RouteMiniMap";
@@ -27,6 +35,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 
 const searchSchema = z.object({ driver: z.string().optional() });
 
@@ -42,49 +51,76 @@ type Estimate = {
   price: { base: number; total: number; tip: number };
 };
 
-const STEPS = ["Trajet", "Date", "Détails", "Confirmation"];
+const STEPS = [
+  { label: "Trajet", icon: Car },
+  { label: "Options", icon: SlidersHorizontal },
+  { label: "Récapitulatif", icon: FileText },
+  { label: "Confirmation", icon: CheckCircle2 },
+];
+
+const HEADINGS = [
+  { title: "Où allez-vous ?", sub: "Renseignez votre trajet en quelques secondes." },
+  { title: "Vos options", sub: "Passagers, bagages et précisions pour le chauffeur." },
+  { title: "Votre récapitulatif", sub: "Vérifiez l'itinéraire et le tarif estimé." },
+  { title: "Confirmer la demande", sub: "Elle sera transmise à votre chauffeur." },
+];
 
 function StepBar({ step }: { step: number }) {
   return (
-    <div className="mb-6">
-      <div className="flex items-center gap-2">
-        {STEPS.map((label, i) => (
-          <div key={label} className="flex flex-1 items-center gap-2">
-            <div
-              className={`flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-all duration-300 ${
-                i < step
-                  ? "bg-primary text-primary-foreground"
-                  : i === step
-                    ? "scale-110 bg-primary/15 text-primary ring-2 ring-primary"
-                    : "bg-muted text-muted-foreground"
-              }`}
-            >
-              {i < step ? <Check className="size-4" /> : i + 1}
-            </div>
-            <span className={`hidden text-xs font-medium sm:block ${i === step ? "" : "text-muted-foreground"}`}>
-              {label}
-            </span>
-            {i < STEPS.length - 1 ? (
-              <div className="relative h-0.5 flex-1 overflow-hidden rounded-full bg-border">
-                <div
-                  className="absolute inset-y-0 left-0 bg-primary transition-all duration-500"
-                  style={{ width: i < step ? "100%" : "0%" }}
-                />
+    <div className="flex items-start">
+      {STEPS.map((s, i) => {
+        const Icon = s.icon;
+        const done = i < step;
+        const active = i === step;
+        return (
+          <div key={s.label} className="flex flex-1 flex-col items-center">
+            <div className="flex w-full items-center">
+              <div className="h-px flex-1">
+                {i > 0 ? (
+                  <div className={cn("h-px w-full", done || active ? "bg-primary/40" : "bg-border")} />
+                ) : null}
               </div>
-            ) : null}
+              <div
+                className={cn(
+                  "flex size-11 shrink-0 items-center justify-center rounded-full transition-all duration-300",
+                  active
+                    ? "bg-primary/10 text-primary ring-2 ring-primary"
+                    : done
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground",
+                )}
+              >
+                {done ? <Check className="size-5" /> : <Icon className="size-5" />}
+              </div>
+              <div className="h-px flex-1">
+                {i < STEPS.length - 1 ? (
+                  <div className={cn("h-px w-full", done ? "bg-primary/40" : "bg-border")} />
+                ) : null}
+              </div>
+            </div>
+            <span
+              className={cn(
+                "mt-2 text-center text-[11px] font-semibold sm:text-xs",
+                active ? "text-primary" : "text-muted-foreground",
+              )}
+            >
+              {i + 1}. {s.label}
+            </span>
           </div>
-        ))}
-      </div>
-      <p className="mt-3 text-xs font-medium tracking-wide text-muted-foreground uppercase sm:hidden">
-        Étape {step + 1}/{STEPS.length} · {STEPS[step]}
-      </p>
+        );
+      })}
     </div>
   );
+}
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return <p className="mb-2 text-sm font-bold">{children}</p>;
 }
 
 function ClientRequests() {
   const { user } = useAuth();
   const search = Route.useSearch();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const estimateFn = useServerFn(estimateRoute);
   const geocodeFn = useServerFn(reverseGeocode);
@@ -94,6 +130,7 @@ function ClientRequests() {
   const [locating, setLocating] = useState(false);
   const [pickupOk, setPickupOk] = useState(false);
   const [dropoffOk, setDropoffOk] = useState(false);
+  const [whenMode, setWhenMode] = useState<"now" | "later">("now");
   const [estimate, setEstimate] = useState<Estimate | null>(null);
   const [form, setForm] = useState({
     driver_id: search.driver ?? "",
@@ -135,6 +172,12 @@ function ClientRequests() {
       return data ?? [];
     },
   });
+
+  function scheduledIso() {
+    return whenMode === "now"
+      ? new Date(Date.now() + 10 * 60_000).toISOString()
+      : new Date(form.scheduled_at).toISOString();
+  }
 
   async function useMyLocation() {
     if (!navigator.geolocation) {
@@ -184,7 +227,7 @@ function ClientRequests() {
             }
           : res.price,
       });
-      setStep(3);
+      setStep(2);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Estimation impossible");
     } finally {
@@ -197,14 +240,29 @@ function ClientRequests() {
       if (!form.driver_id) return toast.error("Choisissez un chauffeur");
       if (!pickupOk) return toast.error("Confirmez l'adresse de départ dans la liste proposée");
       if (!dropoffOk) return toast.error("Confirmez l'adresse d'arrivée dans la liste proposée");
+      if (whenMode === "later" && !form.scheduled_at)
+        return toast.error("Choisissez une date et une heure");
       setEstimate(null);
       return setStep(1);
     }
-    if (step === 1) {
-      if (!form.scheduled_at) return toast.error("Choisissez une date et une heure");
-      return setStep(2);
-    }
-    if (step === 2) return void computeEstimate();
+    if (step === 1) return void computeEstimate();
+    if (step === 2) return setStep(3);
+  }
+
+  function resetForm() {
+    setForm((f) => ({
+      ...f,
+      pickup_address: "",
+      dropoff_address: "",
+      scheduled_at: "",
+      comment: "",
+      special_needs: "",
+    }));
+    setPickupOk(false);
+    setDropoffOk(false);
+    setWhenMode("now");
+    setEstimate(null);
+    setStep(0);
   }
 
   async function submit() {
@@ -218,7 +276,7 @@ function ClientRequests() {
       driver_id: form.driver_id,
       pickup_address: form.pickup_address.trim(),
       dropoff_address: form.dropoff_address.trim(),
-      scheduled_at: new Date(form.scheduled_at).toISOString(),
+      scheduled_at: scheduledIso(),
       passengers: Number(form.passengers),
       luggage: Number(form.luggage),
       comment: comment || null,
@@ -240,18 +298,7 @@ function ClientRequests() {
       link: "/pro/demandes",
     });
     toast.success("Demande envoyée — en attente de confirmation du chauffeur");
-    setForm({
-      ...form,
-      pickup_address: "",
-      dropoff_address: "",
-      scheduled_at: "",
-      comment: "",
-      special_needs: "",
-    });
-    setPickupOk(false);
-    setDropoffOk(false);
-    setEstimate(null);
-    setStep(0);
+    resetForm();
     void qc.invalidateQueries({ queryKey: ["client-requests"] });
   }
 
@@ -267,239 +314,362 @@ function ClientRequests() {
   }
 
   const list = requests.data ?? [];
+  const heading = HEADINGS[step]!;
+  const driverName = (drivers.data ?? []).find((d) => d.id === form.driver_id)?.full_name;
 
   return (
     <>
-      <PageHeader title="Demander un trajet" description="Quatre étapes, estimation immédiate du tarif." />
+      <div className="-mx-4 mb-6 sm:-mx-6">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-6">
+          <button
+            type="button"
+            aria-label="Retour"
+            className="flex size-9 items-center justify-center rounded-full transition-colors hover:bg-accent"
+            onClick={() => (step > 0 ? setStep(step - 1) : navigate({ to: "/espace" }))}
+          >
+            <ArrowLeft className="size-5" />
+          </button>
+          <h1 className="text-base font-bold">Demander un trajet</h1>
+          <button
+            type="button"
+            aria-label="Fermer"
+            className="flex size-9 items-center justify-center rounded-full transition-colors hover:bg-accent"
+            onClick={() => navigate({ to: "/espace" })}
+          >
+            <X className="size-5" />
+          </button>
+        </div>
 
-      <div className="surface mb-8 overflow-hidden p-5 pb-24 sm:pb-5">
-        <StepBar step={step} />
+        <div className="px-4 pt-6 sm:px-6">
+          <StepBar step={step} />
+        </div>
+      </div>
 
-        <div key={step} className="animate-fade-in">
+      <div className="pb-28 sm:pb-6">
+        <p className="text-sm font-bold text-primary">
+          Étape {step + 1} sur {STEPS.length}
+        </p>
+        <h2 className="mt-1 text-3xl font-extrabold tracking-tight">{heading.title}</h2>
+        <p className="mt-1 text-[15px] text-muted-foreground">{heading.sub}</p>
+
+        <div key={step} className="animate-fade-in mt-6 space-y-6">
           {step === 0 ? (
-            <div className="grid gap-4">
+            <>
               <div>
-                <Label htmlFor="drv">Chauffeur</Label>
-                <select
-                  id="drv"
-                  className="mt-1 h-12 w-full rounded-2xl border border-input bg-background px-3 text-sm transition-colors focus:ring-2 focus:ring-ring focus:outline-none"
-                  value={form.driver_id}
-                  onChange={(e) => setForm({ ...form, driver_id: e.target.value })}
-                >
-                  <option value="">Sélectionner…</option>
-                  {(drivers.data ?? []).map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.full_name}
-                    </option>
-                  ))}
-                </select>
+                <SectionTitle>Chauffeur</SectionTitle>
+                <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <UserRound className="size-5" />
+                  </span>
+                  <select
+                    aria-label="Chauffeur"
+                    className="h-10 w-full appearance-none bg-transparent text-[15px] focus:outline-none"
+                    value={form.driver_id}
+                    onChange={(e) => setForm({ ...form, driver_id: e.target.value })}
+                  >
+                    <option value="">Sélectionner un chauffeur</option>
+                    {(drivers.data ?? []).map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.full_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              <div className="grid gap-3">
-                <AddressAutocomplete
-                  ariaLabel="Adresse de départ"
-                  placeholder="Adresse de départ"
-                  icon={<span className="block size-2.5 rounded-full bg-primary" />}
-                  value={form.pickup_address}
-                  confirmed={pickupOk}
-                  onChange={(v) => {
-                    setForm((f) => ({ ...f, pickup_address: v }));
-                    setPickupOk(false);
-                    setEstimate(null);
-                  }}
-                  onConfirm={(v) => {
-                    setForm((f) => ({ ...f, pickup_address: v }));
-                    setPickupOk(true);
-                    setEstimate(null);
-                  }}
-                  action={
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="shrink-0"
-                      onClick={useMyLocation}
-                      title="Utiliser ma position"
-                    >
-                      {locating ? (
-                        <Loader2 className="size-4 animate-spin" />
-                      ) : (
-                        <LocateFixed className="size-4" />
-                      )}
-                    </Button>
-                  }
-                />
-                <AddressAutocomplete
-                  ariaLabel="Adresse d'arrivée"
-                  placeholder="Adresse d'arrivée"
-                  icon={<MapPin className="size-4" />}
-                  value={form.dropoff_address}
-                  confirmed={dropoffOk}
-                  onChange={(v) => {
-                    setForm((f) => ({ ...f, dropoff_address: v }));
-                    setDropoffOk(false);
-                    setEstimate(null);
-                  }}
-                  onConfirm={(v) => {
-                    setForm((f) => ({ ...f, dropoff_address: v }));
-                    setDropoffOk(true);
-                    setEstimate(null);
-                  }}
-                />
+              <div>
+                <SectionTitle>Itinéraire</SectionTitle>
+                <div className="rounded-2xl border border-border bg-card p-3">
+                  <AddressAutocomplete
+                    bare
+                    label="Lieu de départ"
+                    ariaLabel="Adresse de départ"
+                    placeholder="Indiquez un lieu de départ"
+                    icon={<span className="mt-1 block size-3 rounded-full bg-primary" />}
+                    value={form.pickup_address}
+                    confirmed={pickupOk}
+                    onChange={(v) => {
+                      setForm((f) => ({ ...f, pickup_address: v }));
+                      setPickupOk(false);
+                      setEstimate(null);
+                    }}
+                    onConfirm={(v) => {
+                      setForm((f) => ({ ...f, pickup_address: v }));
+                      setPickupOk(true);
+                      setEstimate(null);
+                    }}
+                    action={
+                      <button
+                        type="button"
+                        title="Utiliser ma position"
+                        aria-label="Utiliser ma position"
+                        className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground transition-colors hover:bg-accent"
+                        onClick={useMyLocation}
+                      >
+                        {locating ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          <LocateFixed className="size-4" />
+                        )}
+                      </button>
+                    }
+                  />
+                  <div className="my-2 ml-[6px] h-4 border-l border-dashed border-border" />
+                  <AddressAutocomplete
+                    bare
+                    label="Lieu d'arrivée"
+                    ariaLabel="Adresse d'arrivée"
+                    placeholder="Indiquez votre destination"
+                    icon={<MapPin className="mt-1 size-4" />}
+                    value={form.dropoff_address}
+                    confirmed={dropoffOk}
+                    onChange={(v) => {
+                      setForm((f) => ({ ...f, dropoff_address: v }));
+                      setDropoffOk(false);
+                      setEstimate(null);
+                    }}
+                    onConfirm={(v) => {
+                      setForm((f) => ({ ...f, dropoff_address: v }));
+                      setDropoffOk(true);
+                      setEstimate(null);
+                    }}
+                  />
+                </div>
               </div>
 
-              <p className="text-xs text-muted-foreground">
-                Sélectionnez chaque adresse dans la liste proposée pour la confirmer.
-              </p>
-            </div>
+              <div>
+                <SectionTitle>Date et heure</SectionTitle>
+                <div className="grid grid-cols-2 gap-2">
+                  {(
+                    [
+                      { key: "now", label: "Maintenant", icon: Clock },
+                      { key: "later", label: "Plus tard", icon: CalendarDays },
+                    ] as const
+                  ).map((o) => {
+                    const Icon = o.icon;
+                    const on = whenMode === o.key;
+                    return (
+                      <button
+                        key={o.key}
+                        type="button"
+                        onClick={() => setWhenMode(o.key)}
+                        className={cn(
+                          "flex items-center justify-center gap-2 rounded-2xl border py-3 text-sm font-medium transition-all",
+                          on
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border bg-card text-foreground",
+                        )}
+                      >
+                        <Icon className="size-4" /> {o.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {whenMode === "later" ? (
+                  <Input
+                    aria-label="Date et heure du départ"
+                    type="datetime-local"
+                    className="animate-fade-in mt-3 h-12 rounded-2xl"
+                    value={form.scheduled_at}
+                    onChange={(e) => setForm({ ...form, scheduled_at: e.target.value })}
+                  />
+                ) : (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Départ dès que possible — le chauffeur peut proposer un autre horaire.
+                  </p>
+                )}
+              </div>
+            </>
           ) : null}
 
           {step === 1 ? (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <Label htmlFor="sa">Date et heure du départ</Label>
-                <Input
-                  id="sa"
-                  type="datetime-local"
-                  className="mt-1 h-12 rounded-2xl"
-                  value={form.scheduled_at}
-                  onChange={(e) => setForm({ ...form, scheduled_at: e.target.value })}
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-2xl border border-border bg-card p-3">
+                  <Label htmlFor="pa" className="flex items-center gap-2 text-sm font-bold">
+                    <Users className="size-4 text-primary" /> Passagers
+                  </Label>
+                  <Input
+                    id="pa"
+                    type="number"
+                    min="1"
+                    max="8"
+                    className="mt-2 h-11 rounded-xl"
+                    value={form.passengers}
+                    onChange={(e) => setForm({ ...form, passengers: e.target.value })}
+                  />
+                </div>
+                <div className="rounded-2xl border border-border bg-card p-3">
+                  <Label htmlFor="lu" className="flex items-center gap-2 text-sm font-bold">
+                    <Luggage className="size-4 text-primary" /> Bagages
+                  </Label>
+                  <Input
+                    id="lu"
+                    type="number"
+                    min="0"
+                    max="10"
+                    className="mt-2 h-11 rounded-xl"
+                    value={form.luggage}
+                    onChange={(e) => setForm({ ...form, luggage: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4">
+                <Label htmlFor="rt" className="text-sm font-bold">
+                  Aller-retour
+                </Label>
+                <Switch
+                  id="rt"
+                  checked={form.round_trip}
+                  onCheckedChange={(v) => setForm({ ...form, round_trip: v })}
                 />
               </div>
+
               <div>
-                <Label htmlFor="tt">Type de trajet</Label>
+                <SectionTitle>Type de trajet</SectionTitle>
                 <Input
-                  id="tt"
-                  className="mt-1 h-12 rounded-2xl"
+                  aria-label="Type de trajet"
+                  className="h-12 rounded-2xl"
                   maxLength={60}
                   placeholder="Aéroport, gare, événement…"
                   value={form.trip_type}
                   onChange={(e) => setForm({ ...form, trip_type: e.target.value })}
                 />
               </div>
-              <p className="text-sm text-muted-foreground sm:col-span-2">
-                <CalendarClock className="mr-1 inline size-4" />
-                Le chauffeur reçoit votre créneau et peut proposer un autre horaire.
-              </p>
-            </div>
-          ) : null}
 
-          {step === 2 ? (
-            <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label htmlFor="pa">Passagers</Label>
+                <SectionTitle>Besoins particuliers</SectionTitle>
                 <Input
-                  id="pa"
-                  type="number"
-                  min="1"
-                  max="8"
-                  className="mt-1 h-12 rounded-2xl"
-                  value={form.passengers}
-                  onChange={(e) => setForm({ ...form, passengers: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="lu">Bagages</Label>
-                <Input
-                  id="lu"
-                  type="number"
-                  min="0"
-                  max="10"
-                  className="mt-1 h-12 rounded-2xl"
-                  value={form.luggage}
-                  onChange={(e) => setForm({ ...form, luggage: e.target.value })}
-                />
-              </div>
-              <div className="flex items-center gap-3 rounded-2xl border border-border p-3 sm:col-span-2">
-                <Switch
-                  id="rt"
-                  checked={form.round_trip}
-                  onCheckedChange={(v) => setForm({ ...form, round_trip: v })}
-                />
-                <Label htmlFor="rt">Aller-retour</Label>
-              </div>
-              <div className="sm:col-span-2">
-                <Label htmlFor="sn">Besoins particuliers</Label>
-                <Input
-                  id="sn"
-                  className="mt-1 h-12 rounded-2xl"
+                  aria-label="Besoins particuliers"
+                  className="h-12 rounded-2xl"
                   maxLength={200}
                   placeholder="Siège enfant, PMR…"
                   value={form.special_needs}
                   onChange={(e) => setForm({ ...form, special_needs: e.target.value })}
                 />
               </div>
-              <div className="sm:col-span-2">
-                <Label htmlFor="co">Informations complémentaires</Label>
+
+              <div>
+                <SectionTitle>Informations complémentaires</SectionTitle>
                 <Textarea
-                  id="co"
-                  className="mt-1 rounded-2xl"
+                  aria-label="Informations complémentaires"
+                  className="min-h-24 rounded-2xl"
                   maxLength={500}
+                  placeholder="Numéro de vol, étage, précisions…"
                   value={form.comment}
                   onChange={(e) => setForm({ ...form, comment: e.target.value })}
                 />
               </div>
-            </div>
+            </>
           ) : null}
 
-          {step === 3 && estimate ? (
-            <div className="grid gap-4">
+          {step >= 2 && estimate ? (
+            <>
               <RouteMiniMap polyline={estimate.polyline} className="h-52" />
+
               <div className="animate-scale-in flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-accent p-4">
                 <div>
-                  <p className="text-xs font-medium tracking-wide text-accent-foreground uppercase">
+                  <p className="text-xs font-semibold tracking-wide text-accent-foreground uppercase">
                     Prix estimé
                   </p>
-                  <p className="text-3xl font-semibold">{formatEuro(estimate.price.total)}</p>
+                  <p className="text-3xl font-extrabold">{formatEuro(estimate.price.total)}</p>
                 </div>
                 <div className="text-right text-sm text-accent-foreground">
                   <p>{estimate.distanceKm} km</p>
                   <p>~{estimate.durationMin} min</p>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Base 1,90 €/km, minimum 9 € ({formatEuro(estimate.price.base)}), arrondi à l'euro supérieur —
-                {" "}{formatEuro(estimate.price.tip)} de pourboire pour le chauffeur. Le tarif définitif est
-                confirmé par le chauffeur.
-              </p>
-              <div className="rounded-2xl border border-border p-4 text-sm">
-                <p className="font-medium">
-                  {form.pickup_address} → {form.dropoff_address}
-                </p>
-                <p className="mt-1 text-muted-foreground">
-                  {formatDateTime(new Date(form.scheduled_at).toISOString())} ·{" "}
-                  <Users className="inline size-3.5" /> {form.passengers} passager(s) · {form.luggage} bagage(s)
-                  {form.round_trip ? " · aller-retour" : ""}
-                </p>
-                {form.special_needs ? (
-                  <p className="text-muted-foreground">Besoins : {form.special_needs}</p>
-                ) : null}
-                {form.comment ? <p className="text-muted-foreground">« {form.comment} »</p> : null}
+
+              <div className="rounded-2xl border border-border bg-card p-4 text-sm">
+                <div className="flex items-start gap-3">
+                  <span className="mt-1.5 block size-3 shrink-0 rounded-full bg-primary" />
+                  <p className="font-medium">{form.pickup_address}</p>
+                </div>
+                <div className="my-1 ml-[6px] h-4 border-l border-dashed border-border" />
+                <div className="flex items-start gap-3">
+                  <MapPin className="mt-0.5 size-4 shrink-0" />
+                  <p className="font-medium">{form.dropoff_address}</p>
+                </div>
+                <dl className="mt-4 grid grid-cols-2 gap-y-2 border-t border-border pt-3 text-[13px]">
+                  <dt className="text-muted-foreground">Chauffeur</dt>
+                  <dd className="text-right font-medium">{driverName ?? "—"}</dd>
+                  <dt className="text-muted-foreground">Départ</dt>
+                  <dd className="text-right font-medium">{formatDateTime(scheduledIso())}</dd>
+                  <dt className="text-muted-foreground">Passagers · bagages</dt>
+                  <dd className="text-right font-medium">
+                    {form.passengers} · {form.luggage}
+                  </dd>
+                  {form.round_trip ? (
+                    <>
+                      <dt className="text-muted-foreground">Aller-retour</dt>
+                      <dd className="text-right font-medium">Oui</dd>
+                    </>
+                  ) : null}
+                  {form.special_needs ? (
+                    <>
+                      <dt className="text-muted-foreground">Besoins</dt>
+                      <dd className="text-right font-medium">{form.special_needs}</dd>
+                    </>
+                  ) : null}
+                </dl>
               </div>
-            </div>
+
+              {step === 2 ? (
+                <p className="text-xs text-muted-foreground">
+                  Base 1,90 €/km, minimum 9 € ({formatEuro(estimate.price.base)}), arrondi à l'euro
+                  supérieur — {formatEuro(estimate.price.tip)} de pourboire pour le chauffeur. Le tarif
+                  définitif est confirmé par le chauffeur.
+                </p>
+              ) : (
+                <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 text-sm">
+                  <p className="font-semibold">Dernière vérification</p>
+                  <p className="mt-1 text-muted-foreground">
+                    En confirmant, votre demande est transmise à {driverName ?? "votre chauffeur"}. Elle
+                    reste « en attente » tant qu'il ne l'a pas acceptée.
+                  </p>
+                </div>
+              )}
+            </>
           ) : null}
         </div>
 
-        <div className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 border-t border-border bg-card/95 p-4 backdrop-blur sm:static sm:mt-5 sm:border-0 sm:bg-transparent sm:p-0">
-          <Button variant="ghost" disabled={step === 0 || busy} onClick={() => setStep(step - 1)}>
+        <div className="fixed inset-x-0 bottom-0 z-20 flex items-center gap-3 border-t border-border bg-card/95 p-4 backdrop-blur sm:static sm:mt-8 sm:border-0 sm:bg-transparent sm:p-0">
+          <Button
+            variant="outline"
+            size="lg"
+            className="h-14 flex-1 rounded-2xl text-base"
+            disabled={step === 0 || busy}
+            onClick={() => setStep(step - 1)}
+          >
             <ArrowLeft className="size-4" /> Retour
           </Button>
           {step < 3 ? (
-            <Button size="lg" className="rounded-2xl px-6 transition-transform active:scale-95" onClick={next} disabled={busy}>
+            <Button
+              size="lg"
+              className="h-14 flex-[2] rounded-2xl text-base font-bold transition-transform active:scale-[0.98]"
+              onClick={next}
+              disabled={busy}
+            >
               {busy ? <Loader2 className="size-4 animate-spin" /> : null}
-              {step === 2 ? "Voir l'estimation" : "Continuer"}
+              Continuer
               <ArrowRight className="size-4" />
             </Button>
           ) : (
-            <Button size="lg" className="rounded-2xl px-6 transition-transform active:scale-95" onClick={submit} disabled={busy}>
+            <Button
+              size="lg"
+              className="h-14 flex-[2] rounded-2xl text-base font-bold transition-transform active:scale-[0.98]"
+              onClick={submit}
+              disabled={busy}
+            >
               {busy ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
-              Confirmer la demande
+              Confirmer
             </Button>
           )}
         </div>
       </div>
 
-
-      <h2 className="mb-3 text-lg font-semibold">Mes demandes</h2>
+      <h2 className="mt-10 mb-3 text-lg font-semibold">Mes demandes</h2>
       {list.length === 0 ? (
         <EmptyState title="Aucune demande" />
       ) : (
