@@ -159,37 +159,13 @@ function DriverPublicPage() {
   const connected = !!connQuery.data;
   const firstName = (profile?.full_name ?? "").split(" ")[0] || "Chauffeur";
 
-  async function addDriver() {
+  function addDriver(mode: "signin" | "signup" = "signup") {
     if (!session) {
-      navigate({ to: "/auth", search: { mode: "signup", role: "client", next: `/chauffeur/${slug}` } });
+      sessionStorage.setItem("relink:pending-driver", slug);
+      navigate({ to: "/auth", search: { mode, role: "client", next: `/chauffeur/${slug}` } });
       return;
     }
-    setAdding(true);
-    const { error } = await supabase.from("driver_client_connections").insert({
-      client_id: user!.id,
-      driver_id: driver.user_id,
-      source: "link",
-    });
-    setAdding(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    await supabase.from("analytics_events").insert({
-      event: "driver_added",
-      driver_id: driver.user_id,
-      client_id: user!.id,
-      city: driver.city,
-    });
-    await supabase.from("notifications").insert({
-      user_id: driver.user_id,
-      title: "Nouveau client fidélisé",
-      body: "Un client vient de vous ajouter à son carnet.",
-      kind: "connection",
-      link: "/pro/clients",
-    });
-    toast.success("Chauffeur ajouté à votre carnet");
-    void connQuery.refetch();
+    void connect();
   }
 
   return (
