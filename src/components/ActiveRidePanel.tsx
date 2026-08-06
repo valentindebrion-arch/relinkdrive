@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Check, MapPin, Navigation, Clock, User } from "lucide-react";
@@ -5,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { formatDateTime, formatEuro } from "@/lib/labels";
+import { CompleteRideDialog } from "@/components/CompleteRideDialog";
 
 const ACTIVE_STATUSES = ["confirmed", "driver_enroute", "driver_arrived", "client_onboard", "in_progress"] as const;
 
@@ -19,6 +21,7 @@ const STEPS = [
 export function ActiveRidePanel() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const [completing, setCompleting] = useState(false);
 
   const ride = useQuery({
     queryKey: ["driver-active-ride", user?.id],
@@ -119,10 +122,18 @@ export function ActiveRidePanel() {
         </ol>
 
         {nextStep ? (
-          <Button size="lg" className="w-full text-base" onClick={() => advance(nextStep.status)}>
+          <Button
+            size="lg"
+            className="w-full text-base"
+            onClick={() => (nextStep.status === "completed" ? setCompleting(true) : advance(nextStep.status))}
+          >
             {nextStep.action}
           </Button>
         ) : null}
+      </div>
+
+      <CompleteRideDialog ride={r} open={completing} onOpenChange={setCompleting} />
+      <div className="hidden">
       </div>
     </section>
   );
