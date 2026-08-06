@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, MapPin, Clock, Users, Euro, FileText, User } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Users, Euro, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { PageHeader, EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
-import { RIDE_STATUS_LABELS, INVOICE_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
+import { InvoiceDownloadCard } from "@/components/InvoiceDownloadCard";
+import { RIDE_STATUS_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
 
 export const Route = createFileRoute("/_authenticated/espace/courses/$rideId")({
   head: () => ({
@@ -120,21 +121,26 @@ function RideDetail() {
       </div>
 
       {invoice ? (
-        <div className="surface mt-3 p-4">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <FileText className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">Facture {invoice.number}</p>
-                <p className="text-xs text-muted-foreground">
-                  {formatEuro(Number(invoice.amount_ttc))} TTC · émise le {formatDateTime(invoice.issued_on)}
-                </p>
-              </div>
-            </div>
-            <StatusBadge status={invoice.status} labels={INVOICE_LABELS} />
-          </div>
+        <div className="mt-3">
+          <InvoiceDownloadCard
+            invoice={invoice as never}
+            driverId={ride.driver_id}
+            ride={{
+              pickup_address: ride.pickup_address,
+              dropoff_address: ride.dropoff_address,
+              scheduled_at: ride.scheduled_at,
+              completed_at: ride.completed_at,
+              passengers: ride.passengers,
+              mileage_km: ride.mileage_km,
+            }}
+          />
+          <p className="mt-2 px-1 text-[11px] leading-snug text-muted-foreground">
+            Facture émise par votre chauffeur indépendant. Relink est uniquement le logiciel de gestion utilisé pour
+            la générer et décline toute responsabilité quant à son contenu.
+          </p>
         </div>
       ) : null}
+
 
       {history.length > 0 ? (
         <div className="surface mt-3 p-4">

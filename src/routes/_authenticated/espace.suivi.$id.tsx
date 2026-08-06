@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
+import { InvoiceDownloadCard } from "@/components/InvoiceDownloadCard";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { RIDE_STATUS_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
@@ -108,12 +109,14 @@ function TrackingPage() {
         .maybeSingle();
 
       if (ride) {
-        const [{ data: driver }, { data: review }] = await Promise.all([
+        const [{ data: driver }, { data: review }, { data: invoice }] = await Promise.all([
           supabase.from("profiles").select("full_name, avatar_url").eq("id", ride.driver_id).maybeSingle(),
           supabase.from("ride_reviews").select("*").eq("ride_id", ride.id).maybeSingle(),
+          supabase.from("invoices").select("*").eq("ride_id", ride.id).maybeSingle(),
         ]);
-        return { kind: "ride" as const, ride, request: null, driver, review };
+        return { kind: "ride" as const, ride, request: null, driver, review, invoice };
       }
+
 
       const { data: request } = await supabase
         .from("ride_requests")
@@ -127,7 +130,7 @@ function TrackingPage() {
         supabase.from("profiles").select("full_name, avatar_url").eq("id", request.driver_id).maybeSingle(),
         supabase.from("rides").select("*").eq("request_id", request.id).maybeSingle(),
       ]);
-      return { kind: "request" as const, ride: linked ?? null, request, driver, review: null };
+      return { kind: "request" as const, ride: linked ?? null, request, driver, review: null, invoice: null };
     },
   });
 
@@ -180,7 +183,7 @@ function TrackingPage() {
     );
   }
 
-  const { ride, request, driver, review } = q.data;
+  const { ride, request, driver, review, invoice } = q.data;
   const status = ride?.status ?? request?.status ?? "new";
   const pickup = ride?.pickup_address ?? request!.pickup_address;
   const dropoff = ride?.dropoff_address ?? request!.dropoff_address;
@@ -413,6 +416,27 @@ function TrackingPage() {
               </Button>
             </>
           )}
+        </div>
+      ) : null}
+
+      {ride && invoice ? (
+        <div className="mt-4">
+          <InvoiceDownloadCard
+            invoice={invoice as never}
+            driverId={ride.driver_id}
+            ride={{
+              pickup_address: ride.pickup_address,
+              dropoff_address: ride.dropoff_address,
+              scheduled_at: ride.scheduled_at,
+              completed_at: ride.completed_at,
+              passengers: ride.passengers,
+              mileage_km: ride.mileage_km,
+            }}
+          />
+          <p className="mt-2 px-1 text-[11px] leading-snug text-muted-foreground">
+            Reçu généré avec Relink. La facture est émise par votre chauffeur indépendant, seul responsable de son
+            contenu.
+          </p>
         </div>
       ) : null}
 

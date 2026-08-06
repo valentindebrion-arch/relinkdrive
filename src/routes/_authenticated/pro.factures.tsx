@@ -7,7 +7,8 @@ import { useAuth } from "@/lib/auth";
 import { useDriverProfile } from "@/lib/driver-queries";
 import { PageHeader, EmptyState, StatCard } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
-import { INVOICE_LABELS, PAYMENT_METHODS, formatDate, formatEuro } from "@/lib/labels";
+import { INVOICE_LABELS, formatDate, formatEuro } from "@/lib/labels";
+import { downloadInvoicePdf } from "@/lib/invoice-pdf";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -130,33 +131,45 @@ function DriverInvoices() {
     refresh();
   }
 
-  function download(inv: Invoice) {
-    const lines = [
-      `FACTURE ${inv.number}`,
-      `Date : ${formatDate(inv.issued_on)}`,
-      inv.due_on ? `Échéance : ${formatDate(inv.due_on)}` : "",
-      "",
-      `Émetteur : ${driver.data?.business_name ?? profile?.full_name ?? ""}`,
-      driver.data?.siret ? `SIRET : ${driver.data.siret}` : "",
-      driver.data?.professional_address ?? "",
-      "",
-      `Prestation : ${inv.description ?? ""}`,
-      inv.payment_method ? `Moyen de paiement : ${PAYMENT_METHODS[inv.payment_method] ?? inv.payment_method}` : "",
-      `Montant HT : ${formatEuro(Number(inv.amount_ht))}`,
-      `TVA (${inv.vat_rate}%) : ${formatEuro(Number(inv.amount_ttc) - Number(inv.amount_ht))}`,
-      `Total TTC : ${formatEuro(Number(inv.amount_ttc))}`,
-      `Statut : ${INVOICE_LABELS[inv.status] ?? inv.status}`,
-      "",
-      driver.data?.billing_legal_info ?? "TVA non applicable, art. 293 B du CGI",
-    ].filter(Boolean);
-    const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${inv.number}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+  async function download(inv: Invoice) {
+    let ride: { pickup_address?: string | null; dropoff_address?: string | null; scheduled_at?: string | null; completed_at?: string | null; passengers?: number | null; mileage_km?: number | string | null } | null = null;
+    let client: { full_name?: string | null; email?: string | null; phone?: string | null } | null = null;
+    if (inv.ride_id) {
+      const { data } = await supabase
+        .from("rides")
+        .select("pickup_address, dropoff_address, scheduled_at, completed_at, passengers, mileage_km, client_id")
+        .eq("id", inv.ride_id)
+        .maybeSingle();
+      if (data) {
+        ride = data;
+        if (data.client_id) {
+          const { data: p } = await supabase
+            .from("profiles")
+            .select("full_name, email, phone")
+            .eq("id", data.client_id)
+            .maybeSingle();
+          client = p ?? null;
+        }
+      }
+    }
+    downloadInvoicePdf({
+      invoice: inv as never,
+      issuer: {
+        full_name: profile?.full_name ?? null,
+        business_name: driver.data?.business_name ?? null,
+        siret: driver.data?.siret ?? null,
+        vtc_card_number: driver.data?.vtc_card_number ?? null,
+        professional_address: driver.data?.professional_address ?? null,
+        billing_legal_info: driver.data?.billing_legal_info ?? null,
+        vat_applicable: driver.data?.vat_applicable ?? false,
+        public_phone: driver.data?.public_phone ?? null,
+        email: profile?.email ?? null,
+      },
+      client,
+      ride,
+    });
   }
+
 
   function exportCsv(list: Invoice[]) {
     const rows = [
