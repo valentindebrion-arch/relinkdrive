@@ -189,6 +189,28 @@ function TrackingPage() {
   const cancelled = ["cancelled", "refused"].includes(status);
   const current = stepIndex(status);
   const completed = status === "completed";
+  const pending =
+    !ride && !!request && ["new", "reviewing", "proposal_sent", "awaiting_client"].includes(status);
+
+  async function cancelRequest() {
+    if (!request) return;
+    setBusy(true);
+    const { error } = await supabase
+      .from("ride_requests")
+      .update({ status: "cancelled" })
+      .eq("id", request.id)
+      .eq("client_id", user!.id);
+    setBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Demande annulée");
+    void qc.invalidateQueries({ queryKey: ["client-tracking", id] });
+    void qc.invalidateQueries({ queryKey: ["client-home"] });
+  }
+
+
 
   async function submitReview() {
     if (!ride || rating < 1) return;
