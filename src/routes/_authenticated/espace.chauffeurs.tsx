@@ -23,6 +23,34 @@ function initials(name?: string | null) {
 
 function ClientDrivers() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [scanOpen, setScanOpen] = useState(false);
+
+  const handleScan = useCallback(
+    (text: string) => {
+      let slug: string | null = null;
+      try {
+        const url = new URL(text, window.location.origin);
+        const match = url.pathname.match(/\/chauffeur\/([^/?#]+)/);
+        slug = match?.[1] ?? null;
+      } catch {
+        slug = null;
+      }
+      if (!slug) {
+        const match = text.trim().match(/([A-Za-z0-9-]+)$/);
+        slug = match?.[1] ?? null;
+      }
+      setScanOpen(false);
+      if (!slug) {
+        toast.error("QR code non reconnu", { description: "Ce code ne correspond pas à un chauffeur Relink." });
+        return;
+      }
+      navigate({ to: "/chauffeur/$slug", params: { slug } });
+    },
+    [navigate],
+  );
+
+
 
   const drivers = useQuery({
     queryKey: ["client-drivers", user?.id],
