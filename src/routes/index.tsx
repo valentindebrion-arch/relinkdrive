@@ -35,7 +35,9 @@ function Landing() {
   return (
     <div className="min-h-screen">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
-        <span className="text-lg font-semibold tracking-tight">{BRAND.name}</span>
+        <Link to="/" className="text-lg font-semibold tracking-tight">
+          {BRAND.name}
+        </Link>
         <nav className="flex items-center gap-2 text-sm">
           <Link to="/chauffeurs" className="rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground">
             Chauffeurs
