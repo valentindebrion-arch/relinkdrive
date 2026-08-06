@@ -418,6 +418,27 @@ function TrackingPage() {
         </div>
       ) : null}
 
+      {ride && invoice ? (
+        <div className="mt-4">
+          <InvoiceDownloadCard
+            invoice={invoice as never}
+            driverId={ride.driver_id}
+            ride={{
+              pickup_address: ride.pickup_address,
+              dropoff_address: ride.dropoff_address,
+              scheduled_at: ride.scheduled_at,
+              completed_at: ride.completed_at,
+              passengers: ride.passengers,
+              mileage_km: ride.mileage_km,
+            }}
+          />
+          <p className="mt-2 px-1 text-[11px] leading-snug text-muted-foreground">
+            Reçu généré avec Relink. La facture est émise par votre chauffeur indépendant, seul responsable de son
+            contenu.
+          </p>
+        </div>
+      ) : null}
+
       {ride ? (
         <Button
           variant="outline"
