@@ -53,6 +53,14 @@ function ProSettings() {
     accepting_requests: true,
     on_duty: true,
     page_published: true,
+    public_phone: "",
+    show_public_phone: false,
+    whatsapp_number: "",
+    show_whatsapp: false,
+    instagram_url: "",
+    facebook_url: "",
+    tiktok_url: "",
+    linkedin_url: "",
   });
   const [availability, setAvailability] = useState<string[]>([]);
 
@@ -81,6 +89,14 @@ function ProSettings() {
       accepting_requests: d.accepting_requests ?? true,
       on_duty: d.on_duty,
       page_published: d.page_published,
+      public_phone: d.public_phone ?? "",
+      show_public_phone: d.show_public_phone ?? false,
+      whatsapp_number: d.whatsapp_number ?? "",
+      show_whatsapp: d.show_whatsapp ?? false,
+      instagram_url: d.instagram_url ?? "",
+      facebook_url: d.facebook_url ?? "",
+      tiktok_url: d.tiktok_url ?? "",
+      linkedin_url: d.linkedin_url ?? "",
     });
     setAvailability(d.availability ?? []);
   }, [driver.data]);
@@ -108,6 +124,14 @@ function ProSettings() {
         accepting_requests: pro.accepting_requests,
         on_duty: pro.on_duty,
         page_published: pro.page_published,
+        public_phone: pro.public_phone || null,
+        show_public_phone: pro.show_public_phone && !!pro.public_phone,
+        whatsapp_number: pro.whatsapp_number || null,
+        show_whatsapp: pro.show_whatsapp && !!pro.whatsapp_number,
+        instagram_url: pro.instagram_url || null,
+        facebook_url: pro.facebook_url || null,
+        tiktok_url: pro.tiktok_url || null,
+        linkedin_url: pro.linkedin_url || null,
       })
       .eq("user_id", user!.id);
     if (e1 || e2) {
@@ -174,6 +198,67 @@ function ProSettings() {
         <div>
           <Label htmlFor="serv">Services (virgules)</Label>
           <Input id="serv" value={pro.services} maxLength={200} onChange={(e) => setPro({ ...pro, services: e.target.value })} />
+        </div>
+        <div className="rounded-xl border border-border p-4 sm:col-span-2">
+          <p className="text-sm font-semibold">Coordonnées publiques (facultatives)</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Rien n'est affiché par défaut. Votre numéro personnel de compte n'est jamais publié : seul le
+            numéro professionnel ci-dessous peut l'être, si vous l'activez.
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="pubphone">Téléphone professionnel</Label>
+              <Input
+                id="pubphone"
+                value={pro.public_phone}
+                maxLength={20}
+                placeholder="+33 6 12 34 56 78"
+                onChange={(e) => setPro({ ...pro, public_phone: e.target.value })}
+              />
+              <div className="mt-2 flex items-center gap-3">
+                <Switch
+                  id="showphone"
+                  checked={pro.show_public_phone}
+                  onCheckedChange={(v) => setPro({ ...pro, show_public_phone: v })}
+                />
+                <Label htmlFor="showphone">Afficher sur ma page publique</Label>
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="wa">Numéro WhatsApp</Label>
+              <Input
+                id="wa"
+                value={pro.whatsapp_number}
+                maxLength={20}
+                placeholder="+33 6 12 34 56 78"
+                onChange={(e) => setPro({ ...pro, whatsapp_number: e.target.value })}
+              />
+              <div className="mt-2 flex items-center gap-3">
+                <Switch
+                  id="showwa"
+                  checked={pro.show_whatsapp}
+                  onCheckedChange={(v) => setPro({ ...pro, show_whatsapp: v })}
+                />
+                <Label htmlFor="showwa">Afficher sur ma page publique</Label>
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="ig">Instagram (lien)</Label>
+              <Input id="ig" value={pro.instagram_url} maxLength={200} onChange={(e) => setPro({ ...pro, instagram_url: e.target.value })} />
+            </div>
+            <div>
+              <Label htmlFor="fb">Facebook (lien)</Label>
+              <Input id="fb" value={pro.facebook_url} maxLength={200} onChange={(e) => setPro({ ...pro, facebook_url: e.target.value })} />
+            </div>
+            <div>
+              <Label htmlFor="tt">TikTok (lien)</Label>
+              <Input id="tt" value={pro.tiktok_url} maxLength={200} onChange={(e) => setPro({ ...pro, tiktok_url: e.target.value })} />
+            </div>
+            <div>
+              <Label htmlFor="li">LinkedIn (lien)</Label>
+              <Input id="li" value={pro.linkedin_url} maxLength={200} onChange={(e) => setPro({ ...pro, linkedin_url: e.target.value })} />
+            </div>
+          </div>
         </div>
         <div className="sm:col-span-2">
           <Label htmlFor="intro">Message d'accueil de votre page publique</Label>
