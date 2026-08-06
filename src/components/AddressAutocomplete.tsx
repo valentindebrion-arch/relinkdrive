@@ -13,8 +13,10 @@ export function AddressAutocomplete({
   confirmed,
   placeholder,
   ariaLabel,
+  label,
   icon,
   action,
+  bare,
   onChange,
   onConfirm,
 }: {
@@ -22,8 +24,10 @@ export function AddressAutocomplete({
   confirmed: boolean;
   placeholder: string;
   ariaLabel: string;
+  label?: string;
   icon: ReactNode;
   action?: ReactNode;
+  bare?: boolean;
   onChange: (v: string) => void;
   onConfirm: (v: string) => void;
 }) {
@@ -72,20 +76,31 @@ export function AddressAutocomplete({
     <div ref={boxRef} className="relative">
       <div
         className={cn(
-          "flex items-center gap-3 rounded-2xl border bg-card px-3 transition-all duration-200",
-          confirmed ? "border-primary/50 ring-2 ring-primary/15" : "border-input",
+          "flex items-center gap-3 transition-all duration-200",
+          bare
+            ? "px-1"
+            : cn(
+                "rounded-2xl border bg-card px-3",
+                confirmed ? "border-primary/50 ring-2 ring-primary/15" : "border-input",
+              ),
         )}
       >
         <span className="shrink-0 text-muted-foreground">{icon}</span>
-        <Input
-          aria-label={ariaLabel}
-          className="h-12 border-0 bg-transparent px-0 text-base shadow-none focus-visible:ring-0"
-          placeholder={placeholder}
-          maxLength={160}
-          value={value}
-          onFocus={() => items.length && setOpen(true)}
-          onChange={(e) => onChange(e.target.value)}
-        />
+        <div className="min-w-0 flex-1">
+          {label ? <p className="text-[13px] font-semibold">{label}</p> : null}
+          <Input
+            aria-label={ariaLabel}
+            className={cn(
+              "border-0 bg-transparent px-0 shadow-none focus-visible:ring-0",
+              bare ? "h-7 text-[15px] placeholder:text-muted-foreground" : "h-12 text-base",
+            )}
+            placeholder={placeholder}
+            maxLength={160}
+            value={value}
+            onFocus={() => items.length && setOpen(true)}
+            onChange={(e) => onChange(e.target.value)}
+          />
+        </div>
         {confirmed ? (
           <span className="animate-scale-in flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <Check className="size-3.5" />
@@ -95,6 +110,7 @@ export function AddressAutocomplete({
         ) : null}
         {action}
       </div>
+
 
       {open && !confirmed && items.length > 0 ? (
         <ul className="animate-fade-in absolute z-30 mt-2 w-full overflow-hidden rounded-2xl border border-border bg-popover shadow-[var(--shadow-pop)]">
