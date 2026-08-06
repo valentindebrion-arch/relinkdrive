@@ -113,7 +113,9 @@ function ClientDrivers() {
                       {initials(d.profile?.full_name)}
                     </div>
                   )}
-                  <span className="absolute bottom-0 right-0 h-4 w-4 rounded-full border-2 border-card bg-primary" />
+                  <span
+                    className={`absolute bottom-0 right-0 h-4 w-4 rounded-full border-2 border-card ${available ? "bg-primary" : "bg-muted-foreground"}`}
+                  />
                 </div>
                 <div className="min-w-0 space-y-1.5">
                   <div className="flex flex-wrap items-center gap-2">
@@ -121,7 +123,16 @@ function ClientDrivers() {
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
                       <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Vérifié
                     </span>
+                    <span
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${available ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}
+                    >
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${available ? "bg-primary" : "bg-muted-foreground"}`}
+                      />
+                      {available ? "Disponible" : "Indisponible"}
+                    </span>
                   </div>
+
                   <p className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Star className="h-4 w-4 shrink-0 fill-primary text-primary" />
                     <span className="font-semibold text-foreground">Nouveau</span>
