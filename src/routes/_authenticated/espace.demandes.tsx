@@ -668,58 +668,6 @@ function ClientRequests() {
         </div>
       </div>
 
-      <h2 className="mt-10 mb-3 text-lg font-semibold">Mes demandes</h2>
-      {list.length === 0 ? (
-        <EmptyState title="Aucune demande" />
-      ) : (
-        <div className="space-y-3">
-          {list.map((r) => (
-            <div key={r.id} className="surface p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="font-medium">
-                    {r.pickup_address} → {r.dropoff_address}
-                  </p>
-                  <p className="text-sm text-muted-foreground">{formatDateTime(r.scheduled_at)}</p>
-                  {["new", "reviewing"].includes(r.status) ? (
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      En attente de confirmation du chauffeur.
-                    </p>
-                  ) : null}
-                  {r.proposed_price || r.proposed_time ? (
-                    <p className="mt-1 text-sm">
-                      Proposition du chauffeur :{" "}
-                      {r.proposed_price ? formatEuro(Number(r.proposed_price)) : "—"}
-                      {r.proposed_time ? ` le ${formatDateTime(r.proposed_time)}` : ""}
-                    </p>
-                  ) : null}
-                  {r.driver_message ? (
-                    <p className="text-sm text-muted-foreground">« {r.driver_message} »</p>
-                  ) : null}
-                </div>
-                <StatusBadge status={r.status} labels={RIDE_STATUS_LABELS} />
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Button size="sm" variant="secondary" asChild>
-                  <Link to="/espace/suivi/$id" params={{ id: r.id }}>
-                    Suivre la course
-                  </Link>
-                </Button>
-                {r.status === "proposal_sent" ? (
-                  <Button size="sm" onClick={() => accept(r.id)}>
-                    Accepter la proposition
-                  </Button>
-                ) : null}
-                {!["cancelled", "refused", "confirmed", "completed"].includes(r.status) ? (
-                  <Button size="sm" variant="outline" onClick={() => cancel(r.id)}>
-                    Annuler
-                  </Button>
-                ) : null}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
     </>
   );
 }
