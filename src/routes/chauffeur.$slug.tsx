@@ -342,6 +342,48 @@ function DriverPublicPage() {
           </Section>
         ) : null}
 
+        {/* 2 bis. Contact et réseaux (uniquement ce que le chauffeur a rendu public) */}
+        {publicPhone || whatsapp || socials.length ? (
+          <Section title="Contacter {firstName}".replace("{firstName}", firstName)}>
+            <div className="space-y-2">
+              {publicPhone ? (
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <a href={`tel:${publicPhone.replace(/\s/g, "")}`}>
+                    <Phone className="size-4" /> Appeler {publicPhone}
+                  </a>
+                </Button>
+              ) : null}
+              {whatsapp ? (
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <a
+                    href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <MessageCircle className="size-4" /> Écrire sur WhatsApp
+                  </a>
+                </Button>
+              ) : null}
+              {socials.length ? (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {socials.map((s) => (
+                    <Button key={s.label} asChild variant="secondary" size="sm">
+                      <a href={s.url} target="_blank" rel="noopener noreferrer" aria-label={s.label}>
+                        <s.icon className="size-4" /> {s.label}
+                      </a>
+                    </Button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Seules les coordonnées que {firstName} a choisi de rendre publiques sont affichées.
+            </p>
+          </Section>
+        ) : null}
+
+
+
         {/* 3. Véhicule */}
         {d.vehicle_brand || d.max_passengers ? (
           <Section title="Le véhicule">
