@@ -65,45 +65,36 @@ const HEADINGS = [
 
 function StepBar({ step }: { step: number }) {
   return (
-    <div className="flex items-start">
+    <div className="flex items-center gap-1.5">
       {STEPS.map((s, i) => {
         const Icon = s.icon;
         const done = i < step;
         const active = i === step;
         return (
-          <div key={s.label} className="flex flex-1 flex-col items-center">
-            <div className="flex w-full items-center">
-              <div className="h-px flex-1">
-                {i > 0 ? (
-                  <div className={cn("h-px w-full", done || active ? "bg-primary/40" : "bg-border")} />
-                ) : null}
-              </div>
-              <div
-                className={cn(
-                  "flex size-11 shrink-0 items-center justify-center rounded-full transition-all duration-300",
-                  active
-                    ? "bg-primary/10 text-primary ring-2 ring-primary"
-                    : done
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground",
-                )}
-              >
-                {done ? <Check className="size-5" /> : <Icon className="size-5" />}
-              </div>
-              <div className="h-px flex-1">
-                {i < STEPS.length - 1 ? (
-                  <div className={cn("h-px w-full", done ? "bg-primary/40" : "bg-border")} />
-                ) : null}
-              </div>
-            </div>
-            <span
+          <div key={s.label} className="flex flex-1 items-center gap-1.5">
+            <div
               className={cn(
-                "mt-2 text-center text-[11px] font-semibold sm:text-xs",
-                active ? "text-primary" : "text-muted-foreground",
+                "flex size-7 shrink-0 items-center justify-center rounded-full transition-all duration-300",
+                active
+                  ? "bg-primary/10 text-primary ring-2 ring-primary"
+                  : done
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground",
               )}
             >
-              {i + 1}. {s.label}
-            </span>
+              {done ? <Check className="size-3.5" /> : <Icon className="size-3.5" />}
+            </div>
+            {active ? (
+              <span className="truncate text-[11px] font-semibold text-primary">{s.label}</span>
+            ) : null}
+            {i < STEPS.length - 1 ? (
+              <div
+                className={cn(
+                  "h-px min-w-2 flex-1 rounded-full",
+                  done ? "bg-primary/50" : "bg-border",
+                )}
+              />
+            ) : null}
           </div>
         );
       })}
@@ -112,8 +103,9 @@ function StepBar({ step }: { step: number }) {
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <p className="mb-2 text-sm font-bold">{children}</p>;
+  return <p className="mb-1.5 text-[13px] font-bold">{children}</p>;
 }
+
 
 function ClientRequests() {
   const { user } = useAuth();
