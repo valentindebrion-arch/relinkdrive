@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { useDriverProfile, useMyVehicle, useMyDocuments } from "@/lib/driver-queries";
 import { StatCard, PageHeader } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
+import { ActiveRidePanel } from "@/components/ActiveRidePanel";
 import { RIDE_STATUS_LABELS, VERIFICATION_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
 
 export const Route = createFileRoute("/_authenticated/pro/")({
@@ -94,6 +95,8 @@ function ProOverview() {
           </Link>
         </div>
       ) : null}
+
+      <ActiveRidePanel />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Demandes à traiter" value={data.data?.requests.length ?? 0} icon={<Inbox className="size-4" />} />

@@ -12,14 +12,6 @@ export const Route = createFileRoute("/_authenticated/pro/courses")({
   component: DriverRides,
 });
 
-const FLOW: Record<string, { next: string; label: string }> = {
-  confirmed: { next: "driver_enroute", label: "Je pars" },
-  driver_enroute: { next: "driver_arrived", label: "Je suis arrivé" },
-  driver_arrived: { next: "client_onboard", label: "Client à bord" },
-  client_onboard: { next: "in_progress", label: "Démarrer la course" },
-  in_progress: { next: "completed", label: "Terminer la course" },
-};
-
 function DriverRides() {
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -92,7 +84,6 @@ function DriverRides() {
       ) : (
         <div className="space-y-3">
           {list.map((r) => {
-            const step = FLOW[r.status];
             return (
               <div key={r.id} className="surface flex flex-wrap items-center justify-between gap-3 p-4">
                 <div>
@@ -105,11 +96,6 @@ function DriverRides() {
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusBadge status={r.status} labels={RIDE_STATUS_LABELS} />
-                  {step ? (
-                    <Button size="sm" onClick={() => advance(r.id, r.client_id, step.next)}>
-                      {step.label}
-                    </Button>
-                  ) : null}
                   {r.status === "completed" ? (
                     <Button size="sm" variant="outline" onClick={() => createInvoice(r)}>
                       Créer la facture
