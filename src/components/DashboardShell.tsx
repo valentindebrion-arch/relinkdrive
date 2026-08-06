@@ -12,11 +12,13 @@ export function DashboardShell({
   area,
   children,
   dense = false,
+  settingsTo,
 }: {
   items: NavItem[];
   area: string;
   children: ReactNode;
   dense?: boolean;
+  settingsTo?: string;
 }) {
   const [open, setOpen] = useState(false);
   const { profile, signOut } = useAuth();
