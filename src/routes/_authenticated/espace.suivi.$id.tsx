@@ -130,6 +130,42 @@ function TrackingPage() {
     },
   });
 
+  const lastStatus = useRef<string | null>(null);
+  const currentStatus = q.data?.ride?.status ?? q.data?.request?.status ?? null;
+
+  // Notifie le client quand le chauffeur fait avancer la course
+  useEffect(() => {
+    if (!currentStatus) return;
+    if (lastStatus.current && lastStatus.current !== currentStatus) {
+      const label = RIDE_STATUS_LABELS[currentStatus] ?? currentStatus;
+      const step = STEPS.find((s) => s.match.includes(currentStatus));
+      toast.info(step?.title ?? label, { description: step?.hint ?? "Statut mis à jour." });
+    }
+    lastStatus.current = currentStatus;
+  }, [currentStatus]);
+
+  // Mise à jour en direct depuis le chauffeur
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`tracking-${id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "rides", filter: `client_id=eq.${user.id}` },
+        () => void qc.invalidateQueries({ queryKey: ["client-tracking", id] }),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "ride_requests", filter: `client_id=eq.${user.id}` },
+        () => void qc.invalidateQueries({ queryKey: ["client-tracking", id] }),
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [id, user?.id, qc]);
+
+
   if (q.isLoading) {
     return <div className="surface h-64 animate-pulse rounded-2xl" />;
   }
