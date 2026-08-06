@@ -1,9 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, CalendarDays, ChevronRight, MapPin, Plus, Star, Users } from "lucide-react";
+import { useCallback, useState } from "react";
+import { toast } from "sonner";
+import { ArrowRight, CalendarDays, ChevronRight, MapPin, QrCode, Star, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { LiveDriversMap } from "@/components/LiveDriversMap";
+import { QrScannerDialog } from "@/components/QrScannerDialog";
 import { StatusBadge } from "@/components/StatusBadge";
 import { RIDE_STATUS_LABELS } from "@/lib/labels";
 
