@@ -193,7 +193,7 @@ function DriverInvoices() {
     <>
       <PageHeader title="Facturation" description="Vos factures se créent automatiquement à la fin de chaque course." />
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-3">
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4">
         <StatCard label="CA facturé" value={formatEuro(sum(billed))} hint={`${billed.length} facture(s)`} />
         <StatCard label="CA encaissé" value={formatEuro(sum(paidList))} hint={`${paidList.length} payée(s)`} />
         <StatCard label="Reste à encaisser" value={formatEuro(sum(toCollect))} hint={`${toCollect.length} en attente`} />
