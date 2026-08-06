@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Car, Check, Languages, MapPin, Sparkles, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
