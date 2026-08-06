@@ -37,6 +37,7 @@ import { Route as AuthenticatedProEntrepriseRouteImport } from './routes/_authen
 import { Route as AuthenticatedProFacturesRouteImport } from './routes/_authenticated/pro.factures'
 import { Route as AuthenticatedProParametresRouteImport } from './routes/_authenticated/pro.parametres'
 import { Route as AuthenticatedProPlanningRouteImport } from './routes/_authenticated/pro.planning'
+import { Route as AuthenticatedProProfilRouteImport } from './routes/_authenticated/pro.profil'
 import { Route as AuthenticatedProQrRouteImport } from './routes/_authenticated/pro.qr'
 import { Route as AuthenticatedProVehiculeRouteImport } from './routes/_authenticated/pro.vehicule'
 import { Route as AuthenticatedProVerificationRouteImport } from './routes/_authenticated/pro.verification'
@@ -200,6 +201,11 @@ const AuthenticatedProPlanningRoute =
     path: '/planning',
     getParentRoute: () => AuthenticatedProRoute,
   } as any)
+const AuthenticatedProProfilRoute = AuthenticatedProProfilRouteImport.update({
+  id: '/profil',
+  path: '/profil',
+  getParentRoute: () => AuthenticatedProRoute,
+} as any)
 const AuthenticatedProQrRoute = AuthenticatedProQrRouteImport.update({
   id: '/qr',
   path: '/qr',
@@ -273,6 +279,7 @@ export interface FileRoutesByFullPath {
   '/pro/factures': typeof AuthenticatedProFacturesRoute
   '/pro/parametres': typeof AuthenticatedProParametresRoute
   '/pro/planning': typeof AuthenticatedProPlanningRoute
+  '/pro/profil': typeof AuthenticatedProProfilRoute
   '/pro/qr': typeof AuthenticatedProQrRoute
   '/pro/vehicule': typeof AuthenticatedProVehiculeRoute
   '/pro/verification': typeof AuthenticatedProVerificationRoute
@@ -307,6 +314,7 @@ export interface FileRoutesByTo {
   '/pro/factures': typeof AuthenticatedProFacturesRoute
   '/pro/parametres': typeof AuthenticatedProParametresRoute
   '/pro/planning': typeof AuthenticatedProPlanningRoute
+  '/pro/profil': typeof AuthenticatedProProfilRoute
   '/pro/qr': typeof AuthenticatedProQrRoute
   '/pro/vehicule': typeof AuthenticatedProVehiculeRoute
   '/pro/verification': typeof AuthenticatedProVerificationRoute
@@ -346,6 +354,7 @@ export interface FileRoutesById {
   '/_authenticated/pro/factures': typeof AuthenticatedProFacturesRoute
   '/_authenticated/pro/parametres': typeof AuthenticatedProParametresRoute
   '/_authenticated/pro/planning': typeof AuthenticatedProPlanningRoute
+  '/_authenticated/pro/profil': typeof AuthenticatedProProfilRoute
   '/_authenticated/pro/qr': typeof AuthenticatedProQrRoute
   '/_authenticated/pro/vehicule': typeof AuthenticatedProVehiculeRoute
   '/_authenticated/pro/verification': typeof AuthenticatedProVerificationRoute
@@ -385,6 +394,7 @@ export interface FileRouteTypes {
     | '/pro/factures'
     | '/pro/parametres'
     | '/pro/planning'
+    | '/pro/profil'
     | '/pro/qr'
     | '/pro/vehicule'
     | '/pro/verification'
@@ -419,6 +429,7 @@ export interface FileRouteTypes {
     | '/pro/factures'
     | '/pro/parametres'
     | '/pro/planning'
+    | '/pro/profil'
     | '/pro/qr'
     | '/pro/vehicule'
     | '/pro/verification'
@@ -457,6 +468,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pro/factures'
     | '/_authenticated/pro/parametres'
     | '/_authenticated/pro/planning'
+    | '/_authenticated/pro/profil'
     | '/_authenticated/pro/qr'
     | '/_authenticated/pro/vehicule'
     | '/_authenticated/pro/verification'
@@ -677,6 +689,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProPlanningRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
+    '/_authenticated/pro/profil': {
+      id: '/_authenticated/pro/profil'
+      path: '/profil'
+      fullPath: '/pro/profil'
+      preLoaderRoute: typeof AuthenticatedProProfilRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
     '/_authenticated/pro/qr': {
       id: '/_authenticated/pro/qr'
       path: '/qr'
@@ -794,6 +813,7 @@ interface AuthenticatedProRouteChildren {
   AuthenticatedProFacturesRoute: typeof AuthenticatedProFacturesRoute
   AuthenticatedProParametresRoute: typeof AuthenticatedProParametresRoute
   AuthenticatedProPlanningRoute: typeof AuthenticatedProPlanningRoute
+  AuthenticatedProProfilRoute: typeof AuthenticatedProProfilRoute
   AuthenticatedProQrRoute: typeof AuthenticatedProQrRoute
   AuthenticatedProVehiculeRoute: typeof AuthenticatedProVehiculeRoute
   AuthenticatedProVerificationRoute: typeof AuthenticatedProVerificationRoute
@@ -810,6 +830,7 @@ const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
   AuthenticatedProFacturesRoute: AuthenticatedProFacturesRoute,
   AuthenticatedProParametresRoute: AuthenticatedProParametresRoute,
   AuthenticatedProPlanningRoute: AuthenticatedProPlanningRoute,
+  AuthenticatedProProfilRoute: AuthenticatedProProfilRoute,
   AuthenticatedProQrRoute: AuthenticatedProQrRoute,
   AuthenticatedProVehiculeRoute: AuthenticatedProVehiculeRoute,
   AuthenticatedProVerificationRoute: AuthenticatedProVerificationRoute,
