@@ -27,6 +27,44 @@ const FLOW: Record<string, { next: string; label: string }> = {
 function DriverRides() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editPrice, setEditPrice] = useState("");
+  const [editTime, setEditTime] = useState("");
+
+  function openEdit(r: { id: string; price: number | null; scheduled_at: string }) {
+    if (editId === r.id) {
+      setEditId(null);
+      return;
+    }
+    setEditId(r.id);
+    setEditPrice(r.price != null ? String(r.price) : "");
+    const d = new Date(r.scheduled_at);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    setEditTime(
+      `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`,
+    );
+  }
+
+  async function saveEdit(rideId: string, clientId: string | null) {
+    const { error } = await supabase
+      .from("rides")
+      .update({
+        price: editPrice ? Number(editPrice) : null,
+        ...(editTime ? { scheduled_at: new Date(editTime).toISOString() } : {}),
+      })
+      .eq("id", rideId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    if (clientId) {
+      await supabase.rpc("notify_counterparty", { _recipient: clientId, _kind: "ride_update" });
+    }
+    toast.success("Course mise à jour");
+    setEditId(null);
+    void qc.invalidateQueries({ queryKey: ["driver-rides"] });
+  }
+
 
   const rides = useQuery({
     queryKey: ["driver-rides", user?.id],
