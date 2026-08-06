@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/NotificationBell";
 
-export type NavItem = { to: string; label: string; icon: ReactNode; badge?: number };
+export type NavItem = { to: string; label: string; icon: ReactNode; badge?: number | undefined };
 
 export function DashboardShell({
   items,
