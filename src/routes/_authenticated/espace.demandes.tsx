@@ -283,6 +283,7 @@ function ClientRequests() {
       special_needs: form.special_needs.trim() || null,
       round_trip: form.round_trip,
       trip_type: form.trip_type.trim() || null,
+      proposed_price: estimate ? estimate.price.total : null,
       status: "new",
     });
     setBusy(false);
