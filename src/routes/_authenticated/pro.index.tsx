@@ -68,6 +68,7 @@ function ProOverview() {
   const raw = useDriverData();
   const qc = useQueryClient();
   const [period, setPeriod] = useState<Period>("month");
+  const [dutyBusy, setDutyBusy] = useState(false);
 
   // Toutes les statistiques se rafraîchissent automatiquement à chaque événement.
   useEffect(() => {
