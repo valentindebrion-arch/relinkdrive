@@ -1,9 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, CalendarDays, ChevronRight, MapPin, Plus, Star, Users } from "lucide-react";
+import { useCallback, useState } from "react";
+import { toast } from "sonner";
+import { ArrowRight, CalendarDays, ChevronRight, MapPin, QrCode, Star, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { LiveDriversMap } from "@/components/LiveDriversMap";
+import { QrScannerDialog } from "@/components/QrScannerDialog";
 import { StatusBadge } from "@/components/StatusBadge";
 import { RIDE_STATUS_LABELS } from "@/lib/labels";
 
@@ -32,6 +35,29 @@ function dayLabel(iso: string) {
 
 function ClientHome() {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
+  const [scanOpen, setScanOpen] = useState(false);
+
+  const handleScan = useCallback(
+    (text: string) => {
+      let slug: string | null = null;
+      try {
+        const url = new URL(text, window.location.origin);
+        slug = url.pathname.match(/\/chauffeur\/([^/?#]+)/)?.[1] ?? null;
+      } catch {
+        slug = null;
+      }
+      if (!slug) slug = text.trim().match(/([A-Za-z0-9-]+)$/)?.[1] ?? null;
+      setScanOpen(false);
+      if (!slug) {
+        toast.error("QR code non reconnu", { description: "Ce code ne correspond pas à un chauffeur Relink." });
+        return;
+      }
+      navigate({ to: "/chauffeur/$slug", params: { slug } });
+    },
+    [navigate],
+  );
+
 
   const data = useQuery({
     queryKey: ["client-home", user?.id],
@@ -131,23 +157,25 @@ function ClientHome() {
             </span>
             <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
           </Link>
-        ) : (
-          <Link
-            to="/espace/chauffeurs"
-            className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-border bg-background/70 p-2.5"
-          >
-            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-accent-foreground">
-              <Plus className="size-5" />
+        ) : null}
+
+        <button
+          type="button"
+          onClick={() => setScanOpen(true)}
+          className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-border bg-background/70 p-2.5 text-left transition-colors hover:bg-background active:scale-[0.99]"
+        >
+          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-accent-foreground">
+            <QrCode className="size-5" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold">Ajouter un chauffeur</span>
+            <span className="block truncate text-xs text-muted-foreground">
+              Scannez son QR code avec l'appareil photo.
             </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm font-semibold">Ajouter un chauffeur</span>
-              <span className="block truncate text-xs text-muted-foreground">
-                Scannez son QR code en fin de course.
-              </span>
-            </span>
-            <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
-          </Link>
-        )}
+          </span>
+          <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
+        </button>
+
 
         {next ? (
           <Link
@@ -192,6 +220,9 @@ function ClientHome() {
           ))}
         </div>
       </div>
+
+      <QrScannerDialog open={scanOpen} onClose={() => setScanOpen(false)} onResult={handleScan} />
     </div>
+
   );
 }
