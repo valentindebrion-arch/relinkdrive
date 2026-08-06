@@ -20,6 +20,7 @@ import { PageHeader, EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { RIDE_STATUS_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
 import { RouteMiniMap } from "@/components/RouteMiniMap";
+import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { estimateRoute, reverseGeocode } from "@/lib/route-estimate.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
