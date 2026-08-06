@@ -244,6 +244,10 @@ function ClientRequests() {
   function next() {
     if (step === 0) {
       if (!form.driver_id) return toast.error("Choisissez un chauffeur");
+      if (whenMode === "now" && !driverAvailable)
+        return toast.error("Ce chauffeur est indisponible", {
+          description: "Réservez pour plus tard.",
+        });
       if (!pickupOk) return toast.error("Confirmez l'adresse de départ dans la liste proposée");
       if (!dropoffOk) return toast.error("Confirmez l'adresse d'arrivée dans la liste proposée");
       if (whenMode === "later" && !form.scheduled_at)
