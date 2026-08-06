@@ -155,8 +155,14 @@ function ClientRequests() {
         .eq("client_id", user!.id);
       const ids = (conns ?? []).map((c) => c.driver_id);
       if (!ids.length) return [];
-      const { data } = await supabase.from("profiles").select("id, full_name").in("id", ids);
-      return data ?? [];
+      const [{ data }, { data: dprofiles }] = await Promise.all([
+        supabase.from("profiles").select("id, full_name").in("id", ids),
+        supabase.from("driver_profiles").select("user_id, on_duty").in("user_id", ids),
+      ]);
+      return (data ?? []).map((p) => ({
+        ...p,
+        on_duty: (dprofiles ?? []).find((d) => d.user_id === p.id)?.on_duty ?? false,
+      }));
     },
   });
 
