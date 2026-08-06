@@ -273,21 +273,25 @@ function ClientRequests() {
       ? `Prix final Relink : ${formatEuro(estimate.price.total)} · ${estimate.distanceKm} km · ~${estimate.durationMin} min`
       : null;
     const comment = [form.comment.trim(), estimateLine].filter(Boolean).join("\n");
-    const { error } = await supabase.from("ride_requests").insert({
-      client_id: user!.id,
-      driver_id: form.driver_id,
-      pickup_address: form.pickup_address.trim(),
-      dropoff_address: form.dropoff_address.trim(),
-      scheduled_at: scheduledIso(),
-      passengers: Number(form.passengers),
-      luggage: Number(form.luggage),
-      comment: comment || null,
-      special_needs: form.special_needs.trim() || null,
-      round_trip: form.round_trip,
-      trip_type: form.trip_type.trim() || null,
-      proposed_price: estimate ? estimate.price.total : null,
-      status: "new",
-    });
+    const { data: created, error } = await supabase
+      .from("ride_requests")
+      .insert({
+        client_id: user!.id,
+        driver_id: form.driver_id,
+        pickup_address: form.pickup_address.trim(),
+        dropoff_address: form.dropoff_address.trim(),
+        scheduled_at: scheduledIso(),
+        passengers: Number(form.passengers),
+        luggage: Number(form.luggage),
+        comment: comment || null,
+        special_needs: form.special_needs.trim() || null,
+        round_trip: form.round_trip,
+        trip_type: form.trip_type.trim() || null,
+        proposed_price: estimate ? estimate.price.total : null,
+        status: "new",
+      })
+      .select("id")
+      .single();
     setBusy(false);
     if (error) {
       toast.error(error.message);
@@ -296,6 +300,7 @@ function ClientRequests() {
     await supabase.rpc("notify_counterparty", { _recipient: form.driver_id, _kind: "request_new" });
     toast.success("Demande envoyée — en attente de confirmation du chauffeur");
     resetForm();
+    navigate({ to: "/espace/suivi/$id", params: { id: created.id } });
   }
   const heading = HEADINGS[step]!;
   const selectedDriver = (drivers.data ?? []).find((d) => d.id === form.driver_id);

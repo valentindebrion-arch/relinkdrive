@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import { ArrowRight, CalendarDays, ChevronRight, MapPin, QrCode, Star, Users } from "lucide-react";
+import { ArrowRight, CalendarDays, ChevronRight, Loader2, MapPin, QrCode, Star, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { LiveDriversMap } from "@/components/LiveDriversMap";
@@ -62,6 +62,7 @@ function ClientHome() {
   const data = useQuery({
     queryKey: ["client-home", user?.id],
     enabled: !!user?.id,
+    refetchInterval: 15000,
     queryFn: async () => {
       const [{ data: conns }, { data: requests }, { data: rides }] = await Promise.all([
         supabase.from("driver_client_connections").select("*").eq("client_id", user!.id).order("created_at", { ascending: false }),
@@ -88,12 +89,33 @@ function ClientHome() {
   });
 
   const rides = data.data?.rides ?? [];
+  const requests = data.data?.requests ?? [];
   const upcoming = rides
     .filter((r) => new Date(r.scheduled_at) >= new Date() && !["cancelled", "completed"].includes(r.status))
     .sort((a, b) => +new Date(a.scheduled_at) - +new Date(b.scheduled_at));
   const completed = rides.filter((r) => r.status === "completed").length;
   const favorite = data.data?.drivers[0];
   const next = upcoming[0];
+
+  const activeRide = rides.find((r) =>
+    ["confirmed", "driver_enroute", "driver_arrived", "client_onboard", "in_progress"].includes(r.status),
+  );
+  const pendingRequest = requests.find(
+    (r) =>
+      ["new", "reviewing", "proposal_sent", "awaiting_client"].includes(r.status) &&
+      !rides.some((ride) => ride.request_id === r.id),
+  );
+  const live = activeRide ?? pendingRequest ?? null;
+  const liveIsRide = !!activeRide;
+  const liveDriver = live
+    ? data.data?.drivers.find((d) => d.driver_id === (live as { driver_id: string }).driver_id)
+    : undefined;
+  const liveStep = live
+    ? liveIsRide
+      ? (RIDE_STATUS_LABELS[live.status] ?? live.status)
+      : "En attente de confirmation"
+    : null;
+
 
   return (
     <div className="flex h-[calc(100dvh-6.25rem-env(safe-area-inset-bottom))] flex-col gap-2.5 overflow-hidden lg:h-[calc(100dvh-4.5rem)]">
@@ -112,6 +134,46 @@ function ClientHome() {
 
       {/* Panneau d'action */}
       <div className="shrink-0 space-y-2 rounded-3xl border border-border bg-card/90 p-3 shadow-[0_-12px_40px_-24px_hsl(0_0%_0%/0.35)] backdrop-blur-xl">
+        {live ? (
+          <Link
+            to="/espace/suivi/$id"
+            params={{ id: live.id }}
+            className="block animate-fade-in rounded-2xl border border-primary/30 bg-primary/5 p-3"
+          >
+            <div className="flex items-center gap-3">
+              <span className="relative grid size-11 shrink-0 place-items-center">
+                {!liveIsRide ? (
+                  <span className="absolute inline-flex size-11 animate-ping rounded-full bg-primary/20" />
+                ) : null}
+                <span className="relative grid size-10 place-items-center rounded-full bg-primary/15">
+                  <Loader2 className="size-5 animate-spin text-primary" />
+                </span>
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-semibold">{liveStep}</span>
+                <span className="block truncate text-xs text-muted-foreground">
+                  {liveDriver?.driver?.business_name ?? liveDriver?.profile?.full_name ?? "Votre chauffeur"}
+                </span>
+              </span>
+              <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
+            </div>
+            <div className="mt-3 space-y-1 border-t border-primary/20 pt-3 text-xs">
+              <span className="flex items-start gap-2">
+                <span className="mt-1 size-2 shrink-0 rounded-full bg-primary" />
+                <span className="min-w-0 flex-1 truncate font-medium">{live.pickup_address}</span>
+              </span>
+              <span className="flex items-start gap-2">
+                <MapPin className="mt-0.5 size-3.5 shrink-0 text-primary" />
+                <span className="min-w-0 flex-1 truncate font-medium">{live.dropoff_address}</span>
+              </span>
+            </div>
+            <span className="mt-3 flex h-10 items-center justify-center rounded-xl bg-primary text-sm font-semibold text-primary-foreground">
+              Suivre ma course
+            </span>
+          </Link>
+        ) : (
+        <>
+
 
         <Link
           to="/espace/demandes"
@@ -217,6 +279,8 @@ function ClientHome() {
             </Link>
           ))}
         </div>
+        </>
+        )}
       </div>
 
       <QrScannerDialog open={scanOpen} onClose={() => setScanOpen(false)} onResult={handleScan} />
