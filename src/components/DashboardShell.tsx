@@ -4,6 +4,7 @@ import { Menu, LogOut, UserRound, X } from "lucide-react";
 import { BRAND } from "@/lib/brand";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
+import { NotificationBell } from "@/components/NotificationBell";
 
 export type NavItem = { to: string; label: string; icon: ReactNode };
 
@@ -58,6 +59,10 @@ export function DashboardShell({
           <p className="text-xs text-muted-foreground">{area}</p>
         </Link>
         <div className="flex-1 overflow-y-auto">{nav}</div>
+        <div className="mt-4 flex items-center gap-2 border-t border-sidebar-border pt-3">
+          <NotificationBell />
+          <span className="text-xs text-muted-foreground">Notifications</span>
+        </div>
         {settingsTo ? (
           <Link
             to={settingsTo}
@@ -85,6 +90,8 @@ export function DashboardShell({
         <Link to="/" className="font-semibold">
           {BRAND.name}
         </Link>
+        <div className="flex items-center gap-1">
+        <NotificationBell />
         {settingsTo ? (
           <Link
             to={settingsTo}
@@ -97,6 +104,7 @@ export function DashboardShell({
         ) : (
           <span className="text-xs text-muted-foreground">{profile?.full_name?.split(" ")[0]}</span>
         )}
+        </div>
       </header>
 
 
