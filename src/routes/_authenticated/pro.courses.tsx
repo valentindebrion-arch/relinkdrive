@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DriverRequests } from "@/components/pro/DriverRequests";
 import { Planning } from "@/components/pro/Planning";
-import { useNewRequestsCount } from "@/routes/_authenticated/pro";
+import { useNewRequestsCount } from "@/lib/driver-queries";
 
 export const Route = createFileRoute("/_authenticated/pro/courses")({
   component: DriverRidesPage,

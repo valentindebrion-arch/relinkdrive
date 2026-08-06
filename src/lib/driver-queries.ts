@@ -53,3 +53,19 @@ export function useMyDocuments() {
     },
   });
 }
+
+export function useNewRequestsCount() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["driver-new-requests", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("ride_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("driver_id", user!.id)
+        .in("status", ["new", "reviewing", "awaiting_client", "proposal_sent"]);
+      return count ?? 0;
+    },
+  });
+}

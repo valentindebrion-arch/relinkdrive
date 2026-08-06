@@ -1,32 +1,15 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Home, Car, Users, Receipt, Bot, UserRound } from "lucide-react";
 import { DashboardShell, type NavItem } from "@/components/DashboardShell";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { requireRoles } from "@/lib/role-guard";
+import { useNewRequestsCount } from "@/lib/driver-queries";
 
 export const Route = createFileRoute("/_authenticated/pro")({
   beforeLoad: () => requireRoles(["driver", "admin", "superadmin"]),
   component: ProLayout,
 });
-
-export function useNewRequestsCount() {
-  const { user } = useAuth();
-  return useQuery({
-    queryKey: ["driver-new-requests", user?.id],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("ride_requests")
-        .select("id", { count: "exact", head: true })
-        .eq("driver_id", user!.id)
-        .in("status", ["new", "reviewing", "awaiting_client", "proposal_sent"]);
-      return count ?? 0;
-    },
-  });
-}
 
 function ProLayout() {
   const { isDriver, isAdmin, loading } = useAuth();
