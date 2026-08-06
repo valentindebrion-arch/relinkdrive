@@ -133,8 +133,6 @@ export function ActiveRidePanel() {
       </div>
 
       <CompleteRideDialog ride={r} open={completing} onOpenChange={setCompleting} />
-      <div className="hidden">
-      </div>
     </section>
   );
 }
