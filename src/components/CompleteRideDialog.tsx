@@ -60,7 +60,6 @@ export function CompleteRideDialog({
         status: "completed" as never,
         completed_at: now,
         started_at: ride.started_at ?? now,
-        ...(amount > 0 ? { price: amount } : {}),
         payment_method: method,
         ...(mileage ? { mileage_km: Number(mileage) } : {}),
         ...(note ? { completion_note: note } : {}),
