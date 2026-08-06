@@ -439,7 +439,7 @@ function ClientRequests() {
                           disabled
                             ? "cursor-not-allowed border-border bg-muted text-muted-foreground opacity-60"
                             : on
-                              ? "border-primary bg-primary/10 text-primary shadow-[0_0_0_3px_var(--color-primary)]/10"
+                              ? "border-primary bg-primary/10 text-primary"
                               : "border-border bg-card text-foreground",
                         )}
                       >
