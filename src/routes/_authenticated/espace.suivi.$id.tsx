@@ -248,6 +248,34 @@ function TrackingPage() {
         ) : null}
       </div>
 
+      {pending ? (
+        <div className="mt-4 flex flex-col items-center gap-4 rounded-3xl border border-primary/30 bg-primary/5 p-6 text-center">
+          <span className="relative flex size-16 items-center justify-center">
+            <span className="absolute inline-flex size-16 animate-ping rounded-full bg-primary/25" />
+            <span className="relative grid size-14 place-items-center rounded-full bg-primary/15">
+              <Loader2 className="size-7 animate-spin text-primary" />
+            </span>
+          </span>
+          <div>
+            <p className="text-sm font-semibold">En attente du chauffeur…</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {driver?.full_name ?? "Votre chauffeur"} doit confirmer votre course. Vous pouvez encore annuler.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            className="h-11 w-full rounded-2xl font-semibold text-destructive"
+            disabled={busy}
+            onClick={cancelRequest}
+          >
+            {busy ? <Loader2 className="size-4 animate-spin" /> : <X className="size-4" />}
+            Annuler ma demande
+          </Button>
+        </div>
+      ) : null}
+
+
+
       {!cancelled ? (
         <ol className="mt-4 rounded-3xl border border-border bg-card p-5">
           {STEPS.map((s, i) => {
