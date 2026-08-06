@@ -75,10 +75,34 @@ function QrPage() {
               <Download className="size-4" /> Télécharger
             </Button>
           </div>
-          {driver.data?.verification_status !== "verified" ? (
+          {driver.data && driver.data.verification_status !== "verified" ? (
             <p className="rounded-lg bg-warning/10 p-3 text-center text-sm text-muted-foreground">
-              Votre page publique sera visible une fois votre compte vérifié.
+              Votre page publique sera visible une fois votre compte vérifié. En attendant, ce lien affichera
+              « page indisponible ».
             </p>
+          ) : driver.data && !driver.data.page_published ? (
+            <div className="space-y-2 rounded-lg bg-warning/10 p-3 text-center text-sm text-muted-foreground">
+              <p>Votre page publique est actuellement dépubliée : le QR code ne mène à rien.</p>
+              <Button
+                size="sm"
+                disabled={publishing}
+                onClick={async () => {
+                  setPublishing(true);
+                  const { error } = await supabase
+                    .from("driver_profiles")
+                    .update({ page_published: true })
+                    .eq("user_id", user!.id);
+                  setPublishing(false);
+                  if (error) toast.error(error.message);
+                  else {
+                    toast.success("Page publiée");
+                    void driver.refetch();
+                  }
+                }}
+              >
+                Publier ma page
+              </Button>
+            </div>
           ) : null}
         </div>
         <div className="space-y-4">
