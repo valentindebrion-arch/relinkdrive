@@ -99,7 +99,7 @@ function DriversPage() {
         <div className="mt-7 flex flex-wrap gap-3">
           <Link
             to={signedInDriver ? "/pro" : "/auth"}
-            search={signedInDriver ? undefined : { mode: "signup", role: "driver" }}
+            search={signedInDriver ? {} : { mode: "signup", role: "driver" }}
             className="rounded-xl bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-sm"
           >
             {signedInDriver ? "Ouvrir mon espace chauffeur" : "Créer mon compte chauffeur"}
