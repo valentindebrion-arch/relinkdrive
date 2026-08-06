@@ -17,11 +17,13 @@ export const Route = createFileRoute("/_authenticated/pro/vehicule")({
 });
 
 const OPTIONS = [
-  ["child_seat", "Siège enfant"],
+  ["air_conditioning", "Climatisation"],
   ["chargers", "Chargeurs"],
-  ["water", "Eau à bord"],
+  ["water", "Bouteilles d'eau"],
+  ["card_payment", "Paiement par carte"],
+  ["quiet_ride", "Trajet silencieux sur demande"],
+  ["luggage_help", "Aide aux bagages"],
   ["pets_allowed", "Animaux acceptés"],
-  ["accessible", "Accessible PMR"],
 ] as const;
 
 function VehiclePage() {
@@ -44,13 +46,17 @@ function VehiclePage() {
     inspection_expires_at: "",
     next_service_date: "",
     photo_url: "",
+    photo_interior_url: "",
+    category: "",
   });
   const [flags, setFlags] = useState({
-    child_seat: false,
+    air_conditioning: true,
     chargers: false,
     water: false,
+    card_payment: true,
+    quiet_ride: true,
+    luggage_help: true,
     pets_allowed: false,
-    accessible: false,
   });
 
   useEffect(() => {
@@ -70,17 +76,21 @@ function VehiclePage() {
       inspection_expires_at: v.inspection_expires_at ?? "",
       next_service_date: v.next_service_date ?? "",
       photo_url: v.photo_url ?? "",
+      photo_interior_url: v.photo_interior_url ?? "",
+      category: v.category ?? "",
     });
     setFlags({
-      child_seat: v.child_seat,
+      air_conditioning: v.air_conditioning,
       chargers: v.chargers,
       water: v.water,
+      card_payment: v.card_payment,
+      quiet_ride: v.quiet_ride,
+      luggage_help: v.luggage_help,
       pets_allowed: v.pets_allowed,
-      accessible: v.accessible,
     });
   }, [vehicle.data]);
 
-  async function upload(file: File) {
+  async function upload(file: File, field: "photo_url" | "photo_interior_url" = "photo_url") {
     setUploading(true);
     const path = `${user!.id}/vehicle-${Date.now()}-${file.name}`;
     const { error } = await supabase.storage.from("vehicles").upload(path, file, { upsert: true });
@@ -89,7 +99,7 @@ function VehiclePage() {
       toast.error(error.message);
       return;
     }
-    setForm((f) => ({ ...f, photo_url: path }));
+    setForm((f) => ({ ...f, [field]: path }));
     toast.success("Photo ajoutée");
   }
 
@@ -109,6 +119,8 @@ function VehiclePage() {
       inspection_expires_at: form.inspection_expires_at || null,
       next_service_date: form.next_service_date || null,
       photo_url: form.photo_url || null,
+      photo_interior_url: form.photo_interior_url || null,
+      category: form.category || null,
       ...flags,
     };
     const { error } = vehicle.data
@@ -123,6 +135,7 @@ function VehiclePage() {
   }
 
   const photo = useSignedUrl("vehicles", form.photo_url);
+  const interior = useSignedUrl("vehicles", form.photo_interior_url);
 
   const text = (key: keyof typeof form, label: string, type = "text") => (
     <div>
@@ -145,6 +158,7 @@ function VehiclePage() {
         {text("color", "Couleur")}
         {text("plate", "Immatriculation")}
         {text("year", "Année", "number")}
+        {text("category", "Catégorie (berline, van…)")}
         {text("max_passengers", "Passagers max", "number")}
         {text("luggage_capacity", "Bagages", "number")}
         {text("mileage", "Kilométrage", "number")}
@@ -167,6 +181,23 @@ function VehiclePage() {
           />
           {photo.data ? (
             <img src={photo.data} alt="Véhicule" className="mt-3 h-40 rounded-lg object-cover" />
+          ) : null}
+        </div>
+
+        <div className="sm:col-span-2">
+          <Label htmlFor="photo-in">Photo intérieure (facultatif)</Label>
+          <Input
+            id="photo-in"
+            type="file"
+            accept="image/*"
+            disabled={uploading}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void upload(file, "photo_interior_url");
+            }}
+          />
+          {interior.data ? (
+            <img src={interior.data} alt="Intérieur du véhicule" className="mt-3 h-40 rounded-lg object-cover" />
           ) : null}
         </div>
 
