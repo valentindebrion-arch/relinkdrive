@@ -39,7 +39,6 @@ export function CompleteRideDialog({
 }) {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const [price, setPrice] = useState("");
   const [method, setMethod] = useState("card");
   const [mileage, setMileage] = useState("");
   const [note, setNote] = useState("");
@@ -47,7 +46,7 @@ export function CompleteRideDialog({
 
   if (!ride) return null;
 
-  const amount = price !== "" ? Number(price) : Number(ride.price ?? 0);
+  const amount = Number(ride.price ?? 0);
 
   async function confirm() {
     if (!ride || saving) return;
