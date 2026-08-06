@@ -32,6 +32,13 @@ const steps = [
 
 function Landing() {
   const { session, roles, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && session) {
+      navigate({ to: homeForRoles(roles), replace: true });
+    }
+  }, [loading, session, roles, navigate]);
 
   return (
     <div className="min-h-screen">
