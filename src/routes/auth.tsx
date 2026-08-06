@@ -131,8 +131,16 @@ function AuthPage() {
               </>
             ) : null}
             <div>
-              <Label htmlFor="email">E-mail</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={255} />
+              <Label htmlFor="email">{mode === "signin" ? "E-mail ou identifiant" : "E-mail"}</Label>
+              <Input
+                id="email"
+                type={mode === "signin" ? "text" : "email"}
+                autoComplete="username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                maxLength={255}
+              />
             </div>
             <div>
               <Label htmlFor="password">Mot de passe</Label>
