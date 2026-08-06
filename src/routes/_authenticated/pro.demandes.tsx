@@ -147,13 +147,7 @@ function DriverRequests() {
               {["new", "reviewing", "proposal_sent", "awaiting_client"].includes(r.status) ? (
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Button size="sm" onClick={() => confirmRide(r)}>
-                    Accepter et confirmer
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => setOpenId(openId === r.id ? null : r.id)}>
-                    Proposer horaire / prix
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => setStatus(r, "reviewing")}>
-                    À étudier
+                    Accepter la course
                   </Button>
                   <Button size="sm" variant="destructive" onClick={() => setStatus(r, "refused")}>
                     Refuser
@@ -161,36 +155,6 @@ function DriverRequests() {
                 </div>
               ) : null}
 
-              {openId === r.id ? (
-                <div className="mt-4 grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-3">
-                  <div>
-                    <Label htmlFor={`p-${r.id}`}>Prix proposé (€)</Label>
-                    <Input id={`p-${r.id}`} type="number" min="0" step="0.5" value={price} onChange={(e) => setPrice(e.target.value)} />
-                  </div>
-                  <div>
-                    <Label htmlFor={`t-${r.id}`}>Horaire proposé</Label>
-                    <Input id={`t-${r.id}`} type="datetime-local" value={time} onChange={(e) => setTime(e.target.value)} />
-                  </div>
-                  <div className="sm:col-span-3">
-                    <Label htmlFor={`m-${r.id}`}>Message</Label>
-                    <Textarea id={`m-${r.id}`} value={message} maxLength={500} onChange={(e) => setMessage(e.target.value)} />
-                  </div>
-                  <div className="sm:col-span-3">
-                    <Button
-                      size="sm"
-                      onClick={() =>
-                        setStatus(r, "proposal_sent", {
-                          proposed_price: price ? Number(price) : null,
-                          proposed_time: time ? new Date(time).toISOString() : null,
-                          driver_message: message || null,
-                        })
-                      }
-                    >
-                      Envoyer la proposition
-                    </Button>
-                  </div>
-                </div>
-              ) : null}
             </div>
           ))}
         </div>
