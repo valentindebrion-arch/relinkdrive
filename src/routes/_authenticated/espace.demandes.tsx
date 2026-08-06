@@ -114,7 +114,12 @@ function ClientRequests() {
   const estimateFn = useServerFn(estimateRoute);
   const geocodeFn = useServerFn(reverseGeocode);
 
-  const [step, setStep] = useState(0);
+  const [step, setStepRaw] = useState(0);
+  const [dir, setDir] = useState<1 | -1>(1);
+  const setStep = (n: number) => {
+    setDir(n >= step ? 1 : -1);
+    setStepRaw(n);
+  };
   const [busy, setBusy] = useState(false);
   const [locating, setLocating] = useState(false);
   const [pickupOk, setPickupOk] = useState(false);
