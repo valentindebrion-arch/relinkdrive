@@ -121,16 +121,16 @@ function RideList({ filter }: { filter: "upcoming" | "active" | "history" }) {
   return (
     <div className="space-y-3">
       {list.map((r) => (
-        <div key={r.id} className="surface flex flex-wrap items-center justify-between gap-3 p-4">
+        <div key={r.id} className="surface grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 p-3 sm:p-4">
           <div className="min-w-0">
             <p className="truncate font-medium">
               {r.pickup_address} → {r.dropoff_address}
             </p>
-            <p className="text-sm text-muted-foreground">
+            <p className="truncate text-xs text-muted-foreground sm:text-sm">
               {formatDateTime(r.scheduled_at)} · {r.price ? formatEuro(Number(r.price)) : "Prix à définir"}
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex shrink-0 flex-col items-end gap-1.5">
             <StatusBadge status={r.status} labels={RIDE_STATUS_LABELS} />
             {["confirmed", "driver_enroute"].includes(r.status) ? (
               <Button size="sm" variant="destructive" onClick={() => cancel(r.id, r.client_id)}>

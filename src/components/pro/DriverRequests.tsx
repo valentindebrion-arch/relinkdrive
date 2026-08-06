@@ -110,39 +110,40 @@ export function DriverRequests() {
       ) : (
         <div className="space-y-3">
           {list.map((r) => (
-            <div key={r.id} className="surface p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="font-medium">
+            <div key={r.id} className="surface p-3 sm:p-4">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">
                     {r.pickup_address} → {r.dropoff_address}
                   </p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatDateTime(r.scheduled_at)} · {requests.data?.names[r.client_id] ?? "Client"} ·{" "}
+                  <p className="text-xs text-muted-foreground sm:text-sm">
+                    {formatDateTime(r.scheduled_at)} · {requests.data?.names[r.client_id] ?? "Client"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
                     {r.passengers} passager(s) · {r.luggage} bagage(s)
                     {r.round_trip ? " · aller-retour" : ""}
                   </p>
-                  {r.comment ? <p className="mt-1 text-sm text-muted-foreground">« {r.comment} »</p> : null}
-                  {r.special_needs ? <p className="text-sm text-muted-foreground">Besoins : {r.special_needs}</p> : null}
+                  {r.comment ? <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">« {r.comment} »</p> : null}
+                  {r.special_needs ? (
+                    <p className="line-clamp-2 text-xs text-muted-foreground">Besoins : {r.special_needs}</p>
+                  ) : null}
                   {r.proposed_price ? (
-                    <p className="mt-1 text-sm font-semibold">
-                      Prix final : {formatEuro(Number(r.proposed_price))}
-                    </p>
+                    <p className="mt-1 text-sm font-semibold">Prix final : {formatEuro(Number(r.proposed_price))}</p>
                   ) : null}
                 </div>
                 <StatusBadge status={r.status} labels={RIDE_STATUS_LABELS} />
               </div>
 
               {["new", "reviewing", "proposal_sent", "awaiting_client"].includes(r.status) ? (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Button size="sm" onClick={() => confirmRide(r)}>
-                    Accepter la course
+                <div className="mt-2 flex gap-2">
+                  <Button size="sm" className="flex-1" onClick={() => confirmRide(r)}>
+                    Accepter
                   </Button>
-                  <Button size="sm" variant="destructive" onClick={() => setStatus(r, "refused")}>
+                  <Button size="sm" variant="destructive" className="flex-1" onClick={() => setStatus(r, "refused")}>
                     Refuser
                   </Button>
                 </div>
               ) : null}
-
             </div>
           ))}
         </div>

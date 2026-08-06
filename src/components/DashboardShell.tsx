@@ -145,11 +145,11 @@ export function DashboardShell({
 
       <main
         className={cn(
-          "w-full max-w-full overflow-x-hidden px-4 py-6 lg:ml-64 lg:w-auto lg:px-8",
+          "w-full max-w-full overflow-x-hidden px-3 py-4 sm:px-4 lg:ml-64 lg:w-auto lg:px-8 lg:py-6",
           bottomItems ? "pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-6" : "",
         )}
       >
-        {children}
+        <div className="mx-auto w-full max-w-5xl">{children}</div>
       </main>
 
       {bottomItems ? (
