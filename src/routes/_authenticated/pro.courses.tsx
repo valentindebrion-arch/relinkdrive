@@ -94,75 +94,36 @@ function DriverRides() {
           {list.map((r) => {
             const step = FLOW[r.status];
             return (
-              <div key={r.id} className="surface p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="font-medium">
-                      {r.pickup_address} → {r.dropoff_address}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatDateTime(r.scheduled_at)} · {r.price ? formatEuro(Number(r.price)) : "Prix à définir"}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <StatusBadge status={r.status} labels={RIDE_STATUS_LABELS} />
-                    {step ? (
-                      <Button size="sm" onClick={() => advance(r.id, r.client_id, step.next)}>
-                        {step.label}
-                      </Button>
-                    ) : null}
-                    {!["completed", "cancelled"].includes(r.status) ? (
-                      <Button size="sm" variant="outline" onClick={() => openEdit(r)}>
-                        Modifier heure / prix
-                      </Button>
-                    ) : null}
-                    {r.status === "completed" ? (
-                      <Button size="sm" variant="outline" onClick={() => createInvoice(r)}>
-                        Créer la facture
-                      </Button>
-                    ) : null}
-                    {["confirmed", "driver_enroute"].includes(r.status) ? (
-                      <Button size="sm" variant="destructive" onClick={() => advance(r.id, r.client_id, "cancelled")}>
-                        Annuler
-                      </Button>
-                    ) : null}
-                  </div>
+              <div key={r.id} className="surface flex flex-wrap items-center justify-between gap-3 p-4">
+                <div>
+                  <p className="font-medium">
+                    {r.pickup_address} → {r.dropoff_address}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatDateTime(r.scheduled_at)} · {r.price ? formatEuro(Number(r.price)) : "Prix à définir"}
+                  </p>
                 </div>
-
-                {editId === r.id ? (
-                  <div className="mt-4 grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-3">
-                    <div>
-                      <Label htmlFor={`rp-${r.id}`}>Prix (€)</Label>
-                      <Input
-                        id={`rp-${r.id}`}
-                        type="number"
-                        min="0"
-                        step="0.5"
-                        value={editPrice}
-                        onChange={(e) => setEditPrice(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor={`rt-${r.id}`}>Date et heure</Label>
-                      <Input
-                        id={`rt-${r.id}`}
-                        type="datetime-local"
-                        value={editTime}
-                        onChange={(e) => setEditTime(e.target.value)}
-                      />
-                    </div>
-                    <div className="flex items-end gap-2">
-                      <Button size="sm" onClick={() => saveEdit(r.id, r.client_id)}>
-                        Enregistrer
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => setEditId(null)}>
-                        Annuler
-                      </Button>
-                    </div>
-                  </div>
-                ) : null}
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge status={r.status} labels={RIDE_STATUS_LABELS} />
+                  {step ? (
+                    <Button size="sm" onClick={() => advance(r.id, r.client_id, step.next)}>
+                      {step.label}
+                    </Button>
+                  ) : null}
+                  {r.status === "completed" ? (
+                    <Button size="sm" variant="outline" onClick={() => createInvoice(r)}>
+                      Créer la facture
+                    </Button>
+                  ) : null}
+                  {["confirmed", "driver_enroute"].includes(r.status) ? (
+                    <Button size="sm" variant="destructive" onClick={() => advance(r.id, r.client_id, "cancelled")}>
+                      Annuler
+                    </Button>
+                  ) : null}
+                </div>
               </div>
             );
+
 
           })}
         </div>
