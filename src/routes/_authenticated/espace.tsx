@@ -11,7 +11,7 @@ export const Route = createFileRoute("/_authenticated/espace")({
 const items: NavItem[] = [
   { to: "/espace", label: "Accueil", icon: <LayoutDashboard /> },
   { to: "/espace/chauffeurs", label: "Mes chauffeurs", icon: <Users /> },
-  { to: "/espace/demandes", label: "Mes demandes", icon: <Inbox /> },
+  { to: "/espace/demandes", label: "Commander", icon: <Inbox /> },
   { to: "/espace/courses", label: "Mes courses", icon: <Car /> },
   { to: "/espace/parametres", label: "Paramètres", icon: <Settings /> },
 ];
