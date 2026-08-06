@@ -22,6 +22,11 @@ import {
   Music2,
   Phone,
   PlugZap,
+  Quote,
+  Star,
+  ThumbsUp,
+  UserRound,
+  ChevronRight,
   ShieldCheck,
   Snowflake,
   Sparkles,
@@ -266,7 +271,7 @@ function DriverPublicPage() {
   const vehicleSub = [d.vehicle_color, d.vehicle_category].filter(Boolean).join(" • ") || "Berline";
 
   const reviews: { name: string; date: string; stars: number; text: string }[] = [];
-  const ratingAvg: number | null = null;
+  const ratingAvg = null as number | null;
   const ratingCount = reviews.length;
   const distribution = [5, 4, 3, 2, 1].map((s) => ({
     stars: s,
