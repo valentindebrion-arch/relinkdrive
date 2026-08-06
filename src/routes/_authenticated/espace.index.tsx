@@ -35,6 +35,29 @@ function dayLabel(iso: string) {
 
 function ClientHome() {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
+  const [scanOpen, setScanOpen] = useState(false);
+
+  const handleScan = useCallback(
+    (text: string) => {
+      let slug: string | null = null;
+      try {
+        const url = new URL(text, window.location.origin);
+        slug = url.pathname.match(/\/chauffeur\/([^/?#]+)/)?.[1] ?? null;
+      } catch {
+        slug = null;
+      }
+      if (!slug) slug = text.trim().match(/([A-Za-z0-9-]+)$/)?.[1] ?? null;
+      setScanOpen(false);
+      if (!slug) {
+        toast.error("QR code non reconnu", { description: "Ce code ne correspond pas à un chauffeur Relink." });
+        return;
+      }
+      navigate({ to: "/chauffeur/$slug", params: { slug } });
+    },
+    [navigate],
+  );
+
 
   const data = useQuery({
     queryKey: ["client-home", user?.id],
