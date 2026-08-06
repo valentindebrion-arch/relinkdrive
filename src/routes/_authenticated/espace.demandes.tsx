@@ -297,7 +297,6 @@ function ClientRequests() {
       toast.error(error.message);
       return;
     }
-    await supabase.rpc("notify_counterparty", { _recipient: form.driver_id, _kind: "request_new" });
     toast.success("Demande envoyée — en attente de confirmation du chauffeur");
     resetForm();
     navigate({ to: "/espace/suivi/$id", params: { id: created.id } });

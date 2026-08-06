@@ -197,7 +197,6 @@ function DriverPublicPage() {
       city: driverCity,
       metadata: { source },
     });
-    await supabase.rpc("notify_counterparty", { _recipient: driverId, _kind: "connection" });
     toast.success("Chauffeur ajouté à votre carnet");
     void connQuery.refetch();
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -41,6 +41,7 @@ import { Route as AuthenticatedProProfilRouteImport } from './routes/_authentica
 import { Route as AuthenticatedProQrRouteImport } from './routes/_authenticated/pro.qr'
 import { Route as AuthenticatedProVehiculeRouteImport } from './routes/_authenticated/pro.vehicule'
 import { Route as AuthenticatedProVerificationRouteImport } from './routes/_authenticated/pro.verification'
+import { Route as ApiPublicPushRouteImport } from './routes/api/public/push'
 import { Route as AuthenticatedEspaceCoursesIndexRouteImport } from './routes/_authenticated/espace.courses.index'
 import { Route as AuthenticatedEspaceCoursesRideIdRouteImport } from './routes/_authenticated/espace.courses.$rideId'
 import { Route as AuthenticatedEspaceCoursesAnnuleesRouteImport } from './routes/_authenticated/espace.courses.annulees'
@@ -224,6 +225,11 @@ const AuthenticatedProVerificationRoute =
     path: '/verification',
     getParentRoute: () => AuthenticatedProRoute,
   } as any)
+const ApiPublicPushRoute = ApiPublicPushRouteImport.update({
+  id: '/api/public/push',
+  path: '/api/public/push',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedEspaceCoursesIndexRoute =
   AuthenticatedEspaceCoursesIndexRouteImport.update({
     id: '/courses/',
@@ -290,6 +296,7 @@ export interface FileRoutesByFullPath {
   '/pro/qr': typeof AuthenticatedProQrRoute
   '/pro/vehicule': typeof AuthenticatedProVehiculeRoute
   '/pro/verification': typeof AuthenticatedProVerificationRoute
+  '/api/public/push': typeof ApiPublicPushRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/espace/': typeof AuthenticatedEspaceIndexRoute
   '/pro/': typeof AuthenticatedProIndexRoute
@@ -326,6 +333,7 @@ export interface FileRoutesByTo {
   '/pro/qr': typeof AuthenticatedProQrRoute
   '/pro/vehicule': typeof AuthenticatedProVehiculeRoute
   '/pro/verification': typeof AuthenticatedProVerificationRoute
+  '/api/public/push': typeof ApiPublicPushRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/espace': typeof AuthenticatedEspaceIndexRoute
   '/pro': typeof AuthenticatedProIndexRoute
@@ -367,6 +375,7 @@ export interface FileRoutesById {
   '/_authenticated/pro/qr': typeof AuthenticatedProQrRoute
   '/_authenticated/pro/vehicule': typeof AuthenticatedProVehiculeRoute
   '/_authenticated/pro/verification': typeof AuthenticatedProVerificationRoute
+  '/api/public/push': typeof ApiPublicPushRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/espace/': typeof AuthenticatedEspaceIndexRoute
   '/_authenticated/pro/': typeof AuthenticatedProIndexRoute
@@ -408,6 +417,7 @@ export interface FileRouteTypes {
     | '/pro/qr'
     | '/pro/vehicule'
     | '/pro/verification'
+    | '/api/public/push'
     | '/admin/'
     | '/espace/'
     | '/pro/'
@@ -444,6 +454,7 @@ export interface FileRouteTypes {
     | '/pro/qr'
     | '/pro/vehicule'
     | '/pro/verification'
+    | '/api/public/push'
     | '/admin'
     | '/espace'
     | '/pro'
@@ -484,6 +495,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pro/qr'
     | '/_authenticated/pro/vehicule'
     | '/_authenticated/pro/verification'
+    | '/api/public/push'
     | '/_authenticated/admin/'
     | '/_authenticated/espace/'
     | '/_authenticated/pro/'
@@ -502,6 +514,7 @@ export interface RootRouteChildren {
   ChauffeursRoute: typeof ChauffeursRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ChauffeurSlugRoute: typeof ChauffeurSlugRoute
+  ApiPublicPushRoute: typeof ApiPublicPushRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -730,6 +743,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProVerificationRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
+    '/api/public/push': {
+      id: '/api/public/push'
+      path: '/api/public/push'
+      fullPath: '/api/public/push'
+      preLoaderRoute: typeof ApiPublicPushRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/espace/courses/': {
       id: '/_authenticated/espace/courses/'
       path: '/courses'
@@ -885,6 +905,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChauffeursRoute: ChauffeursRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ChauffeurSlugRoute: ChauffeurSlugRoute,
+  ApiPublicPushRoute: ApiPublicPushRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

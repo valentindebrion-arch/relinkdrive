@@ -61,7 +61,7 @@ export const Route = createFileRoute("/api/public/push")({
             };
             try {
               const payload = await buildPushPayload(message, subscription, vapid);
-              const res = await fetch(s.endpoint, payload);
+              const res = await fetch(s.endpoint, payload as unknown as RequestInit);
               if (res.status === 404 || res.status === 410) {
                 await supabaseAdmin.from("push_subscriptions").delete().eq("endpoint", s.endpoint);
               } else if (res.ok) {
