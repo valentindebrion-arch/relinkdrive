@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { VehiclePage } from "@/components/pro/VehiclePage";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/pro/vehicule")({
-  component: VehiclePage,
+  beforeLoad: () => {
+    throw redirect({ to: "/pro/profil", replace: true });
+  },
 });

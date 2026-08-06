@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { VerificationPage } from "@/components/pro/VerificationPage";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/pro/verification")({
-  component: VerificationPage,
+  beforeLoad: () => {
+    throw redirect({ to: "/pro/profil", replace: true });
+  },
 });

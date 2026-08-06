@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { DriverRequests } from "@/components/pro/DriverRequests";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/pro/demandes")({
-  component: DriverRequests,
+  beforeLoad: () => {
+    throw redirect({ to: "/pro/courses", replace: true });
+  },
 });

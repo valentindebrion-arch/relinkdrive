@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ProSettings } from "@/components/pro/ProSettings";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/pro/parametres")({
-  component: ProSettings,
+  beforeLoad: () => {
+    throw redirect({ to: "/pro/profil", replace: true });
+  },
 });

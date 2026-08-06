@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ActivityPage } from "@/components/pro/ActivityPage";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/pro/activite")({
-  component: ActivityPage,
+  beforeLoad: () => {
+    throw redirect({ to: "/pro/factures", replace: true });
+  },
 });
