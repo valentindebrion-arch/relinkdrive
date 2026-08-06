@@ -79,6 +79,14 @@ function ClientRides() {
     <div className="space-y-6 overflow-x-hidden">
       <PageHeader title="Mes courses" description="Historique et suivi de vos trajets." />
 
+      <Link
+        to="/espace/courses/demandes"
+        className="surface flex items-center justify-between gap-3 p-4 transition-colors hover:border-primary/40 hover:bg-accent/40"
+      >
+        <span className="font-medium">Mes demandes</span>
+        <ChevronRight className="size-4 text-muted-foreground" />
+      </Link>
+
       {rides.length === 0 ? (
         <EmptyState title="Aucune course" description="Vos courses confirmées apparaîtront ici." />
       ) : (

@@ -44,6 +44,7 @@ import { Route as AuthenticatedProVerificationRouteImport } from './routes/_auth
 import { Route as AuthenticatedEspaceCoursesIndexRouteImport } from './routes/_authenticated/espace.courses.index'
 import { Route as AuthenticatedEspaceCoursesRideIdRouteImport } from './routes/_authenticated/espace.courses.$rideId'
 import { Route as AuthenticatedEspaceCoursesAnnuleesRouteImport } from './routes/_authenticated/espace.courses.annulees'
+import { Route as AuthenticatedEspaceCoursesDemandesRouteImport } from './routes/_authenticated/espace.courses.demandes'
 import { Route as AuthenticatedEspaceCoursesTermineesRouteImport } from './routes/_authenticated/espace.courses.terminees'
 import { Route as AuthenticatedEspaceSuiviIdRouteImport } from './routes/_authenticated/espace.suivi.$id'
 
@@ -241,6 +242,12 @@ const AuthenticatedEspaceCoursesAnnuleesRoute =
     path: '/courses/annulees',
     getParentRoute: () => AuthenticatedEspaceRoute,
   } as any)
+const AuthenticatedEspaceCoursesDemandesRoute =
+  AuthenticatedEspaceCoursesDemandesRouteImport.update({
+    id: '/courses/demandes',
+    path: '/courses/demandes',
+    getParentRoute: () => AuthenticatedEspaceRoute,
+  } as any)
 const AuthenticatedEspaceCoursesTermineesRoute =
   AuthenticatedEspaceCoursesTermineesRouteImport.update({
     id: '/courses/terminees',
@@ -288,6 +295,7 @@ export interface FileRoutesByFullPath {
   '/pro/': typeof AuthenticatedProIndexRoute
   '/espace/courses/$rideId': typeof AuthenticatedEspaceCoursesRideIdRoute
   '/espace/courses/annulees': typeof AuthenticatedEspaceCoursesAnnuleesRoute
+  '/espace/courses/demandes': typeof AuthenticatedEspaceCoursesDemandesRoute
   '/espace/courses/terminees': typeof AuthenticatedEspaceCoursesTermineesRoute
   '/espace/suivi/$id': typeof AuthenticatedEspaceSuiviIdRoute
   '/espace/courses/': typeof AuthenticatedEspaceCoursesIndexRoute
@@ -323,6 +331,7 @@ export interface FileRoutesByTo {
   '/pro': typeof AuthenticatedProIndexRoute
   '/espace/courses/$rideId': typeof AuthenticatedEspaceCoursesRideIdRoute
   '/espace/courses/annulees': typeof AuthenticatedEspaceCoursesAnnuleesRoute
+  '/espace/courses/demandes': typeof AuthenticatedEspaceCoursesDemandesRoute
   '/espace/courses/terminees': typeof AuthenticatedEspaceCoursesTermineesRoute
   '/espace/suivi/$id': typeof AuthenticatedEspaceSuiviIdRoute
   '/espace/courses': typeof AuthenticatedEspaceCoursesIndexRoute
@@ -363,6 +372,7 @@ export interface FileRoutesById {
   '/_authenticated/pro/': typeof AuthenticatedProIndexRoute
   '/_authenticated/espace/courses/$rideId': typeof AuthenticatedEspaceCoursesRideIdRoute
   '/_authenticated/espace/courses/annulees': typeof AuthenticatedEspaceCoursesAnnuleesRoute
+  '/_authenticated/espace/courses/demandes': typeof AuthenticatedEspaceCoursesDemandesRoute
   '/_authenticated/espace/courses/terminees': typeof AuthenticatedEspaceCoursesTermineesRoute
   '/_authenticated/espace/suivi/$id': typeof AuthenticatedEspaceSuiviIdRoute
   '/_authenticated/espace/courses/': typeof AuthenticatedEspaceCoursesIndexRoute
@@ -403,6 +413,7 @@ export interface FileRouteTypes {
     | '/pro/'
     | '/espace/courses/$rideId'
     | '/espace/courses/annulees'
+    | '/espace/courses/demandes'
     | '/espace/courses/terminees'
     | '/espace/suivi/$id'
     | '/espace/courses/'
@@ -438,6 +449,7 @@ export interface FileRouteTypes {
     | '/pro'
     | '/espace/courses/$rideId'
     | '/espace/courses/annulees'
+    | '/espace/courses/demandes'
     | '/espace/courses/terminees'
     | '/espace/suivi/$id'
     | '/espace/courses'
@@ -477,6 +489,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pro/'
     | '/_authenticated/espace/courses/$rideId'
     | '/_authenticated/espace/courses/annulees'
+    | '/_authenticated/espace/courses/demandes'
     | '/_authenticated/espace/courses/terminees'
     | '/_authenticated/espace/suivi/$id'
     | '/_authenticated/espace/courses/'
@@ -738,6 +751,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEspaceCoursesAnnuleesRouteImport
       parentRoute: typeof AuthenticatedEspaceRoute
     }
+    '/_authenticated/espace/courses/demandes': {
+      id: '/_authenticated/espace/courses/demandes'
+      path: '/courses/demandes'
+      fullPath: '/espace/courses/demandes'
+      preLoaderRoute: typeof AuthenticatedEspaceCoursesDemandesRouteImport
+      parentRoute: typeof AuthenticatedEspaceRoute
+    }
     '/_authenticated/espace/courses/terminees': {
       id: '/_authenticated/espace/courses/terminees'
       path: '/courses/terminees'
@@ -781,6 +801,7 @@ interface AuthenticatedEspaceRouteChildren {
   AuthenticatedEspaceIndexRoute: typeof AuthenticatedEspaceIndexRoute
   AuthenticatedEspaceCoursesRideIdRoute: typeof AuthenticatedEspaceCoursesRideIdRoute
   AuthenticatedEspaceCoursesAnnuleesRoute: typeof AuthenticatedEspaceCoursesAnnuleesRoute
+  AuthenticatedEspaceCoursesDemandesRoute: typeof AuthenticatedEspaceCoursesDemandesRoute
   AuthenticatedEspaceCoursesTermineesRoute: typeof AuthenticatedEspaceCoursesTermineesRoute
   AuthenticatedEspaceSuiviIdRoute: typeof AuthenticatedEspaceSuiviIdRoute
   AuthenticatedEspaceCoursesIndexRoute: typeof AuthenticatedEspaceCoursesIndexRoute
@@ -794,6 +815,8 @@ const AuthenticatedEspaceRouteChildren: AuthenticatedEspaceRouteChildren = {
   AuthenticatedEspaceCoursesRideIdRoute: AuthenticatedEspaceCoursesRideIdRoute,
   AuthenticatedEspaceCoursesAnnuleesRoute:
     AuthenticatedEspaceCoursesAnnuleesRoute,
+  AuthenticatedEspaceCoursesDemandesRoute:
+    AuthenticatedEspaceCoursesDemandesRoute,
   AuthenticatedEspaceCoursesTermineesRoute:
     AuthenticatedEspaceCoursesTermineesRoute,
   AuthenticatedEspaceSuiviIdRoute: AuthenticatedEspaceSuiviIdRoute,
@@ -866,3 +889,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
