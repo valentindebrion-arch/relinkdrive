@@ -50,20 +50,48 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+function driverNameFromSlug(slug: string) {
+  return slug
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 export const Route = createFileRoute("/chauffeur/$slug")({
-  head: () => ({
-    meta: [
-      { title: `Votre chauffeur de confiance — ${BRAND.name}` },
-      {
-        name: "description",
-        content: "Ajoutez ce chauffeur à votre carnet privé et sollicitez-le pour vos prochains trajets.",
-      },
-      { property: "og:title", content: `Votre chauffeur de confiance — ${BRAND.name}` },
-      { property: "og:description", content: "Ajoutez ce chauffeur à votre carnet de confiance." },
-      { property: "og:type", content: "profile" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: ({ params }) => {
+    const displayName = driverNameFromSlug(params.slug);
+    const url = `https://relinkdriver.lovable.app/chauffeur/${params.slug}`;
+    const title = `${displayName}, chauffeur VTC — ${BRAND.name}`;
+    const description = `Découvrez le profil de ${displayName}, chauffeur VTC indépendant : véhicule, services, zone d'intervention et disponibilités. Ajoutez-le à votre carnet de confiance.`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "profile" },
+        { property: "og:url", content: url },
+        { name: "twitter:card", content: "summary" },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ProfessionalService",
+            name: `${displayName} — Chauffeur VTC`,
+            description,
+            url,
+            areaServed: "France",
+            serviceType: "Chauffeur VTC",
+            provider: { "@type": "Person", name: displayName },
+          }),
+        },
+      ],
+    };
+  },
   component: DriverPublicPage,
 });
 

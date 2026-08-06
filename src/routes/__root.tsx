@@ -81,13 +81,42 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: `${BRAND.name} — ${BRAND.tagline}` },
-      { name: "description", content: BRAND.driverPromise },
+      {
+        name: "description",
+        content:
+          "Relink relie les chauffeurs VTC indépendants à leurs clients après la course : carnet privé, QR code, demandes de trajet, planning et factures.",
+      },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: BRAND.name },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              name: BRAND.name,
+              url: "https://relinkdriver.lovable.app",
+              slogan: BRAND.tagline,
+              description:
+                "Plateforme post-course pour chauffeurs VTC indépendants : fidélisation client, demandes de trajet, planning et facturation.",
+            },
+            {
+              "@type": "WebSite",
+              name: BRAND.name,
+              url: "https://relinkdriver.lovable.app",
+              inLanguage: "fr-FR",
+            },
+          ],
+        }),
+      },
     ],
   }),
   shellComponent: RootShell,
