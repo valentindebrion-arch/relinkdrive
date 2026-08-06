@@ -16,8 +16,10 @@ import {
 } from "lucide-react";
 import { DashboardShell, type NavItem } from "@/components/DashboardShell";
 import { useAuth } from "@/lib/auth";
+import { requireRoles } from "@/lib/role-guard";
 
 export const Route = createFileRoute("/_authenticated/pro")({
+  beforeLoad: () => requireRoles(["driver", "admin", "superadmin"]),
   component: ProLayout,
 });
 
