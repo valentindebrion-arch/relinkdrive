@@ -1,9 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useCallback, useState } from "react";
+import { toast } from "sonner";
 import { Car, ChevronRight, MapPin, Plus, Star, User, Users, CalendarDays } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { formatDateTime } from "@/lib/labels";
+import { QrScannerDialog } from "@/components/QrScannerDialog";
 
 export const Route = createFileRoute("/_authenticated/espace/chauffeurs")({
   component: ClientDrivers,
@@ -20,6 +23,34 @@ function initials(name?: string | null) {
 
 function ClientDrivers() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [scanOpen, setScanOpen] = useState(false);
+
+  const handleScan = useCallback(
+    (text: string) => {
+      let slug: string | null = null;
+      try {
+        const url = new URL(text, window.location.origin);
+        const match = url.pathname.match(/\/chauffeur\/([^/?#]+)/);
+        slug = match?.[1] ?? null;
+      } catch {
+        slug = null;
+      }
+      if (!slug) {
+        const match = text.trim().match(/([A-Za-z0-9-]+)$/);
+        slug = match?.[1] ?? null;
+      }
+      setScanOpen(false);
+      if (!slug) {
+        toast.error("QR code non reconnu", { description: "Ce code ne correspond pas à un chauffeur Relink." });
+        return;
+      }
+      navigate({ to: "/chauffeur/$slug", params: { slug } });
+    },
+    [navigate],
+  );
+
+
 
   const drivers = useQuery({
     queryKey: ["client-drivers", user?.id],
@@ -166,14 +197,20 @@ function ClientDrivers() {
         </div>
       ) : null}
 
-      <div className="rounded-3xl border-2 border-dashed border-border p-8 text-center">
-        <p className="inline-flex items-center gap-2 text-base font-semibold text-primary">
+      <button
+        type="button"
+        onClick={() => setScanOpen(true)}
+        className="w-full rounded-3xl border-2 border-dashed border-border p-8 text-center transition hover:border-primary hover:bg-primary/5"
+      >
+        <span className="inline-flex items-center gap-2 text-base font-semibold text-primary">
           <Plus className="h-5 w-5" /> Ajouter un chauffeur
-        </p>
-        <p className="mt-2 text-sm text-muted-foreground">
+        </span>
+        <span className="mt-2 block text-sm text-muted-foreground">
           Scannez le QR code de votre chauffeur en fin de course pour l'enregistrer ici.
-        </p>
-      </div>
+        </span>
+      </button>
+
+      <QrScannerDialog open={scanOpen} onClose={() => setScanOpen(false)} onResult={handleScan} />
     </div>
   );
 }
