@@ -88,12 +88,33 @@ function ClientHome() {
   });
 
   const rides = data.data?.rides ?? [];
+  const requests = data.data?.requests ?? [];
   const upcoming = rides
     .filter((r) => new Date(r.scheduled_at) >= new Date() && !["cancelled", "completed"].includes(r.status))
     .sort((a, b) => +new Date(a.scheduled_at) - +new Date(b.scheduled_at));
   const completed = rides.filter((r) => r.status === "completed").length;
   const favorite = data.data?.drivers[0];
   const next = upcoming[0];
+
+  const activeRide = rides.find((r) =>
+    ["confirmed", "driver_enroute", "driver_arrived", "client_onboard", "in_progress"].includes(r.status),
+  );
+  const pendingRequest = requests.find(
+    (r) =>
+      ["new", "reviewing", "proposal_sent", "awaiting_client"].includes(r.status) &&
+      !rides.some((ride) => ride.request_id === r.id),
+  );
+  const live = activeRide ?? pendingRequest ?? null;
+  const liveIsRide = !!activeRide;
+  const liveDriver = live
+    ? data.data?.drivers.find((d) => d.driver_id === (live as { driver_id: string }).driver_id)
+    : undefined;
+  const liveStep = live
+    ? liveIsRide
+      ? (RIDE_STATUS_LABELS[live.status] ?? live.status)
+      : "En attente de confirmation"
+    : null;
+
 
   return (
     <div className="flex h-[calc(100dvh-6.25rem-env(safe-area-inset-bottom))] flex-col gap-2.5 overflow-hidden lg:h-[calc(100dvh-4.5rem)]">
