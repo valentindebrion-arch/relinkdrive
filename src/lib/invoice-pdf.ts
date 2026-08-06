@@ -56,11 +56,13 @@ export function buildInvoicePdf(opts: {
   const M = 16;
   let y = 18;
 
+  const clean = (v: string) => v.replace(/[\u2192\u27A1\u2794]/g, ">").replace(/[\u2190]/g, "<");
+
   const text = (s: string, x: number, yy: number, size = 10, bold = false, color = [17, 24, 39]) => {
     doc.setFont("helvetica", bold ? "bold" : "normal");
     doc.setFontSize(size);
     doc.setTextColor(color[0]!, color[1]!, color[2]!);
-    doc.text(s, x, yy);
+    doc.text(clean(s), x, yy);
   };
 
   // Header band
@@ -92,7 +94,7 @@ export function buildInvoicePdf(opts: {
     issuer.email || "",
   ].filter(Boolean) as string[];
   issuerLines.forEach((l) => {
-    doc.splitTextToSize(l, 80).forEach((ln: string) => {
+    doc.splitTextToSize(clean(l), 80).forEach((ln: string) => {
       text(ln, M, y, 9);
       y += 4.6;
     });
@@ -124,7 +126,7 @@ export function buildInvoicePdf(opts: {
       ride.passengers ? `Passagers : ${ride.passengers}` : "",
       ride.mileage_km ? `Distance : ${Number(ride.mileage_km)} km` : "",
     ].filter(Boolean) as string[];
-    const wrapped = rideLines.flatMap((l) => doc.splitTextToSize(l, W - 2 * M - 8) as string[]);
+    const wrapped = rideLines.flatMap((l) => doc.splitTextToSize(clean(l), W - 2 * M - 8) as string[]);
     doc.roundedRect(M, boxY, W - 2 * M, wrapped.length * 4.8 + 10, 2, 2, "FD");
     let ry = boxY + 7;
     text("DÉTAIL DE LA COURSE", M + 4, ry, 8, true, GREY);
@@ -145,7 +147,7 @@ export function buildInvoicePdf(opts: {
   y += 12;
 
   const desc = invoice.description || "Prestation de transport de personnes (VTC)";
-  const descLines = doc.splitTextToSize(desc, W - 2 * M - 45) as string[];
+  const descLines = doc.splitTextToSize(clean(desc), W - 2 * M - 45) as string[];
   descLines.forEach((l, i) => {
     text(l, M + 3, y + i * 4.8, 9);
   });
@@ -216,7 +218,7 @@ export function buildInvoicePdf(opts: {
   doc.line(M, y, W - M, y);
   y += 6;
   legal.forEach((l) => {
-    (doc.splitTextToSize(l, W - 2 * M) as string[]).forEach((ln) => {
+    (doc.splitTextToSize(clean(l), W - 2 * M) as string[]).forEach((ln) => {
       text(ln, M, y, 7.5, false, GREY);
       y += 3.6;
     });
@@ -230,7 +232,7 @@ export function buildInvoicePdf(opts: {
   doc.setDrawColor(226, 232, 240);
   doc.line(M, dy - 4, W - M, dy - 4);
   let fy = dy;
-  (doc.splitTextToSize(disclaimer, W - 2 * M) as string[]).forEach((ln) => {
+  (doc.splitTextToSize(clean(disclaimer), W - 2 * M) as string[]).forEach((ln) => {
     text(ln, M, fy, 6.8, false, GREY);
     fy += 3.2;
   });
