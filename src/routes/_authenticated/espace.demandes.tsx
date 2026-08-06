@@ -268,7 +268,7 @@ function ClientRequests() {
   async function submit() {
     setBusy(true);
     const estimateLine = estimate
-      ? `Estimation Relink : ${estimate.distanceKm} km · ~${estimate.durationMin} min · ${formatEuro(estimate.price.total)}`
+      ? `Prix final Relink : ${formatEuro(estimate.price.total)} · ${estimate.distanceKm} km · ~${estimate.durationMin} min`
       : null;
     const comment = [form.comment.trim(), estimateLine].filter(Boolean).join("\n");
     const { error } = await supabase.from("ride_requests").insert({
