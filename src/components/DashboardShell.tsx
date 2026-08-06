@@ -52,7 +52,7 @@ export function DashboardShell({
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen overflow-x-hidden bg-background">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-sidebar-border bg-sidebar p-4 lg:flex">
         <Link to="/" className="mb-6 block">
           <p className="text-lg font-semibold tracking-tight">{BRAND.name}</p>
@@ -135,7 +135,7 @@ export function DashboardShell({
         </div>
       ) : null}
 
-      <main className="px-4 py-6 lg:ml-64 lg:px-8">{children}</main>
+      <main className="w-full max-w-full overflow-x-hidden px-4 py-6 lg:ml-64 lg:w-auto lg:px-8">{children}</main>
     </div>
   );
 }

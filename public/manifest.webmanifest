@@ -1,0 +1,16 @@
+{
+  "name": "Relink — chauffeur VTC",
+  "short_name": "Relink",
+  "description": "Votre carnet de chauffeurs VTC : demandes de trajet, suivi de course et historique.",
+  "start_url": "/espace",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#00b050",
+  "icons": [
+    { "src": "/app-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/app-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/app-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -113,9 +113,9 @@ export function NotificationBell({ className }: { className?: string }) {
       {open ? (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-2xl border border-border bg-card shadow-lg">
+          <div className="fixed inset-x-3 top-16 z-50 mx-auto w-auto max-w-sm overflow-hidden rounded-2xl border border-border bg-card shadow-lg sm:absolute sm:inset-x-auto sm:top-full sm:right-0 sm:mt-2 sm:w-80 sm:max-w-[calc(100vw-1.5rem)]">
             <p className="border-b border-border px-4 py-3 text-sm font-semibold">Notifications</p>
-            <div className="max-h-96 overflow-y-auto">
+            <div className="max-h-[60vh] overflow-y-auto overscroll-contain sm:max-h-96">
               {items.length === 0 ? (
                 <p className="px-4 py-6 text-sm text-muted-foreground">Aucune notification pour le moment.</p>
               ) : (
@@ -129,8 +129,10 @@ export function NotificationBell({ className }: { className?: string }) {
                     }}
                     className="block w-full border-b border-border/60 px-4 py-3 text-left last:border-0 hover:bg-muted"
                   >
-                    <p className="text-sm font-medium">{n.title}</p>
-                    {n.body ? <p className="mt-0.5 text-xs text-muted-foreground">{n.body}</p> : null}
+                    <p className="truncate text-sm font-medium">{n.title}</p>
+                    {n.body ? (
+                      <p className="mt-0.5 line-clamp-2 text-xs break-words text-muted-foreground">{n.body}</p>
+                    ) : null}
                     <p className="mt-1 text-[11px] text-muted-foreground">
                       {new Date(n.created_at).toLocaleString("fr-FR")}
                     </p>
