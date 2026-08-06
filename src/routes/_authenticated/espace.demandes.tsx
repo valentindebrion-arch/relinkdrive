@@ -449,16 +449,20 @@ function ClientRequests() {
                   ).map((o) => {
                     const Icon = o.icon;
                     const on = whenMode === o.key;
+                    const disabled = o.key === "now" && !driverAvailable;
                     return (
                       <button
                         key={o.key}
                         type="button"
+                        disabled={disabled}
                         onClick={() => setWhenMode(o.key)}
                         className={cn(
                           "flex items-center justify-center gap-2 rounded-2xl border py-3 text-sm font-medium transition-all",
-                          on
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border bg-card text-foreground",
+                          disabled
+                            ? "cursor-not-allowed border-border bg-muted text-muted-foreground opacity-60"
+                            : on
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border bg-card text-foreground",
                         )}
                       >
                         <Icon className="size-4" /> {o.label}
@@ -466,6 +470,12 @@ function ClientRequests() {
                     );
                   })}
                 </div>
+                {!driverAvailable && form.driver_id ? (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Ce chauffeur est actuellement indisponible : vous pouvez uniquement réserver
+                    pour plus tard.
+                  </p>
+                ) : null}
                 {whenMode === "later" ? (
                   <Input
                     aria-label="Date et heure du départ"
