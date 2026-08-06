@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -8,9 +7,6 @@ import { PageHeader, EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { RIDE_STATUS_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-
 
 export const Route = createFileRoute("/_authenticated/pro/courses")({
   component: DriverRides,
@@ -27,43 +23,7 @@ const FLOW: Record<string, { next: string; label: string }> = {
 function DriverRides() {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const [editId, setEditId] = useState<string | null>(null);
-  const [editPrice, setEditPrice] = useState("");
-  const [editTime, setEditTime] = useState("");
 
-  function openEdit(r: { id: string; price: number | null; scheduled_at: string }) {
-    if (editId === r.id) {
-      setEditId(null);
-      return;
-    }
-    setEditId(r.id);
-    setEditPrice(r.price != null ? String(r.price) : "");
-    const d = new Date(r.scheduled_at);
-    const pad = (n: number) => String(n).padStart(2, "0");
-    setEditTime(
-      `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`,
-    );
-  }
-
-  async function saveEdit(rideId: string, clientId: string | null) {
-    const { error } = await supabase
-      .from("rides")
-      .update({
-        price: editPrice ? Number(editPrice) : null,
-        ...(editTime ? { scheduled_at: new Date(editTime).toISOString() } : {}),
-      })
-      .eq("id", rideId);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    if (clientId) {
-      await supabase.rpc("notify_counterparty", { _recipient: clientId, _kind: "ride_update" });
-    }
-    toast.success("Course mise à jour");
-    setEditId(null);
-    void qc.invalidateQueries({ queryKey: ["driver-rides"] });
-  }
 
 
   const rides = useQuery({
