@@ -96,25 +96,23 @@ function ClientHome() {
   const next = upcoming[0];
 
   return (
-    <div className="relative -mx-3 -my-4 flex h-[calc(100dvh-7.5rem)] flex-col overflow-hidden sm:-mx-4 lg:mx-0 lg:my-0 lg:h-[calc(100dvh-3rem)] lg:overflow-visible lg:rounded-3xl">
-      {/* Carte live en fond */}
-      <div className="absolute inset-0">
-        <LiveDriversMap className="h-full w-full" />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-background/85 via-background/10 to-background" />
-      </div>
-
+    <div className="flex h-[calc(100dvh-6.25rem-env(safe-area-inset-bottom))] flex-col gap-2.5 overflow-hidden lg:h-[calc(100dvh-4.5rem)]">
       {/* Salutation */}
-      <header className="relative shrink-0 px-4 pt-4">
-        <h1 className="truncate text-2xl font-bold tracking-tight">
+      <header className="shrink-0">
+        <h1 className="truncate text-xl font-bold tracking-tight">
           Bonjour {profile?.full_name?.split(" ")[0] ?? ""} <span aria-hidden>👋</span>
         </h1>
         <p className="truncate text-xs text-muted-foreground">Des chauffeurs circulent près de vous</p>
       </header>
 
-      <div className="relative min-h-0 flex-1" />
+      {/* Carte live dans un bloc */}
+      <div className="relative min-h-24 flex-1 overflow-hidden rounded-3xl border border-border bg-muted">
+        <LiveDriversMap className="h-full w-full" />
+      </div>
 
       {/* Panneau d'action */}
-      <div className="relative shrink-0 space-y-2.5 rounded-t-3xl border-t border-border/60 bg-card/90 p-4 shadow-[0_-12px_40px_-20px_hsl(0_0%_0%/0.35)] backdrop-blur-xl lg:rounded-3xl lg:border">
+      <div className="shrink-0 space-y-2 rounded-3xl border border-border bg-card/90 p-3 shadow-[0_-12px_40px_-24px_hsl(0_0%_0%/0.35)] backdrop-blur-xl">
+
         <Link
           to="/espace/demandes"
           className="flex w-full items-center gap-3 rounded-2xl bg-primary py-3 pr-3 pl-5 text-primary-foreground shadow-lg transition-transform active:scale-[0.99]"
