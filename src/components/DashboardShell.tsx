@@ -135,7 +135,7 @@ export function DashboardShell({
         </div>
       ) : null}
 
-      <main className="px-4 py-6 lg:ml-64 lg:px-8">{children}</main>
+      <main className="w-full max-w-full overflow-x-hidden px-4 py-6 lg:ml-64 lg:w-auto lg:px-8">{children}</main>
     </div>
   );
 }
