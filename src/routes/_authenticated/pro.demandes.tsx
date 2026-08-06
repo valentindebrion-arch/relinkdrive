@@ -36,10 +36,6 @@ type Req = {
 function DriverRequests() {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const [openId, setOpenId] = useState<string | null>(null);
-  const [price, setPrice] = useState("");
-  const [time, setTime] = useState("");
-  const [message, setMessage] = useState("");
 
   const requests = useQuery({
     queryKey: ["driver-requests", user?.id],
