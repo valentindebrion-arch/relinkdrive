@@ -108,12 +108,14 @@ function TrackingPage() {
         .maybeSingle();
 
       if (ride) {
-        const [{ data: driver }, { data: review }] = await Promise.all([
+        const [{ data: driver }, { data: review }, { data: invoice }] = await Promise.all([
           supabase.from("profiles").select("full_name, avatar_url").eq("id", ride.driver_id).maybeSingle(),
           supabase.from("ride_reviews").select("*").eq("ride_id", ride.id).maybeSingle(),
+          supabase.from("invoices").select("*").eq("ride_id", ride.id).maybeSingle(),
         ]);
-        return { kind: "ride" as const, ride, request: null, driver, review };
+        return { kind: "ride" as const, ride, request: null, driver, review, invoice };
       }
+
 
       const { data: request } = await supabase
         .from("ride_requests")
