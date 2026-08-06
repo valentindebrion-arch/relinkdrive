@@ -48,7 +48,7 @@ function AdminDrivers() {
     }: {
       userId: string;
       status: (typeof STATUSES)[number];
-      reason?: string;
+      reason?: string | undefined;
     }) => {
       const { error } = await supabase
         .from("driver_profiles")
