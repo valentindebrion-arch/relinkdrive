@@ -65,7 +65,7 @@ export function DashboardShell({
     <div className="min-h-screen overflow-x-hidden bg-background">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-sidebar-border bg-sidebar p-4 lg:flex">
         {hideBrand ? (
-          <p className="mb-6 text-xs font-medium tracking-wide text-muted-foreground uppercase">{area}</p>
+          <div className="mb-6" />
         ) : (
           <Link to="/" className="mb-6 block">
             <p className="text-lg font-semibold tracking-tight">{BRAND.name}</p>
@@ -102,7 +102,7 @@ export function DashboardShell({
           <Menu className="size-5" />
         </button>
         {hideBrand ? (
-          <span className="text-sm font-medium text-muted-foreground">{area}</span>
+          <span aria-hidden />
         ) : (
           <Link to="/" className="font-semibold">
             {BRAND.name}
@@ -132,8 +132,12 @@ export function DashboardShell({
           <div className="absolute inset-y-0 left-0 w-72 bg-sidebar p-4">
             <div className="mb-6 flex items-center justify-between">
               <div>
-                {hideBrand ? null : <p className="text-lg font-semibold">{BRAND.name}</p>}
-                <p className="text-xs text-muted-foreground">{area}</p>
+                {hideBrand ? null : (
+                  <>
+                    <p className="text-lg font-semibold">{BRAND.name}</p>
+                    <p className="text-xs text-muted-foreground">{area}</p>
+                  </>
+                )}
               </div>
               <button onClick={() => setOpen(false)} aria-label="Fermer">
                 <X className="size-5" />
