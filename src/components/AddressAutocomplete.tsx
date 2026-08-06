@@ -13,8 +13,10 @@ export function AddressAutocomplete({
   confirmed,
   placeholder,
   ariaLabel,
+  label,
   icon,
   action,
+  bare,
   onChange,
   onConfirm,
 }: {
@@ -22,8 +24,10 @@ export function AddressAutocomplete({
   confirmed: boolean;
   placeholder: string;
   ariaLabel: string;
+  label?: string;
   icon: ReactNode;
   action?: ReactNode;
+  bare?: boolean;
   onChange: (v: string) => void;
   onConfirm: (v: string) => void;
 }) {
