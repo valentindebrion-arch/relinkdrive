@@ -134,23 +134,25 @@ function ClientHome() {
             </span>
             <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
           </Link>
-        ) : (
-          <Link
-            to="/espace/chauffeurs"
-            className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-border bg-background/70 p-2.5"
-          >
-            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-accent-foreground">
-              <Plus className="size-5" />
+        ) : null}
+
+        <button
+          type="button"
+          onClick={() => setScanOpen(true)}
+          className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-border bg-background/70 p-2.5 text-left transition-colors hover:bg-background active:scale-[0.99]"
+        >
+          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-accent-foreground">
+            <QrCode className="size-5" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold">Ajouter un chauffeur</span>
+            <span className="block truncate text-xs text-muted-foreground">
+              Scannez son QR code avec l'appareil photo.
             </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm font-semibold">Ajouter un chauffeur</span>
-              <span className="block truncate text-xs text-muted-foreground">
-                Scannez son QR code en fin de course.
-              </span>
-            </span>
-            <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
-          </Link>
-        )}
+          </span>
+          <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
+        </button>
+
 
         {next ? (
           <Link
