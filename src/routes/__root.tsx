@@ -79,7 +79,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      {
+        name: "viewport",
+        content:
+          "width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover",
+      },
       { title: `${BRAND.name} — ${BRAND.tagline}` },
       {
         name: "description",
@@ -89,7 +93,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: BRAND.name },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      
       { name: "theme-color", content: "#00b050" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
@@ -149,6 +153,42 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  // Aspect application : bloque le pinch-to-zoom et le double-tap zoom (iOS ignore user-scalable=no)
+  useEffect(() => {
+    const preventGesture = (e: Event) => e.preventDefault();
+    const preventPinch = (e: TouchEvent) => {
+      if (e.touches.length > 1) e.preventDefault();
+    };
+    const preventCtrlWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) e.preventDefault();
+    };
+    let lastTouch = 0;
+    const preventDoubleTap = (e: TouchEvent) => {
+      const now = Date.now();
+      if (now - lastTouch < 300) e.preventDefault();
+      lastTouch = now;
+    };
+
+    document.addEventListener("gesturestart", preventGesture);
+    document.addEventListener("gesturechange", preventGesture);
+    document.addEventListener("gestureend", preventGesture);
+    document.addEventListener("touchstart", preventPinch, { passive: false });
+    document.addEventListener("touchmove", preventPinch, { passive: false });
+    document.addEventListener("touchend", preventDoubleTap, { passive: false });
+    document.addEventListener("wheel", preventCtrlWheel, { passive: false });
+
+    return () => {
+      document.removeEventListener("gesturestart", preventGesture);
+      document.removeEventListener("gesturechange", preventGesture);
+      document.removeEventListener("gestureend", preventGesture);
+      document.removeEventListener("touchstart", preventPinch);
+      document.removeEventListener("touchmove", preventPinch);
+      document.removeEventListener("touchend", preventDoubleTap);
+      document.removeEventListener("wheel", preventCtrlWheel);
+    };
+  }, []);
+
 
   return (
     <QueryClientProvider client={queryClient}>
