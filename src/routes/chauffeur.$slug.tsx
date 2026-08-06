@@ -542,10 +542,17 @@ function DriverPublicPage() {
         {/* 11. Bouton final */}
         <div className="surface p-5">{primaryAction}</div>
 
-        <p className="pb-2 text-center text-xs text-muted-foreground">
-          {BRAND.name} — carnet privé de chauffeurs. Aucune donnée personnelle du chauffeur n'est diffusée
-          publiquement.
-        </p>
+        <div className="space-y-1 pb-2 text-center text-xs text-muted-foreground">
+          <p>
+            {BRAND.name} — carnet privé de chauffeurs. Seules les informations que le chauffeur a choisi de
+            publier sont visibles ici : aucune coordonnée personnelle n'est diffusée automatiquement.
+          </p>
+          <p>
+            Mentions légales · Confidentialité — {BRAND.name} n'organise aucune mise en relation publique et
+            ne prélève aucune commission. Les données des passagers ne sont utilisées que pour la relation
+            avec les chauffeurs de leur carnet.
+          </p>
+        </div>
       </div>
 
       {/* Barre d'action mobile */}
