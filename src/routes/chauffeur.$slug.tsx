@@ -88,6 +88,50 @@ function DriverPublicPage() {
     }
   }, [driverQuery.data?.driver.user_id, slug]);
 
+  const driverId = driverQuery.data?.driver.user_id;
+  const driverCity = driverQuery.data?.driver.city ?? null;
+
+  const connect = useCallback(async () => {
+    if (!user?.id || !driverId) return;
+    setAdding(true);
+    const { error } = await supabase
+      .from("driver_client_connections")
+      .insert({ client_id: user.id, driver_id: driverId, source: "link" });
+    setAdding(false);
+    if (error) {
+      if (error.code === "23505") {
+        toast.success("Ce chauffeur est déjà dans votre carnet");
+        void connQuery.refetch();
+        return;
+      }
+      toast.error(error.message);
+      return;
+    }
+    await supabase.from("analytics_events").insert({
+      event: "driver_added",
+      driver_id: driverId,
+      client_id: user.id,
+      city: driverCity,
+    });
+    await supabase.from("notifications").insert({
+      user_id: driverId,
+      title: "Nouveau client fidélisé",
+      body: "Un client vient de vous ajouter à son carnet.",
+      kind: "connection",
+      link: "/pro/clients",
+    });
+    toast.success("Chauffeur ajouté à votre carnet");
+    void connQuery.refetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, driverId, driverCity]);
+
+  // Ajout automatique après connexion / création de compte depuis ce lien
+  useEffect(() => {
+    if (!user?.id || !driverId || connQuery.isLoading || connQuery.data) return;
+    if (sessionStorage.getItem("relink:pending-driver") !== slug) return;
+    sessionStorage.removeItem("relink:pending-driver");
+    void connect();
+  }, [user?.id, driverId, connQuery.isLoading, connQuery.data, slug, connect]);
 
   const vehiclePhoto = useSignedUrl("vehicles", driverQuery.data?.vehicle?.photo_url).data;
 
