@@ -1,18 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import {
-  ArrowRight,
-  Car,
-  CalendarDays,
-  ChevronRight,
-  Clock,
-  Heart,
-  MapPin,
-  Plus,
-  ShieldCheck,
-  Star,
-  Users,
-} from "lucide-react";
+import { ArrowRight, CalendarDays, ChevronRight, MapPin, Plus, Star, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -81,119 +69,58 @@ function ClientHome() {
   const next = upcoming[0];
 
   return (
-    <div className="mx-auto w-full max-w-2xl space-y-5 overflow-x-hidden pb-8">
-      <section>
-        <h1 className="truncate text-2xl font-bold tracking-tight sm:text-3xl">
+    <div className="mx-auto flex h-[calc(100dvh-8rem)] w-full max-w-2xl flex-col gap-3 overflow-hidden lg:h-[calc(100dvh-4rem)]">
+      <header className="shrink-0">
+        <h1 className="truncate text-xl font-bold tracking-tight sm:text-2xl">
           Bonjour {profile?.full_name?.split(" ")[0] ?? ""} <span aria-hidden>👋</span>
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">Prêt pour votre prochain trajet ?</p>
+        <p className="truncate text-xs text-muted-foreground">Prêt pour votre prochain trajet ?</p>
+      </header>
 
-        <Link
-          to="/espace/demandes"
-          className="mt-4 flex items-center gap-3 rounded-full border border-primary/40 bg-card py-2 pr-2 pl-4 shadow-sm transition-shadow hover:shadow-md active:scale-[0.99]"
-        >
-          <MapPin className="size-5 shrink-0 text-primary" />
-          <span className="min-w-0 flex-1 truncate text-muted-foreground">Où allez-vous ?</span>
-          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
-            <ArrowRight className="size-5" />
-          </span>
-        </Link>
-      </section>
-
-      {next ? (
-        <Link
-          to="/espace/suivi/$id"
-          params={{ id: next.id }}
-          className="surface block overflow-hidden p-4 transition-shadow hover:shadow-md active:scale-[0.99]"
-        >
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-              Prochaine course
-            </p>
-            <StatusBadge status={next.status} labels={RIDE_STATUS_LABELS} />
-          </div>
-          <div className="mt-3 grid grid-cols-[auto_minmax(0,1fr)] gap-3">
-            <div className="shrink-0 rounded-xl bg-accent px-3 py-2 text-center text-accent-foreground">
-              <p className="flex items-center gap-1.5 text-[11px] font-medium">
-                <CalendarDays className="size-3.5" /> {dayLabel(next.scheduled_at)}
-              </p>
-              <p className="mt-0.5 text-xl font-semibold">
-                {new Date(next.scheduled_at).toLocaleTimeString("fr-FR", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </p>
-            </div>
-            <div className="min-w-0 space-y-2">
-              <p className="flex items-start gap-2 text-sm font-medium">
-                <span className="mt-1.5 size-2 shrink-0 rounded-full bg-primary" />
-                <span className="truncate">{next.pickup_address}</span>
-              </p>
-              <p className="flex items-start gap-2 text-sm font-medium">
-                <span className="mt-1.5 size-2 shrink-0 rounded-full bg-foreground" />
-                <span className="truncate">{next.dropoff_address}</span>
-              </p>
-            </div>
-          </div>
-          <p className="mt-3 flex items-center justify-between gap-2 border-t border-border pt-3 text-sm font-medium text-primary">
-            Suivre évolution de la course <ArrowRight className="size-4 shrink-0" />
-          </p>
-        </Link>
-      ) : (
-        <Link
-          to="/espace/demandes"
-          className="surface flex items-center gap-3 p-4 transition-shadow hover:shadow-md"
-        >
-          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-accent-foreground">
-            <CalendarDays className="size-5" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-sm font-semibold">Aucune course prévue</span>
-            <span className="block truncate text-xs text-muted-foreground">
-              Réservez votre prochain trajet en 4 étapes.
+      <section className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4">
+        <div className="w-full text-center">
+          <p className="text-sm font-medium text-muted-foreground">Où allez-vous ?</p>
+          <Link
+            to="/espace/demandes"
+            className="mt-3 flex w-full items-center gap-3 rounded-full border border-primary/40 bg-card py-2.5 pr-2.5 pl-5 shadow-sm transition-shadow hover:shadow-md active:scale-[0.99]"
+          >
+            <MapPin className="size-5 shrink-0 text-primary" />
+            <span className="min-w-0 flex-1 truncate text-left text-muted-foreground">
+              Entrez votre destination
             </span>
-          </span>
-          <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
-        </Link>
-      )}
-
-      <section>
-        <div className="mb-2 flex items-center justify-between gap-3">
-          <h2 className="text-base font-semibold">Votre chauffeur</h2>
-          <Link to="/espace/chauffeurs" className="shrink-0 text-sm font-medium text-primary">
-            Voir tous
+            <span className="grid size-11 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
+              <ArrowRight className="size-5" />
+            </span>
           </Link>
         </div>
+
         {favorite ? (
           <Link
             to="/espace/demandes"
             search={{ driver: favorite.driver_id }}
-            className="surface flex items-center gap-3 overflow-hidden p-4 transition-shadow hover:shadow-md active:scale-[0.99]"
+            className="surface flex w-full items-center gap-3 overflow-hidden p-3 transition-shadow hover:shadow-md active:scale-[0.99]"
           >
             {favorite.profile?.avatar_url ? (
               <img
                 src={favorite.profile.avatar_url}
                 alt={favorite.profile?.full_name ?? "Chauffeur"}
                 loading="lazy"
-                className="size-14 shrink-0 rounded-full object-cover"
+                className="size-11 shrink-0 rounded-full object-cover"
               />
             ) : (
-              <span className="grid size-14 shrink-0 place-items-center rounded-full bg-accent font-semibold text-accent-foreground">
+              <span className="grid size-11 shrink-0 place-items-center rounded-full bg-accent text-sm font-semibold text-accent-foreground">
                 {initials(favorite.profile?.full_name)}
               </span>
             )}
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-base font-semibold">
+              <span className="block truncate text-sm font-semibold">
                 {favorite.driver?.business_name ?? favorite.profile?.full_name ?? "Chauffeur"}
               </span>
-              <span className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5 truncate text-xs text-muted-foreground">
                 <span className="size-2 shrink-0 rounded-full bg-primary" /> Disponible
                 {favorite.vehicle
                   ? ` · ${[favorite.vehicle.brand, favorite.vehicle.model].filter(Boolean).join(" ")}`
                   : ""}
-              </span>
-              <span className="mt-1 block truncate text-xs font-medium text-primary">
-                Réserver avec ce chauffeur
               </span>
             </span>
             <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
@@ -201,9 +128,9 @@ function ClientHome() {
         ) : (
           <Link
             to="/espace/chauffeurs"
-            className="surface flex items-center gap-3 p-4 transition-shadow hover:shadow-md"
+            className="surface flex w-full items-center gap-3 p-3 transition-shadow hover:shadow-md"
           >
-            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-accent-foreground">
+            <span className="grid size-11 shrink-0 place-items-center rounded-full bg-accent text-accent-foreground">
               <Plus className="size-5" />
             </span>
             <span className="min-w-0 flex-1">
@@ -217,98 +144,57 @@ function ClientHome() {
         )}
       </section>
 
-      <section>
-        <h2 className="mb-2 text-base font-semibold">Aperçu</h2>
+      <div className="shrink-0 space-y-3">
+        {next ? (
+          <Link
+            to="/espace/suivi/$id"
+            params={{ id: next.id }}
+            className="surface grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 overflow-hidden p-3 transition-shadow hover:shadow-md active:scale-[0.99]"
+          >
+            <span className="shrink-0 rounded-xl bg-accent px-2.5 py-1.5 text-center text-accent-foreground">
+              <span className="flex items-center gap-1 text-[10px] font-medium">
+                <CalendarDays className="size-3" /> {dayLabel(next.scheduled_at)}
+              </span>
+              <span className="block text-base font-semibold">
+                {new Date(next.scheduled_at).toLocaleTimeString("fr-FR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-medium">{next.pickup_address}</span>
+              <span className="block truncate text-xs text-muted-foreground">→ {next.dropoff_address}</span>
+              <span className="mt-1 block">
+                <StatusBadge status={next.status} labels={RIDE_STATUS_LABELS} />
+              </span>
+            </span>
+            <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
+          </Link>
+        ) : null}
+
         <div className="grid grid-cols-3 gap-2 sm:gap-3">
           {[
-            {
-              to: "/espace/chauffeurs",
-              icon: Users,
-              value: data.data?.conns.length ?? 0,
-              label: "Chauffeurs",
-            },
-            {
-              to: "/espace/demandes",
-              icon: CalendarDays,
-              value: upcoming.length,
-              label: "À venir",
-            },
+            { to: "/espace/chauffeurs", icon: Users, value: data.data?.conns.length ?? 0, label: "Chauffeurs" },
+            { to: "/espace/courses", icon: CalendarDays, value: upcoming.length, label: "À venir" },
             { to: "/espace/courses", icon: Star, value: completed, label: "Effectuées" },
           ].map((s) => (
             <Link
               key={s.label}
               to={s.to}
-              className="surface min-w-0 p-3 transition-shadow hover:shadow-md active:scale-[0.98]"
+              className="surface flex min-w-0 items-center gap-2 p-2.5 transition-shadow hover:shadow-md active:scale-[0.98]"
             >
-              <span className="grid size-8 place-items-center rounded-full bg-accent text-accent-foreground">
+              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-accent text-accent-foreground">
                 <s.icon className="size-4" />
               </span>
-              <span className="mt-2 block text-2xl font-semibold">{s.value}</span>
-              <span className="block truncate text-xs font-medium">{s.label}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="mb-2 text-base font-semibold">Actions rapides</h2>
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
-          {[
-            { to: "/espace/demandes", icon: Plus, label: "Nouveau trajet", filled: true },
-            { to: "/espace/chauffeurs", icon: Heart, label: "Mes chauffeurs", filled: false },
-            { to: "/espace/courses", icon: Clock, label: "Historique", filled: false },
-          ].map((a) => (
-            <Link
-              key={a.label}
-              to={a.to}
-              className="surface flex min-w-0 flex-col items-center gap-2 p-3 text-center transition-shadow hover:shadow-md active:scale-[0.98]"
-            >
-              <span
-                className={
-                  a.filled
-                    ? "grid size-10 place-items-center rounded-full bg-primary text-primary-foreground"
-                    : "grid size-10 place-items-center rounded-full bg-accent text-primary"
-                }
-              >
-                <a.icon className="size-5" />
+              <span className="min-w-0">
+                <span className="block text-base leading-tight font-semibold">{s.value}</span>
+                <span className="block truncate text-[11px] text-muted-foreground">{s.label}</span>
               </span>
-              <span className="w-full truncate text-xs font-medium">{a.label}</span>
             </Link>
           ))}
         </div>
-      </section>
-
-      <Link
-        to="/espace/chauffeurs"
-        className="flex items-center gap-3 rounded-2xl bg-accent p-4 text-accent-foreground transition-shadow hover:shadow-md"
-      >
-        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
-          <ShieldCheck className="size-5" />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold">Voyagez en toute sérénité</span>
-          <span className="block truncate text-xs text-muted-foreground">
-            Tous nos chauffeurs sont vérifiés et évalués.
-          </span>
-        </span>
-        <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
-      </Link>
-
-      <Link
-        to="/espace/parametres"
-        className="surface flex items-center gap-3 p-4 transition-shadow hover:shadow-md"
-      >
-        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-muted">
-          <Car className="size-5" />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold">Mon compte</span>
-          <span className="block truncate text-xs text-muted-foreground">
-            Coordonnées et préférences.
-          </span>
-        </span>
-        <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
-      </Link>
+      </div>
     </div>
   );
 }
