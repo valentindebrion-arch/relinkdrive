@@ -368,15 +368,21 @@ function ClientRequests() {
                     aria-label="Chauffeur"
                     className="h-10 w-full appearance-none bg-transparent text-[15px] focus:outline-none"
                     value={form.driver_id}
-                    onChange={(e) => setForm({ ...form, driver_id: e.target.value })}
+                    onChange={(e) => {
+                      const id = e.target.value;
+                      setForm({ ...form, driver_id: id });
+                      const picked = (drivers.data ?? []).find((d) => d.id === id);
+                      if (picked && !picked.on_duty) setWhenMode("later");
+                    }}
                   >
                     <option value="">Sélectionner un chauffeur</option>
                     {(drivers.data ?? []).map((d) => (
                       <option key={d.id} value={d.id}>
-                        {d.full_name}
+                        {d.full_name} {d.on_duty ? "· Disponible" : "· Indisponible"}
                       </option>
                     ))}
                   </select>
+
                 </div>
               </div>
 
