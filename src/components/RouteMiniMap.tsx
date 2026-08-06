@@ -10,6 +10,22 @@ declare global {
   }
 }
 
+// Palette carte alignée sur l'identité verte du projet
+const RELINK_MAP_STYLE = [
+  { elementType: "geometry", stylers: [{ color: "#f2f7f4" }] },
+  { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#5b6b64" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#ffffff" }] },
+  { featureType: "administrative", elementType: "geometry", stylers: [{ color: "#d8e6de" }] },
+  { featureType: "poi", stylers: [{ visibility: "off" }] },
+  { featureType: "landscape.natural", elementType: "geometry", stylers: [{ color: "#e8f2eb" }] },
+  { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
+  { featureType: "road.arterial", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
+  { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#d6f0e2" }] },
+  { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#b6e3cd" }] },
+  { featureType: "transit", stylers: [{ visibility: "off" }] },
+  { featureType: "water", elementType: "geometry", stylers: [{ color: "#c8e6dd" }] },
+];
 
 function loadMaps(): Promise<void> {
   if (typeof window === "undefined") return Promise.reject(new Error("no window"));
