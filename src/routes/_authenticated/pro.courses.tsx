@@ -53,13 +53,7 @@ function DriverRides() {
     }
     await supabase.from("ride_status_history").insert({ ride_id: rideId, status: status as never, changed_by: user!.id });
     if (clientId) {
-      await supabase.from("notifications").insert({
-        user_id: clientId,
-        title: RIDE_STATUS_LABELS[status] ?? "Mise à jour",
-        body: "Le statut de votre course a été mis à jour.",
-        kind: "ride",
-        link: "/espace/courses",
-      });
+      await supabase.rpc("notify_counterparty", { _recipient: clientId, _kind: "ride_update" });
     }
     void qc.invalidateQueries({ queryKey: ["driver-rides"] });
   }

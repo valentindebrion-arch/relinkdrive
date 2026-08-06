@@ -80,13 +80,7 @@ function DriverRequests() {
       return;
     }
     await log(r.id, status);
-    await supabase.from("notifications").insert({
-      user_id: r.client_id,
-      title: `Demande ${RIDE_STATUS_LABELS[status]?.toLowerCase()}`,
-      body: `${r.pickup_address} → ${r.dropoff_address}`,
-      kind: "request",
-      link: "/espace/demandes",
-    });
+    await supabase.rpc("notify_counterparty", { _recipient: r.client_id, _kind: "request_update" });
     toast.success("Demande mise à jour");
     setOpenId(null);
     void qc.invalidateQueries({ queryKey: ["driver-requests"] });
