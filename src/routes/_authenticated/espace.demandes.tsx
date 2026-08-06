@@ -316,7 +316,9 @@ function ClientRequests() {
 
   const list = requests.data ?? [];
   const heading = HEADINGS[step]!;
-  const driverName = (drivers.data ?? []).find((d) => d.id === form.driver_id)?.full_name;
+  const selectedDriver = (drivers.data ?? []).find((d) => d.id === form.driver_id);
+  const driverName = selectedDriver?.full_name;
+  const driverAvailable = !!selectedDriver?.on_duty;
 
   return (
     <>
