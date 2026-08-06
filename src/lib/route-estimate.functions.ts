@@ -77,7 +77,43 @@ export const estimateRoute = createServerFn({ method: "POST" })
     };
   });
 
+export const suggestAddresses = createServerFn({ method: "POST" })
+  .inputValidator((input: { query: string }) =>
+    z.object({ query: z.string().trim().min(3).max(200) }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const response = await fetch(`${GATEWAY_URL}/places/v1/places:autocomplete`, {
+      method: "POST",
+      headers: gatewayHeaders(),
+      body: JSON.stringify({
+        input: data.query,
+        languageCode: "fr",
+        includedRegionCodes: ["fr"],
+      }),
+    });
+    if (!response.ok) await failure(response);
+    const json = (await response.json()) as {
+      suggestions?: Array<{
+        placePrediction?: {
+          text?: { text?: string };
+          structuredFormat?: { mainText?: { text?: string }; secondaryText?: { text?: string } };
+        };
+      }>;
+    };
+    return {
+      items: (json.suggestions ?? [])
+        .map((s) => ({
+          full: s.placePrediction?.text?.text ?? "",
+          main: s.placePrediction?.structuredFormat?.mainText?.text ?? "",
+          secondary: s.placePrediction?.structuredFormat?.secondaryText?.text ?? "",
+        }))
+        .filter((i) => i.full)
+        .slice(0, 5),
+    };
+  });
+
 export const reverseGeocode = createServerFn({ method: "POST" })
+
   .inputValidator((input: { lat: number; lng: number }) =>
     z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) }).parse(input),
   )
