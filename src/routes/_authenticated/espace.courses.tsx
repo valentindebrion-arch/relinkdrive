@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -37,7 +37,12 @@ function ClientRides() {
           {rides.map((r) => {
             const invoice = (data.data?.invoices ?? []).find((i) => i.ride_id === r.id);
             return (
-              <div key={r.id} className="surface flex flex-wrap items-center justify-between gap-3 p-4">
+              <Link
+                key={r.id}
+                to="/espace/courses/$rideId"
+                params={{ rideId: r.id }}
+                className="surface flex flex-wrap items-center justify-between gap-3 p-4 transition-colors hover:border-primary/40 hover:bg-accent/40"
+              >
                 <div>
                   <p className="font-medium">
                     {r.pickup_address} → {r.dropoff_address}
@@ -54,7 +59,7 @@ function ClientRides() {
                   ) : null}
                 </div>
                 <StatusBadge status={r.status} labels={RIDE_STATUS_LABELS} />
-              </div>
+              </Link>
             );
           })}
         </div>
