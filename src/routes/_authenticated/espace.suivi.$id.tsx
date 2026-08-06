@@ -182,7 +182,7 @@ function TrackingPage() {
     );
   }
 
-  const { ride, request, driver, review } = q.data;
+  const { ride, request, driver, review, invoice } = q.data;
   const status = ride?.status ?? request?.status ?? "new";
   const pickup = ride?.pickup_address ?? request!.pickup_address;
   const dropoff = ride?.dropoff_address ?? request!.dropoff_address;
