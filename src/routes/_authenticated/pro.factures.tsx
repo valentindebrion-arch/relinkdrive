@@ -253,33 +253,35 @@ function DriverInvoices() {
             ) : (
               <div className="space-y-3">
                 {shown.map((inv) => (
-                  <div key={inv.id} className="surface flex flex-wrap items-center justify-between gap-3 p-4">
-                    <div className="min-w-0">
-                      <p className="font-medium">
-                        {inv.number} · {formatEuro(Number(inv.amount_ttc))}
-                      </p>
-                      <p className="truncate text-sm text-muted-foreground">
-                        {formatDate(inv.issued_on)} · {inv.description}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
+                  <div key={inv.id} className="surface p-3 sm:p-4">
+                    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium">
+                          {inv.number} · {formatEuro(Number(inv.amount_ttc))}
+                        </p>
+                        <p className="truncate text-xs text-muted-foreground sm:text-sm">
+                          {formatDate(inv.issued_on)} · {inv.description}
+                        </p>
+                      </div>
                       <StatusBadge status={inv.status} labels={INVOICE_LABELS} />
+                    </div>
+                    <div className="mt-2 flex items-center gap-2 overflow-x-auto">
                       {inv.status === "draft" ? (
-                        <Button size="sm" onClick={() => finalize(inv)}>
-                          Compléter et finaliser
+                        <Button size="sm" className="shrink-0" onClick={() => finalize(inv)}>
+                          Compléter
                         </Button>
                       ) : null}
                       {inv.status === "issued" ? (
-                        <Button size="sm" variant="outline" onClick={() => setStatus(inv, "sent")}>
-                          Marquer envoyée
+                        <Button size="sm" variant="outline" className="shrink-0" onClick={() => setStatus(inv, "sent")}>
+                          Envoyée
                         </Button>
                       ) : null}
                       {!["paid", "cancelled", "draft"].includes(inv.status) ? (
-                        <Button size="sm" onClick={() => setStatus(inv, "paid")}>
-                          Marquer payée
+                        <Button size="sm" className="shrink-0" onClick={() => setStatus(inv, "paid")}>
+                          Payée
                         </Button>
                       ) : null}
-                      <Button size="sm" variant="outline" onClick={() => download(inv)}>
+                      <Button size="sm" variant="outline" className="shrink-0" onClick={() => download(inv)}>
                         Télécharger
                       </Button>
                     </div>
