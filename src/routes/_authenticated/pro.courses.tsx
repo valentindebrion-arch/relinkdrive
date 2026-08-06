@@ -92,7 +92,6 @@ function RideList({ filter }: { filter: "upcoming" | "active" | "history" }) {
     await supabase
       .from("ride_status_history")
       .insert({ ride_id: rideId, status: "cancelled" as never, changed_by: user!.id });
-    if (clientId) await supabase.rpc("notify_counterparty", { _recipient: clientId, _kind: "ride_update" });
     toast.success("Course annulée");
     void qc.invalidateQueries({ queryKey: ["driver-rides"] });
     void qc.invalidateQueries({ queryKey: ["driver-data"] });

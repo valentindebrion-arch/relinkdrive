@@ -62,7 +62,6 @@ export function ActiveRidePanel() {
       return;
     }
     await supabase.from("ride_status_history").insert({ ride_id: r.id, status: status as never, changed_by: user!.id });
-    if (r.client_id) await supabase.rpc("notify_counterparty", { _recipient: r.client_id, _kind: "ride_update" });
     toast.success("Statut mis à jour");
     void qc.invalidateQueries({ queryKey: ["driver-active-ride"] });
     void qc.invalidateQueries({ queryKey: ["driver-rides"] });
