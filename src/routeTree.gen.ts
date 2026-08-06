@@ -17,6 +17,7 @@ import { Route as AuthenticatedProRouteImport } from './routes/_authenticated/pr
 import { Route as ChauffeurSlugRouteImport } from './routes/chauffeur.$slug'
 import { Route as AuthenticatedEspaceIndexRouteImport } from './routes/_authenticated/espace.index'
 import { Route as AuthenticatedEspaceChauffeursRouteImport } from './routes/_authenticated/espace.chauffeurs'
+import { Route as AuthenticatedEspaceCoursesRouteImport } from './routes/_authenticated/espace.courses'
 import { Route as AuthenticatedEspaceDemandesRouteImport } from './routes/_authenticated/espace.demandes'
 import { Route as AuthenticatedProIndexRouteImport } from './routes/_authenticated/pro.index'
 import { Route as AuthenticatedProActiviteRouteImport } from './routes/_authenticated/pro.activite'
@@ -71,6 +72,12 @@ const AuthenticatedEspaceChauffeursRoute =
   AuthenticatedEspaceChauffeursRouteImport.update({
     id: '/chauffeurs',
     path: '/chauffeurs',
+    getParentRoute: () => AuthenticatedEspaceRoute,
+  } as any)
+const AuthenticatedEspaceCoursesRoute =
+  AuthenticatedEspaceCoursesRouteImport.update({
+    id: '/courses',
+    path: '/courses',
     getParentRoute: () => AuthenticatedEspaceRoute,
   } as any)
 const AuthenticatedEspaceDemandesRoute =
@@ -161,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/pro': typeof AuthenticatedProRouteWithChildren
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
   '/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
+  '/espace/courses': typeof AuthenticatedEspaceCoursesRoute
   '/espace/demandes': typeof AuthenticatedEspaceDemandesRoute
   '/pro/activite': typeof AuthenticatedProActiviteRoute
   '/pro/assistant': typeof AuthenticatedProAssistantRoute
@@ -182,6 +190,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
   '/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
+  '/espace/courses': typeof AuthenticatedEspaceCoursesRoute
   '/espace/demandes': typeof AuthenticatedEspaceDemandesRoute
   '/pro/activite': typeof AuthenticatedProActiviteRoute
   '/pro/assistant': typeof AuthenticatedProAssistantRoute
@@ -207,6 +216,7 @@ export interface FileRoutesById {
   '/_authenticated/pro': typeof AuthenticatedProRouteWithChildren
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
   '/_authenticated/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
+  '/_authenticated/espace/courses': typeof AuthenticatedEspaceCoursesRoute
   '/_authenticated/espace/demandes': typeof AuthenticatedEspaceDemandesRoute
   '/_authenticated/pro/activite': typeof AuthenticatedProActiviteRoute
   '/_authenticated/pro/assistant': typeof AuthenticatedProAssistantRoute
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/pro'
     | '/chauffeur/$slug'
     | '/espace/chauffeurs'
+    | '/espace/courses'
     | '/espace/demandes'
     | '/pro/activite'
     | '/pro/assistant'
@@ -253,6 +264,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/chauffeur/$slug'
     | '/espace/chauffeurs'
+    | '/espace/courses'
     | '/espace/demandes'
     | '/pro/activite'
     | '/pro/assistant'
@@ -277,6 +289,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pro'
     | '/chauffeur/$slug'
     | '/_authenticated/espace/chauffeurs'
+    | '/_authenticated/espace/courses'
     | '/_authenticated/espace/demandes'
     | '/_authenticated/pro/activite'
     | '/_authenticated/pro/assistant'
@@ -357,6 +370,13 @@ declare module '@tanstack/react-router' {
       path: '/chauffeurs'
       fullPath: '/espace/chauffeurs'
       preLoaderRoute: typeof AuthenticatedEspaceChauffeursRouteImport
+      parentRoute: typeof AuthenticatedEspaceRoute
+    }
+    '/_authenticated/espace/courses': {
+      id: '/_authenticated/espace/courses'
+      path: '/courses'
+      fullPath: '/espace/courses'
+      preLoaderRoute: typeof AuthenticatedEspaceCoursesRouteImport
       parentRoute: typeof AuthenticatedEspaceRoute
     }
     '/_authenticated/espace/demandes': {
@@ -462,12 +482,14 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedEspaceRouteChildren {
   AuthenticatedEspaceChauffeursRoute: typeof AuthenticatedEspaceChauffeursRoute
+  AuthenticatedEspaceCoursesRoute: typeof AuthenticatedEspaceCoursesRoute
   AuthenticatedEspaceDemandesRoute: typeof AuthenticatedEspaceDemandesRoute
   AuthenticatedEspaceIndexRoute: typeof AuthenticatedEspaceIndexRoute
 }
 
 const AuthenticatedEspaceRouteChildren: AuthenticatedEspaceRouteChildren = {
   AuthenticatedEspaceChauffeursRoute: AuthenticatedEspaceChauffeursRoute,
+  AuthenticatedEspaceCoursesRoute: AuthenticatedEspaceCoursesRoute,
   AuthenticatedEspaceDemandesRoute: AuthenticatedEspaceDemandesRoute,
   AuthenticatedEspaceIndexRoute: AuthenticatedEspaceIndexRoute,
 }
