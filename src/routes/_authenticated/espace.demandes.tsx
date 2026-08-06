@@ -163,18 +163,6 @@ function ClientRequests() {
     },
   });
 
-  const requests = useQuery({
-    queryKey: ["client-requests", user?.id],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("ride_requests")
-        .select("*")
-        .eq("client_id", user!.id)
-        .order("created_at", { ascending: false });
-      return data ?? [];
-    },
-  });
 
   function scheduledIso() {
     return whenMode === "now"
