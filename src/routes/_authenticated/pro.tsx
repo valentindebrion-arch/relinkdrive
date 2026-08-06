@@ -48,7 +48,7 @@ function ProLayout() {
   }, [loading, isDriver, isAdmin, navigate]);
 
   return (
-    <DashboardShell items={items} area="Espace chauffeur">
+    <DashboardShell items={items} area="Espace chauffeur" settingsTo="/pro/parametres">
       <Outlet />
     </DashboardShell>
   );
