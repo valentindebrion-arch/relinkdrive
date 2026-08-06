@@ -13,7 +13,7 @@ export type RideRow = {
 
 export type InvoiceRow = { ride_id: string | null; number: string; status: string };
 
-export function RideCard({ ride, invoice }: { ride: RideRow; invoice?: InvoiceRow }) {
+export function RideCard({ ride, invoice }: { ride: RideRow; invoice?: InvoiceRow | undefined }) {
   return (
     <Link
       to="/espace/suivi/$id"
