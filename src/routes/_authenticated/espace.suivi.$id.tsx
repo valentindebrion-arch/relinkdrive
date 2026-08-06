@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
+import { InvoiceDownloadCard } from "@/components/InvoiceDownloadCard";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { RIDE_STATUS_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
