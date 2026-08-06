@@ -33,21 +33,40 @@ function DriverPublicPage() {
   const driverQuery = useQuery({
     queryKey: ["public-driver", slug],
     queryFn: async () => {
-      const { data: driver, error } = await supabase
-        .from("driver_profiles")
-        .select("*")
-        .eq("slug", slug)
-        .eq("verification_status", "verified")
-        .maybeSingle();
+      const { data, error } = await supabase.rpc("get_public_driver_page", { _slug: slug });
       if (error) throw error;
-      if (!driver) return null;
-      const [{ data: profile }, { data: vehicles }] = await Promise.all([
-        supabase.from("profiles").select("full_name, avatar_url").eq("id", driver.user_id).maybeSingle(),
-        supabase.from("vehicles").select("*").eq("driver_id", driver.user_id).limit(1),
-      ]);
-      return { driver, profile, vehicle: vehicles?.[0] ?? null };
+      const row = data?.[0];
+      if (!row) return null;
+      return {
+        driver: {
+          user_id: row.user_id,
+          business_name: row.business_name,
+          bio: row.bio,
+          city: row.city,
+          zone: row.zone,
+          languages: row.languages,
+          services: row.services,
+        },
+        profile: { full_name: row.full_name, avatar_url: row.avatar_url },
+        vehicle: row.max_passengers
+          ? {
+              brand: row.vehicle_brand,
+              model: row.vehicle_model,
+              color: row.vehicle_color,
+              photo_url: row.vehicle_photo_url,
+              max_passengers: row.max_passengers,
+              luggage_capacity: row.luggage_capacity,
+              child_seat: row.child_seat,
+              chargers: row.chargers,
+              water: row.water,
+              pets_allowed: row.pets_allowed,
+              accessible: row.accessible,
+            }
+          : null,
+      };
     },
   });
+
 
   const connQuery = useQuery({
     queryKey: ["conn", slug, user?.id],
