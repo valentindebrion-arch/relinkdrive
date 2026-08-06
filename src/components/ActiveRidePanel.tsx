@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { formatDateTime, formatEuro } from "@/lib/labels";
 
-const ACTIVE_STATUSES = ["confirmed", "driver_enroute", "driver_arrived", "client_onboard", "in_progress"];
+const ACTIVE_STATUSES = ["confirmed", "driver_enroute", "driver_arrived", "client_onboard", "in_progress"] as const;
 
 const STEPS = [
   { status: "driver_enroute", label: "En route chez le client", action: "Je pars chez le client" },
