@@ -415,7 +415,7 @@ function ClientRequests() {
                 />
               </div>
 
-              <div>
+              <div className="shrink-0">
                 <SectionTitle>Date et heure</SectionTitle>
                 <div className="grid grid-cols-2 gap-2">
                   {(
@@ -434,15 +434,15 @@ function ClientRequests() {
                         disabled={disabled}
                         onClick={() => setWhenMode(o.key)}
                         className={cn(
-                          "flex items-center justify-center gap-2 rounded-2xl border py-2.5 text-sm font-medium transition-all",
+                          "tap tap-active flex items-center justify-center gap-2 rounded-2xl border py-3.5 text-[15px] font-semibold",
                           disabled
                             ? "cursor-not-allowed border-border bg-muted text-muted-foreground opacity-60"
                             : on
-                              ? "border-primary bg-primary/10 text-primary"
+                              ? "border-primary bg-primary/10 text-primary shadow-[0_0_0_3px_var(--color-primary)]/10"
                               : "border-border bg-card text-foreground",
                         )}
                       >
-                        <Icon className="size-4" /> {o.label}
+                        <Icon className={cn("size-4.5", on && "animate-scale-in")} /> {o.label}
                       </button>
                     );
                   })}
@@ -451,21 +451,19 @@ function ClientRequests() {
                   <Input
                     aria-label="Date et heure du départ"
                     type="datetime-local"
-                    className="animate-fade-in mt-2 h-11 rounded-2xl"
+                    className="rise-in mt-2 h-12 rounded-2xl text-[15px]"
                     value={form.scheduled_at}
                     onChange={(e) => setForm({ ...form, scheduled_at: e.target.value })}
                   />
-                ) : (
-                  <p className="mt-1.5 text-[11px] text-muted-foreground">
-                    Départ dès que possible — le chauffeur peut proposer un autre horaire.
-                  </p>
-                )}
+                ) : null}
                 {!driverAvailable && form.driver_id ? (
-                  <p className="mt-1 text-[11px] text-muted-foreground">
+                  <p className="rise-in mt-1 text-[11px] text-muted-foreground">
                     Chauffeur indisponible : réservation « plus tard » uniquement.
                   </p>
                 ) : null}
               </div>
+
+              <LiveDriversMap className="min-h-28 flex-1" />
             </>
           ) : null}
 
