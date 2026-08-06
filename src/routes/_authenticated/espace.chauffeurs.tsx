@@ -1,9 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useCallback, useState } from "react";
+import { toast } from "sonner";
 import { Car, ChevronRight, MapPin, Plus, Star, User, Users, CalendarDays } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { formatDateTime } from "@/lib/labels";
+import { QrScannerDialog } from "@/components/QrScannerDialog";
 
 export const Route = createFileRoute("/_authenticated/espace/chauffeurs")({
   component: ClientDrivers,
@@ -166,14 +169,20 @@ function ClientDrivers() {
         </div>
       ) : null}
 
-      <div className="rounded-3xl border-2 border-dashed border-border p-8 text-center">
-        <p className="inline-flex items-center gap-2 text-base font-semibold text-primary">
+      <button
+        type="button"
+        onClick={() => setScanOpen(true)}
+        className="w-full rounded-3xl border-2 border-dashed border-border p-8 text-center transition hover:border-primary hover:bg-primary/5"
+      >
+        <span className="inline-flex items-center gap-2 text-base font-semibold text-primary">
           <Plus className="h-5 w-5" /> Ajouter un chauffeur
-        </p>
-        <p className="mt-2 text-sm text-muted-foreground">
+        </span>
+        <span className="mt-2 block text-sm text-muted-foreground">
           Scannez le QR code de votre chauffeur en fin de course pour l'enregistrer ici.
-        </p>
-      </div>
+        </span>
+      </button>
+
+      <QrScannerDialog open={scanOpen} onClose={() => setScanOpen(false)} onResult={handleScan} />
     </div>
   );
 }
