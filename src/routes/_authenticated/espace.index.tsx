@@ -62,6 +62,7 @@ function ClientHome() {
   const data = useQuery({
     queryKey: ["client-home", user?.id],
     enabled: !!user?.id,
+    refetchInterval: 15000,
     queryFn: async () => {
       const [{ data: conns }, { data: requests }, { data: rides }] = await Promise.all([
         supabase.from("driver_client_connections").select("*").eq("client_id", user!.id).order("created_at", { ascending: false }),
