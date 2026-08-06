@@ -842,7 +842,32 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_driver_pages: {
+        Row: {
+          accessible: boolean | null
+          avatar_url: string | null
+          bio: string | null
+          business_name: string | null
+          chargers: boolean | null
+          child_seat: boolean | null
+          city: string | null
+          full_name: string | null
+          languages: string[] | null
+          luggage_capacity: number | null
+          max_passengers: number | null
+          pets_allowed: boolean | null
+          services: string[] | null
+          slug: string | null
+          user_id: string | null
+          vehicle_brand: string | null
+          vehicle_color: string | null
+          vehicle_model: string | null
+          vehicle_photo_url: string | null
+          water: boolean | null
+          zone: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
