@@ -12,7 +12,7 @@ export async function fetchCurrentRoles(): Promise<{ userId: string; roles: AppR
 
 /** Espace d'accueil autorisé pour un jeu de rôles donné. */
 export function homeForRolesSafe(roles: AppRole[]): string {
-  if (roles.includes("admin") || roles.includes("superadmin")) return "/pro";
+  if (roles.includes("admin") || roles.includes("superadmin")) return "/admin";
   if (roles.includes("driver")) return "/pro";
   return "/espace";
 }
