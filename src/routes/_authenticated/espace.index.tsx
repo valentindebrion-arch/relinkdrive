@@ -133,6 +133,46 @@ function ClientHome() {
 
       {/* Panneau d'action */}
       <div className="shrink-0 space-y-2 rounded-3xl border border-border bg-card/90 p-3 shadow-[0_-12px_40px_-24px_hsl(0_0%_0%/0.35)] backdrop-blur-xl">
+        {live ? (
+          <Link
+            to="/espace/suivi/$id"
+            params={{ id: live.id }}
+            className="block animate-fade-in rounded-2xl border border-primary/30 bg-primary/5 p-3"
+          >
+            <div className="flex items-center gap-3">
+              <span className="relative grid size-11 shrink-0 place-items-center">
+                {!liveIsRide ? (
+                  <span className="absolute inline-flex size-11 animate-ping rounded-full bg-primary/20" />
+                ) : null}
+                <span className="relative grid size-10 place-items-center rounded-full bg-primary/15">
+                  <Loader2 className="size-5 animate-spin text-primary" />
+                </span>
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-semibold">{liveStep}</span>
+                <span className="block truncate text-xs text-muted-foreground">
+                  {liveDriver?.driver?.business_name ?? liveDriver?.profile?.full_name ?? "Votre chauffeur"}
+                </span>
+              </span>
+              <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
+            </div>
+            <div className="mt-3 space-y-1 border-t border-primary/20 pt-3 text-xs">
+              <span className="flex items-start gap-2">
+                <span className="mt-1 size-2 shrink-0 rounded-full bg-primary" />
+                <span className="min-w-0 flex-1 truncate font-medium">{live.pickup_address}</span>
+              </span>
+              <span className="flex items-start gap-2">
+                <MapPin className="mt-0.5 size-3.5 shrink-0 text-primary" />
+                <span className="min-w-0 flex-1 truncate font-medium">{live.dropoff_address}</span>
+              </span>
+            </div>
+            <span className="mt-3 flex h-10 items-center justify-center rounded-xl bg-primary text-sm font-semibold text-primary-foreground">
+              Suivre ma course
+            </span>
+          </Link>
+        ) : (
+        <>
+
 
         <Link
           to="/espace/demandes"
