@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -24,9 +24,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { EmptyState } from "@/components/Ui";
-import { StatusBadge } from "@/components/StatusBadge";
-import { RIDE_STATUS_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
+import { formatDateTime, formatEuro } from "@/lib/labels";
 import { RouteMiniMap } from "@/components/RouteMiniMap";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { estimateRoute, reverseGeocode } from "@/lib/route-estimate.functions";
@@ -121,7 +119,6 @@ function ClientRequests() {
   const { user } = useAuth();
   const search = Route.useSearch();
   const navigate = useNavigate();
-  const qc = useQueryClient();
   const estimateFn = useServerFn(estimateRoute);
   const geocodeFn = useServerFn(reverseGeocode);
 
@@ -166,18 +163,6 @@ function ClientRequests() {
     },
   });
 
-  const requests = useQuery({
-    queryKey: ["client-requests", user?.id],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("ride_requests")
-        .select("*")
-        .eq("client_id", user!.id)
-        .order("created_at", { ascending: false });
-      return data ?? [];
-    },
-  });
 
   function scheduledIso() {
     return whenMode === "now"
@@ -304,21 +289,7 @@ function ClientRequests() {
     await supabase.rpc("notify_counterparty", { _recipient: form.driver_id, _kind: "request_new" });
     toast.success("Demande envoyée — en attente de confirmation du chauffeur");
     resetForm();
-    void qc.invalidateQueries({ queryKey: ["client-requests"] });
   }
-
-  async function accept(id: string) {
-    await supabase.from("ride_requests").update({ status: "awaiting_client" }).eq("id", id);
-    void qc.invalidateQueries({ queryKey: ["client-requests"] });
-    toast.success("Réponse transmise au chauffeur");
-  }
-
-  async function cancel(id: string) {
-    await supabase.from("ride_requests").update({ status: "cancelled" }).eq("id", id);
-    void qc.invalidateQueries({ queryKey: ["client-requests"] });
-  }
-
-  const list = requests.data ?? [];
   const heading = HEADINGS[step]!;
   const selectedDriver = (drivers.data ?? []).find((d) => d.id === form.driver_id);
   const driverName = selectedDriver?.full_name;
@@ -697,58 +668,6 @@ function ClientRequests() {
         </div>
       </div>
 
-      <h2 className="mt-10 mb-3 text-lg font-semibold">Mes demandes</h2>
-      {list.length === 0 ? (
-        <EmptyState title="Aucune demande" />
-      ) : (
-        <div className="space-y-3">
-          {list.map((r) => (
-            <div key={r.id} className="surface p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="font-medium">
-                    {r.pickup_address} → {r.dropoff_address}
-                  </p>
-                  <p className="text-sm text-muted-foreground">{formatDateTime(r.scheduled_at)}</p>
-                  {["new", "reviewing"].includes(r.status) ? (
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      En attente de confirmation du chauffeur.
-                    </p>
-                  ) : null}
-                  {r.proposed_price || r.proposed_time ? (
-                    <p className="mt-1 text-sm">
-                      Proposition du chauffeur :{" "}
-                      {r.proposed_price ? formatEuro(Number(r.proposed_price)) : "—"}
-                      {r.proposed_time ? ` le ${formatDateTime(r.proposed_time)}` : ""}
-                    </p>
-                  ) : null}
-                  {r.driver_message ? (
-                    <p className="text-sm text-muted-foreground">« {r.driver_message} »</p>
-                  ) : null}
-                </div>
-                <StatusBadge status={r.status} labels={RIDE_STATUS_LABELS} />
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Button size="sm" variant="secondary" asChild>
-                  <Link to="/espace/suivi/$id" params={{ id: r.id }}>
-                    Suivre la course
-                  </Link>
-                </Button>
-                {r.status === "proposal_sent" ? (
-                  <Button size="sm" onClick={() => accept(r.id)}>
-                    Accepter la proposition
-                  </Button>
-                ) : null}
-                {!["cancelled", "refused", "confirmed", "completed"].includes(r.status) ? (
-                  <Button size="sm" variant="outline" onClick={() => cancel(r.id)}>
-                    Annuler
-                  </Button>
-                ) : null}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
     </>
   );
 }
