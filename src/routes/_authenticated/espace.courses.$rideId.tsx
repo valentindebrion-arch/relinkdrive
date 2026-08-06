@@ -86,7 +86,7 @@ function RideDetail() {
       <PageHeader
         title="Détail de la course"
         description={formatDateTime(ride.scheduled_at)}
-        actions={<StatusBadge status={ride.status} labels={RIDE_STATUS_LABELS} />}
+        action={<StatusBadge status={ride.status} labels={RIDE_STATUS_LABELS} />}
       />
 
       <div className="surface p-4">
