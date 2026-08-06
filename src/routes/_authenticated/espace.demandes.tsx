@@ -289,21 +289,7 @@ function ClientRequests() {
     await supabase.rpc("notify_counterparty", { _recipient: form.driver_id, _kind: "request_new" });
     toast.success("Demande envoyée — en attente de confirmation du chauffeur");
     resetForm();
-    void qc.invalidateQueries({ queryKey: ["client-requests"] });
   }
-
-  async function accept(id: string) {
-    await supabase.from("ride_requests").update({ status: "awaiting_client" }).eq("id", id);
-    void qc.invalidateQueries({ queryKey: ["client-requests"] });
-    toast.success("Réponse transmise au chauffeur");
-  }
-
-  async function cancel(id: string) {
-    await supabase.from("ride_requests").update({ status: "cancelled" }).eq("id", id);
-    void qc.invalidateQueries({ queryKey: ["client-requests"] });
-  }
-
-  const list = requests.data ?? [];
   const heading = HEADINGS[step]!;
   const selectedDriver = (drivers.data ?? []).find((d) => d.id === form.driver_id);
   const driverName = selectedDriver?.full_name;
