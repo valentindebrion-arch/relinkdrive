@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Inbox, Receipt, Users, Wallet, QrCode } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { AlertTriangle, Inbox, Receipt, Users, Wallet, QrCode, Star, Car, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useDriverProfile, useMyVehicle, useMyDocuments } from "@/lib/driver-queries";
+import { useDriverData, computeStats, periodRange, PERIOD_LABELS, type Period } from "@/lib/pro-stats";
 import { StatCard, PageHeader } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ActiveRidePanel } from "@/components/ActiveRidePanel";
@@ -13,44 +15,55 @@ export const Route = createFileRoute("/_authenticated/pro/")({
   component: ProOverview,
 });
 
+const PERIODS: Period[] = ["today", "week", "month", "year"];
+
 function ProOverview() {
   const { user, profile } = useAuth();
   const driver = useDriverProfile();
   const vehicle = useMyVehicle();
   const docs = useMyDocuments();
+  const raw = useDriverData();
+  const qc = useQueryClient();
+  const [period, setPeriod] = useState<Period>("month");
 
-  const data = useQuery({
-    queryKey: ["pro-overview", user?.id],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      const startOfMonth = new Date();
-      startOfMonth.setDate(1);
-      startOfMonth.setHours(0, 0, 0, 0);
-      const [requests, rides, invoices, clients] = await Promise.all([
-        supabase.from("ride_requests").select("*").eq("driver_id", user!.id).in("status", ["new", "reviewing", "awaiting_client", "proposal_sent"]),
-        supabase.from("rides").select("*").eq("driver_id", user!.id).order("scheduled_at"),
-        supabase.from("invoices").select("*").eq("driver_id", user!.id),
-        supabase.from("driver_client_connections").select("id").eq("driver_id", user!.id),
-      ]);
-      const allRides = rides.data ?? [];
-      const now = new Date();
-      const today = allRides.filter(
-        (r) => new Date(r.scheduled_at).toDateString() === now.toDateString() && !r.is_block,
-      );
-      const upcoming = allRides.filter((r) => new Date(r.scheduled_at) >= now && !r.is_block);
-      const revenue = (invoices.data ?? [])
-        .filter((i) => new Date(i.issued_on) >= startOfMonth && i.status !== "cancelled")
-        .reduce((sum, i) => sum + Number(i.amount_ttc), 0);
-      return {
-        requests: requests.data ?? [],
-        today,
-        upcoming,
-        unpaidInvoices: (invoices.data ?? []).filter((i) => i.status !== "paid" && i.status !== "cancelled"),
-        revenue,
-        clients: clients.data?.length ?? 0,
-      };
-    },
-  });
+  // Toutes les statistiques se rafraîchissent automatiquement à chaque événement.
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`pro-stats-${user.id}-${Math.random().toString(36).slice(2)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "rides" }, () => {
+        void qc.invalidateQueries({ queryKey: ["driver-data"] });
+        void qc.invalidateQueries({ queryKey: ["driver-rides"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "ride_requests" }, () => {
+        void qc.invalidateQueries({ queryKey: ["driver-data"] });
+        void qc.invalidateQueries({ queryKey: ["driver-new-requests"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "invoices" }, () => {
+        void qc.invalidateQueries({ queryKey: ["driver-data"] });
+        void qc.invalidateQueries({ queryKey: ["driver-invoices"] });
+      })
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [user?.id, qc]);
+
+  const stats = computeStats(raw.data, period);
+  const rides = raw.data?.rides ?? [];
+  const now = new Date();
+  const upcoming = rides
+    .filter((r) => new Date(r.scheduled_at) >= now && ["confirmed", "driver_enroute"].includes(r.status))
+    .sort((a, b) => +new Date(a.scheduled_at) - +new Date(b.scheduled_at));
+  const { start, end } = periodRange("today");
+  const todayCount = rides.filter(
+    (r) => +new Date(r.scheduled_at) >= +start && +new Date(r.scheduled_at) <= +end && r.status !== "cancelled",
+  ).length;
+  const pendingRequests = (raw.data?.requests ?? []).filter((r) =>
+    ["new", "reviewing", "awaiting_client", "proposal_sent"].includes(r.status),
+  );
+  const unpaid = (raw.data?.invoices ?? []).filter((i) => !["paid", "cancelled", "draft"].includes(i.status));
+  const drafts = (raw.data?.invoices ?? []).filter((i) => i.status === "draft");
 
   const alerts: string[] = [];
   const v = vehicle.data;
@@ -58,21 +71,20 @@ function ProOverview() {
   if (soon(v?.insurance_expires_at)) alerts.push("Votre assurance arrive bientôt à expiration.");
   if (soon(v?.inspection_expires_at)) alerts.push("Votre contrôle technique arrive bientôt à expiration.");
   if (soon(v?.next_service_date)) alerts.push("Vous devriez prévoir l'entretien du véhicule.");
+  if (drafts.length) alerts.push(`${drafts.length} facture(s) à compléter après course.`);
   (docs.data ?? []).forEach((d) => {
     if (d.status === "rejected") alerts.push(`Document refusé : ${d.doc_type}. Une correction est demandée.`);
     if (soon(d.expires_at)) alerts.push(`Un document arrive à expiration (${d.doc_type}).`);
   });
 
-  const next = data.data?.upcoming[0];
-
   return (
     <>
       <PageHeader
         title={`Bonjour ${profile?.full_name?.split(" ")[0] ?? ""}`}
-        description="Votre activité en un coup d'œil."
+        description="Votre activité en temps réel."
         action={
           <Link
-            to="/pro/qr"
+            to="/pro/profil"
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
           >
             <QrCode className="size-4" /> Mon QR code
@@ -90,7 +102,7 @@ function ProOverview() {
               Votre page publique et vos demandes réelles seront activées après validation par un administrateur.
             </p>
           </div>
-          <Link to="/pro/verification" className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium">
+          <Link to="/pro/profil" className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium">
             Compléter mon dossier
           </Link>
         </div>
@@ -98,25 +110,74 @@ function ProOverview() {
 
       <ActiveRidePanel />
 
+      <div className="mb-4 -mx-4 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:px-0">
+        {PERIODS.map((p) => (
+          <button
+            key={p}
+            onClick={() => setPeriod(p)}
+            className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+              period === p ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+            }`}
+          >
+            {PERIOD_LABELS[p]}
+          </button>
+        ))}
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Demandes à traiter" value={data.data?.requests.length ?? 0} icon={<Inbox className="size-4" />} />
-        <StatCard label="Courses aujourd'hui" value={data.data?.today.length ?? 0} />
-        <StatCard label="CA du mois" value={formatEuro(data.data?.revenue ?? 0)} icon={<Wallet className="size-4" />} />
-        <StatCard label="Clients fidélisés" value={data.data?.clients ?? 0} icon={<Users className="size-4" />} />
+        <Link to="/pro/courses" className="block">
+          <StatCard label="Demandes à traiter" value={pendingRequests.length} icon={<Inbox className="size-4" />} />
+        </Link>
+        <StatCard label="Courses aujourd'hui" value={todayCount} icon={<Car className="size-4" />} />
+        <Link to="/pro/factures" className="block">
+          <StatCard
+            label="CA encaissé"
+            value={formatEuro(stats.collected)}
+            hint={`Facturé ${formatEuro(stats.billed)}`}
+            icon={<Wallet className="size-4" />}
+          />
+        </Link>
+        <Link to="/pro/clients" className="block">
+          <StatCard
+            label="Clients fidélisés"
+            value={raw.data?.conns.length ?? 0}
+            hint={`${stats.regularClients} réguliers`}
+            icon={<Users className="size-4" />}
+          />
+        </Link>
+      </div>
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Courses terminées" value={stats.completed} />
+        <StatCard label="Panier moyen" value={formatEuro(stats.average)} />
+        <StatCard label="Taux d'acceptation" value={`${stats.acceptRate}%`} />
+        <StatCard
+          label="Note moyenne"
+          value={stats.reviews.count ? `${stats.reviews.average.toFixed(1)}/5` : "—"}
+          hint={`${stats.reviews.count} avis`}
+          icon={<Star className="size-4" />}
+        />
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-3">
         <div className="surface p-5 lg:col-span-2">
-          <h2 className="mb-3 font-semibold">Prochaines courses</h2>
-          {data.data?.upcoming.length ? (
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-semibold">Prochaines courses</h2>
+            <Link to="/pro/courses" className="text-sm text-primary">
+              Tout voir
+            </Link>
+          </div>
+          {upcoming.length ? (
             <ul className="divide-y divide-border">
-              {data.data.upcoming.slice(0, 6).map((r) => (
+              {upcoming.slice(0, 6).map((r) => (
                 <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm">
-                  <div>
-                    <p className="font-medium">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">
                       {r.pickup_address} → {r.dropoff_address}
                     </p>
-                    <p className="text-muted-foreground">{formatDateTime(r.scheduled_at)}</p>
+                    <p className="flex items-center gap-1 text-muted-foreground">
+                      <Clock className="size-3.5" /> {formatDateTime(r.scheduled_at)}
+                    </p>
                   </div>
                   <StatusBadge status={r.status} labels={RIDE_STATUS_LABELS} />
                 </li>
@@ -125,23 +186,16 @@ function ProOverview() {
           ) : (
             <p className="text-sm text-muted-foreground">Aucune course planifiée.</p>
           )}
-          {next ? (
-            <p className="mt-4 rounded-lg bg-accent p-3 text-sm text-accent-foreground">
-              Prochaine course : {formatDateTime(next.scheduled_at)} — {next.pickup_address}
-            </p>
-          ) : null}
         </div>
 
         <div className="space-y-4">
-          <div className="surface p-5">
+          <Link to="/pro/factures" className="surface block p-5">
             <h2 className="mb-2 flex items-center gap-2 font-semibold">
-              <Receipt className="size-4 text-primary" /> Factures en attente
+              <Receipt className="size-4 text-primary" /> Factures à encaisser
             </h2>
-            <p className="text-2xl font-semibold">{data.data?.unpaidInvoices.length ?? 0}</p>
-            <Link to="/pro/factures" className="mt-2 inline-block text-sm text-primary">
-              Gérer les factures
-            </Link>
-          </div>
+            <p className="text-2xl font-semibold">{unpaid.length}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{formatEuro(stats.outstanding)} en attente</p>
+          </Link>
           <div className="surface p-5">
             <h2 className="mb-2 flex items-center gap-2 font-semibold">
               <AlertTriangle className="size-4 text-warning" /> Alertes
@@ -158,6 +212,20 @@ function ProOverview() {
           </div>
         </div>
       </div>
+
+      {stats.reviews.latest.length ? (
+        <div className="surface mt-6 p-5">
+          <h2 className="mb-3 font-semibold">Derniers avis clients</h2>
+          <ul className="space-y-3">
+            {stats.reviews.latest.slice(0, 3).map((r) => (
+              <li key={r.id} className="rounded-lg bg-muted/50 p-3 text-sm">
+                <p className="font-medium">{"★".repeat(r.rating)}</p>
+                {r.comment ? <p className="mt-1 text-muted-foreground">{r.comment}</p> : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </>
   );
 }
