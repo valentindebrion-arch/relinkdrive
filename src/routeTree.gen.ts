@@ -19,6 +19,7 @@ import { Route as AuthenticatedEspaceIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedEspaceChauffeursRouteImport } from './routes/_authenticated/espace.chauffeurs'
 import { Route as AuthenticatedEspaceCoursesRouteImport } from './routes/_authenticated/espace.courses'
 import { Route as AuthenticatedEspaceDemandesRouteImport } from './routes/_authenticated/espace.demandes'
+import { Route as AuthenticatedEspaceParametresRouteImport } from './routes/_authenticated/espace.parametres'
 import { Route as AuthenticatedProIndexRouteImport } from './routes/_authenticated/pro.index'
 import { Route as AuthenticatedProActiviteRouteImport } from './routes/_authenticated/pro.activite'
 import { Route as AuthenticatedProAssistantRouteImport } from './routes/_authenticated/pro.assistant'
@@ -84,6 +85,12 @@ const AuthenticatedEspaceDemandesRoute =
   AuthenticatedEspaceDemandesRouteImport.update({
     id: '/demandes',
     path: '/demandes',
+    getParentRoute: () => AuthenticatedEspaceRoute,
+  } as any)
+const AuthenticatedEspaceParametresRoute =
+  AuthenticatedEspaceParametresRouteImport.update({
+    id: '/parametres',
+    path: '/parametres',
     getParentRoute: () => AuthenticatedEspaceRoute,
   } as any)
 const AuthenticatedProIndexRoute = AuthenticatedProIndexRouteImport.update({
@@ -170,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
   '/espace/courses': typeof AuthenticatedEspaceCoursesRoute
   '/espace/demandes': typeof AuthenticatedEspaceDemandesRoute
+  '/espace/parametres': typeof AuthenticatedEspaceParametresRoute
   '/pro/activite': typeof AuthenticatedProActiviteRoute
   '/pro/assistant': typeof AuthenticatedProAssistantRoute
   '/pro/clients': typeof AuthenticatedProClientsRoute
@@ -192,6 +200,7 @@ export interface FileRoutesByTo {
   '/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
   '/espace/courses': typeof AuthenticatedEspaceCoursesRoute
   '/espace/demandes': typeof AuthenticatedEspaceDemandesRoute
+  '/espace/parametres': typeof AuthenticatedEspaceParametresRoute
   '/pro/activite': typeof AuthenticatedProActiviteRoute
   '/pro/assistant': typeof AuthenticatedProAssistantRoute
   '/pro/clients': typeof AuthenticatedProClientsRoute
@@ -218,6 +227,7 @@ export interface FileRoutesById {
   '/_authenticated/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
   '/_authenticated/espace/courses': typeof AuthenticatedEspaceCoursesRoute
   '/_authenticated/espace/demandes': typeof AuthenticatedEspaceDemandesRoute
+  '/_authenticated/espace/parametres': typeof AuthenticatedEspaceParametresRoute
   '/_authenticated/pro/activite': typeof AuthenticatedProActiviteRoute
   '/_authenticated/pro/assistant': typeof AuthenticatedProAssistantRoute
   '/_authenticated/pro/clients': typeof AuthenticatedProClientsRoute
@@ -244,6 +254,7 @@ export interface FileRouteTypes {
     | '/espace/chauffeurs'
     | '/espace/courses'
     | '/espace/demandes'
+    | '/espace/parametres'
     | '/pro/activite'
     | '/pro/assistant'
     | '/pro/clients'
@@ -266,6 +277,7 @@ export interface FileRouteTypes {
     | '/espace/chauffeurs'
     | '/espace/courses'
     | '/espace/demandes'
+    | '/espace/parametres'
     | '/pro/activite'
     | '/pro/assistant'
     | '/pro/clients'
@@ -291,6 +303,7 @@ export interface FileRouteTypes {
     | '/_authenticated/espace/chauffeurs'
     | '/_authenticated/espace/courses'
     | '/_authenticated/espace/demandes'
+    | '/_authenticated/espace/parametres'
     | '/_authenticated/pro/activite'
     | '/_authenticated/pro/assistant'
     | '/_authenticated/pro/clients'
@@ -384,6 +397,13 @@ declare module '@tanstack/react-router' {
       path: '/demandes'
       fullPath: '/espace/demandes'
       preLoaderRoute: typeof AuthenticatedEspaceDemandesRouteImport
+      parentRoute: typeof AuthenticatedEspaceRoute
+    }
+    '/_authenticated/espace/parametres': {
+      id: '/_authenticated/espace/parametres'
+      path: '/parametres'
+      fullPath: '/espace/parametres'
+      preLoaderRoute: typeof AuthenticatedEspaceParametresRouteImport
       parentRoute: typeof AuthenticatedEspaceRoute
     }
     '/_authenticated/pro/': {
@@ -484,6 +504,7 @@ interface AuthenticatedEspaceRouteChildren {
   AuthenticatedEspaceChauffeursRoute: typeof AuthenticatedEspaceChauffeursRoute
   AuthenticatedEspaceCoursesRoute: typeof AuthenticatedEspaceCoursesRoute
   AuthenticatedEspaceDemandesRoute: typeof AuthenticatedEspaceDemandesRoute
+  AuthenticatedEspaceParametresRoute: typeof AuthenticatedEspaceParametresRoute
   AuthenticatedEspaceIndexRoute: typeof AuthenticatedEspaceIndexRoute
 }
 
@@ -491,6 +512,7 @@ const AuthenticatedEspaceRouteChildren: AuthenticatedEspaceRouteChildren = {
   AuthenticatedEspaceChauffeursRoute: AuthenticatedEspaceChauffeursRoute,
   AuthenticatedEspaceCoursesRoute: AuthenticatedEspaceCoursesRoute,
   AuthenticatedEspaceDemandesRoute: AuthenticatedEspaceDemandesRoute,
+  AuthenticatedEspaceParametresRoute: AuthenticatedEspaceParametresRoute,
   AuthenticatedEspaceIndexRoute: AuthenticatedEspaceIndexRoute,
 }
 
