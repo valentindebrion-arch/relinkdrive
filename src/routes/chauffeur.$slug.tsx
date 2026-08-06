@@ -164,13 +164,7 @@ function DriverPublicPage() {
       city: driverCity,
       metadata: { source },
     });
-    await supabase.from("notifications").insert({
-      user_id: driverId,
-      title: "Nouveau client fidélisé",
-      body: "Un client vient de vous ajouter à son carnet.",
-      kind: "connection",
-      link: "/pro/clients",
-    });
+    await supabase.rpc("notify_counterparty", { _recipient: driverId, _kind: "connection" });
     toast.success("Chauffeur ajouté à votre carnet");
     void connQuery.refetch();
     // eslint-disable-next-line react-hooks/exhaustive-deps

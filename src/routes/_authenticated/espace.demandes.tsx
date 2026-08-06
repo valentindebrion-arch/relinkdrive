@@ -290,13 +290,7 @@ function ClientRequests() {
       toast.error(error.message);
       return;
     }
-    await supabase.from("notifications").insert({
-      user_id: form.driver_id,
-      title: "Nouvelle demande de trajet",
-      body: `${form.pickup_address} → ${form.dropoff_address}`,
-      kind: "request",
-      link: "/pro/demandes",
-    });
+    await supabase.rpc("notify_counterparty", { _recipient: form.driver_id, _kind: "request_new" });
     toast.success("Demande envoyée — en attente de confirmation du chauffeur");
     resetForm();
     void qc.invalidateQueries({ queryKey: ["client-requests"] });
