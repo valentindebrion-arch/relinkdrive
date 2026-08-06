@@ -15,8 +15,15 @@ function makeDrivers(center: { lat: number; lng: number }, count: number): FakeD
   }));
 }
 
-/** Carte d'ambiance : position du client + chauffeurs fictifs qui circulent autour. */
-export function LiveDriversMap({ className }: { className?: string }) {
+/** Carte d'ambiance : position du client + chauffeurs fictifs qui circulent autour.
+ *  Avec `polyline`, elle affiche en plus l'itinéraire A → B du trajet. */
+export function LiveDriversMap({
+  className,
+  polyline,
+}: {
+  className?: string;
+  polyline?: string;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -30,14 +37,35 @@ export function LiveDriversMap({ className }: { className?: string }) {
         .then(() => {
           if (cancelled || !ref.current || !window.google) return;
           const maps = window.google.maps;
+          const path: any[] = polyline
+            ? maps.geometry.encoding.decodePath(polyline)
+            : [];
+          if (path.length) {
+            center = { lat: path[0].lat(), lng: path[0].lng() };
+          }
           const map = new maps.Map(ref.current, {
             disableDefaultUI: true,
-            gestureHandling: "none",
+            gestureHandling: polyline ? "cooperative" : "none",
             keyboardShortcuts: false,
             zoom: 14,
             center,
             styles: RELINK_MAP_STYLE,
           });
+
+          if (path.length) {
+            new maps.Polyline({
+              path,
+              map,
+              strokeColor: "#00a86b",
+              strokeWeight: 5,
+              strokeOpacity: 0.95,
+            });
+            const bounds = new maps.LatLngBounds();
+            path.forEach((p: any) => bounds.extend(p));
+            map.fitBounds(bounds, 32);
+            new maps.Marker({ position: path[0], map, label: "A" });
+            new maps.Marker({ position: path[path.length - 1], map, label: "B" });
+          }
 
           // Halo de position du client
           new maps.Circle({
