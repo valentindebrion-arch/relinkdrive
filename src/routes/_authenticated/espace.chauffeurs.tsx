@@ -67,7 +67,7 @@ function ClientDrivers() {
         supabase.from("profiles").select("id, full_name, avatar_url").in("id", ids),
         supabase
           .from("driver_profiles")
-          .select("user_id, business_name, city, slug, languages, services")
+          .select("user_id, business_name, city, slug, languages, services, on_duty")
           .in("user_id", ids),
         supabase.from("vehicles").select("driver_id, brand, model, max_passengers").in("driver_id", ids),
       ]);
@@ -96,6 +96,7 @@ function ClientDrivers() {
       <div className="grid gap-4 md:grid-cols-2">
         {list.map((d) => {
           const name = d.driver?.business_name || d.profile?.full_name || "Chauffeur";
+          const available = !!d.driver?.on_duty;
           return (
             <article key={d.id} className="surface animate-fade-in space-y-4 rounded-3xl p-5 shadow-sm">
               <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-4">
@@ -112,7 +113,9 @@ function ClientDrivers() {
                       {initials(d.profile?.full_name)}
                     </div>
                   )}
-                  <span className="absolute bottom-0 right-0 h-4 w-4 rounded-full border-2 border-card bg-primary" />
+                  <span
+                    className={`absolute bottom-0 right-0 h-4 w-4 rounded-full border-2 border-card ${available ? "bg-primary" : "bg-muted-foreground"}`}
+                  />
                 </div>
                 <div className="min-w-0 space-y-1.5">
                   <div className="flex flex-wrap items-center gap-2">
@@ -120,7 +123,16 @@ function ClientDrivers() {
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
                       <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Vérifié
                     </span>
+                    <span
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${available ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}
+                    >
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${available ? "bg-primary" : "bg-muted-foreground"}`}
+                      />
+                      {available ? "Disponible" : "Indisponible"}
+                    </span>
                   </div>
+
                   <p className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Star className="h-4 w-4 shrink-0 fill-primary text-primary" />
                     <span className="font-semibold text-foreground">Nouveau</span>

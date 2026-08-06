@@ -12,7 +12,9 @@ import {
   Car,
   Clock,
   ChevronRight,
+  Power,
 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useDriverProfile, useMyVehicle, useMyDocuments } from "@/lib/driver-queries";
@@ -68,6 +70,7 @@ function ProOverview() {
   const raw = useDriverData();
   const qc = useQueryClient();
   const [period, setPeriod] = useState<Period>("month");
+  const [dutyBusy, setDutyBusy] = useState(false);
 
   // Toutes les statistiques se rafraîchissent automatiquement à chaque événement.
   useEffect(() => {
@@ -120,6 +123,27 @@ function ProOverview() {
     if (soon(d.expires_at)) alerts.push(`Un document arrive à expiration (${d.doc_type}).`);
   });
 
+  const onDuty = !!driver.data?.on_duty;
+  async function toggleDuty() {
+    if (!user?.id || dutyBusy) return;
+    setDutyBusy(true);
+    const { error } = await supabase
+      .from("driver_profiles")
+      .update({ on_duty: !onDuty })
+      .eq("user_id", user.id);
+    setDutyBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    await qc.invalidateQueries({ queryKey: ["driver-profile"] });
+    toast.success(!onDuty ? "Vous êtes disponible" : "Vous êtes indisponible", {
+      description: !onDuty
+        ? "Vos clients peuvent demander une course immédiate."
+        : "Vous ne recevrez que des demandes « plus tard ».",
+    });
+  }
+
   return (
     <div className="w-full space-y-4">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
@@ -138,6 +162,46 @@ function ProOverview() {
           <span className="hidden sm:inline">Mon QR code</span>
         </Link>
       </header>
+
+      <button
+        type="button"
+        onClick={() => void toggleDuty()}
+        disabled={dutyBusy}
+        aria-pressed={onDuty}
+        className={`surface grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 p-3 text-left transition-colors ${
+          onDuty ? "border-primary/40 bg-primary/5" : ""
+        }`}
+      >
+        <span
+          className={`grid size-9 shrink-0 place-items-center rounded-full ${
+            onDuty ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+          }`}
+        >
+          <Power className="size-4" />
+        </span>
+        <span className="min-w-0">
+          <span className="block truncate text-sm font-semibold">
+            {onDuty ? "Disponible" : "Indisponible"}
+          </span>
+          <span className="block truncate text-[11px] text-muted-foreground">
+            {onDuty
+              ? "Vous recevez les courses immédiates."
+              : "Uniquement les demandes « plus tard »."}
+          </span>
+        </span>
+        <span
+          className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${
+            onDuty ? "bg-primary" : "bg-muted"
+          }`}
+        >
+          <span
+            className={`size-5 rounded-full bg-card shadow transition-transform ${
+              onDuty ? "translate-x-5" : ""
+            }`}
+          />
+        </span>
+      </button>
+
 
       {driver.data && driver.data.verification_status !== "verified" ? (
         <Link to="/pro/profil" className="surface block border-warning/40 bg-warning/10 p-3">

@@ -155,8 +155,14 @@ function ClientRequests() {
         .eq("client_id", user!.id);
       const ids = (conns ?? []).map((c) => c.driver_id);
       if (!ids.length) return [];
-      const { data } = await supabase.from("profiles").select("id, full_name").in("id", ids);
-      return data ?? [];
+      const [{ data }, { data: dprofiles }] = await Promise.all([
+        supabase.from("profiles").select("id, full_name").in("id", ids),
+        supabase.from("driver_profiles").select("user_id, on_duty").in("user_id", ids),
+      ]);
+      return (data ?? []).map((p) => ({
+        ...p,
+        on_duty: (dprofiles ?? []).find((d) => d.user_id === p.id)?.on_duty ?? false,
+      }));
     },
   });
 
@@ -238,6 +244,10 @@ function ClientRequests() {
   function next() {
     if (step === 0) {
       if (!form.driver_id) return toast.error("Choisissez un chauffeur");
+      if (whenMode === "now" && !driverAvailable)
+        return toast.error("Ce chauffeur est indisponible", {
+          description: "Réservez pour plus tard.",
+        });
       if (!pickupOk) return toast.error("Confirmez l'adresse de départ dans la liste proposée");
       if (!dropoffOk) return toast.error("Confirmez l'adresse d'arrivée dans la liste proposée");
       if (whenMode === "later" && !form.scheduled_at)
@@ -310,7 +320,9 @@ function ClientRequests() {
 
   const list = requests.data ?? [];
   const heading = HEADINGS[step]!;
-  const driverName = (drivers.data ?? []).find((d) => d.id === form.driver_id)?.full_name;
+  const selectedDriver = (drivers.data ?? []).find((d) => d.id === form.driver_id);
+  const driverName = selectedDriver?.full_name;
+  const driverAvailable = !!selectedDriver?.on_duty;
 
   return (
     <>
@@ -360,15 +372,21 @@ function ClientRequests() {
                     aria-label="Chauffeur"
                     className="h-10 w-full appearance-none bg-transparent text-[15px] focus:outline-none"
                     value={form.driver_id}
-                    onChange={(e) => setForm({ ...form, driver_id: e.target.value })}
+                    onChange={(e) => {
+                      const id = e.target.value;
+                      setForm({ ...form, driver_id: id });
+                      const picked = (drivers.data ?? []).find((d) => d.id === id);
+                      if (picked && !picked.on_duty) setWhenMode("later");
+                    }}
                   >
                     <option value="">Sélectionner un chauffeur</option>
                     {(drivers.data ?? []).map((d) => (
                       <option key={d.id} value={d.id}>
-                        {d.full_name}
+                        {d.full_name} {d.on_duty ? "· Disponible" : "· Indisponible"}
                       </option>
                     ))}
                   </select>
+
                 </div>
               </div>
 
@@ -443,16 +461,20 @@ function ClientRequests() {
                   ).map((o) => {
                     const Icon = o.icon;
                     const on = whenMode === o.key;
+                    const disabled = o.key === "now" && !driverAvailable;
                     return (
                       <button
                         key={o.key}
                         type="button"
+                        disabled={disabled}
                         onClick={() => setWhenMode(o.key)}
                         className={cn(
                           "flex items-center justify-center gap-2 rounded-2xl border py-3 text-sm font-medium transition-all",
-                          on
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border bg-card text-foreground",
+                          disabled
+                            ? "cursor-not-allowed border-border bg-muted text-muted-foreground opacity-60"
+                            : on
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border bg-card text-foreground",
                         )}
                       >
                         <Icon className="size-4" /> {o.label}
@@ -460,6 +482,12 @@ function ClientRequests() {
                     );
                   })}
                 </div>
+                {!driverAvailable && form.driver_id ? (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Ce chauffeur est actuellement indisponible : vous pouvez uniquement réserver
+                    pour plus tard.
+                  </p>
+                ) : null}
                 {whenMode === "later" ? (
                   <Input
                     aria-label="Date et heure du départ"
