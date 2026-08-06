@@ -344,7 +344,7 @@ function DriverPublicPage() {
 
         {/* 2 bis. Contact et réseaux (uniquement ce que le chauffeur a rendu public) */}
         {publicPhone || whatsapp || socials.length ? (
-          <Section title="Contacter {firstName}".replace("{firstName}", firstName)}>
+          <Section title={`Contacter ${firstName}`}>
             <div className="space-y-2">
               {publicPhone ? (
                 <Button asChild variant="outline" className="w-full justify-start">
