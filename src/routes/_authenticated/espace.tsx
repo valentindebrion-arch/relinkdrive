@@ -1,8 +1,10 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { LayoutDashboard, Users, Inbox, Car, Settings } from "lucide-react";
 import { DashboardShell, type NavItem } from "@/components/DashboardShell";
+import { requireRoles } from "@/lib/role-guard";
 
 export const Route = createFileRoute("/_authenticated/espace")({
+  beforeLoad: () => requireRoles(["client", "admin", "superadmin"]),
   component: ClientLayout,
 });
 
