@@ -19,6 +19,7 @@ function QrPage() {
   const driver = useDriverProfile();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [origin, setOrigin] = useState("");
+  const [publishing, setPublishing] = useState(false);
 
   useEffect(() => {
     setOrigin(window.location.origin);
