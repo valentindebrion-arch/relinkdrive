@@ -47,14 +47,16 @@ export function RouteMiniMap({ polyline, className }: { polyline: string; classN
           gestureHandling: "cooperative",
           zoom: 12,
           center: path[0] ?? { lat: 45.7772, lng: 3.087 },
+          styles: RELINK_MAP_STYLE,
         });
         new window.google.maps.Polyline({
           path,
           map,
-          strokeColor: "#12b981",
+          strokeColor: "#00a86b",
           strokeWeight: 5,
           strokeOpacity: 0.95,
         });
+
         if (path.length) {
           const bounds = new window.google.maps.LatLngBounds();
           path.forEach((p: any) => bounds.extend(p));
