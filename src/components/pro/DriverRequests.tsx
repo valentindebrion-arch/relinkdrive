@@ -124,9 +124,8 @@ export function DriverRequests() {
                   {r.comment ? <p className="mt-1 text-sm text-muted-foreground">« {r.comment} »</p> : null}
                   {r.special_needs ? <p className="text-sm text-muted-foreground">Besoins : {r.special_needs}</p> : null}
                   {r.proposed_price ? (
-                    <p className="mt-1 text-sm">
-                      Proposition envoyée : {formatEuro(Number(r.proposed_price))}
-                      {r.proposed_time ? ` — ${formatDateTime(r.proposed_time)}` : ""}
+                    <p className="mt-1 text-sm font-semibold">
+                      Prix final : {formatEuro(Number(r.proposed_price))}
                     </p>
                   ) : null}
                 </div>
