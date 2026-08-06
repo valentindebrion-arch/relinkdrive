@@ -1068,6 +1068,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_invoice_issuer: {
+        Args: { _driver: string }
+        Returns: {
+          billing_legal_info: string
+          business_name: string
+          email: string
+          full_name: string
+          professional_address: string
+          public_phone: string
+          siret: string
+          vat_applicable: boolean
+          vtc_card_number: string
+        }[]
+      }
       get_public_driver_page: {
         Args: { _slug: string }
         Returns: {
