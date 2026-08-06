@@ -883,6 +883,7 @@ export type Database = {
         Args: { _client: string; _driver: string }
         Returns: boolean
       }
+      is_verified_driver: { Args: { _driver: string }; Returns: boolean }
       track_driver_page_view: { Args: { _slug: string }; Returns: undefined }
     }
     Enums: {
