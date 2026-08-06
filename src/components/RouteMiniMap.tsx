@@ -57,7 +57,7 @@ export function RouteMiniMap({ polyline, className }: { polyline: string; classN
         });
         if (path.length) {
           const bounds = new window.google.maps.LatLngBounds();
-          path.forEach((p) => bounds.extend(p));
+          path.forEach((p: any) => bounds.extend(p));
           map.fitBounds(bounds, 32);
           new window.google.maps.Marker({ position: path[0]!, map, label: "A" });
           new window.google.maps.Marker({ position: path[path.length - 1]!, map, label: "B" });
