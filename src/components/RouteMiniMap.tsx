@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type MapsNamespace = any;
+
 declare global {
   interface Window {
-    google?: typeof google;
+    google?: { maps: MapsNamespace };
     __relinkMapsReady?: Promise<void>;
   }
 }
+
 
 function loadMaps(): Promise<void> {
   if (typeof window === "undefined") return Promise.reject(new Error("no window"));
