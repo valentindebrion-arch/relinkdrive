@@ -607,6 +607,10 @@ function ClientRequests() {
                       <dd className="text-right font-medium">{form.special_needs}</dd>
                     </>
                   ) : null}
+                  <dt className="border-t border-border pt-2 font-semibold">Prix final</dt>
+                  <dd className="border-t border-border pt-2 text-right text-base font-extrabold">
+                    {formatEuro(estimate.price.total)}
+                  </dd>
                 </dl>
               </div>
 
