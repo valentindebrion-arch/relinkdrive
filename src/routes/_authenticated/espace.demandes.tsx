@@ -119,7 +119,6 @@ function ClientRequests() {
   const { user } = useAuth();
   const search = Route.useSearch();
   const navigate = useNavigate();
-  const qc = useQueryClient();
   const estimateFn = useServerFn(estimateRoute);
   const geocodeFn = useServerFn(reverseGeocode);
 
