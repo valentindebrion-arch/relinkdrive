@@ -57,7 +57,7 @@ function cleanComment(comment: string | null) {
   return text || null;
 }
 
-export function DriverRequests({ onCount }: { onCount?: (n: number) => void }) {
+export function DriverRequests() {
   const { user } = useAuth();
   const qc = useQueryClient();
 
@@ -129,7 +129,6 @@ export function DriverRequests({ onCount }: { onCount?: (n: number) => void }) {
   }
 
   const list = (requests.data?.list ?? []).filter((r) => PENDING.includes(r.status));
-  onCount?.(list.length);
 
   if (list.length === 0) {
     return (
