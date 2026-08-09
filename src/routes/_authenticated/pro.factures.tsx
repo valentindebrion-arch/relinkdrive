@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, Download, Search, BarChart3 } from "lucide-r
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useDriverProfile } from "@/lib/driver-queries";
-import { PageHeader, EmptyState, StatCard } from "@/components/Ui";
+import { PageHeader, EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { INVOICE_LABELS, formatDate, formatEuro } from "@/lib/labels";
 import { downloadInvoicePdf } from "@/lib/invoice-pdf";
@@ -77,7 +77,39 @@ function labelFor(period: Period, start: Date, end: Date) {
   return `Année ${start.getFullYear()}`;
 }
 
+function FigureCard({
+  label,
+  amount,
+  hint,
+  className,
+}: {
+  label: string;
+  amount: number;
+  hint?: string;
+  className?: string;
+}) {
+  const text = formatEuro(amount);
+  const size =
+    text.length > 13
+      ? "text-base"
+      : text.length > 10
+        ? "text-lg"
+        : text.length > 8
+          ? "text-xl"
+          : "text-2xl";
+  return (
+    <div className={`surface min-w-0 overflow-hidden p-3 sm:p-4 ${className ?? ""}`}>
+      <p className="truncate text-[11px] font-medium tracking-wide text-muted-foreground uppercase">{label}</p>
+      <p className={`mt-1.5 whitespace-nowrap font-semibold tabular-nums ${size}`}>
+        <span className="block origin-left truncate">{text}</span>
+      </p>
+      {hint ? <p className="mt-1 truncate text-[11px] text-muted-foreground">{hint}</p> : null}
+    </div>
+  );
+}
+
 function DriverInvoices() {
+
   const { user, profile } = useAuth();
   const driver = useDriverProfile();
   const qc = useQueryClient();
@@ -231,19 +263,24 @@ function DriverInvoices() {
     URL.revokeObjectURL(url);
   }
 
-  const billed = list.filter((i) => i.status !== "cancelled" && i.status !== "draft");
-  const paidList = list.filter((i) => i.status === "paid");
+  const { start, end } = rangeFor(period, offset);
+  const inRange = (value: string | null | undefined) => {
+    if (!value) return false;
+    const d = new Date(value);
+    return d >= start && d < end;
+  };
+
+  const periodInvoices = list.filter((i) => inRange(i.issued_on));
+  const billed = periodInvoices.filter((i) => i.status !== "cancelled" && i.status !== "draft");
+  const paidList = billed.filter((i) => i.status === "paid");
   const toCollect = billed.filter((i) => i.status !== "paid");
-  const drafts = list.filter((i) => i.status === "draft");
+  const drafts = periodInvoices.filter((i) => i.status === "draft");
   const sum = (arr: Invoice[]) => arr.reduce((s, i) => s + Number(i.amount_ttc), 0);
 
-  const { start, end } = rangeFor(period, offset);
-  const inPeriod = list
-    .filter((i) => {
-      const d = new Date(i.issued_on);
-      return d >= start && d < end;
-    })
-    .sort((a, b) => new Date(b.issued_on).getTime() - new Date(a.issued_on).getTime());
+  const inPeriod = [...periodInvoices].sort(
+    (a, b) => new Date(b.issued_on).getTime() - new Date(a.issued_on).getTime(),
+  );
+
 
   const q = search.trim().toLowerCase();
   const shown = q
@@ -259,11 +296,17 @@ function DriverInvoices() {
     <>
       <PageHeader title="Facturation" description="Vos factures se créent automatiquement à la fin de chaque course." />
 
-      <div className="mb-4 grid grid-cols-3 gap-2 sm:gap-4">
-        <StatCard label="CA facturé" value={formatEuro(sum(billed))} hint={`${billed.length} facture(s)`} />
-        <StatCard label="CA encaissé" value={formatEuro(sum(paidList))} hint={`${paidList.length} payée(s)`} />
-        <StatCard label="Reste à encaisser" value={formatEuro(sum(toCollect))} hint={`${toCollect.length} en attente`} />
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4">
+        <FigureCard label="CA facturé" amount={sum(billed)} hint={`${billed.length} facture(s)`} />
+        <FigureCard label="CA encaissé" amount={sum(paidList)} hint={`${paidList.length} payée(s)`} />
+        <FigureCard
+          label="Reste à encaisser"
+          amount={sum(toCollect)}
+          hint={`${toCollect.length} en attente`}
+          className="col-span-2 sm:col-span-1"
+        />
       </div>
+
 
       {drafts.length ? (
         <div className="surface mb-4 border-warning/40 bg-warning/10 p-4 text-sm">
