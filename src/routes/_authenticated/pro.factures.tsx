@@ -100,7 +100,7 @@ function FigureCard({
   return (
     <div className={`surface min-w-0 overflow-hidden p-3 sm:p-4 ${className ?? ""}`}>
       <p className="truncate text-[11px] font-medium tracking-wide text-muted-foreground uppercase">{label}</p>
-      <p className={`mt-1.5 whitespace-nowrap font-semibold tabular-nums ${size} sm:text-2xl`}>
+      <p className={`mt-1.5 whitespace-nowrap font-semibold tabular-nums ${size}`}>
         <span className="block origin-left truncate">{text}</span>
       </p>
       {hint ? <p className="mt-1 truncate text-[11px] text-muted-foreground">{hint}</p> : null}
