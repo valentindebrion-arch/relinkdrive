@@ -177,6 +177,26 @@ function ProProfileHub() {
     (account.pct + companyPct.pct + vehiclePct.pct + (docStats.approved / DOCUMENT_TYPES.length) * 100) / 4,
   );
 
+  const soon = (date?: string | null) => !!date && new Date(date).getTime() - Date.now() < 1000 * 60 * 60 * 24 * 45;
+  const expired = (date?: string | null) => !!date && new Date(date).getTime() < Date.now();
+
+  const sectionStatus: Record<Exclude<SectionKey, "qr">, "neutral" | "warning" | "danger"> = {
+    compte: "neutral",
+    entreprise: "neutral",
+    vehicule:
+      expired(v?.insurance_expires_at) || expired(v?.inspection_expires_at) || expired(v?.next_service_date)
+        ? "danger"
+        : soon(v?.insurance_expires_at) || soon(v?.inspection_expires_at) || soon(v?.next_service_date)
+          ? "warning"
+          : "neutral",
+    verification:
+      docStats.rejected || docStats.expired || d?.verification_status === "rejected"
+        ? "danger"
+        : docStats.soon || d?.verification_status === "pending"
+          ? "warning"
+          : "neutral",
+  };
+
   const loading = driver.isLoading || vehicle.isLoading || docs.isLoading || company.isLoading;
 
   if (section) {
