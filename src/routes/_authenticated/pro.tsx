@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { Home, Car, Users, Receipt, Bot, UserRound } from "lucide-react";
+import { Home, Car, Users, Receipt, Bot, UserRound, CalendarDays } from "lucide-react";
 import { DashboardShell, type NavItem } from "@/components/DashboardShell";
 import { useAuth } from "@/lib/auth";
 import { requireRoles } from "@/lib/role-guard";
