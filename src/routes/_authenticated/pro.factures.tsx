@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, Download, Search, BarChart3 } from "lucide-r
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useDriverProfile } from "@/lib/driver-queries";
-import { PageHeader, EmptyState, StatCard } from "@/components/Ui";
+import { PageHeader, EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { INVOICE_LABELS, formatDate, formatEuro } from "@/lib/labels";
 import { downloadInvoicePdf } from "@/lib/invoice-pdf";
