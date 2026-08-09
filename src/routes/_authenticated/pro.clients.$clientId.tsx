@@ -29,7 +29,7 @@ export const Route = createFileRoute("/_authenticated/pro/clients/$clientId")({
 
 const CRM_OPTIONS = ["new", "regular", "inactive"] as const;
 
-function Row({ label, value }: { label: string; value?: string | null }) {
+function Row({ label, value }: { label: string; value?: string | null | undefined }) {
   if (!value) return null;
   return (
     <div className="flex items-start justify-between gap-3 py-1.5 text-sm">
@@ -117,7 +117,10 @@ function ClientDetail() {
     const { error } = existingId
       ? await supabase.from("driver_notes").update({ note }).eq("id", existingId)
       : await supabase.from("driver_notes").insert({ driver_id: user!.id, client_id: clientId, note });
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     setEditingNote(false);
     toast.success("Note enregistrée");
     void qc.invalidateQueries({ queryKey: ["driver-client-detail"] });
@@ -126,7 +129,10 @@ function ClientDetail() {
   async function setCrm(crm_status: (typeof CRM_OPTIONS)[number]) {
     if (!conn) return;
     const { error } = await supabase.from("driver_client_connections").update({ crm_status }).eq("id", conn.id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success(`Statut : ${CRM_LABELS[crm_status]}`);
     void qc.invalidateQueries({ queryKey: ["driver-client-detail"] });
     void qc.invalidateQueries({ queryKey: ["driver-clients"] });
