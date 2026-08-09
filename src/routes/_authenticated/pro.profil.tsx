@@ -62,6 +62,7 @@ function SectionCard({
   badge,
   onClick,
   extra,
+  status = "neutral",
 }: {
   icon: React.ReactNode;
   title: string;
@@ -69,15 +70,28 @@ function SectionCard({
   badge: React.ReactNode;
   onClick: () => void;
   extra?: React.ReactNode;
+  status?: "neutral" | "warning" | "danger";
 }) {
+  const statusClass =
+    status === "danger"
+      ? "border-destructive/40 bg-destructive/5 hover:border-destructive/60"
+      : status === "warning"
+        ? "border-warning/40 bg-warning/10 hover:border-warning/60"
+        : "hover:border-primary/40";
+  const iconClass =
+    status === "danger"
+      ? "bg-destructive/10 text-destructive"
+      : status === "warning"
+        ? "bg-warning/10 text-warning"
+        : "bg-primary/10 text-primary";
   return (
     <button
       type="button"
       onClick={onClick}
-      className="surface tap-active w-full p-4 text-left transition hover:border-primary/40"
+      className={`surface tap-active w-full p-4 text-left transition ${statusClass}`}
     >
       <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3">
-        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+        <span className={`grid size-10 shrink-0 place-items-center rounded-xl ${iconClass}`}>
           {icon}
         </span>
         <div className="min-w-0">
