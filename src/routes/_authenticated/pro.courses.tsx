@@ -1,72 +1,86 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { toast } from "sonner";
+import { CalendarDays, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { PageHeader, EmptyState } from "@/components/Ui";
+import { EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
-import { RIDE_STATUS_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
+import { RIDE_STATUS_LABELS, INVOICE_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DriverRequests } from "@/components/pro/DriverRequests";
-import { Planning } from "@/components/pro/Planning";
+import { ActiveRidePanel } from "@/components/ActiveRidePanel";
 import { useNewRequestsCount } from "@/lib/driver-queries";
 
 export const Route = createFileRoute("/_authenticated/pro/courses")({
+  head: () => ({
+    meta: [
+      { title: "Mes courses — Relink Chauffeur" },
+      {
+        name: "description",
+        content:
+          "Pilotez votre activité Relink en temps réel : demandes en attente, course en cours et courses terminées aujourd'hui.",
+      },
+      { property: "og:title", content: "Mes courses — Relink Chauffeur" },
+      { property: "og:description", content: "Demandes, course en cours et courses terminées du jour." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: DriverRidesPage,
 });
 
-const IN_PROGRESS = ["driver_enroute", "driver_arrived", "client_onboard", "in_progress"];
-
-function DriverRidesPage() {
-  const [tab, setTab] = useState("demandes");
-  const newRequests = useNewRequestsCount();
-
+function SectionTitle({ title, count }: { title: string; count?: number }) {
   return (
-    <>
-      <PageHeader title="Mes courses" description="Demandes, planning et suivi de vos courses au même endroit." />
-      <Tabs value={tab} onValueChange={setTab}>
-        <div className="-mx-4 mb-4 overflow-x-auto px-4 lg:mx-0 lg:px-0">
-          <TabsList className="w-max">
-            <TabsTrigger value="demandes" className="gap-1.5">
-              Demandes
-              {newRequests.data ? (
-                <span className="rounded-full bg-primary px-1.5 text-[11px] font-semibold text-primary-foreground">
-                  {newRequests.data}
-                </span>
-              ) : null}
-            </TabsTrigger>
-            <TabsTrigger value="planning">Planning</TabsTrigger>
-            <TabsTrigger value="avenir">À venir</TabsTrigger>
-            <TabsTrigger value="encours">En cours</TabsTrigger>
-            <TabsTrigger value="historique">Historique</TabsTrigger>
-          </TabsList>
-        </div>
-
-        <TabsContent value="demandes">
-          <DriverRequests />
-        </TabsContent>
-        <TabsContent value="planning">
-          <Planning />
-        </TabsContent>
-        <TabsContent value="avenir">
-          <RideList filter="upcoming" />
-        </TabsContent>
-        <TabsContent value="encours">
-          <RideList filter="active" />
-        </TabsContent>
-        <TabsContent value="historique">
-          <RideList filter="history" />
-        </TabsContent>
-      </Tabs>
-    </>
+    <h2 className="mb-2 text-base font-semibold">
+      {title}
+      {count != null ? <span className="text-muted-foreground"> ({count})</span> : null}
+    </h2>
   );
 }
 
-function RideList({ filter }: { filter: "upcoming" | "active" | "history" }) {
+function DriverRidesPage() {
+  const newRequests = useNewRequestsCount();
+
+  return (
+    <div className="space-y-6 overflow-x-hidden pb-6">
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-bold sm:text-2xl">Mes courses</h1>
+          <p className="truncate text-sm text-muted-foreground">Gérez votre activité en temps réel.</p>
+        </div>
+        <Button asChild variant="outline" size="sm" className="shrink-0 gap-1.5">
+          <Link to="/pro/planning">
+            <CalendarDays className="size-4" />
+            Planning
+          </Link>
+        </Button>
+      </header>
+
+      <section>
+        <SectionTitle title="Demandes de courses" count={newRequests.data ?? 0} />
+        <DriverRequests />
+      </section>
+
+      <section>
+        <SectionTitle title="Course en cours" />
+        <ActiveRidePanel showEmpty className="mb-0" />
+      </section>
+
+      <CompletedToday />
+    </div>
+  );
+}
+
+function startOfToday() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+function CompletedToday() {
   const { user } = useAuth();
-  const qc = useQueryClient();
+  const [showAll, setShowAll] = useState(false);
 
   const rides = useQuery({
     queryKey: ["driver-rides", user?.id],
@@ -83,67 +97,74 @@ function RideList({ filter }: { filter: "upcoming" | "active" | "history" }) {
     },
   });
 
-  async function cancel(rideId: string, clientId: string | null) {
-    const { error } = await supabase.from("rides").update({ status: "cancelled" as never }).eq("id", rideId);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    await supabase
-      .from("ride_status_history")
-      .insert({ ride_id: rideId, status: "cancelled" as never, changed_by: user!.id });
-    toast.success("Course annulée");
-    void qc.invalidateQueries({ queryKey: ["driver-rides"] });
-    void qc.invalidateQueries({ queryKey: ["driver-data"] });
-  }
-
-  const all = rides.data ?? [];
-  const list = all.filter((r) => {
-    if (filter === "active") return IN_PROGRESS.includes(r.status);
-    if (filter === "upcoming") return r.status === "confirmed";
-    return ["completed", "cancelled", "refused"].includes(r.status);
+  const invoices = useQuery({
+    queryKey: ["driver-invoices", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("invoices").select("*").eq("driver_id", user!.id);
+      if (error) throw error;
+      return data ?? [];
+    },
   });
 
-  if (!list.length) {
-    return (
-      <EmptyState
-        title="Aucune course"
-        description={
-          filter === "history"
-            ? "Vos courses terminées et annulées s'afficheront ici."
-            : "Les demandes acceptées apparaîtront ici."
-        }
-      />
+  const all = rides.data ?? [];
+  const history = all
+    .filter((r) => ["completed", "cancelled", "refused"].includes(r.status))
+    .sort(
+      (a, b) =>
+        new Date(b.completed_at ?? b.scheduled_at).getTime() - new Date(a.completed_at ?? a.scheduled_at).getTime(),
     );
-  }
+  const today = history.filter(
+    (r) => r.status === "completed" && new Date(r.completed_at ?? r.scheduled_at).getTime() >= startOfToday(),
+  );
+  const list = showAll ? history : today;
 
   return (
-    <div className="space-y-3">
-      {list.map((r) => (
-        <div key={r.id} className="surface grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 p-3 sm:p-4">
-          <div className="min-w-0">
-            <p className="truncate font-medium">
-              {r.pickup_address} → {r.dropoff_address}
-            </p>
-            <p className="truncate text-xs text-muted-foreground sm:text-sm">
-              {formatDateTime(r.scheduled_at)} · {r.price ? formatEuro(Number(r.price)) : "Prix à définir"}
-            </p>
-          </div>
-          <div className="flex shrink-0 flex-col items-end gap-1.5">
-            <StatusBadge status={r.status} labels={RIDE_STATUS_LABELS} />
-            {["confirmed", "driver_enroute"].includes(r.status) ? (
-              <Button size="sm" variant="destructive" onClick={() => cancel(r.id, r.client_id)}>
-                Annuler
-              </Button>
-            ) : null}
-          </div>
+    <section>
+      <SectionTitle title={showAll ? "Historique complet" : "Courses terminées aujourd'hui"} count={list.length} />
+      {list.length === 0 ? (
+        <EmptyState title="Aucune course terminée aujourd'hui" description="Vos courses du jour s'afficheront ici." />
+      ) : (
+        <div className="space-y-3">
+          {list.map((r) => {
+            const inv = (invoices.data ?? []).find((i) => i.ride_id === r.id);
+            return (
+              <Link
+                key={r.id}
+                to="/pro/factures"
+                className="surface tap-active block p-4 transition-colors hover:border-primary/40"
+              >
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground">
+                      {formatDateTime(r.completed_at ?? r.scheduled_at)} · {r.client_label ?? "Client"}
+                    </p>
+                    <p className="mt-0.5 truncate text-sm font-medium">
+                      {r.pickup_address} → {r.dropoff_address}
+                    </p>
+                  </div>
+                  <p className="shrink-0 text-sm font-bold text-primary">
+                    {r.price ? formatEuro(Number(r.price)) : "—"}
+                  </p>
+                </div>
+                <div className="mt-2 flex items-center justify-between gap-2">
+                  {inv ? (
+                    <StatusBadge status={inv.status} labels={INVOICE_LABELS} />
+                  ) : (
+                    <StatusBadge status={r.status} labels={RIDE_STATUS_LABELS} />
+                  )}
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    Détail <ChevronRight className="size-3.5" />
+                  </span>
+                </div>
+              </Link>
+            );
+          })}
         </div>
-      ))}
-      {filter === "active" ? (
-        <p className="text-xs text-muted-foreground">
-          L'avancement des étapes se pilote depuis le bloc « Course en cours » de l'accueil.
-        </p>
-      ) : null}
-    </div>
+      )}
+      <Button variant="outline" className="mt-3 w-full" onClick={() => setShowAll((v) => !v)}>
+        {showAll ? "Revenir aux courses du jour" : "Voir tout l'historique"}
+      </Button>
+    </section>
   );
 }
