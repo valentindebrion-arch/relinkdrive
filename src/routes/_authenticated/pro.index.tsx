@@ -318,8 +318,8 @@ function ProOverview() {
               <MapPin className="mt-0.5 size-3.5 shrink-0 text-primary" />
               <span className="min-w-0 flex-1 truncate">{topRequest.dropoff_address}</span>
             </p>
-            {topRequest.estimated_price != null ? (
-              <p className="font-semibold">{formatEuro(Number(topRequest.estimated_price))}</p>
+            {topRequest.proposed_price != null ? (
+              <p className="font-semibold">{formatEuro(Number(topRequest.proposed_price))}</p>
             ) : null}
           </div>
           <Link
