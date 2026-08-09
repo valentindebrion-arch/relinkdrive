@@ -18,7 +18,7 @@ const STEPS = [
   { status: "completed", label: "Terminé", action: "Terminer la course" },
 ];
 
-export function ActiveRidePanel() {
+export function ActiveRidePanel({ showEmpty = false, className }: { showEmpty?: boolean; className?: string } = {}) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [completing, setCompleting] = useState(false);
@@ -41,7 +41,10 @@ export function ActiveRidePanel() {
   });
 
   const r = ride.data;
-  if (!r) return null;
+  if (!r)
+    return showEmpty ? (
+      <div className="surface p-6 text-center text-sm text-muted-foreground">Aucune course en cours</div>
+    ) : null;
 
   const currentIndex = STEPS.findIndex((s) => s.status === r.status);
   const nextStep = STEPS[currentIndex + 1] ?? (r.status === "confirmed" ? STEPS[0] : null);
@@ -69,7 +72,7 @@ export function ActiveRidePanel() {
   }
 
   return (
-    <section className="surface mb-6 overflow-hidden border-primary/40 p-0">
+    <section className={`surface mb-6 overflow-hidden border-2 border-primary/50 p-0 shadow-lg shadow-primary/10 ${className ?? ""}`}>
       <div className="border-b border-border bg-primary/10 px-5 py-4">
         <p className="text-xs font-semibold uppercase tracking-wide text-primary">Course en cours</p>
         <h2 className="mt-1 text-lg font-semibold">
