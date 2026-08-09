@@ -231,19 +231,24 @@ function DriverInvoices() {
     URL.revokeObjectURL(url);
   }
 
-  const billed = list.filter((i) => i.status !== "cancelled" && i.status !== "draft");
-  const paidList = list.filter((i) => i.status === "paid");
+  const { start, end } = rangeFor(period, offset);
+  const inRange = (value: string | null | undefined) => {
+    if (!value) return false;
+    const d = new Date(value);
+    return d >= start && d < end;
+  };
+
+  const periodInvoices = list.filter((i) => inRange(i.issued_on));
+  const billed = periodInvoices.filter((i) => i.status !== "cancelled" && i.status !== "draft");
+  const paidList = billed.filter((i) => i.status === "paid");
   const toCollect = billed.filter((i) => i.status !== "paid");
-  const drafts = list.filter((i) => i.status === "draft");
+  const drafts = periodInvoices.filter((i) => i.status === "draft");
   const sum = (arr: Invoice[]) => arr.reduce((s, i) => s + Number(i.amount_ttc), 0);
 
-  const { start, end } = rangeFor(period, offset);
-  const inPeriod = list
-    .filter((i) => {
-      const d = new Date(i.issued_on);
-      return d >= start && d < end;
-    })
-    .sort((a, b) => new Date(b.issued_on).getTime() - new Date(a.issued_on).getTime());
+  const inPeriod = [...periodInvoices].sort(
+    (a, b) => new Date(b.issued_on).getTime() - new Date(a.issued_on).getTime(),
+  );
+
 
   const q = search.trim().toLowerCase();
   const shown = q
