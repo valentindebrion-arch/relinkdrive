@@ -111,7 +111,7 @@ function ProProfileHub() {
 
   function setSection(next: SectionKey | null) {
     setSectionState(next);
-    void navigate({ search: (prev) => ({ ...prev, section: next ?? undefined }) });
+    void navigate({ search: (prev: Search) => ({ ...prev, section: next ?? undefined }) });
   }
 
   const company = useQuery({
