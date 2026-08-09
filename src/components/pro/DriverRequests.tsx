@@ -1,13 +1,14 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Calendar, MapPin, Navigation, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { PageHeader, EmptyState } from "@/components/Ui";
+import { EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { RIDE_STATUS_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
 import { Button } from "@/components/ui/button";
 
-
+const PENDING = ["new", "reviewing", "proposal_sent", "awaiting_client"];
 
 type Req = {
   id: string;
@@ -16,6 +17,7 @@ type Req = {
   pickup_address: string;
   dropoff_address: string;
   scheduled_at: string;
+  created_at: string;
   passengers: number;
   luggage: number;
   round_trip: boolean;
@@ -29,7 +31,33 @@ type Req = {
   driver_message: string | null;
 };
 
-export function DriverRequests() {
+/** Presentation helper: the client form appends "… · X km · ~Y min" to the comment. */
+function readEstimate(comment: string | null) {
+  if (!comment) return null;
+  const km = comment.match(/([\d.,]+)\s*km/);
+  const min = comment.match(/~\s*([\d.,]+)\s*min/);
+  if (!km && !min) return null;
+  return [km ? `${km[1]} km` : null, min ? `~${Math.round(Number(min[1]!.replace(",", ".")))} min` : null]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+function isFlash(r: Req) {
+  const delta = new Date(r.scheduled_at).getTime() - new Date(r.created_at).getTime();
+  return delta <= 20 * 60 * 1000;
+}
+
+function cleanComment(comment: string | null) {
+  if (!comment) return null;
+  const text = comment
+    .split("\n")
+    .filter((l) => !l.startsWith("Prix final Relink"))
+    .join(" ")
+    .trim();
+  return text || null;
+}
+
+export function DriverRequests({ onCount }: { onCount?: (n: number) => void }) {
   const { user } = useAuth();
   const qc = useQueryClient();
 
@@ -70,7 +98,7 @@ export function DriverRequests() {
     }
     await log(r.id, status);
     toast.success("Demande mise à jour");
-    
+
     void qc.invalidateQueries({ queryKey: ["driver-requests"] });
   }
 
@@ -97,56 +125,90 @@ export function DriverRequests() {
       .eq("driver_id", r.driver_id)
       .eq("client_id", r.client_id);
     void qc.invalidateQueries({ queryKey: ["driver-rides"] });
+    void qc.invalidateQueries({ queryKey: ["driver-active-ride"] });
   }
 
-  const list = requests.data?.list ?? [];
+  const list = (requests.data?.list ?? []).filter((r) => PENDING.includes(r.status));
+  onCount?.(list.length);
+
+  if (list.length === 0) {
+    return (
+      <EmptyState
+        title="Aucune demande en attente"
+        description="Vos clients pourront vous envoyer une demande après vous avoir ajouté."
+      />
+    );
+  }
 
   return (
-    <>
-      <PageHeader title="Demandes" description="Traitez les demandes envoyées par vos clients." />
-      {list.length === 0 ? (
-        <EmptyState title="Aucune demande" description="Vos clients pourront vous envoyer une demande après vous avoir ajouté." />
-      ) : (
-        <div className="space-y-3">
-          {list.map((r) => (
-            <div key={r.id} className="surface p-3 sm:p-4">
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
-                <div className="min-w-0">
-                  <p className="truncate font-medium">
-                    {r.pickup_address} → {r.dropoff_address}
-                  </p>
-                  <p className="text-xs text-muted-foreground sm:text-sm">
-                    {formatDateTime(r.scheduled_at)} · {requests.data?.names[r.client_id] ?? "Client"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {r.passengers} passager(s) · {r.luggage} bagage(s)
-                    {r.round_trip ? " · aller-retour" : ""}
-                  </p>
-                  {r.comment ? <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">« {r.comment} »</p> : null}
-                  {r.special_needs ? (
-                    <p className="line-clamp-2 text-xs text-muted-foreground">Besoins : {r.special_needs}</p>
-                  ) : null}
-                  {r.proposed_price ? (
-                    <p className="mt-1 text-sm font-semibold">Prix final : {formatEuro(Number(r.proposed_price))}</p>
-                  ) : null}
-                </div>
-                <StatusBadge status={r.status} labels={RIDE_STATUS_LABELS} />
+    <div className="space-y-3">
+      {list.map((r) => {
+        const estimate = readEstimate(r.comment);
+        const note = cleanComment(r.comment);
+        const flash = isFlash(r);
+        return (
+          <article key={r.id} className="surface p-4">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
+              <div className="min-w-0">
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${
+                    flash
+                      ? "border-primary/30 bg-primary/10 text-primary"
+                      : "border-border bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {flash ? <Zap className="size-3" /> : <Calendar className="size-3" />}
+                  {flash ? "Flash" : "Planifiée"}
+                </span>
+                <p className="mt-1.5 truncate text-sm font-semibold">
+                  {requests.data?.names[r.client_id] ?? "Client"}
+                </p>
               </div>
-
-              {["new", "reviewing", "proposal_sent", "awaiting_client"].includes(r.status) ? (
-                <div className="mt-2 flex gap-2">
-                  <Button size="sm" className="flex-1" onClick={() => confirmRide(r)}>
-                    Accepter
-                  </Button>
-                  <Button size="sm" variant="destructive" className="flex-1" onClick={() => setStatus(r, "refused")}>
-                    Refuser
-                  </Button>
-                </div>
-              ) : null}
+              <StatusBadge status={r.status} labels={RIDE_STATUS_LABELS} />
             </div>
-          ))}
-        </div>
-      )}
-    </>
+
+            <div className="mt-3 space-y-1.5 text-sm">
+              <p className="flex items-start gap-2">
+                <MapPin className="mt-0.5 size-4 shrink-0 text-primary" />
+                <span className="break-words">{r.pickup_address}</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <Navigation className="mt-0.5 size-4 shrink-0 text-primary" />
+                <span className="break-words">{r.dropoff_address}</span>
+              </p>
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+              <span>{formatDateTime(r.scheduled_at)}</span>
+              {estimate ? <span>{estimate}</span> : null}
+              <span>
+                {r.passengers} pass. · {r.luggage} bag.
+                {r.round_trip ? " · A/R" : ""}
+              </span>
+              {r.trip_type ? <span>{r.trip_type}</span> : null}
+            </div>
+
+            {note ? <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">« {note} »</p> : null}
+            {r.special_needs ? (
+              <p className="line-clamp-2 text-xs text-muted-foreground">Besoins : {r.special_needs}</p>
+            ) : null}
+
+            <div className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-3">
+              <p className="text-base font-bold text-primary">
+                {r.proposed_price ? formatEuro(Number(r.proposed_price)) : "Prix à définir"}
+              </p>
+              <div className="flex gap-2">
+                <Button size="sm" variant="destructive" onClick={() => setStatus(r, "refused")}>
+                  Refuser
+                </Button>
+                <Button size="sm" onClick={() => confirmRide(r)}>
+                  Accepter
+                </Button>
+              </div>
+            </div>
+          </article>
+        );
+      })}
+    </div>
   );
 }
