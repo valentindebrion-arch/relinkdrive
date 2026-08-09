@@ -1,7 +1,6 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { QrPage } from "@/components/pro/QrPage";
 
 export const Route = createFileRoute("/_authenticated/pro/qr")({
-  beforeLoad: () => {
-    throw redirect({ to: "/pro/profil", replace: true });
-  },
+  component: QrPage,
 });
