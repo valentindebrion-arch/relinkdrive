@@ -29,8 +29,6 @@ export const Route = createFileRoute("/_authenticated/pro/profil")({
   component: ProProfileHub,
 });
 
-type Search = { section?: SectionKey };
-
 type SectionKey = "compte" | "entreprise" | "vehicule" | "verification" | "qr";
 
 type Search = { section?: SectionKey };
