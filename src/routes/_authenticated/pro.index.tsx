@@ -270,7 +270,7 @@ function ProOverview() {
       </button>
 
       {driver.data && driver.data.verification_status !== "verified" ? (
-        <Link to="/pro/profil" className="surface block border-warning/40 bg-warning/10 p-3">
+        <Link to="/pro/profil?section=verification" className="surface block border-warning/40 bg-warning/10 p-3">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
             <div className="min-w-0">
               <p className="flex flex-wrap items-center gap-2 text-sm font-medium">
