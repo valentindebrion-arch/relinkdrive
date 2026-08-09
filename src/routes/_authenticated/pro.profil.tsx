@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
@@ -28,6 +28,8 @@ import { QrPage } from "@/components/pro/QrPage";
 export const Route = createFileRoute("/_authenticated/pro/profil")({
   component: ProProfileHub,
 });
+
+type Search = { section?: SectionKey };
 
 type SectionKey = "compte" | "entreprise" | "vehicule" | "verification" | "qr";
 
