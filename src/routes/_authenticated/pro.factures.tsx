@@ -1,7 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { ChevronLeft, ChevronRight, Download, Search, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useDriverProfile } from "@/lib/driver-queries";
@@ -11,9 +12,6 @@ import { INVOICE_LABELS, formatDate, formatEuro } from "@/lib/labels";
 import { downloadInvoicePdf } from "@/lib/invoice-pdf";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ActivityPage } from "@/components/pro/ActivityPage";
 
 export const Route = createFileRoute("/_authenticated/pro/factures")({
   component: DriverInvoices,
@@ -29,17 +27,63 @@ type Invoice = {
   description: string | null;
   issued_on: string;
   ride_id: string | null;
+  client_id: string | null;
   payment_method: string | null;
   due_on: string | null;
 };
+
+type Period = "week" | "month" | "year";
+
+function startOfWeek(d: Date) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  const day = (x.getDay() + 6) % 7;
+  x.setDate(x.getDate() - day);
+  return x;
+}
+
+function rangeFor(period: Period, offset: number) {
+  const now = new Date();
+  if (period === "week") {
+    const start = startOfWeek(now);
+    start.setDate(start.getDate() + offset * 7);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 7);
+    return { start, end };
+  }
+  if (period === "month") {
+    const start = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + offset + 1, 1);
+    return { start, end };
+  }
+  const start = new Date(now.getFullYear() + offset, 0, 1);
+  const end = new Date(now.getFullYear() + offset + 1, 0, 1);
+  return { start, end };
+}
+
+function labelFor(period: Period, start: Date, end: Date) {
+  if (period === "week") {
+    const last = new Date(end);
+    last.setDate(last.getDate() - 1);
+    const sameMonth = last.getMonth() === start.getMonth();
+    const a = start.toLocaleDateString("fr-FR", sameMonth ? { day: "numeric" } : { day: "numeric", month: "long" });
+    const b = last.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+    return `Du ${a} au ${b}`;
+  }
+  if (period === "month") {
+    const l = start.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+    return l.charAt(0).toUpperCase() + l.slice(1);
+  }
+  return `Année ${start.getFullYear()}`;
+}
 
 function DriverInvoices() {
   const { user, profile } = useAuth();
   const driver = useDriverProfile();
   const qc = useQueryClient();
-  const [amount, setAmount] = useState("");
-  const [description, setDescription] = useState("");
-  const [tab, setTab] = useState("toutes");
+  const [period, setPeriod] = useState<Period>("month");
+  const [offset, setOffset] = useState(0);
+  const [search, setSearch] = useState("");
 
   const invoices = useQuery({
     queryKey: ["driver-invoices", user?.id],
@@ -55,32 +99,26 @@ function DriverInvoices() {
     },
   });
 
-  const vatRate = driver.data?.vat_applicable ? 10 : 0;
+  const list = useMemo(() => invoices.data ?? [], [invoices.data]);
 
-  async function create() {
-    const ht = Number(amount);
-    if (!ht) {
-      toast.error("Indiquez un montant");
-      return;
-    }
-    const { error } = await supabase.from("invoices").insert({
-      driver_id: user!.id,
-      number: `F-${new Date().getFullYear()}-${Math.floor(Math.random() * 900000 + 100000)}`,
-      amount_ht: ht,
-      amount_ttc: Math.round(ht * (1 + vatRate / 100) * 100) / 100,
-      vat_rate: vatRate,
-      description: description || "Prestation de transport",
-      status: "issued",
-    });
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    setAmount("");
-    setDescription("");
-    toast.success("Facture créée");
-    refresh();
-  }
+  const clientIds = useMemo(
+    () => Array.from(new Set(list.map((i) => i.client_id).filter(Boolean) as string[])),
+    [list],
+  );
+
+  const clients = useQuery({
+    queryKey: ["invoice-clients", clientIds.join(",")],
+    enabled: clientIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("id, full_name").in("id", clientIds);
+      if (error) throw error;
+      const map: Record<string, string> = {};
+      for (const p of data ?? []) map[p.id] = p.full_name ?? "";
+      return map;
+    },
+  });
+
+  const clientName = (inv: Invoice) => (inv.client_id ? clients.data?.[inv.client_id] || "" : "");
 
   function refresh() {
     void qc.invalidateQueries({ queryKey: ["driver-invoices"] });
@@ -170,13 +208,13 @@ function DriverInvoices() {
     });
   }
 
-
-  function exportCsv(list: Invoice[]) {
+  function exportCsv(rowsList: Invoice[]) {
     const rows = [
-      ["Numero", "Date", "Description", "HT", "TVA", "TTC", "Statut"],
-      ...list.map((i) => [
+      ["Numero", "Date", "Client", "Description", "HT", "TVA", "TTC", "Statut"],
+      ...rowsList.map((i) => [
         i.number,
         i.issued_on,
+        clientName(i).replace(/;/g, ","),
         (i.description ?? "").replace(/;/g, ","),
         String(i.amount_ht),
         String(i.vat_rate),
@@ -193,27 +231,42 @@ function DriverInvoices() {
     URL.revokeObjectURL(url);
   }
 
-  const list = invoices.data ?? [];
   const billed = list.filter((i) => i.status !== "cancelled" && i.status !== "draft");
   const paidList = list.filter((i) => i.status === "paid");
   const toCollect = billed.filter((i) => i.status !== "paid");
   const drafts = list.filter((i) => i.status === "draft");
   const sum = (arr: Invoice[]) => arr.reduce((s, i) => s + Number(i.amount_ttc), 0);
 
-  const shown = tab === "encaisser" ? toCollect : tab === "payees" ? paidList : list;
+  const { start, end } = rangeFor(period, offset);
+  const inPeriod = list
+    .filter((i) => {
+      const d = new Date(i.issued_on);
+      return d >= start && d < end;
+    })
+    .sort((a, b) => new Date(b.issued_on).getTime() - new Date(a.issued_on).getTime());
+
+  const q = search.trim().toLowerCase();
+  const shown = q
+    ? inPeriod.filter((i) =>
+        [i.number, clientName(i), formatDate(i.issued_on), i.issued_on, i.description ?? ""]
+          .join(" ")
+          .toLowerCase()
+          .includes(q),
+      )
+    : inPeriod;
 
   return (
     <>
       <PageHeader title="Facturation" description="Vos factures se créent automatiquement à la fin de chaque course." />
 
-      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4">
+      <div className="mb-4 grid grid-cols-3 gap-2 sm:gap-4">
         <StatCard label="CA facturé" value={formatEuro(sum(billed))} hint={`${billed.length} facture(s)`} />
         <StatCard label="CA encaissé" value={formatEuro(sum(paidList))} hint={`${paidList.length} payée(s)`} />
         <StatCard label="Reste à encaisser" value={formatEuro(sum(toCollect))} hint={`${toCollect.length} en attente`} />
       </div>
 
       {drafts.length ? (
-        <div className="surface mb-6 border-warning/40 bg-warning/10 p-4 text-sm">
+        <div className="surface mb-4 border-warning/40 bg-warning/10 p-4 text-sm">
           <p className="font-medium">
             {drafts.length} brouillon(s) à compléter — ces documents ne sont pas des factures définitives.
           </p>
@@ -223,88 +276,113 @@ function DriverInvoices() {
         </div>
       ) : null}
 
-      <Tabs value={tab} onValueChange={setTab}>
-        <div className="-mx-4 mb-4 overflow-x-auto px-4 lg:mx-0 lg:px-0">
-          <TabsList className="w-max">
-            <TabsTrigger value="toutes">Toutes les factures</TabsTrigger>
-            <TabsTrigger value="encaisser">À encaisser</TabsTrigger>
-            <TabsTrigger value="payees">Payées</TabsTrigger>
-            <TabsTrigger value="stats">Statistiques</TabsTrigger>
-          </TabsList>
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h2 className="text-base font-semibold">Toutes les factures</h2>
+        <div className="flex items-center gap-1">
+          <Button asChild size="sm" variant="ghost" aria-label="Statistiques">
+            <Link to="/pro/activite">
+              <BarChart3 className="size-4" />
+            </Link>
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => exportCsv(shown)}>
+            <Download className="mr-1 size-4" /> Export
+          </Button>
         </div>
+      </div>
 
-        <TabsContent value="stats">
-          <ActivityPage />
-        </TabsContent>
+      <div className="relative mb-3">
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          className="h-11 pl-9"
+          placeholder="Rechercher une facture"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
 
-        {["toutes", "encaisser", "payees"].map((key) => (
-          <TabsContent key={key} value={key} className="space-y-4">
-            {key === "toutes" ? (
-              <div className="surface grid gap-3 p-4 sm:grid-cols-4">
-                <div>
-                  <Label htmlFor="am">Montant HT (€)</Label>
-                  <Input id="am" type="number" min="0" step="0.5" value={amount} onChange={(e) => setAmount(e.target.value)} />
+      <div className="mb-3 space-y-2">
+        <div className="grid grid-cols-3 gap-1 rounded-2xl bg-muted p-1">
+          {([["week", "Semaine"], ["month", "Mois"], ["year", "Année"]] as const).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => {
+                setPeriod(key);
+                setOffset(0);
+              }}
+              className={`tap-active h-9 rounded-xl text-sm font-medium transition-colors ${
+                period === key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <Button size="icon" variant="outline" aria-label="Période précédente" onClick={() => setOffset((o) => o - 1)}>
+            <ChevronLeft className="size-4" />
+          </Button>
+          <p className="truncate text-sm font-medium">{labelFor(period, start, end)}</p>
+          <Button size="icon" variant="outline" aria-label="Période suivante" onClick={() => setOffset((o) => o + 1)}>
+            <ChevronRight className="size-4" />
+          </Button>
+        </div>
+      </div>
+
+      {invoices.isLoading ? (
+        <div className="space-y-3">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="surface h-24 animate-pulse p-4" />
+          ))}
+        </div>
+      ) : invoices.isError ? (
+        <EmptyState title="Impossible de charger vos factures" />
+      ) : shown.length === 0 ? (
+        q ? (
+          <EmptyState title="Aucune facture ne correspond à votre recherche." />
+        ) : (
+          <EmptyState
+            title="Aucune facture pour cette période."
+            description="Les factures de vos courses terminées apparaîtront automatiquement ici."
+          />
+        )
+      ) : (
+        <div className="space-y-3">
+          {shown.map((inv) => (
+            <div key={inv.id} className="surface p-3 sm:p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate font-semibold">{clientName(inv) || inv.description || "Client"}</p>
+                  <p className="truncate text-xs text-muted-foreground">{formatDate(inv.issued_on)}</p>
+                  <p className="truncate text-xs text-muted-foreground">Facture n° {inv.number}</p>
+                  <p className="mt-1 text-sm font-semibold text-primary">{formatEuro(Number(inv.amount_ttc))}</p>
                 </div>
-                <div className="sm:col-span-2">
-                  <Label htmlFor="de">Description</Label>
-                  <Input id="de" value={description} maxLength={200} onChange={(e) => setDescription(e.target.value)} />
-                </div>
-                <div className="flex items-end gap-2">
-                  <Button onClick={create}>Créer</Button>
-                  <Button variant="outline" onClick={() => exportCsv(list)}>
-                    Export
+                <StatusBadge status={inv.status} labels={INVOICE_LABELS} />
+              </div>
+              <div className="mt-3 flex items-center gap-2 overflow-x-auto">
+                {inv.status === "draft" ? (
+                  <Button size="sm" className="shrink-0" onClick={() => finalize(inv)}>
+                    Compléter
                   </Button>
-                </div>
-                <p className="text-xs text-muted-foreground sm:col-span-4">
-                  Facture manuelle (hors course). TVA appliquée : {vatRate}% — modifiable dans « Mon profil ».
-                </p>
+                ) : null}
+                {inv.status === "issued" ? (
+                  <Button size="sm" variant="outline" className="shrink-0" onClick={() => setStatus(inv, "sent")}>
+                    Envoyée
+                  </Button>
+                ) : null}
+                {!["paid", "cancelled", "draft"].includes(inv.status) ? (
+                  <Button size="sm" className="shrink-0" onClick={() => setStatus(inv, "paid")}>
+                    Payée
+                  </Button>
+                ) : null}
+                <Button size="sm" variant="outline" className="shrink-0" onClick={() => download(inv)}>
+                  <Download className="mr-1 size-4" /> Télécharger
+                </Button>
               </div>
-            ) : null}
-
-            {shown.length === 0 ? (
-              <EmptyState title="Aucune facture dans cette vue" />
-            ) : (
-              <div className="space-y-3">
-                {shown.map((inv) => (
-                  <div key={inv.id} className="surface p-3 sm:p-4">
-                    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
-                      <div className="min-w-0">
-                        <p className="truncate font-medium">
-                          {inv.number} · {formatEuro(Number(inv.amount_ttc))}
-                        </p>
-                        <p className="truncate text-xs text-muted-foreground sm:text-sm">
-                          {formatDate(inv.issued_on)} · {inv.description}
-                        </p>
-                      </div>
-                      <StatusBadge status={inv.status} labels={INVOICE_LABELS} />
-                    </div>
-                    <div className="mt-2 flex items-center gap-2 overflow-x-auto">
-                      {inv.status === "draft" ? (
-                        <Button size="sm" className="shrink-0" onClick={() => finalize(inv)}>
-                          Compléter
-                        </Button>
-                      ) : null}
-                      {inv.status === "issued" ? (
-                        <Button size="sm" variant="outline" className="shrink-0" onClick={() => setStatus(inv, "sent")}>
-                          Envoyée
-                        </Button>
-                      ) : null}
-                      {!["paid", "cancelled", "draft"].includes(inv.status) ? (
-                        <Button size="sm" className="shrink-0" onClick={() => setStatus(inv, "paid")}>
-                          Payée
-                        </Button>
-                      ) : null}
-                      <Button size="sm" variant="outline" className="shrink-0" onClick={() => download(inv)}>
-                        Télécharger
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        ))}
-      </Tabs>
+            </div>
+          ))}
+        </div>
+      )}
     </>
   );
 }
