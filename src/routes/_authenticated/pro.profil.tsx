@@ -307,6 +307,7 @@ function ProProfileHub() {
         <SectionCard
           icon={<Car className="size-5" />}
           title="Véhicule"
+          status={sectionStatus.vehicule}
           badge={<SectionBadge pct={vehiclePct.pct} />}
           lines={[
             v?.brand || v?.model ? `${v?.brand ?? ""} ${v?.model ?? ""}`.trim() : "Véhicule à renseigner",
@@ -318,6 +319,7 @@ function ProProfileHub() {
         <SectionCard
           icon={<FileCheck2 className="size-5" />}
           title="Documents et vérification"
+          status={sectionStatus.verification}
           badge={
             <StatusBadge
               status={
