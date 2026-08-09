@@ -25,6 +25,7 @@ function ProLayout() {
   const items: NavItem[] = [
     { to: "/pro", label: "Accueil", icon: <Home /> },
     { to: "/pro/courses", label: "Mes courses", icon: <Car />, badge },
+    { to: "/pro/planning", label: "Planning", icon: <CalendarDays /> },
     { to: "/pro/clients", label: "Mes clients", icon: <Users /> },
     { to: "/pro/factures", label: "Facturation", icon: <Receipt /> },
     { to: "/pro/assistant", label: "Assistant", icon: <Bot /> },
@@ -35,7 +36,7 @@ function ProLayout() {
     { to: "/pro", label: "Accueil", icon: <Home /> },
     { to: "/pro/courses", label: "Courses", icon: <Car />, badge },
     { to: "/pro/clients", label: "Clients", icon: <Users /> },
-    { to: "/pro/assistant", label: "Assistant", icon: <Bot /> },
+    { to: "/pro/planning", label: "Planning", icon: <CalendarDays /> },
     { to: "/pro/profil", label: "Profil", icon: <UserRound /> },
   ];
 
