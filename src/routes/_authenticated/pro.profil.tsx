@@ -62,6 +62,7 @@ function SectionCard({
   badge,
   onClick,
   extra,
+  status = "neutral",
 }: {
   icon: React.ReactNode;
   title: string;
@@ -69,15 +70,28 @@ function SectionCard({
   badge: React.ReactNode;
   onClick: () => void;
   extra?: React.ReactNode;
+  status?: "neutral" | "warning" | "danger";
 }) {
+  const statusClass =
+    status === "danger"
+      ? "border-destructive/40 bg-destructive/5 hover:border-destructive/60"
+      : status === "warning"
+        ? "border-warning/40 bg-warning/10 hover:border-warning/60"
+        : "hover:border-primary/40";
+  const iconClass =
+    status === "danger"
+      ? "bg-destructive/10 text-destructive"
+      : status === "warning"
+        ? "bg-warning/10 text-warning"
+        : "bg-primary/10 text-primary";
   return (
     <button
       type="button"
       onClick={onClick}
-      className="surface tap-active w-full p-4 text-left transition hover:border-primary/40"
+      className={`surface tap-active w-full p-4 text-left transition ${statusClass}`}
     >
       <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3">
-        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+        <span className={`grid size-10 shrink-0 place-items-center rounded-xl ${iconClass}`}>
           {icon}
         </span>
         <div className="min-w-0">
@@ -162,6 +176,26 @@ function ProProfileHub() {
   const globalPct = Math.round(
     (account.pct + companyPct.pct + vehiclePct.pct + (docStats.approved / DOCUMENT_TYPES.length) * 100) / 4,
   );
+
+  const soon = (date?: string | null) => !!date && new Date(date).getTime() - Date.now() < 1000 * 60 * 60 * 24 * 45;
+  const expired = (date?: string | null) => !!date && new Date(date).getTime() < Date.now();
+
+  const sectionStatus: Record<Exclude<SectionKey, "qr">, "neutral" | "warning" | "danger"> = {
+    compte: "neutral",
+    entreprise: "neutral",
+    vehicule:
+      expired(v?.insurance_expires_at) || expired(v?.inspection_expires_at) || expired(v?.next_service_date)
+        ? "danger"
+        : soon(v?.insurance_expires_at) || soon(v?.inspection_expires_at) || soon(v?.next_service_date)
+          ? "warning"
+          : "neutral",
+    verification:
+      docStats.rejected || docStats.expired || d?.verification_status === "rejected"
+        ? "danger"
+        : docStats.soon || d?.verification_status === "pending"
+          ? "warning"
+          : "neutral",
+  };
 
   const loading = driver.isLoading || vehicle.isLoading || docs.isLoading || company.isLoading;
 
@@ -273,6 +307,7 @@ function ProProfileHub() {
         <SectionCard
           icon={<Car className="size-5" />}
           title="Véhicule"
+          status={sectionStatus.vehicule}
           badge={<SectionBadge pct={vehiclePct.pct} />}
           lines={[
             v?.brand || v?.model ? `${v?.brand ?? ""} ${v?.model ?? ""}`.trim() : "Véhicule à renseigner",
@@ -284,6 +319,7 @@ function ProProfileHub() {
         <SectionCard
           icon={<FileCheck2 className="size-5" />}
           title="Documents et vérification"
+          status={sectionStatus.verification}
           badge={
             <StatusBadge
               status={
