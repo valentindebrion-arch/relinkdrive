@@ -264,11 +264,17 @@ function DriverInvoices() {
     <>
       <PageHeader title="Facturation" description="Vos factures se créent automatiquement à la fin de chaque course." />
 
-      <div className="mb-4 grid grid-cols-3 gap-2 sm:gap-4">
-        <StatCard label="CA facturé" value={formatEuro(sum(billed))} hint={`${billed.length} facture(s)`} />
-        <StatCard label="CA encaissé" value={formatEuro(sum(paidList))} hint={`${paidList.length} payée(s)`} />
-        <StatCard label="Reste à encaisser" value={formatEuro(sum(toCollect))} hint={`${toCollect.length} en attente`} />
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4">
+        <FigureCard label="CA facturé" amount={sum(billed)} hint={`${billed.length} facture(s)`} />
+        <FigureCard label="CA encaissé" amount={sum(paidList)} hint={`${paidList.length} payée(s)`} />
+        <FigureCard
+          label="Reste à encaisser"
+          amount={sum(toCollect)}
+          hint={`${toCollect.length} en attente`}
+          className="col-span-2 sm:col-span-1"
+        />
       </div>
+
 
       {drafts.length ? (
         <div className="surface mb-4 border-warning/40 bg-warning/10 p-4 text-sm">
