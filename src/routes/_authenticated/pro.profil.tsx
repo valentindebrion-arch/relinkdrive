@@ -33,6 +33,8 @@ type Search = { section?: SectionKey };
 
 type SectionKey = "compte" | "entreprise" | "vehicule" | "verification" | "qr";
 
+type Search = { section?: SectionKey };
+
 const SECTION_TITLES: Record<SectionKey, string> = {
   compte: "Informations personnelles",
   entreprise: "Entreprise",
