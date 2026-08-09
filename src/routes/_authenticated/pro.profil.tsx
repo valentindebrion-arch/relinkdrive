@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
@@ -30,6 +30,8 @@ export const Route = createFileRoute("/_authenticated/pro/profil")({
 });
 
 type SectionKey = "compte" | "entreprise" | "vehicule" | "verification" | "qr";
+
+type Search = { section?: SectionKey };
 
 const SECTION_TITLES: Record<SectionKey, string> = {
   compte: "Informations personnelles",
@@ -101,9 +103,16 @@ function ProProfileHub() {
   const driver = useDriverProfile();
   const vehicle = useMyVehicle();
   const docs = useMyDocuments();
-  const [section, setSection] = useState<SectionKey | null>(null);
+  const search = useSearch({ from: "/_authenticated/pro/profil" }) as Search;
+  const navigate = useNavigate({ from: "/_authenticated/pro/profil" });
+  const [section, setSectionState] = useState<SectionKey | null>(search.section ?? null);
   const [origin, setOrigin] = useState("");
   const qrRef = useRef<HTMLCanvasElement>(null);
+
+  function setSection(next: SectionKey | null) {
+    setSectionState(next);
+    void navigate({ search: (prev: Search) => ({ ...prev, section: next ?? undefined }) });
+  }
 
   const company = useQuery({
     queryKey: ["company", user?.id],

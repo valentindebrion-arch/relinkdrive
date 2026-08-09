@@ -141,7 +141,7 @@ function ProOverview() {
       title: "Assurance bientôt expirée",
       text: `Votre attestation d'assurance expire le ${formatDate(v?.insurance_expires_at)}. Mettez-la à jour pour rester visible.`,
       level: "warning",
-      to: "/pro/profil",
+      to: "/pro/profil?section=vehicule",
       action: "Mettre à jour",
     });
   if (soon(v?.inspection_expires_at))
@@ -150,7 +150,7 @@ function ProOverview() {
       title: "Contrôle technique à renouveler",
       text: `Le contrôle technique de votre véhicule expire le ${formatDate(v?.inspection_expires_at)}.`,
       level: "warning",
-      to: "/pro/profil",
+      to: "/pro/profil?section=vehicule",
       action: "Mettre à jour",
     });
   if (soon(v?.next_service_date))
@@ -159,8 +159,8 @@ function ProOverview() {
       title: "Entretien à prévoir",
       text: `L'entretien de votre véhicule est prévu autour du ${formatDate(v?.next_service_date)}.`,
       level: "warning",
-      to: "/pro/profil",
-      action: "Voir mon profil",
+      to: "/pro/profil?section=vehicule",
+      action: "Voir mon véhicule",
     });
   if (drafts.length)
     alerts.push({
@@ -178,7 +178,7 @@ function ProOverview() {
         title: "Document refusé",
         text: `Le document « ${d.doc_type} » a été refusé. Envoyez une nouvelle version pour finaliser votre vérification.`,
         level: "danger",
-        to: "/pro/profil",
+        to: "/pro/profil?section=verification",
         action: "Ajouter le document",
       });
     if (soon(d.expires_at))
@@ -187,7 +187,7 @@ function ProOverview() {
         title: "Document bientôt expiré",
         text: `Le document « ${d.doc_type} » expire le ${formatDate(d.expires_at)}.`,
         level: "warning",
-        to: "/pro/profil",
+        to: "/pro/profil?section=verification",
         action: "Mettre à jour",
       });
   });
@@ -270,7 +270,7 @@ function ProOverview() {
       </button>
 
       {driver.data && driver.data.verification_status !== "verified" ? (
-        <Link to="/pro/profil" className="surface block border-warning/40 bg-warning/10 p-3">
+        <Link to="/pro/profil?section=verification" className="surface block border-warning/40 bg-warning/10 p-3">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
             <div className="min-w-0">
               <p className="flex flex-wrap items-center gap-2 text-sm font-medium">
