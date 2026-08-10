@@ -172,6 +172,45 @@ function DriverRideDetail() {
   const startAllowed = serverNow >= opensAt;
   const isLate = serverNow > new Date(ride.scheduled_at) && !ride.started_at;
 
+  const preStart = !ride.started_at && !ride.completed_at && ride.status !== "cancelled" && ride.status !== "completed";
+  const pendingCancel = ride.cancel_request_status === "pending" && preStart;
+  const cancelDeadline = driverCancelDeadline(ride.scheduled_at);
+  const canSelfCancel = preStart && serverNow <= cancelDeadline;
+
+  async function doDecide(value: "accepted" | "refused") {
+    if (!ride || deciding) return;
+    setDeciding(true);
+    try {
+      await decide({ data: { rideId: ride.id, decision: value } });
+      toast.success(value === "accepted" ? "Annulation acceptée" : "Demande refusée");
+      setDecision(null);
+      refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Action impossible");
+    } finally {
+      setDeciding(false);
+    }
+  }
+
+  async function doDriverCancel() {
+    if (!ride || cancelling) return;
+    setCancelling(true);
+    try {
+      await cancelRide({
+        data: cancelReason ? { rideId: ride.id, reason: cancelReason } : { rideId: ride.id },
+      });
+      toast.success("Course annulée, le client est informé");
+      setCancelOpen(false);
+      setCancelReason("");
+      refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Annulation impossible");
+    } finally {
+      setCancelling(false);
+    }
+  }
+
+
   async function advance(status: string) {
     if (!ride) return;
     const now = new Date().toISOString();
