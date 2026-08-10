@@ -13,7 +13,6 @@ import {
   MapPin,
   QrCode,
   Search,
-  Star,
   Users,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
