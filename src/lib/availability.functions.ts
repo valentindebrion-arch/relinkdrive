@@ -8,6 +8,8 @@ import {
   roundUpToSlot,
   type AvailabilityResult,
 } from "@/lib/availability";
+import { fitsDeclaredAvailability } from "@/lib/schedule";
+
 
 const ACTIVE_STATUSES = [
   "confirmed",
