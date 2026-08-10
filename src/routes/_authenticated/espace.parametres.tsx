@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Bell, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { PageHeader } from "@/components/Ui";
@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { disablePush, enablePush, pushSupported, requestLocation } from "@/lib/push";
+import { requestLocation } from "@/lib/push";
+import { PushSettingsCard } from "@/components/PushSettingsCard";
 
 export const Route = createFileRoute("/_authenticated/espace/parametres")({
   component: ClientSettings,
@@ -18,28 +19,21 @@ export const Route = createFileRoute("/_authenticated/espace/parametres")({
 function ClientSettings() {
   const { user, profile, refresh } = useAuth();
   const [form, setForm] = useState({ full_name: "", phone: "" });
-  const [pushOn, setPushOn] = useState(false);
   const [locationOn, setLocationOn] = useState(false);
-  const [busy, setBusy] = useState<null | "push" | "location">(null);
-  const [supported, setSupported] = useState(true);
+  const [busy, setBusy] = useState<null | "location">(null);
 
   useEffect(() => {
     if (profile) setForm({ full_name: profile.full_name ?? "", phone: profile.phone ?? "" });
   }, [profile]);
 
   useEffect(() => {
-    setSupported(pushSupported());
-  }, []);
-
-  useEffect(() => {
     if (!user?.id) return;
     void supabase
       .from("profiles")
-      .select("push_enabled, location_enabled")
+      .select("location_enabled")
       .eq("id", user.id)
       .maybeSingle()
       .then(({ data }) => {
-        setPushOn(Boolean(data?.push_enabled));
         setLocationOn(Boolean(data?.location_enabled));
       });
   }, [user?.id]);
@@ -52,26 +46,6 @@ function ClientSettings() {
     }
     toast.success("Profil mis à jour");
     await refresh();
-  }
-
-  async function togglePush(next: boolean) {
-    if (!user?.id) return;
-    setBusy("push");
-    try {
-      if (next) {
-        await enablePush(user.id);
-        setPushOn(true);
-        toast.success("Notifications mobiles activées");
-      } else {
-        await disablePush(user.id);
-        setPushOn(false);
-        toast.success("Notifications mobiles désactivées");
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Activation impossible");
-    } finally {
-      setBusy(null);
-    }
   }
 
   async function toggleLocation(next: boolean) {
