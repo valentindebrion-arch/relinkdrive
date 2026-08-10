@@ -125,12 +125,8 @@ export function DashboardShell({
           <div className="absolute inset-y-0 left-0 w-72 bg-sidebar p-4">
             <div className="mb-6 flex items-center justify-between">
               <div>
-                {hideBrand ? null : (
-                  <>
-                    <p className="text-lg font-semibold">{BRAND.name}</p>
-                    <p className="text-xs text-muted-foreground">{area}</p>
-                  </>
-                )}
+                <BrandLogo size="sm" />
+                {hideBrand ? null : <p className="mt-1 text-xs text-muted-foreground">{area}</p>}
               </div>
               <button onClick={() => setOpen(false)} aria-label="Fermer">
                 <X className="size-5" />
