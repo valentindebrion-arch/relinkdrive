@@ -344,7 +344,7 @@ function DriverPublicPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-muted/30 pb-28 sm:pb-10">
+    <div className="min-h-screen bg-muted/30 pb-10">
       <div className="mx-auto max-w-lg space-y-3 px-4 py-6">
         <p className="text-center text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {BRAND.name}
