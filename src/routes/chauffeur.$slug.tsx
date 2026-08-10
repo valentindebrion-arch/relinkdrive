@@ -167,6 +167,44 @@ function DriverPublicPage() {
     },
   });
 
+  const [reviewsLimit, setReviewsLimit] = useState(3);
+
+  const reviewsQuery = useQuery({
+    queryKey: ["public-driver-reviews", slug, reviewsLimit],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_public_driver_reviews", {
+        _slug: slug,
+        _limit: reviewsLimit,
+      });
+      if (error) throw error;
+      return (data ?? []) as {
+        id: string;
+        rating: number;
+        comment: string | null;
+        created_at: string;
+        author_name: string;
+        author_avatar: string | null;
+      }[];
+    },
+  });
+
+  const ratingQuery = useQuery({
+    queryKey: ["public-driver-rating", slug],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_public_driver_rating", { _slug: slug });
+      if (error) throw error;
+      return (data?.[0] ?? null) as {
+        rating_avg: number | null;
+        rating_count: number;
+        stars5: number;
+        stars4: number;
+        stars3: number;
+        stars2: number;
+        stars1: number;
+      } | null;
+    },
+  });
+
   useEffect(() => {
     if (d?.user_id) void supabase.rpc("track_driver_event", { _slug: slug, _event: "driver_page_view" });
   }, [d?.user_id, slug]);
@@ -278,11 +316,16 @@ function DriverPublicPage() {
   }
 
   const primaryAction = connected ? (
-    <Button asChild className="h-12 w-full text-base" onClick={trackRequest}>
-      <Link to="/espace/demandes" search={{ driver: d.user_id }}>
-        Demander un trajet à {firstName}
-      </Link>
-    </Button>
+    <div className="space-y-2">
+      <p className="flex items-center justify-center gap-1.5 text-sm font-medium text-primary">
+        <Check className="size-4" /> Déjà dans mes chauffeurs
+      </p>
+      <Button asChild className="h-12 w-full text-base" onClick={trackRequest}>
+        <Link to="/espace/demandes" search={{ driver: d.user_id }}>
+          Demander un trajet à {firstName}
+        </Link>
+      </Button>
+    </div>
   ) : (
     <Button
       className="h-12 w-full text-base"
@@ -297,16 +340,16 @@ function DriverPublicPage() {
   const vehicleLabel = [d.vehicle_brand, d.vehicle_model].filter(Boolean).join(" ") || "Véhicule";
   const vehicleSub = [d.vehicle_color, d.vehicle_category].filter(Boolean).join(" • ") || "Berline";
 
-  const reviews: { name: string; date: string; stars: number; text: string }[] = [];
-  const ratingAvg = null as number | null;
-  const ratingCount = reviews.length;
+  const reviews = reviewsQuery.data ?? [];
+  const ratingAvg = ratingQuery.data?.rating_avg != null ? Number(ratingQuery.data.rating_avg) : null;
+  const ratingCount = Number(ratingQuery.data?.rating_count ?? 0);
   const distribution = [5, 4, 3, 2, 1].map((s) => ({
     stars: s,
-    count: reviews.filter((r) => r.stars === s).length,
+    count: Number((ratingQuery.data as Record<string, number> | null | undefined)?.[`stars${s}`] ?? 0),
   }));
 
   return (
-    <div className="min-h-screen bg-muted/30 pb-28 sm:pb-10">
+    <div className="min-h-screen bg-muted/30 pb-10">
       <div className="mx-auto max-w-lg space-y-3 px-4 py-6">
         <p className="text-center text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {BRAND.name}
@@ -443,19 +486,54 @@ function DriverPublicPage() {
                 </div>
               </div>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {reviews.slice(0, 2).map((r) => (
-                  <div key={r.name} className="rounded-2xl bg-muted/60 p-4">
-                    <p className="font-semibold">{r.name}</p>
-                    <p className="text-xs text-muted-foreground">{r.date}</p>
-                    <div className="mt-1 flex gap-0.5">
-                      {Array.from({ length: r.stars }).map((_, i) => (
-                        <StarIcon key={i} className="size-3.5 fill-primary text-primary" />
+                {reviews.map((r) => (
+                  <article key={r.id} className="rounded-2xl border border-border bg-card p-4">
+                    <div className="flex items-center gap-3">
+                      {r.author_avatar ? (
+                        <img
+                          src={r.author_avatar}
+                          alt=""
+                          loading="lazy"
+                          className="size-9 shrink-0 rounded-full object-cover"
+                        />
+                      ) : (
+                        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                          {r.author_name.charAt(0)}
+                        </span>
+                      )}
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold">{r.author_name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(r.created_at).toLocaleDateString("fr-FR", {
+                            month: "long",
+                            year: "numeric",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-2 flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <StarIcon
+                          key={i}
+                          className={`size-3.5 ${i <= r.rating ? "fill-primary text-primary" : "text-muted-foreground/40"}`}
+                        />
                       ))}
                     </div>
-                    <p className="mt-2 text-sm text-muted-foreground">{r.text}</p>
-                  </div>
+                    {r.comment ? (
+                      <p className="mt-2 line-clamp-5 text-sm text-muted-foreground">{r.comment}</p>
+                    ) : null}
+                  </article>
                 ))}
               </div>
+              {ratingCount > reviews.length ? (
+                <Button
+                  variant="outline"
+                  className="mt-3 w-full"
+                  onClick={() => setReviewsLimit((n) => Math.min(n + 6, 20))}
+                >
+                  Voir tous les avis
+                </Button>
+              ) : null}
             </>
           ) : (
             <div className="rounded-2xl bg-muted/60 p-5 text-center">
@@ -695,10 +773,6 @@ function DriverPublicPage() {
         </div>
       </div>
 
-      {/* Barre d'action mobile */}
-      <div className="fixed inset-x-0 bottom-0 border-t border-border bg-background/95 p-3 backdrop-blur sm:hidden">
-        <div className="mx-auto max-w-lg">{primaryAction}</div>
-      </div>
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>

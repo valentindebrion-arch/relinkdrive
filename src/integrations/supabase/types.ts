@@ -1157,6 +1157,29 @@ export type Database = {
           zone: string
         }[]
       }
+      get_public_driver_rating: {
+        Args: { _slug: string }
+        Returns: {
+          rating_avg: number
+          rating_count: number
+          stars1: number
+          stars2: number
+          stars3: number
+          stars4: number
+          stars5: number
+        }[]
+      }
+      get_public_driver_reviews: {
+        Args: { _limit?: number; _slug: string }
+        Returns: {
+          author_avatar: string
+          author_name: string
+          comment: string
+          created_at: string
+          id: string
+          rating: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
