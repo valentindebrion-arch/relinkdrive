@@ -65,11 +65,28 @@ export const checkDriverAvailability = createServerFn({ method: "POST" })
       .lte("scheduled_at", to)
       .order("scheduled_at");
 
+    // Disponibilités déclarées (horaires hebdomadaires + absences exceptionnelles).
+    const [{ data: hoursRows }, { data: absenceRows }] = await Promise.all([
+      supabaseAdmin
+        .from("driver_working_hours")
+        .select("driver_id, weekday, active, start_time, end_time")
+        .in("driver_id", driverIds),
+      supabaseAdmin
+        .from("driver_absences")
+        .select("driver_id, starts_on, ends_on")
+        .in("driver_id", driverIds),
+    ]);
+
     // Durée de la nouvelle course : calculée une seule fois pour tous les chauffeurs.
     const tripMin = await travelMinutes(data.pickup, data.dropoff, desired);
 
     const results: AvailabilityResult[] = [];
     for (const driverId of driverIds) {
+      const hours = (hoursRows ?? []).filter((h) => h.driver_id === driverId);
+      const absences = (absenceRows ?? []).filter((a) => a.driver_id === driverId);
+      const fitsSchedule = (start: Date, minutes: number) =>
+        fitsDeclaredAvailability(hours, absences, start, new Date(start.getTime() + minutes * 60_000));
+
       const planning = (rides ?? [])
         .filter((r) => r.driver_id === driverId && r.request_id !== (data.ignoreRequestId ?? null))
         .sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at));
