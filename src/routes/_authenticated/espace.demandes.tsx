@@ -874,10 +874,10 @@ function ClientRequests() {
             <Button
               size="lg"
               className="h-12 flex-[2] rounded-2xl text-sm font-bold transition-transform active:scale-[0.98]"
-              onClick={next}
-              disabled={busy}
+              onClick={() => void next()}
+              disabled={busy || checking}
             >
-              {busy ? <Loader2 className="size-4 animate-spin" /> : null}
+              {busy || checking ? <Loader2 className="size-4 animate-spin" /> : null}
               Continuer
               <ArrowRight className="size-4" />
             </Button>
