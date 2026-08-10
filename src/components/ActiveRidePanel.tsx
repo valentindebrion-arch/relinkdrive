@@ -221,7 +221,14 @@ export function ActiveRidePanel({ showEmpty = false, className }: { showEmpty?: 
             </Button>
           )
         ) : null}
+
+        {r.status === "driver_enroute" || r.status === "driver_arrived" ? (
+          <NotifyClientSmsButton rideId={r.id} />
+        ) : null}
       </div>
+
+      <NotifyClientSmsDialog rideId={r.id} open={smsOpen} onOpenChange={setSmsOpen} />
+
 
       <AlertDialog open={confirmStart} onOpenChange={(o) => (starting ? null : setConfirmStart(o))}>
         <AlertDialogContent>
