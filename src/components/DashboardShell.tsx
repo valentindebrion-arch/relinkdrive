@@ -100,15 +100,7 @@ export function DashboardShell({
         <button onClick={() => setOpen(true)} aria-label="Ouvrir le menu">
           <Menu className="size-5" />
         </button>
-        {brandTo ? (
-          <BrandLogo to={brandTo} />
-        ) : hideBrand ? (
-          <span aria-hidden />
-        ) : (
-          <Link to="/" className="font-semibold">
-            {BRAND.name}
-          </Link>
-        )}
+        <BrandLogo to={brandTo ?? "/"} size="sm" className="min-w-0" />
         <div className="flex items-center gap-1">
         <NotificationBell />
         {settingsTo ? (
