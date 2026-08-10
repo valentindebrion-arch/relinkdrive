@@ -96,8 +96,12 @@ export const checkDriverAvailability = createServerFn({ method: "POST" })
       let earliest = desired;
       let repositionMin: number | null = 0;
       if (previous) {
-        const prevStart = new Date(previous.scheduled_at);
-        let prevDuration = BLOCK_DURATION_MIN;
+        // Estimation prudente : un démarrage anticipé ne fait jamais finir plus tôt,
+        // mais un démarrage en retard décale la fin.
+        const startedAt = previous.started_at ? new Date(previous.started_at) : null;
+        const scheduledStart = new Date(previous.scheduled_at);
+        const prevStart =
+          startedAt && startedAt > scheduledStart ? startedAt : scheduledStart;
         if (!previous.is_block) {
           const d = await travelMinutes(
             previous.pickup_address,
