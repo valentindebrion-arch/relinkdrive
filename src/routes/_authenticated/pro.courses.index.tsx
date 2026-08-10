@@ -12,7 +12,7 @@ import { DriverRequests } from "@/components/pro/DriverRequests";
 import { ActiveRidePanel } from "@/components/ActiveRidePanel";
 import { useNewRequestsCount } from "@/lib/driver-queries";
 
-export const Route = createFileRoute("/_authenticated/pro/courses")({
+export const Route = createFileRoute("/_authenticated/pro/courses/")({
   head: () => ({
     meta: [
       { title: "Mes courses — Relink Chauffeur" },
@@ -131,7 +131,8 @@ function CompletedToday() {
             return (
               <Link
                 key={r.id}
-                to="/pro/factures"
+                to="/pro/courses/$rideId"
+                params={{ rideId: r.id }}
                 className="surface tap-active block p-4 transition-colors hover:border-primary/40"
               >
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">

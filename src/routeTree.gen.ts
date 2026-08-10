@@ -31,7 +31,6 @@ import { Route as AuthenticatedProIndexRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedProActiviteRouteImport } from './routes/_authenticated/pro.activite'
 import { Route as AuthenticatedProAssistantRouteImport } from './routes/_authenticated/pro.assistant'
 import { Route as AuthenticatedProClientsRouteImport } from './routes/_authenticated/pro.clients'
-import { Route as AuthenticatedProCoursesRouteImport } from './routes/_authenticated/pro.courses'
 import { Route as AuthenticatedProDemandesRouteImport } from './routes/_authenticated/pro.demandes'
 import { Route as AuthenticatedProEntrepriseRouteImport } from './routes/_authenticated/pro.entreprise'
 import { Route as AuthenticatedProFacturesRouteImport } from './routes/_authenticated/pro.factures'
@@ -50,6 +49,8 @@ import { Route as AuthenticatedEspaceCoursesTermineesRouteImport } from './route
 import { Route as AuthenticatedEspaceSuiviIdRouteImport } from './routes/_authenticated/espace.suivi.$id'
 import { Route as AuthenticatedProClientsIndexRouteImport } from './routes/_authenticated/pro.clients.index'
 import { Route as AuthenticatedProClientsClientIdRouteImport } from './routes/_authenticated/pro.clients.$clientId'
+import { Route as AuthenticatedProCoursesIndexRouteImport } from './routes/_authenticated/pro.courses.index'
+import { Route as AuthenticatedProCoursesRideIdRouteImport } from './routes/_authenticated/pro.courses.$rideId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -170,11 +171,6 @@ const AuthenticatedProClientsRoute = AuthenticatedProClientsRouteImport.update({
   path: '/clients',
   getParentRoute: () => AuthenticatedProRoute,
 } as any)
-const AuthenticatedProCoursesRoute = AuthenticatedProCoursesRouteImport.update({
-  id: '/courses',
-  path: '/courses',
-  getParentRoute: () => AuthenticatedProRoute,
-} as any)
 const AuthenticatedProDemandesRoute =
   AuthenticatedProDemandesRouteImport.update({
     id: '/demandes',
@@ -280,6 +276,18 @@ const AuthenticatedProClientsClientIdRoute =
     path: '/$clientId',
     getParentRoute: () => AuthenticatedProClientsRoute,
   } as any)
+const AuthenticatedProCoursesIndexRoute =
+  AuthenticatedProCoursesIndexRouteImport.update({
+    id: '/courses/',
+    path: '/courses/',
+    getParentRoute: () => AuthenticatedProRoute,
+  } as any)
+const AuthenticatedProCoursesRideIdRoute =
+  AuthenticatedProCoursesRideIdRouteImport.update({
+    id: '/courses/$rideId',
+    path: '/courses/$rideId',
+    getParentRoute: () => AuthenticatedProRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -300,7 +308,6 @@ export interface FileRoutesByFullPath {
   '/pro/activite': typeof AuthenticatedProActiviteRoute
   '/pro/assistant': typeof AuthenticatedProAssistantRoute
   '/pro/clients': typeof AuthenticatedProClientsRouteWithChildren
-  '/pro/courses': typeof AuthenticatedProCoursesRoute
   '/pro/demandes': typeof AuthenticatedProDemandesRoute
   '/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/pro/factures': typeof AuthenticatedProFacturesRoute
@@ -320,8 +327,10 @@ export interface FileRoutesByFullPath {
   '/espace/courses/terminees': typeof AuthenticatedEspaceCoursesTermineesRoute
   '/espace/suivi/$id': typeof AuthenticatedEspaceSuiviIdRoute
   '/pro/clients/$clientId': typeof AuthenticatedProClientsClientIdRoute
+  '/pro/courses/$rideId': typeof AuthenticatedProCoursesRideIdRoute
   '/espace/courses/': typeof AuthenticatedEspaceCoursesIndexRoute
   '/pro/clients/': typeof AuthenticatedProClientsIndexRoute
+  '/pro/courses/': typeof AuthenticatedProCoursesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -338,7 +347,6 @@ export interface FileRoutesByTo {
   '/espace/parametres': typeof AuthenticatedEspaceParametresRoute
   '/pro/activite': typeof AuthenticatedProActiviteRoute
   '/pro/assistant': typeof AuthenticatedProAssistantRoute
-  '/pro/courses': typeof AuthenticatedProCoursesRoute
   '/pro/demandes': typeof AuthenticatedProDemandesRoute
   '/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/pro/factures': typeof AuthenticatedProFacturesRoute
@@ -358,8 +366,10 @@ export interface FileRoutesByTo {
   '/espace/courses/terminees': typeof AuthenticatedEspaceCoursesTermineesRoute
   '/espace/suivi/$id': typeof AuthenticatedEspaceSuiviIdRoute
   '/pro/clients/$clientId': typeof AuthenticatedProClientsClientIdRoute
+  '/pro/courses/$rideId': typeof AuthenticatedProCoursesRideIdRoute
   '/espace/courses': typeof AuthenticatedEspaceCoursesIndexRoute
   '/pro/clients': typeof AuthenticatedProClientsIndexRoute
+  '/pro/courses': typeof AuthenticatedProCoursesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -382,7 +392,6 @@ export interface FileRoutesById {
   '/_authenticated/pro/activite': typeof AuthenticatedProActiviteRoute
   '/_authenticated/pro/assistant': typeof AuthenticatedProAssistantRoute
   '/_authenticated/pro/clients': typeof AuthenticatedProClientsRouteWithChildren
-  '/_authenticated/pro/courses': typeof AuthenticatedProCoursesRoute
   '/_authenticated/pro/demandes': typeof AuthenticatedProDemandesRoute
   '/_authenticated/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/_authenticated/pro/factures': typeof AuthenticatedProFacturesRoute
@@ -402,8 +411,10 @@ export interface FileRoutesById {
   '/_authenticated/espace/courses/terminees': typeof AuthenticatedEspaceCoursesTermineesRoute
   '/_authenticated/espace/suivi/$id': typeof AuthenticatedEspaceSuiviIdRoute
   '/_authenticated/pro/clients/$clientId': typeof AuthenticatedProClientsClientIdRoute
+  '/_authenticated/pro/courses/$rideId': typeof AuthenticatedProCoursesRideIdRoute
   '/_authenticated/espace/courses/': typeof AuthenticatedEspaceCoursesIndexRoute
   '/_authenticated/pro/clients/': typeof AuthenticatedProClientsIndexRoute
+  '/_authenticated/pro/courses/': typeof AuthenticatedProCoursesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -426,7 +437,6 @@ export interface FileRouteTypes {
     | '/pro/activite'
     | '/pro/assistant'
     | '/pro/clients'
-    | '/pro/courses'
     | '/pro/demandes'
     | '/pro/entreprise'
     | '/pro/factures'
@@ -446,8 +456,10 @@ export interface FileRouteTypes {
     | '/espace/courses/terminees'
     | '/espace/suivi/$id'
     | '/pro/clients/$clientId'
+    | '/pro/courses/$rideId'
     | '/espace/courses/'
     | '/pro/clients/'
+    | '/pro/courses/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -464,7 +476,6 @@ export interface FileRouteTypes {
     | '/espace/parametres'
     | '/pro/activite'
     | '/pro/assistant'
-    | '/pro/courses'
     | '/pro/demandes'
     | '/pro/entreprise'
     | '/pro/factures'
@@ -484,8 +495,10 @@ export interface FileRouteTypes {
     | '/espace/courses/terminees'
     | '/espace/suivi/$id'
     | '/pro/clients/$clientId'
+    | '/pro/courses/$rideId'
     | '/espace/courses'
     | '/pro/clients'
+    | '/pro/courses'
   id:
     | '__root__'
     | '/'
@@ -507,7 +520,6 @@ export interface FileRouteTypes {
     | '/_authenticated/pro/activite'
     | '/_authenticated/pro/assistant'
     | '/_authenticated/pro/clients'
-    | '/_authenticated/pro/courses'
     | '/_authenticated/pro/demandes'
     | '/_authenticated/pro/entreprise'
     | '/_authenticated/pro/factures'
@@ -527,8 +539,10 @@ export interface FileRouteTypes {
     | '/_authenticated/espace/courses/terminees'
     | '/_authenticated/espace/suivi/$id'
     | '/_authenticated/pro/clients/$clientId'
+    | '/_authenticated/pro/courses/$rideId'
     | '/_authenticated/espace/courses/'
     | '/_authenticated/pro/clients/'
+    | '/_authenticated/pro/courses/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -697,13 +711,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProClientsRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
-    '/_authenticated/pro/courses': {
-      id: '/_authenticated/pro/courses'
-      path: '/courses'
-      fullPath: '/pro/courses'
-      preLoaderRoute: typeof AuthenticatedProCoursesRouteImport
-      parentRoute: typeof AuthenticatedProRoute
-    }
     '/_authenticated/pro/demandes': {
       id: '/_authenticated/pro/demandes'
       path: '/demandes'
@@ -830,6 +837,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProClientsClientIdRouteImport
       parentRoute: typeof AuthenticatedProClientsRoute
     }
+    '/_authenticated/pro/courses/': {
+      id: '/_authenticated/pro/courses/'
+      path: '/courses'
+      fullPath: '/pro/courses/'
+      preLoaderRoute: typeof AuthenticatedProCoursesIndexRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
+    '/_authenticated/pro/courses/$rideId': {
+      id: '/_authenticated/pro/courses/$rideId'
+      path: '/courses/$rideId'
+      fullPath: '/pro/courses/$rideId'
+      preLoaderRoute: typeof AuthenticatedProCoursesRideIdRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
   }
 }
 
@@ -904,7 +925,6 @@ interface AuthenticatedProRouteChildren {
   AuthenticatedProActiviteRoute: typeof AuthenticatedProActiviteRoute
   AuthenticatedProAssistantRoute: typeof AuthenticatedProAssistantRoute
   AuthenticatedProClientsRoute: typeof AuthenticatedProClientsRouteWithChildren
-  AuthenticatedProCoursesRoute: typeof AuthenticatedProCoursesRoute
   AuthenticatedProDemandesRoute: typeof AuthenticatedProDemandesRoute
   AuthenticatedProEntrepriseRoute: typeof AuthenticatedProEntrepriseRoute
   AuthenticatedProFacturesRoute: typeof AuthenticatedProFacturesRoute
@@ -915,13 +935,14 @@ interface AuthenticatedProRouteChildren {
   AuthenticatedProVehiculeRoute: typeof AuthenticatedProVehiculeRoute
   AuthenticatedProVerificationRoute: typeof AuthenticatedProVerificationRoute
   AuthenticatedProIndexRoute: typeof AuthenticatedProIndexRoute
+  AuthenticatedProCoursesRideIdRoute: typeof AuthenticatedProCoursesRideIdRoute
+  AuthenticatedProCoursesIndexRoute: typeof AuthenticatedProCoursesIndexRoute
 }
 
 const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
   AuthenticatedProActiviteRoute: AuthenticatedProActiviteRoute,
   AuthenticatedProAssistantRoute: AuthenticatedProAssistantRoute,
   AuthenticatedProClientsRoute: AuthenticatedProClientsRouteWithChildren,
-  AuthenticatedProCoursesRoute: AuthenticatedProCoursesRoute,
   AuthenticatedProDemandesRoute: AuthenticatedProDemandesRoute,
   AuthenticatedProEntrepriseRoute: AuthenticatedProEntrepriseRoute,
   AuthenticatedProFacturesRoute: AuthenticatedProFacturesRoute,
@@ -932,6 +953,8 @@ const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
   AuthenticatedProVehiculeRoute: AuthenticatedProVehiculeRoute,
   AuthenticatedProVerificationRoute: AuthenticatedProVerificationRoute,
   AuthenticatedProIndexRoute: AuthenticatedProIndexRoute,
+  AuthenticatedProCoursesRideIdRoute: AuthenticatedProCoursesRideIdRoute,
+  AuthenticatedProCoursesIndexRoute: AuthenticatedProCoursesIndexRoute,
 }
 
 const AuthenticatedProRouteWithChildren =
