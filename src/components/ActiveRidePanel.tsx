@@ -38,6 +38,7 @@ export function ActiveRidePanel({ showEmpty = false, className }: { showEmpty?: 
   const [completing, setCompleting] = useState(false);
   const [confirmStart, setConfirmStart] = useState(false);
   const [starting, setStarting] = useState(false);
+  const [smsOpen, setSmsOpen] = useState(false);
   const [, setTick] = useState(0);
   const start = useServerFn(startRide);
   const serverTime = useServerFn(getServerNow);
