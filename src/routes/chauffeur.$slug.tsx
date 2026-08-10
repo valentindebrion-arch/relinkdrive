@@ -167,6 +167,44 @@ function DriverPublicPage() {
     },
   });
 
+  const [reviewsLimit, setReviewsLimit] = useState(3);
+
+  const reviewsQuery = useQuery({
+    queryKey: ["public-driver-reviews", slug, reviewsLimit],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_public_driver_reviews", {
+        _slug: slug,
+        _limit: reviewsLimit,
+      });
+      if (error) throw error;
+      return (data ?? []) as {
+        id: string;
+        rating: number;
+        comment: string | null;
+        created_at: string;
+        author_name: string;
+        author_avatar: string | null;
+      }[];
+    },
+  });
+
+  const ratingQuery = useQuery({
+    queryKey: ["public-driver-rating", slug],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_public_driver_rating", { _slug: slug });
+      if (error) throw error;
+      return (data?.[0] ?? null) as {
+        rating_avg: number | null;
+        rating_count: number;
+        stars5: number;
+        stars4: number;
+        stars3: number;
+        stars2: number;
+        stars1: number;
+      } | null;
+    },
+  });
+
   useEffect(() => {
     if (d?.user_id) void supabase.rpc("track_driver_event", { _slug: slug, _event: "driver_page_view" });
   }, [d?.user_id, slug]);
