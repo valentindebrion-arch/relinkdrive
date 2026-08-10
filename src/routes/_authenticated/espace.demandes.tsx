@@ -163,6 +163,19 @@ function ClientRequests() {
     trip_type: "",
   });
 
+  // Toute modification pertinente invalide la vérification de créneau.
+  useEffect(() => {
+    setAvail(null);
+    setAlternatives(null);
+  }, [
+    form.driver_id,
+    form.pickup_address,
+    form.dropoff_address,
+    form.scheduled_at,
+    whenMode,
+  ]);
+
+
   const drivers = useQuery({
     queryKey: ["client-driver-options", user?.id],
     enabled: !!user?.id,
