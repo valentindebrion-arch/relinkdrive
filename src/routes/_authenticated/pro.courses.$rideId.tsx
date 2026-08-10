@@ -438,7 +438,68 @@ function DriverRideDetail() {
         </AlertDialogContent>
       </AlertDialog>
 
+      <AlertDialog open={decision !== null} onOpenChange={(o) => (deciding || o ? null : setDecision(null))}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {decision === "accepted" ? "Accepter l'annulation ?" : "Refuser l'annulation ?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {decision === "accepted"
+                ? "La course passera en « Annulée », le créneau sera libéré et le client sera informé."
+                : "La course restera confirmée et le créneau réservé. Le client sera informé de votre refus."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deciding}>Retour</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deciding}
+              onClick={(e) => {
+                e.preventDefault();
+                if (decision) void doDecide(decision);
+              }}
+            >
+              {deciding ? "Enregistrement…" : "Confirmer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={cancelOpen} onOpenChange={(o) => (cancelling ? null : setCancelOpen(o))}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Annuler cette course ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action annulera la course et informera immédiatement le client. Souhaitez-vous continuer ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <RadioGroup value={cancelReason} onValueChange={setCancelReason} className="gap-2">
+            {DRIVER_CANCEL_REASONS.map((r) => (
+              <div key={r.value} className="flex items-center gap-2">
+                <RadioGroupItem value={r.value} id={`reason-${r.value}`} />
+                <Label htmlFor={`reason-${r.value}`} className="text-sm font-normal">
+                  {r.label}
+                </Label>
+              </div>
+            ))}
+          </RadioGroup>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={cancelling}>Conserver la course</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={cancelling}
+              onClick={(e) => {
+                e.preventDefault();
+                void doDriverCancel();
+              }}
+            >
+              {cancelling ? "Annulation…" : "Confirmer l'annulation"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <CompleteRideDialog ride={ride} open={completing} onOpenChange={setCompleting} />
+
     </div>
   );
 }
