@@ -131,6 +131,8 @@ function ClientRequests() {
   const navigate = useNavigate();
   const estimateFn = useServerFn(estimateRoute);
   const geocodeFn = useServerFn(reverseGeocode);
+  const availabilityFn = useServerFn(checkDriverAvailability);
+
 
   const [step, setStepRaw] = useState(0);
   const [dir, setDir] = useState<1 | -1>(1);
