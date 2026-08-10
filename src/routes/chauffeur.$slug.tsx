@@ -297,12 +297,12 @@ function DriverPublicPage() {
   const vehicleLabel = [d.vehicle_brand, d.vehicle_model].filter(Boolean).join(" ") || "Véhicule";
   const vehicleSub = [d.vehicle_color, d.vehicle_category].filter(Boolean).join(" • ") || "Berline";
 
-  const reviews: { name: string; date: string; stars: number; text: string }[] = [];
-  const ratingAvg = null as number | null;
-  const ratingCount = reviews.length;
+  const reviews = reviewsQuery.data ?? [];
+  const ratingAvg = ratingQuery.data?.rating_avg != null ? Number(ratingQuery.data.rating_avg) : null;
+  const ratingCount = Number(ratingQuery.data?.rating_count ?? 0);
   const distribution = [5, 4, 3, 2, 1].map((s) => ({
     stars: s,
-    count: reviews.filter((r) => r.stars === s).length,
+    count: Number((ratingQuery.data as Record<string, number> | null | undefined)?.[`stars${s}`] ?? 0),
   }));
 
   return (
