@@ -56,7 +56,9 @@ export const checkDriverAvailability = createServerFn({ method: "POST" })
 
     const { data: rides } = await supabaseAdmin
       .from("rides")
-      .select("id, request_id, driver_id, pickup_address, dropoff_address, scheduled_at, status, is_block")
+      .select(
+        "id, request_id, driver_id, pickup_address, dropoff_address, scheduled_at, status, is_block",
+      )
       .in("driver_id", driverIds)
       .in("status", [...ACTIVE_STATUSES])
       .gte("scheduled_at", from)
@@ -97,7 +99,11 @@ export const checkDriverAvailability = createServerFn({ method: "POST" })
         const prevStart = new Date(previous.scheduled_at);
         let prevDuration = BLOCK_DURATION_MIN;
         if (!previous.is_block) {
-          const d = await travelMinutes(previous.pickup_address, previous.dropoff_address, prevStart);
+          const d = await travelMinutes(
+            previous.pickup_address,
+            previous.dropoff_address,
+            prevStart,
+          );
           if (d === null) {
             results.push({ ...base, reason: "itineraire_course_precedente_indisponible" });
             continue;

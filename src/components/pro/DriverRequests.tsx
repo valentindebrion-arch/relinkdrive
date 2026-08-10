@@ -31,12 +31,18 @@ function FeasibilityNote({
     staleTime: 60_000,
     queryFn: async () => {
       const res = await check({
-        data: { driverIds: [driverId], pickup, dropoff, desiredIso: new Date(scheduledAt).toISOString() },
+        data: {
+          driverIds: [driverId],
+          pickup,
+          dropoff,
+          desiredIso: new Date(scheduledAt).toISOString(),
+        },
       });
       return res.results[0] ?? null;
     },
   });
-  if (q.isLoading) return <p className="mt-2 text-xs text-muted-foreground">Vérification du créneau…</p>;
+  if (q.isLoading)
+    return <p className="mt-2 text-xs text-muted-foreground">Vérification du créneau…</p>;
   const r = q.data;
   if (!r) return null;
   const ok = r.status === "available";
@@ -48,12 +54,13 @@ function FeasibilityNote({
     >
       <ShieldCheck className="size-3.5 shrink-0" />
       {ok ? "Créneau vérifié par ReLink" : availabilityMessage(r)}
-      {r.repositionMin !== null ? <span>· Repositionnement estimé : {r.repositionMin} min</span> : null}
+      {r.repositionMin !== null ? (
+        <span>· Repositionnement estimé : {r.repositionMin} min</span>
+      ) : null}
       <span>· Marge prévue : {SAFETY_MARGIN_MIN} min</span>
     </p>
   );
 }
-
 
 type Req = {
   id: string;
@@ -82,7 +89,10 @@ function readEstimate(comment: string | null) {
   const km = comment.match(/([\d.,]+)\s*km/);
   const min = comment.match(/~\s*([\d.,]+)\s*min/);
   if (!km && !min) return null;
-  return [km ? `${km[1]} km` : null, min ? `~${Math.round(Number(min[1]!.replace(",", ".")))} min` : null]
+  return [
+    km ? `${km[1]} km` : null,
+    min ? `~${Math.round(Number(min[1]!.replace(",", ".")))} min` : null,
+  ]
     .filter(Boolean)
     .join(" · ");
 }
@@ -119,7 +129,10 @@ export function DriverRequests() {
       const clientIds = [...new Set((data ?? []).map((r) => r.client_id))];
       const names: Record<string, string> = {};
       if (clientIds.length) {
-        const { data: profiles } = await supabase.from("profiles").select("id, full_name, phone").in("id", clientIds);
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, full_name, phone")
+          .in("id", clientIds);
         (profiles ?? []).forEach((p) => {
           names[p.id] = p.full_name || "Client";
         });
@@ -129,7 +142,9 @@ export function DriverRequests() {
   });
 
   async function log(requestId: string, status: string) {
-    await supabase.from("ride_status_history").insert({ request_id: requestId, status: status as never, changed_by: user!.id });
+    await supabase
+      .from("ride_status_history")
+      .insert({ request_id: requestId, status: status as never, changed_by: user!.id });
   }
 
   async function setStatus(r: Req, status: string, extra: Record<string, unknown> = {}) {
@@ -232,9 +247,13 @@ export function DriverRequests() {
               {r.trip_type ? <span>{r.trip_type}</span> : null}
             </div>
 
-            {note ? <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">« {note} »</p> : null}
+            {note ? (
+              <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">« {note} »</p>
+            ) : null}
             {r.special_needs ? (
-              <p className="line-clamp-2 text-xs text-muted-foreground">Besoins : {r.special_needs}</p>
+              <p className="line-clamp-2 text-xs text-muted-foreground">
+                Besoins : {r.special_needs}
+              </p>
             ) : null}
 
             <FeasibilityNote
@@ -243,7 +262,6 @@ export function DriverRequests() {
               dropoff={r.dropoff_address}
               scheduledAt={r.proposed_time ?? r.scheduled_at}
             />
-
 
             <div className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-3">
               <p className="text-base font-bold text-primary">

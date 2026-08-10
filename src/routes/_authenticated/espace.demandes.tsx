@@ -124,7 +124,6 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   return <p className="mb-1.5 text-[13px] font-bold">{children}</p>;
 }
 
-
 function ClientRequests() {
   const { user } = useAuth();
   const search = Route.useSearch();
@@ -132,7 +131,6 @@ function ClientRequests() {
   const estimateFn = useServerFn(estimateRoute);
   const geocodeFn = useServerFn(reverseGeocode);
   const availabilityFn = useServerFn(checkDriverAvailability);
-
 
   const [step, setStepRaw] = useState(0);
   const [dir, setDir] = useState<1 | -1>(1);
@@ -167,14 +165,7 @@ function ClientRequests() {
   useEffect(() => {
     setAvail(null);
     setAlternatives(null);
-  }, [
-    form.driver_id,
-    form.pickup_address,
-    form.dropoff_address,
-    form.scheduled_at,
-    whenMode,
-  ]);
-
+  }, [form.driver_id, form.pickup_address, form.dropoff_address, form.scheduled_at, whenMode]);
 
   const drivers = useQuery({
     queryKey: ["client-driver-options", user?.id],
@@ -196,7 +187,6 @@ function ClientRequests() {
       }));
     },
   });
-
 
   function scheduledIso() {
     return whenMode === "now"
@@ -340,7 +330,6 @@ function ClientRequests() {
     if (step === 2) return setStep(3);
   }
 
-
   function resetForm() {
     setForm((f) => ({
       ...f,
@@ -381,7 +370,9 @@ function ClientRequests() {
       }
     } catch {
       setBusy(false);
-      toast.error("Vérification du créneau impossible", { description: "Réessayez dans un instant." });
+      toast.error("Vérification du créneau impossible", {
+        description: "Réessayez dans un instant.",
+      });
       return;
     }
     const estimateLine = estimate
@@ -488,7 +479,6 @@ function ClientRequests() {
               </div>
 
               <div className="tap rounded-2xl border border-border bg-card px-3.5 py-3 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
-
                 <AddressAutocomplete
                   bare
                   label="Lieu de départ"
@@ -629,7 +619,9 @@ function ClientRequests() {
                                 ...f,
                                 scheduled_at: toLocalInput(avail.earliestIso!),
                               }));
-                              toast.success(`Créneau ${formatSlot(avail.earliestIso!)} sélectionné`);
+                              toast.success(
+                                `Créneau ${formatSlot(avail.earliestIso!)} sélectionné`,
+                              );
                             }}
                           >
                             Choisir ce créneau
@@ -696,7 +688,6 @@ function ClientRequests() {
               ) : null}
 
               <LiveDriversMap className="min-h-28 flex-1" />
-
             </>
           ) : null}
 
@@ -804,7 +795,6 @@ function ClientRequests() {
             </>
           ) : null}
 
-
           {step >= 2 && estimate ? (
             <>
               <LiveDriversMap polyline={estimate.polyline} className="min-h-24 flex-1" />
@@ -817,7 +807,9 @@ function ClientRequests() {
                   <p className="text-2xl font-extrabold leading-tight">
                     {formatEuro(estimate.price.total)}
                   </p>
-                  <p className="text-[11px] text-accent-foreground">Tarif garanti, aucun supplément</p>
+                  <p className="text-[11px] text-accent-foreground">
+                    Tarif garanti, aucun supplément
+                  </p>
                 </div>
                 <div className="text-right text-xs text-accent-foreground">
                   <p>{estimate.distanceKm} km</p>
@@ -897,4 +889,3 @@ function ClientRequests() {
     </div>
   );
 }
-
