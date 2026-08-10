@@ -8,6 +8,7 @@ import {
 } from "@/lib/ride-cancel";
 
 const PRE_START = [...PRE_START_STATUSES];
+const isPreStart = (s: string) => (PRE_START as string[]).includes(s);
 const NOT_PENDING = "cancel_request_status.is.null,cancel_request_status.neq.pending";
 
 function fmt(iso: string) {
@@ -52,7 +53,7 @@ export const requestRideCancellation = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!ride || ride.client_id !== userId || ride.is_block) throw new Error("Course introuvable");
     if (!ride.driver_id) throw new Error("Aucun chauffeur attribué à cette course");
-    if (ride.started_at || ride.completed_at || !PRE_START.includes(ride.status)) {
+    if (ride.started_at || ride.completed_at || !isPreStart(ride.status)) {
       throw new Error("Cette course ne peut plus être annulée depuis l'application");
     }
     if (ride.cancel_request_status === "pending") {
@@ -108,7 +109,7 @@ export const decideRideCancellation = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!ride || ride.driver_id !== userId) throw new Error("Course introuvable");
     if (ride.cancel_request_status !== "pending") throw new Error("Aucune demande d'annulation en attente");
-    if (ride.started_at || ride.completed_at || !PRE_START.includes(ride.status)) {
+    if (ride.started_at || ride.completed_at || !isPreStart(ride.status)) {
       throw new Error("La course a démarré : la demande ne peut plus être traitée ici");
     }
 
@@ -179,7 +180,7 @@ export const driverCancelRide = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!ride || ride.driver_id !== userId || ride.is_block) throw new Error("Course introuvable");
-    if (ride.started_at || ride.completed_at || !PRE_START.includes(ride.status)) {
+    if (ride.started_at || ride.completed_at || !isPreStart(ride.status)) {
       throw new Error("Cette course ne peut plus être annulée");
     }
     // Contrôle serveur des 30 minutes (heure serveur, indépendante du téléphone).
