@@ -57,7 +57,7 @@ export const checkDriverAvailability = createServerFn({ method: "POST" })
     const { data: rides } = await supabaseAdmin
       .from("rides")
       .select(
-        "id, request_id, driver_id, pickup_address, dropoff_address, scheduled_at, status, is_block",
+        "id, request_id, driver_id, pickup_address, dropoff_address, scheduled_at, started_at, status, is_block",
       )
       .in("driver_id", driverIds)
       .in("status", [...ACTIVE_STATUSES])
@@ -96,7 +96,12 @@ export const checkDriverAvailability = createServerFn({ method: "POST" })
       let earliest = desired;
       let repositionMin: number | null = 0;
       if (previous) {
-        const prevStart = new Date(previous.scheduled_at);
+        // Estimation prudente : un démarrage anticipé ne fait jamais finir plus tôt,
+        // mais un démarrage en retard décale la fin.
+        const startedAt = previous.started_at ? new Date(previous.started_at) : null;
+        const scheduledStart = new Date(previous.scheduled_at);
+        const prevStart =
+          startedAt && startedAt > scheduledStart ? startedAt : scheduledStart;
         let prevDuration = BLOCK_DURATION_MIN;
         if (!previous.is_block) {
           const d = await travelMinutes(
