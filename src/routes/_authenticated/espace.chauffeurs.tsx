@@ -62,10 +62,7 @@ function ClientDrivers() {
       if (!ids.length) return [];
       const [{ data: profiles }, { data: dprofiles }, { data: vehicles }] = await Promise.all([
         supabase.from("profiles").select("id, full_name, avatar_url").in("id", ids),
-        supabase
-          .from("connected_driver_profiles")
-          .select("user_id, business_name, city, slug, languages, services, on_duty")
-          .in("user_id", ids),
+        supabase.rpc("get_connected_driver_profiles"),
         supabase.from("vehicles").select("driver_id, brand, model, max_passengers").in("driver_id", ids),
       ]);
       return (conns ?? []).map((c) => ({
