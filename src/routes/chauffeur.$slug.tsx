@@ -516,9 +516,31 @@ function DriverPublicPage() {
         {/* 3. Véhicule */}
         {d.vehicle_brand || d.max_passengers ? (
           <Section title="Le véhicule">
-            {interiorPhoto ? (
-              <img src={interiorPhoto} alt="Intérieur du véhicule" className="mb-3 h-40 w-full rounded-lg object-cover" />
-            ) : null}
+            {vehiclePhoto || interiorPhoto ? (
+              <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {[
+                  { src: vehiclePhoto, label: "Extérieur du véhicule" },
+                  { src: interiorPhoto, label: "Intérieur du véhicule" },
+                ]
+                  .filter((p) => p.src)
+                  .map((p) => (
+                    <figure key={p.label} className="overflow-hidden rounded-xl border bg-muted/30">
+                      <a href={p.src!} target="_blank" rel="noopener noreferrer">
+                        <img
+                          src={p.src!}
+                          alt={p.label}
+                          loading="lazy"
+                          className="aspect-[4/3] w-full object-cover"
+                        />
+                      </a>
+                      <figcaption className="px-3 py-2 text-xs text-muted-foreground">{p.label}</figcaption>
+                    </figure>
+                  ))}
+              </div>
+            ) : (
+              <p className="mb-3 text-xs text-muted-foreground">Photos du véhicule non disponibles</p>
+            )}
+
             <p className="font-medium">
               {[d.vehicle_brand, d.vehicle_model, d.vehicle_color].filter(Boolean).join(" · ")}
               {d.vehicle_year ? ` · ${d.vehicle_year}` : ""}
