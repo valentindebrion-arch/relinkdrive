@@ -136,6 +136,10 @@ function ClientRequests() {
   const [dropoffOk, setDropoffOk] = useState(false);
   const [whenMode, setWhenMode] = useState<"now" | "later">("now");
   const [estimate, setEstimate] = useState<Estimate | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [avail, setAvail] = useState<AvailabilityResult | null>(null);
+  const [alternatives, setAlternatives] = useState<AvailabilityResult[] | null>(null);
+
   const [form, setForm] = useState({
     driver_id: search.driver ?? "",
     pickup_address: "",
