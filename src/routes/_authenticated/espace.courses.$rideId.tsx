@@ -80,9 +80,54 @@ function RideDetail() {
     },
   });
 
+  const qc = useQueryClient();
+  const [askCancel, setAskCancel] = useState(false);
+  const [reason, setReason] = useState("");
+  const [sending, setSending] = useState(false);
+  const askCancellation = useServerFn(requestRideCancellation);
+  const fetchPhone = useServerFn(getRideDriverPhone);
+
+  const rideData = q.data?.ride;
+  const upcoming =
+    !!rideData &&
+    !rideData.started_at &&
+    !rideData.completed_at &&
+    (PRE_START_STATUSES as readonly string[]).includes(rideData.status);
+
+  const phoneQuery = useQuery({
+    queryKey: ["ride-driver-phone", rideId],
+    enabled: upcoming,
+    staleTime: 5 * 60_000,
+    queryFn: () => fetchPhone({ data: { rideId } }),
+  });
+
+  async function sendCancelRequest() {
+    if (sending) return;
+    setSending(true);
+    try {
+      const res = await askCancellation({
+        data: { rideId, reason: reason.trim() ? reason.trim() : undefined },
+      });
+      toast.success(
+        res.alreadyPending
+          ? "Une demande d'annulation est déjà en attente"
+          : "Demande d'annulation envoyée au chauffeur",
+      );
+      setAskCancel(false);
+      setReason("");
+      void qc.invalidateQueries({ queryKey: ["client-ride", rideId] });
+      void qc.invalidateQueries({ queryKey: ["client-rides"] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Demande impossible");
+    } finally {
+      setSending(false);
+    }
+  }
+
   if (q.isLoading) {
     return <div className="surface h-40 animate-pulse rounded-xl" />;
   }
+
 
   const ride = q.data?.ride;
   if (!ride) {
