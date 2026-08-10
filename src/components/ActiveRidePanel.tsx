@@ -1,12 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Check, MapPin, Navigation, Clock, User } from "lucide-react";
+import { Check, MapPin, Navigation, Clock, User, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { formatDateTime, formatEuro } from "@/lib/labels";
 import { CompleteRideDialog } from "@/components/CompleteRideDialog";
+import { getServerNow, startRide } from "@/lib/ride-start.functions";
+import { formatHour, startWindowOpensAt } from "@/lib/ride-start";
 
 const ACTIVE_STATUSES = ["confirmed", "driver_enroute", "driver_arrived", "client_onboard", "in_progress"] as const;
 
@@ -22,6 +35,29 @@ export function ActiveRidePanel({ showEmpty = false, className }: { showEmpty?: 
   const { user } = useAuth();
   const qc = useQueryClient();
   const [completing, setCompleting] = useState(false);
+  const [confirmStart, setConfirmStart] = useState(false);
+  const [starting, setStarting] = useState(false);
+  const [, setTick] = useState(0);
+  const start = useServerFn(startRide);
+  const serverTime = useServerFn(getServerNow);
+
+  /** Décalage entre l'horloge du téléphone et l'heure serveur (référence). */
+  const clock = useQuery({
+    queryKey: ["server-now"],
+    staleTime: 60_000,
+    refetchInterval: 120_000,
+    queryFn: async () => {
+      const res = await serverTime({});
+      return new Date(res.nowIso).getTime() - Date.now();
+    },
+  });
+  const offset = clock.data ?? 0;
+
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 20_000);
+    return () => clearInterval(id);
+  }, []);
+
 
   const ride = useQuery({
     queryKey: ["driver-active-ride", user?.id],
