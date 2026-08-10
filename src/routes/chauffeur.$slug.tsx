@@ -481,19 +481,54 @@ function DriverPublicPage() {
                 </div>
               </div>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {reviews.slice(0, 2).map((r) => (
-                  <div key={r.name} className="rounded-2xl bg-muted/60 p-4">
-                    <p className="font-semibold">{r.name}</p>
-                    <p className="text-xs text-muted-foreground">{r.date}</p>
-                    <div className="mt-1 flex gap-0.5">
-                      {Array.from({ length: r.stars }).map((_, i) => (
-                        <StarIcon key={i} className="size-3.5 fill-primary text-primary" />
+                {reviews.map((r) => (
+                  <article key={r.id} className="rounded-2xl border border-border bg-card p-4">
+                    <div className="flex items-center gap-3">
+                      {r.author_avatar ? (
+                        <img
+                          src={r.author_avatar}
+                          alt=""
+                          loading="lazy"
+                          className="size-9 shrink-0 rounded-full object-cover"
+                        />
+                      ) : (
+                        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                          {r.author_name.charAt(0)}
+                        </span>
+                      )}
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold">{r.author_name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(r.created_at).toLocaleDateString("fr-FR", {
+                            month: "long",
+                            year: "numeric",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-2 flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <StarIcon
+                          key={i}
+                          className={`size-3.5 ${i <= r.rating ? "fill-primary text-primary" : "text-muted-foreground/40"}`}
+                        />
                       ))}
                     </div>
-                    <p className="mt-2 text-sm text-muted-foreground">{r.text}</p>
-                  </div>
+                    {r.comment ? (
+                      <p className="mt-2 line-clamp-5 text-sm text-muted-foreground">{r.comment}</p>
+                    ) : null}
+                  </article>
                 ))}
               </div>
+              {ratingCount > reviews.length ? (
+                <Button
+                  variant="outline"
+                  className="mt-3 w-full"
+                  onClick={() => setReviewsLimit((n) => Math.min(n + 6, 20))}
+                >
+                  Voir tous les avis
+                </Button>
+              ) : null}
             </>
           ) : (
             <div className="rounded-2xl bg-muted/60 p-5 text-center">
