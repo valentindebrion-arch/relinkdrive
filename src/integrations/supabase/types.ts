@@ -1149,7 +1149,90 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      connected_driver_profiles: {
+        Row: {
+          accepting_requests: boolean | null
+          airports: string[] | null
+          availability: string[] | null
+          bio: string | null
+          booking_notice: string | null
+          business_name: string | null
+          city: string | null
+          created_at: string | null
+          facebook_url: string | null
+          instagram_url: string | null
+          languages: string[] | null
+          linkedin_url: string | null
+          long_distance: boolean | null
+          on_duty: boolean | null
+          page_published: boolean | null
+          public_intro: string | null
+          public_phone: string | null
+          service_areas: string[] | null
+          services: string[] | null
+          slug: string | null
+          stations: string[] | null
+          tiktok_url: string | null
+          user_id: string | null
+          whatsapp_number: string | null
+          zone: string | null
+        }
+        Insert: {
+          accepting_requests?: boolean | null
+          airports?: string[] | null
+          availability?: string[] | null
+          bio?: string | null
+          booking_notice?: string | null
+          business_name?: string | null
+          city?: string | null
+          created_at?: string | null
+          facebook_url?: string | null
+          instagram_url?: string | null
+          languages?: string[] | null
+          linkedin_url?: string | null
+          long_distance?: boolean | null
+          on_duty?: boolean | null
+          page_published?: boolean | null
+          public_intro?: string | null
+          public_phone?: never
+          service_areas?: string[] | null
+          services?: string[] | null
+          slug?: string | null
+          stations?: string[] | null
+          tiktok_url?: string | null
+          user_id?: string | null
+          whatsapp_number?: never
+          zone?: string | null
+        }
+        Update: {
+          accepting_requests?: boolean | null
+          airports?: string[] | null
+          availability?: string[] | null
+          bio?: string | null
+          booking_notice?: string | null
+          business_name?: string | null
+          city?: string | null
+          created_at?: string | null
+          facebook_url?: string | null
+          instagram_url?: string | null
+          languages?: string[] | null
+          linkedin_url?: string | null
+          long_distance?: boolean | null
+          on_duty?: boolean | null
+          page_published?: boolean | null
+          public_intro?: string | null
+          public_phone?: never
+          service_areas?: string[] | null
+          services?: string[] | null
+          slug?: string | null
+          stations?: string[] | null
+          tiktok_url?: string | null
+          user_id?: string | null
+          whatsapp_number?: never
+          zone?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       driver_available_between: {
