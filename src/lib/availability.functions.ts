@@ -102,6 +102,7 @@ export const checkDriverAvailability = createServerFn({ method: "POST" })
         const scheduledStart = new Date(previous.scheduled_at);
         const prevStart =
           startedAt && startedAt > scheduledStart ? startedAt : scheduledStart;
+        let prevDuration = BLOCK_DURATION_MIN;
         if (!previous.is_block) {
           const d = await travelMinutes(
             previous.pickup_address,
