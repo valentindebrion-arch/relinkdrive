@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth";
 import { EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { CompleteRideDialog } from "@/components/CompleteRideDialog";
+import { NotifyClientSmsButton, NotifyClientSmsDialog } from "@/components/NotifyClientSms";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -81,6 +82,7 @@ function DriverRideDetail() {
   const [completing, setCompleting] = useState(false);
   const [confirmStart, setConfirmStart] = useState(false);
   const [starting, setStarting] = useState(false);
+  const [smsOpen, setSmsOpen] = useState(false);
   const [decision, setDecision] = useState<null | "accepted" | "refused">(null);
   const [deciding, setDeciding] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -227,6 +229,7 @@ function DriverRideDetail() {
       .insert({ ride_id: ride.id, status: status as never, changed_by: user!.id });
     toast.success("Statut mis à jour");
     refresh();
+    if (status === "driver_enroute") setSmsOpen(true);
   }
 
   async function doStart() {
@@ -369,6 +372,12 @@ function DriverRideDetail() {
           )}
         </div>
       ) : null}
+
+      {ride.status === "driver_enroute" || ride.status === "driver_arrived" ? (
+        <NotifyClientSmsButton rideId={ride.id} />
+      ) : null}
+
+      <NotifyClientSmsDialog rideId={ride.id} open={smsOpen} onOpenChange={setSmsOpen} />
 
       {preStart ? (
         canSelfCancel ? (
