@@ -85,6 +85,11 @@ export function ActiveRidePanel({ showEmpty = false, className }: { showEmpty?: 
   const currentIndex = STEPS.findIndex((s) => s.status === r.status);
   const nextStep = STEPS[currentIndex + 1] ?? (r.status === "confirmed" ? STEPS[0] : null);
 
+  const opensAt = startWindowOpensAt(r.scheduled_at);
+  const serverNow = new Date(Date.now() + offset);
+  const startAllowed = serverNow >= opensAt;
+  const isLate = serverNow > new Date(r.scheduled_at) && !r.started_at;
+
   async function advance(status: string) {
     if (!r) return;
     const now = new Date().toISOString();
@@ -92,7 +97,6 @@ export function ActiveRidePanel({ showEmpty = false, className }: { showEmpty?: 
       .from("rides")
       .update({
         status: status as never,
-        ...(status === "in_progress" ? { started_at: now } : {}),
         ...(status === "completed" ? { completed_at: now } : {}),
       })
       .eq("id", r.id);
@@ -102,10 +106,31 @@ export function ActiveRidePanel({ showEmpty = false, className }: { showEmpty?: 
     }
     await supabase.from("ride_status_history").insert({ ride_id: r.id, status: status as never, changed_by: user!.id });
     toast.success("Statut mis à jour");
+    refresh();
+  }
+
+  function refresh() {
     void qc.invalidateQueries({ queryKey: ["driver-active-ride"] });
     void qc.invalidateQueries({ queryKey: ["driver-rides"] });
+    void qc.invalidateQueries({ queryKey: ["planning"] });
     void qc.invalidateQueries({ queryKey: ["pro-overview"] });
   }
+
+  async function doStart() {
+    if (!r || starting) return;
+    setStarting(true);
+    try {
+      await start({ data: { rideId: r.id } });
+      toast.success("Course démarrée");
+      setConfirmStart(false);
+      refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Démarrage impossible");
+    } finally {
+      setStarting(false);
+    }
+  }
+
 
   return (
     <section className={`surface mb-6 overflow-hidden border-2 border-primary/50 p-0 shadow-lg shadow-primary/10 ${className ?? ""}`}>
