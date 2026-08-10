@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { PushSettingsCard } from "@/components/PushSettingsCard";
 
 
 const AVAILABILITY_OPTIONS = [
@@ -304,6 +305,10 @@ export function ProSettings() {
         <div className="sm:col-span-2">
           <Button onClick={save}>Enregistrer</Button>
         </div>
+      </div>
+
+      <div className="mt-4">
+        <PushSettingsCard audience="driver" />
       </div>
     </>
   );

@@ -4,6 +4,11 @@
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
 
+async function hasVisibleClient() {
+  const list = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+  return list.some((c) => c.visibilityState === "visible");
+}
+
 self.addEventListener("push", (event) => {
   let payload = {};
   try {
@@ -13,17 +18,26 @@ self.addEventListener("push", (event) => {
   }
 
   const title = payload.title || "Relink";
+  const link = payload.link || "/espace";
   const options = {
     body: payload.body || "",
     icon: "/app-icon-192.png",
     badge: "/app-icon-192.png",
-    tag: payload.tag || undefined,
+    // Identifiant unique de l'événement : évite tout doublon système.
+    tag: payload.tag || payload.id || undefined,
     renotify: true,
     vibrate: [80, 40, 80],
-    data: { link: payload.link || "/espace" },
+    timestamp: payload.at ? Date.parse(payload.at) || Date.now() : Date.now(),
+    data: { link, id: payload.id || null },
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil(
+    (async () => {
+      // Si l'app est au premier plan, l'interface affiche déjà l'événement.
+      if (await hasVisibleClient()) return;
+      await self.registration.showNotification(title, options);
+    })(),
+  );
 });
 
 self.addEventListener("notificationclick", (event) => {
