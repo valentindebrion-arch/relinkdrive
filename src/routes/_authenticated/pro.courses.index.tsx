@@ -12,7 +12,7 @@ import { DriverRequests } from "@/components/pro/DriverRequests";
 import { ActiveRidePanel } from "@/components/ActiveRidePanel";
 import { useNewRequestsCount } from "@/lib/driver-queries";
 
-export const Route = createFileRoute("/_authenticated/pro/courses")({
+export const Route = createFileRoute("/_authenticated/pro/courses/")({
   head: () => ({
     meta: [
       { title: "Mes courses — Relink Chauffeur" },
