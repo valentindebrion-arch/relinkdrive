@@ -81,9 +81,16 @@ function DriverRideDetail() {
   const [completing, setCompleting] = useState(false);
   const [confirmStart, setConfirmStart] = useState(false);
   const [starting, setStarting] = useState(false);
+  const [decision, setDecision] = useState<null | "accepted" | "refused">(null);
+  const [deciding, setDeciding] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelling, setCancelling] = useState(false);
   const [, setTick] = useState(0);
   const start = useServerFn(startRide);
   const serverTime = useServerFn(getServerNow);
+  const decide = useServerFn(decideRideCancellation);
+  const cancelRide = useServerFn(driverCancelRide);
 
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 20_000);
