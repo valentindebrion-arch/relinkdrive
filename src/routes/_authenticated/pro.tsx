@@ -41,7 +41,7 @@ function ProLayout() {
   ];
 
   return (
-    <DashboardShell items={items} bottomItems={bottomItems} area="Espace chauffeur" settingsTo="/pro/profil">
+    <DashboardShell items={items} bottomItems={bottomItems} area="Espace chauffeur" settingsTo="/pro/profil" brandTo="/pro">
       <Outlet />
     </DashboardShell>
   );

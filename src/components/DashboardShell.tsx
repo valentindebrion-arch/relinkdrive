@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { Menu, LogOut, UserRound, X } from "lucide-react";
-import { BRAND } from "@/lib/brand";
+
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -67,14 +67,10 @@ export function DashboardShell({
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-sidebar-border bg-sidebar p-4 lg:flex">
-        {hideBrand ? (
-          <div className="mb-6" />
-        ) : (
-          <Link to="/" className="mb-6 block">
-            <p className="text-lg font-semibold tracking-tight">{BRAND.name}</p>
-            <p className="text-xs text-muted-foreground">{area}</p>
-          </Link>
-        )}
+        <div className="mb-6">
+          <BrandLogo to={brandTo ?? "/"} />
+          {hideBrand ? null : <p className="mt-1 text-xs text-muted-foreground">{area}</p>}
+        </div>
         <div className="flex-1 overflow-y-auto">{nav}</div>
         <div className="mt-4 flex items-center gap-2 border-t border-sidebar-border pt-3">
           <NotificationBell />
@@ -104,15 +100,7 @@ export function DashboardShell({
         <button onClick={() => setOpen(true)} aria-label="Ouvrir le menu">
           <Menu className="size-5" />
         </button>
-        {brandTo ? (
-          <BrandLogo to={brandTo} />
-        ) : hideBrand ? (
-          <span aria-hidden />
-        ) : (
-          <Link to="/" className="font-semibold">
-            {BRAND.name}
-          </Link>
-        )}
+        <BrandLogo to={brandTo ?? "/"} size="sm" className="min-w-0" />
         <div className="flex items-center gap-1">
         <NotificationBell />
         {settingsTo ? (
@@ -137,12 +125,8 @@ export function DashboardShell({
           <div className="absolute inset-y-0 left-0 w-72 bg-sidebar p-4">
             <div className="mb-6 flex items-center justify-between">
               <div>
-                {hideBrand ? null : (
-                  <>
-                    <p className="text-lg font-semibold">{BRAND.name}</p>
-                    <p className="text-xs text-muted-foreground">{area}</p>
-                  </>
-                )}
+                <BrandLogo size="sm" />
+                {hideBrand ? null : <p className="mt-1 text-xs text-muted-foreground">{area}</p>}
               </div>
               <button onClick={() => setOpen(false)} aria-label="Fermer">
                 <X className="size-5" />

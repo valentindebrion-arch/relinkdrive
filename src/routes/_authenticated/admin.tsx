@@ -18,7 +18,7 @@ const items: NavItem[] = [
 
 function AdminLayout() {
   return (
-    <DashboardShell items={items} area="Modération">
+    <DashboardShell items={items} area="Modération" brandTo="/admin">
       <Outlet />
     </DashboardShell>
   );
