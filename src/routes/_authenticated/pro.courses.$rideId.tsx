@@ -3,13 +3,15 @@ import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ArrowLeft, AlertTriangle, Clock, CreditCard, MapPin, Navigation, Receipt, User } from "lucide-react";
+import { ArrowLeft, AlertTriangle, Clock, CreditCard, MapPin, Navigation, Receipt, User, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { CompleteRideDialog } from "@/components/CompleteRideDialog";
 import { Button } from "@/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +25,8 @@ import {
 import { RIDE_STATUS_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
 import { getServerNow, startRide } from "@/lib/ride-start.functions";
 import { formatHour, startWindowOpensAt } from "@/lib/ride-start";
+import { decideRideCancellation, driverCancelRide } from "@/lib/ride-cancel.functions";
+import { DRIVER_CANCEL_REASONS, driverCancelDeadline } from "@/lib/ride-cancel";
 
 export const Route = createFileRoute("/_authenticated/pro/courses/$rideId")({
   head: () => ({
@@ -77,9 +81,16 @@ function DriverRideDetail() {
   const [completing, setCompleting] = useState(false);
   const [confirmStart, setConfirmStart] = useState(false);
   const [starting, setStarting] = useState(false);
+  const [decision, setDecision] = useState<null | "accepted" | "refused">(null);
+  const [deciding, setDeciding] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelling, setCancelling] = useState(false);
   const [, setTick] = useState(0);
   const start = useServerFn(startRide);
   const serverTime = useServerFn(getServerNow);
+  const decide = useServerFn(decideRideCancellation);
+  const cancelRide = useServerFn(driverCancelRide);
 
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 20_000);
@@ -160,6 +171,45 @@ function DriverRideDetail() {
   const serverNow = new Date(Date.now() + offset);
   const startAllowed = serverNow >= opensAt;
   const isLate = serverNow > new Date(ride.scheduled_at) && !ride.started_at;
+
+  const preStart = !ride.started_at && !ride.completed_at && ride.status !== "cancelled" && ride.status !== "completed";
+  const pendingCancel = ride.cancel_request_status === "pending" && preStart;
+  const cancelDeadline = driverCancelDeadline(ride.scheduled_at);
+  const canSelfCancel = preStart && serverNow <= cancelDeadline;
+
+  async function doDecide(value: "accepted" | "refused") {
+    if (!ride || deciding) return;
+    setDeciding(true);
+    try {
+      await decide({ data: { rideId: ride.id, decision: value } });
+      toast.success(value === "accepted" ? "Annulation acceptée" : "Demande refusée");
+      setDecision(null);
+      refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Action impossible");
+    } finally {
+      setDeciding(false);
+    }
+  }
+
+  async function doDriverCancel() {
+    if (!ride || cancelling) return;
+    setCancelling(true);
+    try {
+      await cancelRide({
+        data: cancelReason ? { rideId: ride.id, reason: cancelReason } : { rideId: ride.id },
+      });
+      toast.success("Course annulée, le client est informé");
+      setCancelOpen(false);
+      setCancelReason("");
+      refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Annulation impossible");
+    } finally {
+      setCancelling(false);
+    }
+  }
+
 
   async function advance(status: string) {
     if (!ride) return;
@@ -248,6 +298,41 @@ function DriverRideDetail() {
         {ride.notes ? <Row icon={Navigation} label="Informations complémentaires" value={ride.notes} /> : null}
       </div>
 
+      {pendingCancel ? (
+        <div className="rounded-xl border border-warning/50 bg-warning/10 p-4">
+          <p className="text-sm font-semibold">Demande d'annulation du client</p>
+          {ride.cancel_request_reason ? (
+            <p className="mt-1 text-xs text-muted-foreground break-words">
+              Motif indiqué : {ride.cancel_request_reason}
+            </p>
+          ) : null}
+          <p className="mt-1 text-xs text-muted-foreground">
+            La course reste confirmée et le créneau réservé tant que vous n'avez pas répondu.
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <Button variant="outline" disabled={deciding} onClick={() => setDecision("refused")}>
+              Refuser l'annulation
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={deciding}
+              onClick={() => setDecision("accepted")}
+            >
+              Accepter l'annulation
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      {ride.status === "cancelled" ? (
+        <p className="rounded-xl bg-muted p-3 text-xs text-muted-foreground">
+          Course annulée{ride.cancelled_at ? ` le ${formatDateTime(ride.cancelled_at)}` : ""}. Elle reste consultable
+          dans votre historique.
+        </p>
+      ) : null}
+
+
+
       {isLate ? (
         <p className="flex items-center gap-2 rounded-xl bg-warning/10 px-3 py-2 text-xs font-medium">
           <AlertTriangle className="size-4 shrink-0" />
@@ -284,6 +369,27 @@ function DriverRideDetail() {
           )}
         </div>
       ) : null}
+
+      {preStart ? (
+        canSelfCancel ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            onClick={() => setCancelOpen(true)}
+          >
+            <XCircle className="size-4" />
+            Annuler la course
+          </Button>
+        ) : (
+          <p className="rounded-xl bg-muted p-3 text-center text-xs text-muted-foreground">
+            L'annulation autonome n'est plus disponible moins de 30 minutes avant la prise en charge (limite{" "}
+            {formatHour(cancelDeadline)}). Contactez l'assistance.
+          </p>
+        )
+      ) : null}
+
+
 
       {invoice ? (
         <Button asChild variant="outline" className="w-full gap-2">
@@ -332,7 +438,68 @@ function DriverRideDetail() {
         </AlertDialogContent>
       </AlertDialog>
 
+      <AlertDialog open={decision !== null} onOpenChange={(o) => (deciding || o ? null : setDecision(null))}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {decision === "accepted" ? "Accepter l'annulation ?" : "Refuser l'annulation ?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {decision === "accepted"
+                ? "La course passera en « Annulée », le créneau sera libéré et le client sera informé."
+                : "La course restera confirmée et le créneau réservé. Le client sera informé de votre refus."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deciding}>Retour</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deciding}
+              onClick={(e) => {
+                e.preventDefault();
+                if (decision) void doDecide(decision);
+              }}
+            >
+              {deciding ? "Enregistrement…" : "Confirmer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={cancelOpen} onOpenChange={(o) => (cancelling ? null : setCancelOpen(o))}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Annuler cette course ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action annulera la course et informera immédiatement le client. Souhaitez-vous continuer ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <RadioGroup value={cancelReason} onValueChange={setCancelReason} className="gap-2">
+            {DRIVER_CANCEL_REASONS.map((r) => (
+              <div key={r.value} className="flex items-center gap-2">
+                <RadioGroupItem value={r.value} id={`reason-${r.value}`} />
+                <Label htmlFor={`reason-${r.value}`} className="text-sm font-normal">
+                  {r.label}
+                </Label>
+              </div>
+            ))}
+          </RadioGroup>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={cancelling}>Conserver la course</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={cancelling}
+              onClick={(e) => {
+                e.preventDefault();
+                void doDriverCancel();
+              }}
+            >
+              {cancelling ? "Annulation…" : "Confirmer l'annulation"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <CompleteRideDialog ride={ride} open={completing} onOpenChange={setCompleting} />
+
     </div>
   );
 }

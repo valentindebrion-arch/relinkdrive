@@ -826,6 +826,15 @@ export type Database = {
       }
       rides: {
         Row: {
+          cancel_decided_at: string | null
+          cancel_decided_by: string | null
+          cancel_request_reason: string | null
+          cancel_request_status: string | null
+          cancel_requested_at: string | null
+          cancel_requested_by: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           client_id: string | null
           client_label: string | null
           completed_at: string | null
@@ -848,6 +857,15 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cancel_decided_at?: string | null
+          cancel_decided_by?: string | null
+          cancel_request_reason?: string | null
+          cancel_request_status?: string | null
+          cancel_requested_at?: string | null
+          cancel_requested_by?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           client_id?: string | null
           client_label?: string | null
           completed_at?: string | null
@@ -870,6 +888,15 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cancel_decided_at?: string | null
+          cancel_decided_by?: string | null
+          cancel_request_reason?: string | null
+          cancel_request_status?: string | null
+          cancel_requested_at?: string | null
+          cancel_requested_by?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           client_id?: string | null
           client_label?: string | null
           completed_at?: string | null

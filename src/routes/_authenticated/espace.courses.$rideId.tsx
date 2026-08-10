@@ -1,11 +1,28 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, MapPin, Clock, Users, Euro, User } from "lucide-react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
+import { ArrowLeft, MapPin, Clock, Users, Euro, User, Phone, XCircle, CircleAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { PageHeader, EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { InvoiceDownloadCard } from "@/components/InvoiceDownloadCard";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { getRideDriverPhone, requestRideCancellation } from "@/lib/ride-cancel.functions";
+import { PRE_START_STATUSES } from "@/lib/ride-cancel";
 import { RIDE_STATUS_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
 
 export const Route = createFileRoute("/_authenticated/espace/courses/$rideId")({
@@ -63,9 +80,55 @@ function RideDetail() {
     },
   });
 
+  const qc = useQueryClient();
+  const [askCancel, setAskCancel] = useState(false);
+  const [reason, setReason] = useState("");
+  const [sending, setSending] = useState(false);
+  const askCancellation = useServerFn(requestRideCancellation);
+  const fetchPhone = useServerFn(getRideDriverPhone);
+
+  const rideData = q.data?.ride;
+  const upcoming =
+    !!rideData &&
+    !rideData.started_at &&
+    !rideData.completed_at &&
+    (PRE_START_STATUSES as readonly string[]).includes(rideData.status);
+
+  const phoneQuery = useQuery({
+    queryKey: ["ride-driver-phone", rideId],
+    enabled: upcoming,
+    staleTime: 5 * 60_000,
+    queryFn: () => fetchPhone({ data: { rideId } }),
+  });
+
+  async function sendCancelRequest() {
+    if (sending) return;
+    setSending(true);
+    try {
+      const trimmed = reason.trim();
+      const res = await askCancellation({
+        data: trimmed ? { rideId, reason: trimmed } : { rideId },
+      });
+      toast.success(
+        res.alreadyPending
+          ? "Une demande d'annulation est déjà en attente"
+          : "Demande d'annulation envoyée au chauffeur",
+      );
+      setAskCancel(false);
+      setReason("");
+      void qc.invalidateQueries({ queryKey: ["client-ride", rideId] });
+      void qc.invalidateQueries({ queryKey: ["client-rides"] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Demande impossible");
+    } finally {
+      setSending(false);
+    }
+  }
+
   if (q.isLoading) {
     return <div className="surface h-40 animate-pulse rounded-xl" />;
   }
+
 
   const ride = q.data?.ride;
   if (!ride) {
@@ -109,6 +172,92 @@ function RideDetail() {
           </div>
         </div>
       </div>
+
+      {ride.cancel_request_status === "pending" ? (
+        <div className="mt-3 rounded-xl border border-warning/40 bg-warning/10 p-3">
+          <p className="flex items-center gap-2 text-sm font-medium">
+            <CircleAlert className="size-4 shrink-0" />
+            Demande d'annulation envoyée au chauffeur
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Votre course reste confirmée jusqu'à l'acceptation de la demande.
+          </p>
+        </div>
+      ) : null}
+
+      {ride.cancel_request_status === "refused" && ride.status !== "cancelled" ? (
+        <p className="mt-3 rounded-xl bg-muted p-3 text-xs text-muted-foreground">
+          Le chauffeur n'a pas accepté la demande d'annulation. Votre course reste confirmée. Vous pouvez l'appeler
+          pour trouver une solution.
+        </p>
+      ) : null}
+
+      {ride.status === "cancelled" ? (
+        <p className="mt-3 rounded-xl bg-muted p-3 text-xs text-muted-foreground">
+          {ride.cancel_request_status === "accepted" && ride.cancel_requested_by === user?.id
+            ? "Votre demande d'annulation a été acceptée."
+            : "Cette course a été annulée."}
+        </p>
+      ) : null}
+
+      {upcoming ? (
+        <div className="mt-3 space-y-2">
+          {phoneQuery.data?.phone ? (
+            <Button asChild variant="outline" className="w-full gap-2">
+              <a href={`tel:${phoneQuery.data.phone}`}>
+                <Phone className="size-4" />
+                Appeler le chauffeur
+              </a>
+            </Button>
+          ) : phoneQuery.isFetched ? (
+            <p className="text-center text-xs text-muted-foreground">Numéro du chauffeur indisponible</p>
+          ) : null}
+
+          {ride.driver_id && ride.cancel_request_status !== "pending" ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => setAskCancel(true)}
+            >
+              <XCircle className="size-4" />
+              Demander l'annulation
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+
+      <AlertDialog open={askCancel} onOpenChange={(o) => (sending ? null : setAskCancel(o))}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Souhaitez-vous demander l'annulation de cette course ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              La course restera confirmée jusqu'à la réponse du chauffeur.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            maxLength={300}
+            placeholder="Motif (facultatif) — ne transmettez aucune information sensible"
+            className="min-h-20"
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={sending}>Conserver la course</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={sending}
+              onClick={(e) => {
+                e.preventDefault();
+                void sendCancelRequest();
+              }}
+            >
+              {sending ? "Envoi…" : "Envoyer la demande"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+
 
       <div className="surface mt-3 divide-y p-4">
         <Row icon={Clock} label="Date et heure prévues" value={formatDateTime(ride.scheduled_at)} />
