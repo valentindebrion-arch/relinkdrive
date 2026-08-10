@@ -31,9 +31,36 @@ function keyToBase64(key: ArrayBuffer | null): string {
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
+/** Version du service worker : à incrémenter à chaque modification de /sw-push.js. */
+export const SW_VERSION = "2";
+const SW_VERSION_KEY = "relink:sw-version";
+
 export async function registerPushWorker(): Promise<ServiceWorkerRegistration> {
-  return navigator.serviceWorker.register("/sw-push.js", { scope: "/" });
+  // Si la version enregistrée diffère, on purge l'ancien worker avant de réenregistrer.
+  let storedVersion: string | null = null;
+  try {
+    storedVersion = window.localStorage.getItem(SW_VERSION_KEY);
+  } catch {
+    storedVersion = null;
+  }
+
+  if (storedVersion !== SW_VERSION) {
+    const previous = await navigator.serviceWorker.getRegistration("/sw-push.js");
+    if (previous) await previous.unregister().catch(() => undefined);
+    try {
+      window.localStorage.setItem(SW_VERSION_KEY, SW_VERSION);
+    } catch {
+      /* stockage indisponible */
+    }
+  }
+
+  const registration = await navigator.serviceWorker.register(`/sw-push.js?v=${SW_VERSION}`, {
+    scope: "/",
+  });
+  await registration.update().catch(() => undefined);
+  return registration;
 }
+
 
 /** Demande la permission, s'abonne au push et enregistre l'appareil. */
 export async function enablePush(userId: string): Promise<void> {
