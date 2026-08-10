@@ -84,7 +84,7 @@ function ClientHome() {
       if (ids.length) {
         const [{ data: profiles }, { data: dprofiles }, { data: vehicles }] = await Promise.all([
           supabase.from("profiles").select("id, full_name, avatar_url").in("id", ids),
-          supabase.from("driver_profiles").select("user_id, business_name, city, slug, on_duty").in("user_id", ids),
+          supabase.from("connected_driver_profiles").select("user_id, business_name, city, slug, on_duty").in("user_id", ids),
           supabase.from("vehicles").select("driver_id, brand, model").in("driver_id", ids),
         ]);
         drivers = ids.map((id) => ({
