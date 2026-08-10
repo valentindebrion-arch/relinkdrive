@@ -260,7 +260,7 @@ function AbsencesSection({ absences }: { absences: Absence[] }) {
         .select("id, scheduled_at, pickup_address")
         .eq("driver_id", user!.id)
         .eq("is_block", false)
-        .in("status", ACTIVE_RIDE_STATUSES)
+        .in("status", [...ACTIVE_RIDE_STATUSES])
         .gte("scheduled_at", `${form.starts_on}T00:00:00`)
         .lte("scheduled_at", `${form.ends_on}T23:59:59`)
         .order("scheduled_at");
