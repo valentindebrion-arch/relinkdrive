@@ -184,18 +184,68 @@ export function ActiveRidePanel({ showEmpty = false, className }: { showEmpty?: 
           })}
         </ol>
 
+        {isLate ? (
+          <p className="flex items-center gap-2 rounded-xl bg-warning/10 px-3 py-2 text-xs font-medium text-foreground">
+            <AlertTriangle className="size-4 shrink-0" />
+            Heure de prise en charge dépassée ({formatHour(new Date(r.scheduled_at))}) — la course n'est pas démarrée.
+          </p>
+        ) : null}
+
         {nextStep ? (
-          <Button
-            size="lg"
-            className="w-full text-base"
-            onClick={() => (nextStep.status === "completed" ? setCompleting(true) : advance(nextStep.status))}
-          >
-            {nextStep.action}
-          </Button>
+          nextStep.status === "in_progress" ? (
+            <div className="space-y-1.5">
+              <Button
+                size="lg"
+                className="w-full text-base"
+                disabled={!startAllowed || starting}
+                onClick={() => setConfirmStart(true)}
+              >
+                {nextStep.action}
+              </Button>
+              {!startAllowed ? (
+                <p className="text-center text-xs text-muted-foreground">
+                  Disponible à partir de {formatHour(opensAt)}
+                </p>
+              ) : null}
+            </div>
+          ) : (
+            <Button
+              size="lg"
+              className="w-full text-base"
+              onClick={() => (nextStep.status === "completed" ? setCompleting(true) : advance(nextStep.status))}
+            >
+              {nextStep.action}
+            </Button>
+          )
         ) : null}
       </div>
 
+      <AlertDialog open={confirmStart} onOpenChange={(o) => (starting ? null : setConfirmStart(o))}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Le client est-il bien pris en charge ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              L'heure prévue ({formatHour(new Date(r.scheduled_at))}) reste inchangée ; seule l'heure réelle de
+              démarrage est enregistrée.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={starting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={starting}
+              onClick={(e) => {
+                e.preventDefault();
+                void doStart();
+              }}
+            >
+              {starting ? "Démarrage…" : "Confirmer le démarrage"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <CompleteRideDialog ride={r} open={completing} onOpenChange={setCompleting} />
+
     </section>
   );
 }
