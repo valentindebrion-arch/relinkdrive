@@ -153,6 +153,9 @@ function PlanningPage() {
     <div className="space-y-4 overflow-x-hidden pb-6">
       <PageHeader title="Planning" description="Consultez et organisez vos courses à venir." />
 
+      <AvailabilityCard />
+
+
       <div className="grid grid-cols-3 gap-1 rounded-xl bg-muted p-1">
         {(["week", "month", "year"] as View[]).map((v) => (
           <button
