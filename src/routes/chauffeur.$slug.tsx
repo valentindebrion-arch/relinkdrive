@@ -768,10 +768,6 @@ function DriverPublicPage() {
         </div>
       </div>
 
-      {/* Barre d'action mobile */}
-      <div className="fixed inset-x-0 bottom-0 border-t border-border bg-background/95 p-3 backdrop-blur sm:hidden">
-        <div className="mx-auto max-w-lg">{primaryAction}</div>
-      </div>
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
