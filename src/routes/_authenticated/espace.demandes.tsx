@@ -346,10 +346,36 @@ function ClientRequests() {
 
   async function submit() {
     setBusy(true);
+    // Vérification finale avec les données les plus récentes (anti-conflit).
+    try {
+      const res = await availabilityFn({
+        data: {
+          driverIds: [form.driver_id],
+          pickup: form.pickup_address.trim(),
+          dropoff: form.dropoff_address.trim(),
+          desiredIso: scheduledIso(),
+        },
+      });
+      const verdict = res.results[0] ?? null;
+      if (!verdict || verdict.status !== "available") {
+        setBusy(false);
+        setAvail(verdict);
+        setStep(0);
+        toast.error("Ce créneau n'est plus réalisable", {
+          description: verdict ? availabilityMessage(verdict) : undefined,
+        });
+        return;
+      }
+    } catch {
+      setBusy(false);
+      toast.error("Vérification du créneau impossible", { description: "Réessayez dans un instant." });
+      return;
+    }
     const estimateLine = estimate
       ? `Prix final Relink : ${formatEuro(estimate.price.total)} · ${estimate.distanceKm} km · ~${estimate.durationMin} min`
       : null;
     const comment = [form.comment.trim(), estimateLine].filter(Boolean).join("\n");
+
     const { data: created, error } = await supabase
       .from("ride_requests")
       .insert({
