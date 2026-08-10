@@ -58,7 +58,7 @@ export const checkDriverAvailability = createServerFn({ method: "POST" })
       .from("rides")
       .select("id, request_id, driver_id, pickup_address, dropoff_address, scheduled_at, status, is_block")
       .in("driver_id", driverIds)
-      .in("status", ACTIVE_STATUSES as unknown as string[])
+      .in("status", [...ACTIVE_STATUSES])
       .gte("scheduled_at", from)
       .lte("scheduled_at", to)
       .order("scheduled_at");
