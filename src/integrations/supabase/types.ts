@@ -181,6 +181,36 @@ export type Database = {
           },
         ]
       }
+      driver_absences: {
+        Row: {
+          created_at: string
+          driver_id: string
+          ends_on: string
+          id: string
+          reason: string | null
+          starts_on: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          driver_id: string
+          ends_on: string
+          id?: string
+          reason?: string | null
+          starts_on: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string
+          ends_on?: string
+          id?: string
+          reason?: string | null
+          starts_on?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       driver_client_connections: {
         Row: {
           client_id: string
@@ -346,6 +376,33 @@ export type Database = {
           vtc_card_number?: string | null
           whatsapp_number?: string | null
           zone?: string | null
+        }
+        Relationships: []
+      }
+      driver_working_hours: {
+        Row: {
+          active: boolean
+          driver_id: string
+          end_time: string
+          start_time: string
+          updated_at: string
+          weekday: number
+        }
+        Insert: {
+          active?: boolean
+          driver_id: string
+          end_time?: string
+          start_time?: string
+          updated_at?: string
+          weekday: number
+        }
+        Update: {
+          active?: boolean
+          driver_id?: string
+          end_time?: string
+          start_time?: string
+          updated_at?: string
+          weekday?: number
         }
         Relationships: []
       }
@@ -1095,6 +1152,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      driver_available_between: {
+        Args: { _driver: string; _end: string; _start: string }
+        Returns: boolean
+      }
       get_invoice_issuer: {
         Args: { _driver: string }
         Returns: {
