@@ -57,7 +57,7 @@ export const checkDriverAvailability = createServerFn({ method: "POST" })
     const { data: rides } = await supabaseAdmin
       .from("rides")
       .select(
-        "id, request_id, driver_id, pickup_address, dropoff_address, scheduled_at, status, is_block",
+        "id, request_id, driver_id, pickup_address, dropoff_address, scheduled_at, started_at, status, is_block",
       )
       .in("driver_id", driverIds)
       .in("status", [...ACTIVE_STATUSES])
