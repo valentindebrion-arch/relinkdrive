@@ -105,8 +105,9 @@ function RideDetail() {
     if (sending) return;
     setSending(true);
     try {
+      const trimmed = reason.trim();
       const res = await askCancellation({
-        data: { rideId, reason: reason.trim() ? reason.trim() : undefined },
+        data: trimmed ? { rideId, reason: trimmed } : { rideId },
       });
       toast.success(
         res.alreadyPending
