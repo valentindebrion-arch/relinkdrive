@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { formatDateTime, formatEuro } from "@/lib/labels";
 import { CompleteRideDialog } from "@/components/CompleteRideDialog";
+import { NotifyClientSmsButton, NotifyClientSmsDialog } from "@/components/NotifyClientSms";
 import { getServerNow, startRide } from "@/lib/ride-start.functions";
 import { formatHour, startWindowOpensAt } from "@/lib/ride-start";
 
