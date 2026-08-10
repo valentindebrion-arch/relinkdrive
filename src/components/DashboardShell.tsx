@@ -5,6 +5,7 @@ import { BRAND } from "@/lib/brand";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/NotificationBell";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export type NavItem = { to: string; label: string; icon: ReactNode; badge?: number | undefined };
 
