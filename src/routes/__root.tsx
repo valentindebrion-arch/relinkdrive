@@ -185,6 +185,17 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  // L'app s'est chargée correctement : on autorise à nouveau une récupération auto.
+  useEffect(() => {
+    try {
+      window.sessionStorage.removeItem(RELOAD_FLAG);
+    } catch {
+      /* stockage indisponible */
+    }
+  }, []);
+
+
+
   // Aspect application : bloque le pinch-to-zoom et le double-tap zoom (iOS ignore user-scalable=no)
   useEffect(() => {
     const preventGesture = (e: Event) => e.preventDefault();
