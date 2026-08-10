@@ -179,7 +179,7 @@ function ClientRequests() {
       if (!ids.length) return [];
       const [{ data }, { data: dprofiles }] = await Promise.all([
         supabase.from("profiles").select("id, full_name").in("id", ids),
-        supabase.from("connected_driver_profiles").select("user_id, on_duty").in("user_id", ids),
+        supabase.rpc("get_connected_driver_profiles"),
       ]);
       return (data ?? []).map((p) => ({
         ...p,
