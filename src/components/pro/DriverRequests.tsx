@@ -237,6 +237,14 @@ export function DriverRequests() {
               <p className="line-clamp-2 text-xs text-muted-foreground">Besoins : {r.special_needs}</p>
             ) : null}
 
+            <FeasibilityNote
+              driverId={r.driver_id}
+              pickup={r.pickup_address}
+              dropoff={r.dropoff_address}
+              scheduledAt={r.proposed_time ?? r.scheduled_at}
+            />
+
+
             <div className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-3">
               <p className="text-base font-bold text-primary">
                 {r.proposed_price ? formatEuro(Number(r.proposed_price)) : "Prix à définir"}
