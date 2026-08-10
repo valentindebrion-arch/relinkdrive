@@ -316,11 +316,16 @@ function DriverPublicPage() {
   }
 
   const primaryAction = connected ? (
-    <Button asChild className="h-12 w-full text-base" onClick={trackRequest}>
-      <Link to="/espace/demandes" search={{ driver: d.user_id }}>
-        Demander un trajet à {firstName}
-      </Link>
-    </Button>
+    <div className="space-y-2">
+      <p className="flex items-center justify-center gap-1.5 text-sm font-medium text-primary">
+        <Check className="size-4" /> Déjà dans mes chauffeurs
+      </p>
+      <Button asChild className="h-12 w-full text-base" onClick={trackRequest}>
+        <Link to="/espace/demandes" search={{ driver: d.user_id }}>
+          Demander un trajet à {firstName}
+        </Link>
+      </Button>
+    </div>
   ) : (
     <Button
       className="h-12 w-full text-base"
