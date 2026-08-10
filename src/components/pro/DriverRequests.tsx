@@ -1,14 +1,59 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Calendar, MapPin, Navigation, Zap } from "lucide-react";
+import { Calendar, MapPin, Navigation, ShieldCheck, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { RIDE_STATUS_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
 import { Button } from "@/components/ui/button";
+import { checkDriverAvailability } from "@/lib/availability.functions";
+import { SAFETY_MARGIN_MIN, availabilityMessage } from "@/lib/availability";
 
 const PENDING = ["new", "reviewing", "proposal_sent", "awaiting_client"];
+
+/** Faisabilité du créneau vue chauffeur : jamais d'info sur les autres clients. */
+function FeasibilityNote({
+  driverId,
+  pickup,
+  dropoff,
+  scheduledAt,
+}: {
+  driverId: string;
+  pickup: string;
+  dropoff: string;
+  scheduledAt: string;
+}) {
+  const check = useServerFn(checkDriverAvailability);
+  const q = useQuery({
+    queryKey: ["request-feasibility", driverId, pickup, dropoff, scheduledAt],
+    staleTime: 60_000,
+    queryFn: async () => {
+      const res = await check({
+        data: { driverIds: [driverId], pickup, dropoff, desiredIso: new Date(scheduledAt).toISOString() },
+      });
+      return res.results[0] ?? null;
+    },
+  });
+  if (q.isLoading) return <p className="mt-2 text-xs text-muted-foreground">Vérification du créneau…</p>;
+  const r = q.data;
+  if (!r) return null;
+  const ok = r.status === "available";
+  return (
+    <p
+      className={`mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-xl px-2.5 py-1.5 text-[11px] font-medium ${
+        ok ? "bg-primary/10 text-primary" : "bg-warning/10 text-foreground"
+      }`}
+    >
+      <ShieldCheck className="size-3.5 shrink-0" />
+      {ok ? "Créneau vérifié par ReLink" : availabilityMessage(r)}
+      {r.repositionMin !== null ? <span>· Repositionnement estimé : {r.repositionMin} min</span> : null}
+      <span>· Marge prévue : {SAFETY_MARGIN_MIN} min</span>
+    </p>
+  );
+}
+
 
 type Req = {
   id: string;
