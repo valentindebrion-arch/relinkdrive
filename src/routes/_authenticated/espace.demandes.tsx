@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
@@ -28,6 +28,14 @@ import { formatDateTime, formatEuro } from "@/lib/labels";
 import { LiveDriversMap } from "@/components/LiveDriversMap";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { estimateRoute, reverseGeocode } from "@/lib/route-estimate.functions";
+import { checkDriverAvailability } from "@/lib/availability.functions";
+import {
+  SAFETY_MARGIN_MIN,
+  availabilityMessage,
+  formatSlot,
+  type AvailabilityResult,
+} from "@/lib/availability";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -116,13 +124,13 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   return <p className="mb-1.5 text-[13px] font-bold">{children}</p>;
 }
 
-
 function ClientRequests() {
   const { user } = useAuth();
   const search = Route.useSearch();
   const navigate = useNavigate();
   const estimateFn = useServerFn(estimateRoute);
   const geocodeFn = useServerFn(reverseGeocode);
+  const availabilityFn = useServerFn(checkDriverAvailability);
 
   const [step, setStepRaw] = useState(0);
   const [dir, setDir] = useState<1 | -1>(1);
@@ -136,6 +144,10 @@ function ClientRequests() {
   const [dropoffOk, setDropoffOk] = useState(false);
   const [whenMode, setWhenMode] = useState<"now" | "later">("now");
   const [estimate, setEstimate] = useState<Estimate | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [avail, setAvail] = useState<AvailabilityResult | null>(null);
+  const [alternatives, setAlternatives] = useState<AvailabilityResult[] | null>(null);
+
   const [form, setForm] = useState({
     driver_id: search.driver ?? "",
     pickup_address: "",
@@ -148,6 +160,12 @@ function ClientRequests() {
     round_trip: false,
     trip_type: "",
   });
+
+  // Toute modification pertinente invalide la vérification de créneau.
+  useEffect(() => {
+    setAvail(null);
+    setAlternatives(null);
+  }, [form.driver_id, form.pickup_address, form.dropoff_address, form.scheduled_at, whenMode]);
 
   const drivers = useQuery({
     queryKey: ["client-driver-options", user?.id],
@@ -169,7 +187,6 @@ function ClientRequests() {
       }));
     },
   });
-
 
   function scheduledIso() {
     return whenMode === "now"
@@ -233,7 +250,67 @@ function ClientRequests() {
     }
   }
 
-  function next() {
+  function toLocalInput(iso: string) {
+    const d = new Date(iso);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  /** Vérifie la faisabilité réelle du créneau (course précédente, suivante, marge). */
+  async function runCheck(driverIds: string[], iso: string) {
+    return availabilityFn({
+      data: {
+        driverIds,
+        pickup: form.pickup_address.trim(),
+        dropoff: form.dropoff_address.trim(),
+        desiredIso: iso,
+      },
+    });
+  }
+
+  async function checkSelectedDriver() {
+    setChecking(true);
+    setAlternatives(null);
+    try {
+      const res = await runCheck([form.driver_id], scheduledIso());
+      const verdict = res.results[0] ?? null;
+      setAvail(verdict);
+      return verdict;
+    } catch (e) {
+      console.error(e);
+      setAvail({
+        driverId: form.driver_id,
+        status: "unknown",
+        earliestIso: null,
+        repositionMin: null,
+        tripMin: null,
+        marginMin: SAFETY_MARGIN_MIN,
+        reason: "erreur_verification",
+      });
+      return null;
+    } finally {
+      setChecking(false);
+    }
+  }
+
+  async function findOtherDrivers() {
+    const ids = (drivers.data ?? []).map((d) => d.id).filter((id) => id !== form.driver_id);
+    if (!ids.length) {
+      toast.info("Aucun autre chauffeur dans votre carnet");
+      return;
+    }
+    setChecking(true);
+    try {
+      const res = await runCheck(ids.slice(0, 8), scheduledIso());
+      setAlternatives(res.results);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Vérification impossible");
+    } finally {
+      setChecking(false);
+    }
+  }
+
+  async function next() {
     if (step === 0) {
       if (!form.driver_id) return toast.error("Choisissez un chauffeur");
       if (whenMode === "now" && !driverAvailable)
@@ -244,6 +321,8 @@ function ClientRequests() {
       if (!dropoffOk) return toast.error("Confirmez l'adresse d'arrivée dans la liste proposée");
       if (whenMode === "later" && !form.scheduled_at)
         return toast.error("Choisissez une date et une heure");
+      const verdict = avail?.status === "available" ? avail : await checkSelectedDriver();
+      if (!verdict || verdict.status !== "available") return;
       setEstimate(null);
       return setStep(1);
     }
@@ -269,10 +348,38 @@ function ClientRequests() {
 
   async function submit() {
     setBusy(true);
+    // Vérification finale avec les données les plus récentes (anti-conflit).
+    try {
+      const res = await availabilityFn({
+        data: {
+          driverIds: [form.driver_id],
+          pickup: form.pickup_address.trim(),
+          dropoff: form.dropoff_address.trim(),
+          desiredIso: scheduledIso(),
+        },
+      });
+      const verdict = res.results[0] ?? null;
+      if (!verdict || verdict.status !== "available") {
+        setBusy(false);
+        setAvail(verdict);
+        setStep(0);
+        toast.error("Ce créneau n'est plus réalisable", {
+          description: verdict ? availabilityMessage(verdict) : undefined,
+        });
+        return;
+      }
+    } catch {
+      setBusy(false);
+      toast.error("Vérification du créneau impossible", {
+        description: "Réessayez dans un instant.",
+      });
+      return;
+    }
     const estimateLine = estimate
       ? `Prix final Relink : ${formatEuro(estimate.price.total)} · ${estimate.distanceKm} km · ~${estimate.durationMin} min`
       : null;
     const comment = [form.comment.trim(), estimateLine].filter(Boolean).join("\n");
+
     const { data: created, error } = await supabase
       .from("ride_requests")
       .insert({
@@ -372,7 +479,6 @@ function ClientRequests() {
               </div>
 
               <div className="tap rounded-2xl border border-border bg-card px-3.5 py-3 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
-
                 <AddressAutocomplete
                   bare
                   label="Lieu de départ"
@@ -476,6 +582,110 @@ function ClientRequests() {
                   </p>
                 ) : null}
               </div>
+
+              {checking || avail ? (
+                <div
+                  className={cn(
+                    "rise-in shrink-0 rounded-2xl border px-3 py-2.5 text-[13px]",
+                    avail?.status === "available"
+                      ? "border-primary/40 bg-primary/10"
+                      : avail?.status === "unavailable"
+                        ? "border-destructive/40 bg-destructive/5"
+                        : "border-border bg-muted",
+                  )}
+                >
+                  {checking ? (
+                    <p className="flex items-center gap-2 font-medium text-muted-foreground">
+                      <Loader2 className="size-4 animate-spin" /> Vérification du créneau…
+                    </p>
+                  ) : avail ? (
+                    <>
+                      <p className="flex items-start gap-2 font-semibold">
+                        {avail.status === "available" ? (
+                          <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" />
+                        ) : (
+                          <Clock className="mt-0.5 size-4 shrink-0" />
+                        )}
+                        <span>{availabilityMessage(avail)}</span>
+                      </p>
+                      {avail.status === "later" && avail.earliestIso ? (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <Button
+                            size="sm"
+                            className="rounded-xl"
+                            onClick={() => {
+                              setWhenMode("later");
+                              setForm((f) => ({
+                                ...f,
+                                scheduled_at: toLocalInput(avail.earliestIso!),
+                              }));
+                              toast.success(
+                                `Créneau ${formatSlot(avail.earliestIso!)} sélectionné`,
+                              );
+                            }}
+                          >
+                            Choisir ce créneau
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="rounded-xl"
+                            onClick={() => void findOtherDrivers()}
+                          >
+                            Voir d'autres chauffeurs
+                          </Button>
+                        </div>
+                      ) : null}
+                      {avail.status === "unavailable" ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="mt-2 rounded-xl"
+                          onClick={() => void findOtherDrivers()}
+                        >
+                          Voir d'autres chauffeurs
+                        </Button>
+                      ) : null}
+                      {avail.status === "unknown" ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="mt-2 rounded-xl"
+                          onClick={() => void checkSelectedDriver()}
+                        >
+                          Réessayer
+                        </Button>
+                      ) : null}
+                      {alternatives ? (
+                        <div className="mt-2 space-y-1 border-t border-border pt-2">
+                          {alternatives.filter((a) => a.status === "available").length === 0 ? (
+                            <p className="text-xs text-muted-foreground">
+                              Aucun autre chauffeur de votre carnet n'est disponible à cette heure.
+                            </p>
+                          ) : (
+                            alternatives
+                              .filter((a) => a.status === "available")
+                              .map((a) => (
+                                <button
+                                  key={a.driverId}
+                                  type="button"
+                                  className="tap tap-active flex w-full items-center justify-between rounded-xl bg-card px-3 py-2 text-left text-[13px] font-medium"
+                                  onClick={() => setForm((f) => ({ ...f, driver_id: a.driverId }))}
+                                >
+                                  <span className="truncate">
+                                    {(drivers.data ?? []).find((d) => d.id === a.driverId)
+                                      ?.full_name ?? "Chauffeur"}
+                                  </span>
+                                  <span className="text-primary">Disponible</span>
+                                </button>
+                              ))
+                          )}
+                        </div>
+                      ) : null}
+                    </>
+                  ) : null}
+                </div>
+              ) : null}
 
               <LiveDriversMap className="min-h-28 flex-1" />
             </>
@@ -585,7 +795,6 @@ function ClientRequests() {
             </>
           ) : null}
 
-
           {step >= 2 && estimate ? (
             <>
               <LiveDriversMap polyline={estimate.polyline} className="min-h-24 flex-1" />
@@ -598,7 +807,9 @@ function ClientRequests() {
                   <p className="text-2xl font-extrabold leading-tight">
                     {formatEuro(estimate.price.total)}
                   </p>
-                  <p className="text-[11px] text-accent-foreground">Tarif garanti, aucun supplément</p>
+                  <p className="text-[11px] text-accent-foreground">
+                    Tarif garanti, aucun supplément
+                  </p>
                 </div>
                 <div className="text-right text-xs text-accent-foreground">
                   <p>{estimate.distanceKm} km</p>
@@ -655,10 +866,10 @@ function ClientRequests() {
             <Button
               size="lg"
               className="h-12 flex-[2] rounded-2xl text-sm font-bold transition-transform active:scale-[0.98]"
-              onClick={next}
-              disabled={busy}
+              onClick={() => void next()}
+              disabled={busy || checking}
             >
-              {busy ? <Loader2 className="size-4 animate-spin" /> : null}
+              {busy || checking ? <Loader2 className="size-4 animate-spin" /> : null}
               Continuer
               <ArrowRight className="size-4" />
             </Button>
@@ -678,4 +889,3 @@ function ClientRequests() {
     </div>
   );
 }
-
