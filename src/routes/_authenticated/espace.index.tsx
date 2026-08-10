@@ -8,18 +8,15 @@ import {
   CalendarDays,
   ChevronRight,
   Clock3,
-  History,
   Loader2,
   MapPin,
   QrCode,
   Search,
-  Users,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { LiveDriversMap } from "@/components/LiveDriversMap";
 import { QrScannerDialog } from "@/components/QrScannerDialog";
-import { StatusBadge } from "@/components/StatusBadge";
 import { RIDE_STATUS_LABELS } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 
@@ -106,7 +103,6 @@ function ClientHome() {
   const upcoming = rides
     .filter((r) => new Date(r.scheduled_at) >= new Date() && !["cancelled", "completed"].includes(r.status))
     .sort((a, b) => +new Date(a.scheduled_at) - +new Date(b.scheduled_at));
-  const completed = rides.filter((r) => r.status === "completed").length;
   const favorite = data.data?.drivers[0];
   const next = upcoming[0];
 
