@@ -52,7 +52,8 @@ const ACTIVE_RIDE_STATUSES = [
   "driver_arrived",
   "client_onboard",
   "in_progress",
-];
+] as const;
+
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
