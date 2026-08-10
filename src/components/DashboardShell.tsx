@@ -5,6 +5,7 @@ import { BRAND } from "@/lib/brand";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/NotificationBell";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export type NavItem = { to: string; label: string; icon: ReactNode; badge?: number | undefined };
 
@@ -16,6 +17,7 @@ export function DashboardShell({
   settingsTo,
   bottomItems,
   hideBrand = false,
+  brandTo,
 }: {
   items: NavItem[];
   area: string;
@@ -24,6 +26,7 @@ export function DashboardShell({
   settingsTo?: string;
   bottomItems?: NavItem[];
   hideBrand?: boolean;
+  brandTo?: string;
 }) {
   const [open, setOpen] = useState(false);
   const { profile, signOut } = useAuth();
@@ -101,7 +104,9 @@ export function DashboardShell({
         <button onClick={() => setOpen(true)} aria-label="Ouvrir le menu">
           <Menu className="size-5" />
         </button>
-        {hideBrand ? (
+        {brandTo ? (
+          <BrandLogo to={brandTo} />
+        ) : hideBrand ? (
           <span aria-hidden />
         ) : (
           <Link to="/" className="font-semibold">
