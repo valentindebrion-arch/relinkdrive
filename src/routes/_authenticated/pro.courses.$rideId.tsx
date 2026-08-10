@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { CompleteRideDialog } from "@/components/CompleteRideDialog";
 import { NotifyClientSmsButton, NotifyClientSmsDialog } from "@/components/NotifyClientSms";
+import type { SmsKind } from "@/lib/ride-sms";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -83,6 +84,8 @@ function DriverRideDetail() {
   const [confirmStart, setConfirmStart] = useState(false);
   const [starting, setStarting] = useState(false);
   const [smsOpen, setSmsOpen] = useState(false);
+  const [smsKind, setSmsKind] = useState<SmsKind>("departure");
+  const [advancing, setAdvancing] = useState(false);
   const [decision, setDecision] = useState<null | "accepted" | "refused">(null);
   const [deciding, setDeciding] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -214,22 +217,31 @@ function DriverRideDetail() {
 
 
   async function advance(status: string) {
-    if (!ride) return;
-    const now = new Date().toISOString();
-    const { error } = await supabase
-      .from("rides")
-      .update({ status: status as never, ...(status === "completed" ? { completed_at: now } : {}) })
-      .eq("id", ride.id);
-    if (error) {
-      toast.error(error.message);
-      return;
+    if (!ride || advancing) return;
+    setAdvancing(true);
+    try {
+      const now = new Date().toISOString();
+      const { error } = await supabase
+        .from("rides")
+        .update({ status: status as never, ...(status === "completed" ? { completed_at: now } : {}) })
+        .eq("id", ride.id)
+        .eq("status", ride.status);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      await supabase
+        .from("ride_status_history")
+        .insert({ ride_id: ride.id, status: status as never, changed_by: user!.id });
+      toast.success("Statut mis à jour");
+      refresh();
+      if (status === "driver_enroute" || status === "driver_arrived") {
+        setSmsKind(status === "driver_arrived" ? "arrival" : "departure");
+        setSmsOpen(true);
+      }
+    } finally {
+      setAdvancing(false);
     }
-    await supabase
-      .from("ride_status_history")
-      .insert({ ride_id: ride.id, status: status as never, changed_by: user!.id });
-    toast.success("Statut mis à jour");
-    refresh();
-    if (status === "driver_enroute") setSmsOpen(true);
   }
 
   async function doStart() {
@@ -365,6 +377,7 @@ function DriverRideDetail() {
             <Button
               size="lg"
               className="w-full text-base"
+              disabled={advancing}
               onClick={() => (nextStep.status === "completed" ? setCompleting(true) : advance(nextStep.status))}
             >
               {nextStep.action}
@@ -374,10 +387,10 @@ function DriverRideDetail() {
       ) : null}
 
       {ride.status === "driver_enroute" || ride.status === "driver_arrived" ? (
-        <NotifyClientSmsButton rideId={ride.id} />
+        <NotifyClientSmsButton rideId={ride.id} kind={ride.status === "driver_arrived" ? "arrival" : "departure"} />
       ) : null}
 
-      <NotifyClientSmsDialog rideId={ride.id} open={smsOpen} onOpenChange={setSmsOpen} />
+      <NotifyClientSmsDialog rideId={ride.id} kind={smsKind} open={smsOpen} onOpenChange={setSmsOpen} />
 
       {preStart ? (
         canSelfCancel ? (
