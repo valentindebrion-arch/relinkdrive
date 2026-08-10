@@ -118,15 +118,16 @@ function ProProfileHub() {
   const vehicle = useMyVehicle();
   const docs = useMyDocuments();
   const search = useSearch({ from: "/_authenticated/pro/profil" }) as Search;
-  const navigate = useNavigate({ from: "/_authenticated/pro/profil" });
+  const navigate = useNavigate();
   const [section, setSectionState] = useState<SectionKey | null>(search.section ?? null);
   const [origin, setOrigin] = useState("");
   const qrRef = useRef<HTMLCanvasElement>(null);
 
   function setSection(next: SectionKey | null) {
     setSectionState(next);
-    void navigate({ search: (prev: Search) => ({ ...prev, section: next ?? undefined }) });
+    void navigate({ to: "/pro/profil", search: { section: next ?? undefined } });
   }
+
 
   const company = useQuery({
     queryKey: ["company", user?.id],
