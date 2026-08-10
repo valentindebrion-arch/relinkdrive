@@ -109,6 +109,7 @@ export function ActiveRidePanel({ showEmpty = false, className }: { showEmpty?: 
     await supabase.from("ride_status_history").insert({ ride_id: r.id, status: status as never, changed_by: user!.id });
     toast.success("Statut mis à jour");
     refresh();
+    if (status === "driver_enroute") setSmsOpen(true);
   }
 
   function refresh() {
