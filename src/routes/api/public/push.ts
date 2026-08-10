@@ -24,7 +24,7 @@ export const Route = createFileRoute("/api/public/push")({
 
         const { data: notification } = await supabaseAdmin
           .from("notifications")
-          .select("id, user_id, title, body, link, kind")
+          .select("id, user_id, title, body, link, kind, created_at")
           .eq("id", body.notification_id)
           .maybeSingle();
         if (!notification) return new Response("Not found", { status: 404 });
@@ -46,7 +46,9 @@ export const Route = createFileRoute("/api/public/push")({
             title: notification.title,
             body: notification.body ?? "",
             link: notification.link ?? "/espace",
-            tag: notification.kind ?? "relink",
+            id: notification.id,
+            tag: notification.id,
+            at: notification.created_at,
           }),
           options: { ttl: 600 },
         };

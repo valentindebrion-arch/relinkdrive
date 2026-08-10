@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { cleanupPushOnSignOut } from "@/lib/push";
 
 export type AppRole = "client" | "driver" | "admin" | "superadmin";
 
@@ -77,6 +78,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isDriver: roles.includes("driver"),
       refresh: () => load(session?.user?.id),
       signOut: async () => {
+        // Téléphone partagé : on retire l'abonnement push avant de fermer la session.
+        await cleanupPushOnSignOut();
         await supabase.auth.signOut();
       },
     }),
