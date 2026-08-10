@@ -18,6 +18,7 @@ export function DashboardShell({
   bottomItems,
   hideBrand = false,
   brandTo,
+  hideNotifications = false,
 }: {
   items: NavItem[];
   area: string;
@@ -27,6 +28,8 @@ export function DashboardShell({
   bottomItems?: NavItem[];
   hideBrand?: boolean;
   brandTo?: string;
+  /** Masque uniquement l'UI des notifications internes (le système reste en place). */
+  hideNotifications?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const { profile, signOut } = useAuth();
