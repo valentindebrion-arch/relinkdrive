@@ -360,7 +360,8 @@ function DaySheet({ date, rides, onClose }: { date: Date; rides: Ride[]; onClose
             {rides.map((r) => (
               <Link
                 key={r.id}
-                to="/pro/factures"
+                to="/pro/courses/$rideId"
+                params={{ rideId: r.id }}
                 className="surface tap-active block p-3 transition-colors hover:border-primary/40"
               >
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">

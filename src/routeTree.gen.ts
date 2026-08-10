@@ -50,6 +50,7 @@ import { Route as AuthenticatedEspaceSuiviIdRouteImport } from './routes/_authen
 import { Route as AuthenticatedProClientsIndexRouteImport } from './routes/_authenticated/pro.clients.index'
 import { Route as AuthenticatedProClientsClientIdRouteImport } from './routes/_authenticated/pro.clients.$clientId'
 import { Route as AuthenticatedProCoursesIndexRouteImport } from './routes/_authenticated/pro.courses.index'
+import { Route as AuthenticatedProCoursesRideIdRouteImport } from './routes/_authenticated/pro.courses.$rideId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -281,6 +282,12 @@ const AuthenticatedProCoursesIndexRoute =
     path: '/courses/',
     getParentRoute: () => AuthenticatedProRoute,
   } as any)
+const AuthenticatedProCoursesRideIdRoute =
+  AuthenticatedProCoursesRideIdRouteImport.update({
+    id: '/courses/$rideId',
+    path: '/courses/$rideId',
+    getParentRoute: () => AuthenticatedProRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -320,6 +327,7 @@ export interface FileRoutesByFullPath {
   '/espace/courses/terminees': typeof AuthenticatedEspaceCoursesTermineesRoute
   '/espace/suivi/$id': typeof AuthenticatedEspaceSuiviIdRoute
   '/pro/clients/$clientId': typeof AuthenticatedProClientsClientIdRoute
+  '/pro/courses/$rideId': typeof AuthenticatedProCoursesRideIdRoute
   '/espace/courses/': typeof AuthenticatedEspaceCoursesIndexRoute
   '/pro/clients/': typeof AuthenticatedProClientsIndexRoute
   '/pro/courses/': typeof AuthenticatedProCoursesIndexRoute
@@ -358,6 +366,7 @@ export interface FileRoutesByTo {
   '/espace/courses/terminees': typeof AuthenticatedEspaceCoursesTermineesRoute
   '/espace/suivi/$id': typeof AuthenticatedEspaceSuiviIdRoute
   '/pro/clients/$clientId': typeof AuthenticatedProClientsClientIdRoute
+  '/pro/courses/$rideId': typeof AuthenticatedProCoursesRideIdRoute
   '/espace/courses': typeof AuthenticatedEspaceCoursesIndexRoute
   '/pro/clients': typeof AuthenticatedProClientsIndexRoute
   '/pro/courses': typeof AuthenticatedProCoursesIndexRoute
@@ -402,6 +411,7 @@ export interface FileRoutesById {
   '/_authenticated/espace/courses/terminees': typeof AuthenticatedEspaceCoursesTermineesRoute
   '/_authenticated/espace/suivi/$id': typeof AuthenticatedEspaceSuiviIdRoute
   '/_authenticated/pro/clients/$clientId': typeof AuthenticatedProClientsClientIdRoute
+  '/_authenticated/pro/courses/$rideId': typeof AuthenticatedProCoursesRideIdRoute
   '/_authenticated/espace/courses/': typeof AuthenticatedEspaceCoursesIndexRoute
   '/_authenticated/pro/clients/': typeof AuthenticatedProClientsIndexRoute
   '/_authenticated/pro/courses/': typeof AuthenticatedProCoursesIndexRoute
@@ -446,6 +456,7 @@ export interface FileRouteTypes {
     | '/espace/courses/terminees'
     | '/espace/suivi/$id'
     | '/pro/clients/$clientId'
+    | '/pro/courses/$rideId'
     | '/espace/courses/'
     | '/pro/clients/'
     | '/pro/courses/'
@@ -484,6 +495,7 @@ export interface FileRouteTypes {
     | '/espace/courses/terminees'
     | '/espace/suivi/$id'
     | '/pro/clients/$clientId'
+    | '/pro/courses/$rideId'
     | '/espace/courses'
     | '/pro/clients'
     | '/pro/courses'
@@ -527,6 +539,7 @@ export interface FileRouteTypes {
     | '/_authenticated/espace/courses/terminees'
     | '/_authenticated/espace/suivi/$id'
     | '/_authenticated/pro/clients/$clientId'
+    | '/_authenticated/pro/courses/$rideId'
     | '/_authenticated/espace/courses/'
     | '/_authenticated/pro/clients/'
     | '/_authenticated/pro/courses/'
@@ -831,6 +844,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProCoursesIndexRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
+    '/_authenticated/pro/courses/$rideId': {
+      id: '/_authenticated/pro/courses/$rideId'
+      path: '/courses/$rideId'
+      fullPath: '/pro/courses/$rideId'
+      preLoaderRoute: typeof AuthenticatedProCoursesRideIdRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
   }
 }
 
@@ -915,6 +935,7 @@ interface AuthenticatedProRouteChildren {
   AuthenticatedProVehiculeRoute: typeof AuthenticatedProVehiculeRoute
   AuthenticatedProVerificationRoute: typeof AuthenticatedProVerificationRoute
   AuthenticatedProIndexRoute: typeof AuthenticatedProIndexRoute
+  AuthenticatedProCoursesRideIdRoute: typeof AuthenticatedProCoursesRideIdRoute
   AuthenticatedProCoursesIndexRoute: typeof AuthenticatedProCoursesIndexRoute
 }
 
@@ -932,6 +953,7 @@ const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
   AuthenticatedProVehiculeRoute: AuthenticatedProVehiculeRoute,
   AuthenticatedProVerificationRoute: AuthenticatedProVerificationRoute,
   AuthenticatedProIndexRoute: AuthenticatedProIndexRoute,
+  AuthenticatedProCoursesRideIdRoute: AuthenticatedProCoursesRideIdRoute,
   AuthenticatedProCoursesIndexRoute: AuthenticatedProCoursesIndexRoute,
 }
 
@@ -965,13 +987,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
