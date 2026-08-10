@@ -7,7 +7,7 @@ import {
   driverCancelDeadline,
 } from "@/lib/ride-cancel";
 
-const PRE_START = [...PRE_START_STATUSES] as string[];
+const PRE_START = [...PRE_START_STATUSES];
 const NOT_PENDING = "cancel_request_status.is.null,cancel_request_status.neq.pending";
 
 function fmt(iso: string) {
