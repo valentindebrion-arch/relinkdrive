@@ -28,6 +28,14 @@ import { formatDateTime, formatEuro } from "@/lib/labels";
 import { LiveDriversMap } from "@/components/LiveDriversMap";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { estimateRoute, reverseGeocode } from "@/lib/route-estimate.functions";
+import { checkDriverAvailability } from "@/lib/availability.functions";
+import {
+  SAFETY_MARGIN_MIN,
+  availabilityMessage,
+  formatSlot,
+  type AvailabilityResult,
+} from "@/lib/availability";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
