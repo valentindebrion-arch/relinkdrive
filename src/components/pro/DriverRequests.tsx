@@ -186,6 +186,9 @@ export function DriverRequests() {
       .eq("client_id", r.client_id);
     void qc.invalidateQueries({ queryKey: ["driver-rides"] });
     void qc.invalidateQueries({ queryKey: ["driver-active-ride"] });
+    void qc.invalidateQueries({ queryKey: ["planning"] });
+    void qc.invalidateQueries({ queryKey: ["pro-overview"] });
+    void qc.invalidateQueries({ queryKey: ["request-feasibility"] });
   }
 
   const list = (requests.data?.list ?? []).filter((r) => PENDING.includes(r.status));
