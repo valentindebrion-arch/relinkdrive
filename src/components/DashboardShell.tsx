@@ -17,6 +17,7 @@ export function DashboardShell({
   settingsTo,
   bottomItems,
   hideBrand = false,
+  brandTo,
 }: {
   items: NavItem[];
   area: string;
@@ -25,6 +26,7 @@ export function DashboardShell({
   settingsTo?: string;
   bottomItems?: NavItem[];
   hideBrand?: boolean;
+  brandTo?: string;
 }) {
   const [open, setOpen] = useState(false);
   const { profile, signOut } = useAuth();
@@ -102,7 +104,9 @@ export function DashboardShell({
         <button onClick={() => setOpen(true)} aria-label="Ouvrir le menu">
           <Menu className="size-5" />
         </button>
-        {hideBrand ? (
+        {brandTo ? (
+          <BrandLogo to={brandTo} />
+        ) : hideBrand ? (
           <span aria-hidden />
         ) : (
           <Link to="/" className="font-semibold">
