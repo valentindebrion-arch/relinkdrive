@@ -233,7 +233,67 @@ function ClientRequests() {
     }
   }
 
-  function next() {
+  function toLocalInput(iso: string) {
+    const d = new Date(iso);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  /** Vérifie la faisabilité réelle du créneau (course précédente, suivante, marge). */
+  async function runCheck(driverIds: string[], iso: string) {
+    return availabilityFn({
+      data: {
+        driverIds,
+        pickup: form.pickup_address.trim(),
+        dropoff: form.dropoff_address.trim(),
+        desiredIso: iso,
+      },
+    });
+  }
+
+  async function checkSelectedDriver() {
+    setChecking(true);
+    setAlternatives(null);
+    try {
+      const res = await runCheck([form.driver_id], scheduledIso());
+      const verdict = res.results[0] ?? null;
+      setAvail(verdict);
+      return verdict;
+    } catch (e) {
+      console.error(e);
+      setAvail({
+        driverId: form.driver_id,
+        status: "unknown",
+        earliestIso: null,
+        repositionMin: null,
+        tripMin: null,
+        marginMin: SAFETY_MARGIN_MIN,
+        reason: "erreur_verification",
+      });
+      return null;
+    } finally {
+      setChecking(false);
+    }
+  }
+
+  async function findOtherDrivers() {
+    const ids = (drivers.data ?? []).map((d) => d.id).filter((id) => id !== form.driver_id);
+    if (!ids.length) {
+      toast.info("Aucun autre chauffeur dans votre carnet");
+      return;
+    }
+    setChecking(true);
+    try {
+      const res = await runCheck(ids.slice(0, 8), scheduledIso());
+      setAlternatives(res.results);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Vérification impossible");
+    } finally {
+      setChecking(false);
+    }
+  }
+
+  async function next() {
     if (step === 0) {
       if (!form.driver_id) return toast.error("Choisissez un chauffeur");
       if (whenMode === "now" && !driverAvailable)
@@ -244,12 +304,15 @@ function ClientRequests() {
       if (!dropoffOk) return toast.error("Confirmez l'adresse d'arrivée dans la liste proposée");
       if (whenMode === "later" && !form.scheduled_at)
         return toast.error("Choisissez une date et une heure");
+      const verdict = avail?.status === "available" ? avail : await checkSelectedDriver();
+      if (!verdict || verdict.status !== "available") return;
       setEstimate(null);
       return setStep(1);
     }
     if (step === 1) return void computeEstimate();
     if (step === 2) return setStep(3);
   }
+
 
   function resetForm() {
     setForm((f) => ({
