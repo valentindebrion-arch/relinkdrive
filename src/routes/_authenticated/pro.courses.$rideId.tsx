@@ -298,6 +298,41 @@ function DriverRideDetail() {
         {ride.notes ? <Row icon={Navigation} label="Informations complémentaires" value={ride.notes} /> : null}
       </div>
 
+      {pendingCancel ? (
+        <div className="rounded-xl border border-warning/50 bg-warning/10 p-4">
+          <p className="text-sm font-semibold">Demande d'annulation du client</p>
+          {ride.cancel_request_reason ? (
+            <p className="mt-1 text-xs text-muted-foreground break-words">
+              Motif indiqué : {ride.cancel_request_reason}
+            </p>
+          ) : null}
+          <p className="mt-1 text-xs text-muted-foreground">
+            La course reste confirmée et le créneau réservé tant que vous n'avez pas répondu.
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <Button variant="outline" disabled={deciding} onClick={() => setDecision("refused")}>
+              Refuser l'annulation
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={deciding}
+              onClick={() => setDecision("accepted")}
+            >
+              Accepter l'annulation
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      {ride.status === "cancelled" ? (
+        <p className="rounded-xl bg-muted p-3 text-xs text-muted-foreground">
+          Course annulée{ride.cancelled_at ? ` le ${formatDateTime(ride.cancelled_at)}` : ""}. Elle reste consultable
+          dans votre historique.
+        </p>
+      ) : null}
+
+
+
       {isLate ? (
         <p className="flex items-center gap-2 rounded-xl bg-warning/10 px-3 py-2 text-xs font-medium">
           <AlertTriangle className="size-4 shrink-0" />
