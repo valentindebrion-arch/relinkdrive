@@ -370,6 +370,27 @@ function DriverRideDetail() {
         </div>
       ) : null}
 
+      {preStart ? (
+        canSelfCancel ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            onClick={() => setCancelOpen(true)}
+          >
+            <XCircle className="size-4" />
+            Annuler la course
+          </Button>
+        ) : (
+          <p className="rounded-xl bg-muted p-3 text-center text-xs text-muted-foreground">
+            L'annulation autonome n'est plus disponible moins de 30 minutes avant la prise en charge (limite{" "}
+            {formatHour(cancelDeadline)}). Contactez l'assistance.
+          </p>
+        )
+      ) : null}
+
+
+
       {invoice ? (
         <Button asChild variant="outline" className="w-full gap-2">
           <Link to="/pro/factures">
