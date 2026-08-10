@@ -37,9 +37,34 @@ function NotFoundComponent() {
   );
 }
 
+/** Détecte une erreur de chargement de module due à une nouvelle version publiée. */
+function isStaleChunkError(error: unknown): boolean {
+  const message = error instanceof Error ? `${error.name} ${error.message}` : String(error ?? "");
+  return /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module|ChunkLoadError|Unable to preload CSS/i.test(
+    message,
+  );
+}
+
+const RELOAD_FLAG = "relink:stale-chunk-reloaded";
+
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+
+  // Après une nouvelle publication, les anciens fichiers n'existent plus :
+  // on recharge une seule fois pour récupérer la dernière version.
+  useEffect(() => {
+    if (typeof window === "undefined" || !isStaleChunkError(error)) return;
+    let alreadyReloaded = false;
+    try {
+      alreadyReloaded = window.sessionStorage.getItem(RELOAD_FLAG) === "1";
+      if (!alreadyReloaded) window.sessionStorage.setItem(RELOAD_FLAG, "1");
+    } catch {
+      alreadyReloaded = true;
+    }
+    if (!alreadyReloaded) window.location.reload();
+  }, [error]);
+
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
@@ -159,6 +184,17 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  // L'app s'est chargée correctement : on autorise à nouveau une récupération auto.
+  useEffect(() => {
+    try {
+      window.sessionStorage.removeItem(RELOAD_FLAG);
+    } catch {
+      /* stockage indisponible */
+    }
+  }, []);
+
+
 
   // Aspect application : bloque le pinch-to-zoom et le double-tap zoom (iOS ignore user-scalable=no)
   useEffect(() => {
