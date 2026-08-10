@@ -114,31 +114,13 @@ function ClientSettings() {
         </div>
       </div>
 
+      <div className="mt-4 max-w-xl">
+        <PushSettingsCard audience="client" />
+      </div>
+
       <div className="surface mt-4 grid max-w-xl gap-4 p-5">
         <p className="text-sm font-semibold">Autorisations de l'appareil</p>
 
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex gap-3">
-            <Bell className="mt-0.5 size-5 shrink-0 text-primary" />
-            <div>
-              <p className="text-sm font-medium">Notifications mobiles</p>
-              <p className="text-xs text-muted-foreground">
-                Recevez chaque étape de votre course, même application fermée ou écran verrouillé.
-              </p>
-              {!supported ? (
-                <p className="mt-1 text-xs text-destructive">
-                  Non disponible ici. Sur iPhone, ajoutez d'abord Relink à l'écran d'accueil.
-                </p>
-              ) : null}
-            </div>
-          </div>
-          <Switch
-            checked={pushOn}
-            disabled={!supported || busy === "push"}
-            onCheckedChange={(v) => void togglePush(v)}
-            aria-label="Activer les notifications mobiles"
-          />
-        </div>
 
         <div className="flex items-start justify-between gap-4">
           <div className="flex gap-3">
