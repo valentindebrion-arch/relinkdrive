@@ -8,6 +8,8 @@ import {
   roundUpToSlot,
   type AvailabilityResult,
 } from "@/lib/availability";
+import { fitsDeclaredAvailability } from "@/lib/schedule";
+
 
 const ACTIVE_STATUSES = [
   "confirmed",
@@ -65,11 +67,28 @@ export const checkDriverAvailability = createServerFn({ method: "POST" })
       .lte("scheduled_at", to)
       .order("scheduled_at");
 
+    // Disponibilités déclarées (horaires hebdomadaires + absences exceptionnelles).
+    const [{ data: hoursRows }, { data: absenceRows }] = await Promise.all([
+      supabaseAdmin
+        .from("driver_working_hours")
+        .select("driver_id, weekday, active, start_time, end_time")
+        .in("driver_id", driverIds),
+      supabaseAdmin
+        .from("driver_absences")
+        .select("driver_id, starts_on, ends_on")
+        .in("driver_id", driverIds),
+    ]);
+
     // Durée de la nouvelle course : calculée une seule fois pour tous les chauffeurs.
     const tripMin = await travelMinutes(data.pickup, data.dropoff, desired);
 
     const results: AvailabilityResult[] = [];
     for (const driverId of driverIds) {
+      const hours = (hoursRows ?? []).filter((h) => h.driver_id === driverId);
+      const absences = (absenceRows ?? []).filter((a) => a.driver_id === driverId);
+      const fitsSchedule = (start: Date, minutes: number) =>
+        fitsDeclaredAvailability(hours, absences, start, new Date(start.getTime() + minutes * 60_000));
+
       const planning = (rides ?? [])
         .filter((r) => r.driver_id === driverId && r.request_id !== (data.ignoreRequestId ?? null))
         .sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at));
@@ -144,7 +163,17 @@ export const checkDriverAvailability = createServerFn({ method: "POST" })
         );
       }
 
-      const feasible = (start: Date) => !latestStart || start <= latestStart;
+      const feasible = (start: Date) => (!latestStart || start <= latestStart) && fitsSchedule(start, tripMin);
+
+      if (!fitsSchedule(desired, tripMin) && !fitsSchedule(earliest, tripMin)) {
+        results.push({
+          ...base,
+          status: "unavailable",
+          repositionMin,
+          reason: "hors_disponibilites_declarees",
+        });
+        continue;
+      }
 
       if (earliest.getTime() <= desired.getTime() && feasible(desired)) {
         results.push({
@@ -166,6 +195,7 @@ export const checkDriverAvailability = createServerFn({ method: "POST" })
         });
         continue;
       }
+
       results.push({
         ...base,
         status: "unavailable",

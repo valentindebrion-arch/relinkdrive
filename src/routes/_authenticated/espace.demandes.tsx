@@ -401,9 +401,18 @@ function ClientRequests() {
       .single();
     setBusy(false);
     if (error) {
+      // Dernier rempart serveur : disponibilités déclarées du chauffeur.
+      if (/disponible/i.test(error.message)) {
+        setStep(0);
+        toast.error("Ce chauffeur n'est pas disponible à la date ou à l'horaire sélectionné.", {
+          description: "Modifiez la date ou l'heure, ou choisissez un autre chauffeur.",
+        });
+        return;
+      }
       toast.error(error.message);
       return;
     }
+
     toast.success("Demande envoyée — en attente de confirmation du chauffeur");
     resetForm();
     navigate({ to: "/espace/suivi/$id", params: { id: created.id } });

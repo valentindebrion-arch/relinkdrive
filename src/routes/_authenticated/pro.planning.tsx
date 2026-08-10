@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { CalendarClock, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { PageHeader, EmptyState } from "@/components/Ui";
@@ -9,6 +9,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { RIDE_STATUS_LABELS, formatEuro } from "@/lib/labels";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { WEEKDAYS } from "@/lib/schedule";
 
 export const Route = createFileRoute("/_authenticated/pro/planning")({
   head: () => ({
@@ -152,6 +153,9 @@ function PlanningPage() {
   return (
     <div className="space-y-4 overflow-x-hidden pb-6">
       <PageHeader title="Planning" description="Consultez et organisez vos courses à venir." />
+
+      <AvailabilityCard />
+
 
       <div className="grid grid-cols-3 gap-1 rounded-xl bg-muted p-1">
         {(["week", "month", "year"] as View[]).map((v) => (
@@ -389,5 +393,51 @@ function DaySheet({ date, rides, onClose }: { date: Date; rides: Ride[]; onClose
         )}
       </div>
     </div>
+  );
+}
+
+function AvailabilityCard() {
+  const { user } = useAuth();
+
+  const summary = useQuery({
+    queryKey: ["driver-availability-summary", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const [{ data: hours }, { data: absences }] = await Promise.all([
+        supabase.from("driver_working_hours").select("weekday, active, start_time, end_time").eq("driver_id", user!.id),
+        supabase
+          .from("driver_absences")
+          .select("id, starts_on, ends_on")
+          .eq("driver_id", user!.id)
+          .gte("ends_on", new Date().toISOString().slice(0, 10)),
+      ]);
+      return { hours: hours ?? [], absences: absences ?? [] };
+    },
+  });
+
+  const hours = summary.data?.hours ?? [];
+  const activeDays = WEEKDAYS.filter((d) => hours.find((h) => h.weekday === d.value)?.active);
+  const upcoming = summary.data?.absences.length ?? 0;
+
+  return (
+    <Link
+      to="/pro/disponibilites"
+      className="surface tap-active flex items-center gap-3 p-4 transition-colors hover:border-primary/40"
+    >
+      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+        <CalendarClock className="size-5" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-bold">Mes disponibilités</span>
+        <span className="block truncate text-xs text-muted-foreground">
+          {hours.length === 0
+            ? "Définissez vos horaires habituels et vos absences."
+            : activeDays.length === 0
+              ? "Aucun jour de travail déclaré."
+              : `${activeDays.map((d) => d.short).join(", ")}${upcoming ? ` · ${upcoming} absence${upcoming > 1 ? "s" : ""} à venir` : ""}`}
+        </span>
+      </span>
+      <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+    </Link>
   );
 }

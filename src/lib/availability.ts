@@ -48,7 +48,8 @@ export function availabilityMessage(result: AvailabilityResult) {
         ? `Ce chauffeur ne pourra pas arriver à l'heure demandée. Disponible à partir de ${formatSlot(result.earliestIso)}`
         : "Ce chauffeur ne pourra pas arriver à l'heure demandée.";
     case "unavailable":
-      return "Ce chauffeur n'est pas disponible sur cette période.";
+      return "Ce chauffeur n'est pas disponible à la date ou à l'horaire sélectionné.";
+
     default:
       return "Vérification impossible pour le moment. Réessayez ou choisissez un autre chauffeur.";
   }
