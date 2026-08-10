@@ -593,7 +593,110 @@ function ClientRequests() {
                 ) : null}
               </div>
 
+              {checking || avail ? (
+                <div
+                  className={cn(
+                    "rise-in shrink-0 rounded-2xl border px-3 py-2.5 text-[13px]",
+                    avail?.status === "available"
+                      ? "border-primary/40 bg-primary/10"
+                      : avail?.status === "unavailable"
+                        ? "border-destructive/40 bg-destructive/5"
+                        : "border-border bg-muted",
+                  )}
+                >
+                  {checking ? (
+                    <p className="flex items-center gap-2 font-medium text-muted-foreground">
+                      <Loader2 className="size-4 animate-spin" /> Vérification du créneau…
+                    </p>
+                  ) : avail ? (
+                    <>
+                      <p className="flex items-start gap-2 font-semibold">
+                        {avail.status === "available" ? (
+                          <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" />
+                        ) : (
+                          <Clock className="mt-0.5 size-4 shrink-0" />
+                        )}
+                        <span>{availabilityMessage(avail)}</span>
+                      </p>
+                      {avail.status === "later" && avail.earliestIso ? (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <Button
+                            size="sm"
+                            className="rounded-xl"
+                            onClick={() => {
+                              setWhenMode("later");
+                              setForm((f) => ({
+                                ...f,
+                                scheduled_at: toLocalInput(avail.earliestIso!),
+                              }));
+                              toast.success(`Créneau ${formatSlot(avail.earliestIso!)} sélectionné`);
+                            }}
+                          >
+                            Choisir ce créneau
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="rounded-xl"
+                            onClick={() => void findOtherDrivers()}
+                          >
+                            Voir d'autres chauffeurs
+                          </Button>
+                        </div>
+                      ) : null}
+                      {avail.status === "unavailable" ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="mt-2 rounded-xl"
+                          onClick={() => void findOtherDrivers()}
+                        >
+                          Voir d'autres chauffeurs
+                        </Button>
+                      ) : null}
+                      {avail.status === "unknown" ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="mt-2 rounded-xl"
+                          onClick={() => void checkSelectedDriver()}
+                        >
+                          Réessayer
+                        </Button>
+                      ) : null}
+                      {alternatives ? (
+                        <div className="mt-2 space-y-1 border-t border-border pt-2">
+                          {alternatives.filter((a) => a.status === "available").length === 0 ? (
+                            <p className="text-xs text-muted-foreground">
+                              Aucun autre chauffeur de votre carnet n'est disponible à cette heure.
+                            </p>
+                          ) : (
+                            alternatives
+                              .filter((a) => a.status === "available")
+                              .map((a) => (
+                                <button
+                                  key={a.driverId}
+                                  type="button"
+                                  className="tap tap-active flex w-full items-center justify-between rounded-xl bg-card px-3 py-2 text-left text-[13px] font-medium"
+                                  onClick={() => setForm((f) => ({ ...f, driver_id: a.driverId }))}
+                                >
+                                  <span className="truncate">
+                                    {(drivers.data ?? []).find((d) => d.id === a.driverId)
+                                      ?.full_name ?? "Chauffeur"}
+                                  </span>
+                                  <span className="text-primary">Disponible</span>
+                                </button>
+                              ))
+                          )}
+                        </div>
+                      ) : null}
+                    </>
+                  ) : null}
+                </div>
+              ) : null}
+
               <LiveDriversMap className="min-h-28 flex-1" />
+
             </>
           ) : null}
 
