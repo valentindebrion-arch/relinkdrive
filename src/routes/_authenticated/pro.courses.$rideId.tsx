@@ -3,13 +3,15 @@ import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ArrowLeft, AlertTriangle, Clock, CreditCard, MapPin, Navigation, Receipt, User } from "lucide-react";
+import { ArrowLeft, AlertTriangle, Clock, CreditCard, MapPin, Navigation, Receipt, User, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { CompleteRideDialog } from "@/components/CompleteRideDialog";
 import { Button } from "@/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +25,8 @@ import {
 import { RIDE_STATUS_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
 import { getServerNow, startRide } from "@/lib/ride-start.functions";
 import { formatHour, startWindowOpensAt } from "@/lib/ride-start";
+import { decideRideCancellation, driverCancelRide } from "@/lib/ride-cancel.functions";
+import { DRIVER_CANCEL_REASONS, driverCancelDeadline } from "@/lib/ride-cancel";
 
 export const Route = createFileRoute("/_authenticated/pro/courses/$rideId")({
   head: () => ({
