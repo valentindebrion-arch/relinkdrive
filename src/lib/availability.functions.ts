@@ -161,7 +161,17 @@ export const checkDriverAvailability = createServerFn({ method: "POST" })
         );
       }
 
-      const feasible = (start: Date) => !latestStart || start <= latestStart;
+      const feasible = (start: Date) => (!latestStart || start <= latestStart) && fitsSchedule(start, tripMin);
+
+      if (!fitsSchedule(desired, tripMin) && !fitsSchedule(earliest, tripMin)) {
+        results.push({
+          ...base,
+          status: "unavailable",
+          repositionMin,
+          reason: "hors_disponibilites_declarees",
+        });
+        continue;
+      }
 
       if (earliest.getTime() <= desired.getTime() && feasible(desired)) {
         results.push({
@@ -183,6 +193,7 @@ export const checkDriverAvailability = createServerFn({ method: "POST" })
         });
         continue;
       }
+
       results.push({
         ...base,
         status: "unavailable",
