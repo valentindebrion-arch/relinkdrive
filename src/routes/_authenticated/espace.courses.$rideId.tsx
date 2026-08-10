@@ -173,6 +173,92 @@ function RideDetail() {
         </div>
       </div>
 
+      {ride.cancel_request_status === "pending" ? (
+        <div className="mt-3 rounded-xl border border-warning/40 bg-warning/10 p-3">
+          <p className="flex items-center gap-2 text-sm font-medium">
+            <CircleAlert className="size-4 shrink-0" />
+            Demande d'annulation envoyée au chauffeur
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Votre course reste confirmée jusqu'à l'acceptation de la demande.
+          </p>
+        </div>
+      ) : null}
+
+      {ride.cancel_request_status === "refused" && ride.status !== "cancelled" ? (
+        <p className="mt-3 rounded-xl bg-muted p-3 text-xs text-muted-foreground">
+          Le chauffeur n'a pas accepté la demande d'annulation. Votre course reste confirmée. Vous pouvez l'appeler
+          pour trouver une solution.
+        </p>
+      ) : null}
+
+      {ride.status === "cancelled" ? (
+        <p className="mt-3 rounded-xl bg-muted p-3 text-xs text-muted-foreground">
+          {ride.cancel_request_status === "accepted" && ride.cancel_requested_by === user?.id
+            ? "Votre demande d'annulation a été acceptée."
+            : "Cette course a été annulée."}
+        </p>
+      ) : null}
+
+      {upcoming ? (
+        <div className="mt-3 space-y-2">
+          {phoneQuery.data?.phone ? (
+            <Button asChild variant="outline" className="w-full gap-2">
+              <a href={`tel:${phoneQuery.data.phone}`}>
+                <Phone className="size-4" />
+                Appeler le chauffeur
+              </a>
+            </Button>
+          ) : phoneQuery.isFetched ? (
+            <p className="text-center text-xs text-muted-foreground">Numéro du chauffeur indisponible</p>
+          ) : null}
+
+          {ride.driver_id && ride.cancel_request_status !== "pending" ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => setAskCancel(true)}
+            >
+              <XCircle className="size-4" />
+              Demander l'annulation
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+
+      <AlertDialog open={askCancel} onOpenChange={(o) => (sending ? null : setAskCancel(o))}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Souhaitez-vous demander l'annulation de cette course ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              La course restera confirmée jusqu'à la réponse du chauffeur.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            maxLength={300}
+            placeholder="Motif (facultatif) — ne transmettez aucune information sensible"
+            className="min-h-20"
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={sending}>Conserver la course</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={sending}
+              onClick={(e) => {
+                e.preventDefault();
+                void sendCancelRequest();
+              }}
+            >
+              {sending ? "Envoi…" : "Envoyer la demande"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+
+
       <div className="surface mt-3 divide-y p-4">
         <Row icon={Clock} label="Date et heure prévues" value={formatDateTime(ride.scheduled_at)} />
         {ride.started_at ? <Row icon={Clock} label="Prise en charge" value={formatDateTime(ride.started_at)} /> : null}
