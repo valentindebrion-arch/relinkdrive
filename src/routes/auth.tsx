@@ -82,9 +82,9 @@ function AuthPage() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
-        <Link to="/" className="mb-6 block text-center text-lg font-semibold">
-          {BRAND.name}
-        </Link>
+        <div className="mb-6 flex justify-center">
+          <BrandLogo size="lg" />
+        </div>
         <div className="surface p-6">
           <div className="mb-5 grid grid-cols-2 gap-1 rounded-lg bg-muted p-1 text-sm">
             <button
