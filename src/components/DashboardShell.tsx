@@ -67,14 +67,10 @@ export function DashboardShell({
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-sidebar-border bg-sidebar p-4 lg:flex">
-        {hideBrand ? (
-          <div className="mb-6" />
-        ) : (
-          <Link to="/" className="mb-6 block">
-            <p className="text-lg font-semibold tracking-tight">{BRAND.name}</p>
-            <p className="text-xs text-muted-foreground">{area}</p>
-          </Link>
-        )}
+        <div className="mb-6">
+          <BrandLogo to={brandTo ?? "/"} />
+          {hideBrand ? null : <p className="mt-1 text-xs text-muted-foreground">{area}</p>}
+        </div>
         <div className="flex-1 overflow-y-auto">{nav}</div>
         <div className="mt-4 flex items-center gap-2 border-t border-sidebar-border pt-3">
           <NotificationBell />
