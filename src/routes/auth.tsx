@@ -1,4 +1,5 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { BrandLogo } from "@/components/BrandLogo";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
