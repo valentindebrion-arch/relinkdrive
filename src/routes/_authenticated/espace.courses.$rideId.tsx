@@ -1,11 +1,28 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, MapPin, Clock, Users, Euro, User } from "lucide-react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
+import { ArrowLeft, MapPin, Clock, Users, Euro, User, Phone, XCircle, CircleAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { PageHeader, EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { InvoiceDownloadCard } from "@/components/InvoiceDownloadCard";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { getRideDriverPhone, requestRideCancellation } from "@/lib/ride-cancel.functions";
+import { PRE_START_STATUSES } from "@/lib/ride-cancel";
 import { RIDE_STATUS_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
 
 export const Route = createFileRoute("/_authenticated/espace/courses/$rideId")({
