@@ -18,6 +18,7 @@ export function DashboardShell({
   bottomItems,
   hideBrand = false,
   brandTo,
+  hideNotifications = false,
 }: {
   items: NavItem[];
   area: string;
@@ -27,6 +28,8 @@ export function DashboardShell({
   bottomItems?: NavItem[];
   hideBrand?: boolean;
   brandTo?: string;
+  /** Masque uniquement l'UI des notifications internes (le système reste en place). */
+  hideNotifications?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const { profile, signOut } = useAuth();
@@ -72,10 +75,12 @@ export function DashboardShell({
           {hideBrand ? null : <p className="mt-1 text-xs text-muted-foreground">{area}</p>}
         </div>
         <div className="flex-1 overflow-y-auto">{nav}</div>
-        <div className="mt-4 flex items-center gap-2 border-t border-sidebar-border pt-3">
-          <NotificationBell />
-          <span className="text-xs text-muted-foreground">Notifications</span>
-        </div>
+        {hideNotifications ? null : (
+          <div className="mt-4 flex items-center gap-2 border-t border-sidebar-border pt-3">
+            <NotificationBell />
+            <span className="text-xs text-muted-foreground">Notifications</span>
+          </div>
+        )}
         {settingsTo ? (
           <Link
             to={settingsTo}
@@ -102,7 +107,7 @@ export function DashboardShell({
         </button>
         <BrandLogo to={brandTo ?? "/"} size="sm" className="min-w-0" />
         <div className="flex items-center gap-1">
-        <NotificationBell />
+        {hideNotifications ? null : <NotificationBell />}
         {settingsTo ? (
           <Link
             to={settingsTo}

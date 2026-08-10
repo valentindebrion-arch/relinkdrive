@@ -32,14 +32,27 @@ export function formatPickupHour(iso: string) {
   });
 }
 
-/** Message prérempli : aucune adresse, aucun nom complet, aucune donnée de paiement. */
-export function buildSmsMessage(opts: { driverFirstName?: string | null; scheduledAt: string; link: string }) {
-  const hour = formatPickupHour(opts.scheduledAt);
+export type SmsKind = "departure" | "arrival";
+
+/**
+ * Message prérempli : aucune adresse, aucun nom complet, aucune donnée de paiement,
+ * et jamais la marque ReLink dans le corps du message.
+ */
+export function buildSmsMessage(opts: {
+  kind?: SmsKind;
+  driverFirstName?: string | null;
+  scheduledAt: string;
+  link: string;
+}) {
   const who = opts.driverFirstName?.trim();
-  return who
-    ? `Bonjour, ${who}, votre chauffeur ReLink, est en route pour votre prise en charge prévue à ${hour}. Suivez les informations de votre course ici : ${opts.link}`
-    : `Bonjour, votre chauffeur ReLink est en route pour votre prise en charge prévue à ${hour}. Vous pouvez consulter votre course ici : ${opts.link}`;
+  const prefix = who ? `Bonjour, ${who}, votre chauffeur, ` : "Bonjour, votre chauffeur ";
+  const body =
+    opts.kind === "arrival"
+      ? "est arrivé au lieu de prise en charge."
+      : `est en route pour votre prise en charge prévue à ${formatPickupHour(opts.scheduledAt)}.`;
+  return `${prefix}${body} Vous pouvez consulter votre course ici : ${opts.link}`;
 }
+
 
 export function isIosDevice(ua = typeof navigator !== "undefined" ? navigator.userAgent : "") {
   return /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && typeof document !== "undefined" && "ontouchend" in document);

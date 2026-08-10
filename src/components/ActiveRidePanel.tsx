@@ -19,6 +19,7 @@ import {
 import { formatDateTime, formatEuro } from "@/lib/labels";
 import { CompleteRideDialog } from "@/components/CompleteRideDialog";
 import { NotifyClientSmsButton, NotifyClientSmsDialog } from "@/components/NotifyClientSms";
+import type { SmsKind } from "@/lib/ride-sms";
 import { getServerNow, startRide } from "@/lib/ride-start.functions";
 import { formatHour, startWindowOpensAt } from "@/lib/ride-start";
 
@@ -39,6 +40,8 @@ export function ActiveRidePanel({ showEmpty = false, className }: { showEmpty?: 
   const [confirmStart, setConfirmStart] = useState(false);
   const [starting, setStarting] = useState(false);
   const [smsOpen, setSmsOpen] = useState(false);
+  const [smsKind, setSmsKind] = useState<SmsKind>("departure");
+  const [advancing, setAdvancing] = useState(false);
   const [, setTick] = useState(0);
   const start = useServerFn(startRide);
   const serverTime = useServerFn(getServerNow);
@@ -93,23 +96,34 @@ export function ActiveRidePanel({ showEmpty = false, className }: { showEmpty?: 
   const isLate = serverNow > new Date(r.scheduled_at) && !r.started_at;
 
   async function advance(status: string) {
-    if (!r) return;
-    const now = new Date().toISOString();
-    const { error } = await supabase
-      .from("rides")
-      .update({
-        status: status as never,
-        ...(status === "completed" ? { completed_at: now } : {}),
-      })
-      .eq("id", r.id);
-    if (error) {
-      toast.error(error.message);
-      return;
+    if (!r || advancing) return;
+    setAdvancing(true);
+    try {
+      const now = new Date().toISOString();
+      const { error } = await supabase
+        .from("rides")
+        .update({
+          status: status as never,
+          ...(status === "completed" ? { completed_at: now } : {}),
+        })
+        .eq("id", r.id)
+        .eq("status", r.status);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      await supabase
+        .from("ride_status_history")
+        .insert({ ride_id: r.id, status: status as never, changed_by: user!.id });
+      toast.success("Statut mis à jour");
+      refresh();
+      if (status === "driver_enroute" || status === "driver_arrived") {
+        setSmsKind(status === "driver_arrived" ? "arrival" : "departure");
+        setSmsOpen(true);
+      }
+    } finally {
+      setAdvancing(false);
     }
-    await supabase.from("ride_status_history").insert({ ride_id: r.id, status: status as never, changed_by: user!.id });
-    toast.success("Statut mis à jour");
-    refresh();
-    if (status === "driver_enroute") setSmsOpen(true);
   }
 
   function refresh() {
@@ -215,6 +229,7 @@ export function ActiveRidePanel({ showEmpty = false, className }: { showEmpty?: 
             <Button
               size="lg"
               className="w-full text-base"
+              disabled={advancing}
               onClick={() => (nextStep.status === "completed" ? setCompleting(true) : advance(nextStep.status))}
             >
               {nextStep.action}
@@ -223,11 +238,11 @@ export function ActiveRidePanel({ showEmpty = false, className }: { showEmpty?: 
         ) : null}
 
         {r.status === "driver_enroute" || r.status === "driver_arrived" ? (
-          <NotifyClientSmsButton rideId={r.id} />
+          <NotifyClientSmsButton rideId={r.id} kind={r.status === "driver_arrived" ? "arrival" : "departure"} />
         ) : null}
       </div>
 
-      <NotifyClientSmsDialog rideId={r.id} open={smsOpen} onOpenChange={setSmsOpen} />
+      <NotifyClientSmsDialog rideId={r.id} kind={smsKind} open={smsOpen} onOpenChange={setSmsOpen} />
 
 
       <AlertDialog open={confirmStart} onOpenChange={(o) => (starting ? null : setConfirmStart(o))}>
