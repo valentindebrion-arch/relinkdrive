@@ -47,7 +47,11 @@ export const getRideClientSmsTarget = createServerFn({ method: "POST" })
 /** Trace uniquement l'ouverture de l'action (jamais « SMS envoyé », ni le contenu du message). */
 export const logSmsIntent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { rideId: string }) => z.object({ rideId: z.string().uuid() }).parse(input))
+  .inputValidator((input: { rideId: string; kind?: "departure" | "arrival" }) =>
+    z
+      .object({ rideId: z.string().uuid(), kind: z.enum(["departure", "arrival"]).default("departure") })
+      .parse(input),
+  )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { data: ride } = await supabase
@@ -59,9 +63,10 @@ export const logSmsIntent = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin.from("analytics_events").insert({
-      event: "driver_sms_intent_opened",
+      event: data.kind === "arrival" ? "driver_arrived_sms_opened" : "driver_departure_sms_opened",
       driver_id: userId,
       metadata: { ride_id: ride.id },
     });
     return { ok: true as const };
   });
+
