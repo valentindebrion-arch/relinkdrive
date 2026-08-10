@@ -63,7 +63,7 @@ function ClientDrivers() {
       const [{ data: profiles }, { data: dprofiles }, { data: vehicles }] = await Promise.all([
         supabase.from("profiles").select("id, full_name, avatar_url").in("id", ids),
         supabase
-          .from("driver_profiles")
+          .from("connected_driver_profiles")
           .select("user_id, business_name, city, slug, languages, services, on_duty")
           .in("user_id", ids),
         supabase.from("vehicles").select("driver_id, brand, model, max_passengers").in("driver_id", ids),
