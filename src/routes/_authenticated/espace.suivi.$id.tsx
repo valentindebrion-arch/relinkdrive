@@ -329,7 +329,273 @@ function TrackingPage() {
     void qc.invalidateQueries({ queryKey: ["client-tracking", id] });
   }
 
+  // ─── Course réellement terminée : page de détail compacte, sans encadré de
+  // statut ni chronologie (les historiques restent stockés côté serveur).
+  if (completed && ride) {
+    const endLabel = ride.completed_at
+      ? `Terminée le ${formatDateTime(ride.completed_at)}`
+      : `Course du ${formatDateTime(scheduled)}`;
+    const options: { label: string; value: string }[] = [
+      { label: "Passagers", value: String(passengers) },
+      ...(luggage != null ? [{ label: "Bagages", value: String(luggage) }] : []),
+      ...(request
+        ? [{ label: "Trajet", value: request.round_trip ? "Aller-retour" : "Aller simple" }]
+        : []),
+      ...(request?.special_needs
+        ? [{ label: "Besoins particuliers", value: request.special_needs }]
+        : []),
+      ...(request?.comment ? [{ label: "Consignes au chauffeur", value: request.comment }] : []),
+      ...(ride.notes ? [{ label: "Informations complémentaires", value: ride.notes }] : []),
+    ];
+    const paid = invoice?.status === "paid" || !!invoice?.paid_at;
+    const paymentLabel = ride.payment_method
+      ? PAYMENT_LABELS[ride.payment_method] ?? "Autre moyen"
+      : null;
+
+    return (
+      <div className="pb-10">
+        <Header />
+
+        <header className="animate-fade-in">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-extrabold tracking-tight">Détail de la course</h1>
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+              Terminée
+            </span>
+          </div>
+          <p className="mt-0.5 text-sm text-muted-foreground">{endLabel}</p>
+        </header>
+
+        {/* Votre trajet */}
+        <section className="mt-4 rounded-3xl border border-border bg-card p-5 shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+          <p className="text-sm font-semibold">Votre trajet</p>
+          <div className="mt-3 flex items-start gap-3">
+            <span className="mt-1.5 block size-3 shrink-0 rounded-full bg-primary" />
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">Adresse de départ</p>
+              <p className="text-sm font-medium break-words">{pickup}</p>
+            </div>
+          </div>
+          <div className="my-1 ml-[6px] h-4 border-l border-dashed border-border" />
+          <div className="flex items-start gap-3">
+            <MapPin className="mt-0.5 size-4 shrink-0 text-primary" />
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">Destination</p>
+              <p className="text-sm font-medium break-words">{dropoff}</p>
+            </div>
+          </div>
+          <dl className="mt-4 grid grid-cols-2 gap-y-2 border-t border-border pt-4 text-sm">
+            <dt className="flex items-center gap-2 text-muted-foreground">
+              <Clock className="size-4" /> Date et heure
+            </dt>
+            <dd className="text-right font-medium">{formatDateTime(scheduled)}</dd>
+            {ride.mileage_km != null ? (
+              <>
+                <dt className="text-muted-foreground">Distance parcourue</dt>
+                <dd className="text-right font-medium">{Number(ride.mileage_km)} km</dd>
+              </>
+            ) : null}
+            {ride.started_at && ride.completed_at ? (
+              <>
+                <dt className="text-muted-foreground">Durée du trajet</dt>
+                <dd className="text-right font-medium">
+                  {Math.max(
+                    1,
+                    Math.round(
+                      (new Date(ride.completed_at).getTime() - new Date(ride.started_at).getTime()) /
+                        60_000,
+                    ),
+                  )}{" "}
+                  min
+                </dd>
+              </>
+            ) : null}
+            <dt className="text-muted-foreground">Type de trajet</dt>
+            <dd className="text-right font-medium">
+              {request?.round_trip ? "Aller-retour" : "Aller simple"}
+            </dd>
+          </dl>
+        </section>
+
+        {/* Votre chauffeur */}
+        {driver ? (
+          <section className="mt-4 rounded-3xl border border-border bg-card p-5 shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+            <p className="text-sm font-semibold">Votre chauffeur</p>
+            <div className="mt-3 flex items-center gap-3">
+              <span className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-full bg-primary/10 text-sm font-bold text-primary">
+                {driver.avatar_url ? (
+                  <img src={driver.avatar_url} alt={driverFirst} className="size-full object-cover" />
+                ) : (
+                  initials(driver.full_name)
+                )}
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-semibold">{driverFirst}</span>
+                <span className="block truncate text-xs text-muted-foreground">
+                  {vehicleLabel ?? "Chauffeur partenaire"}
+                </span>
+              </span>
+            </div>
+            {driverSlug.data ? (
+              <Link
+                to="/chauffeur/$slug"
+                params={{ slug: driverSlug.data }}
+                className="mt-3 inline-flex w-full items-center justify-between rounded-2xl border border-border px-4 py-3 text-sm font-semibold hover:bg-muted/50"
+              >
+                Voir le profil du chauffeur <ChevronRight className="size-4" />
+              </Link>
+            ) : null}
+          </section>
+        ) : null}
+
+        {/* Vos options */}
+        <section className="mt-4 rounded-3xl border border-border bg-card p-5 shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+          <p className="text-sm font-semibold">Vos options</p>
+          {options.length ? (
+            <dl className="mt-3 grid grid-cols-2 gap-y-2 text-sm">
+              {options.map((o) => (
+                <div key={o.label} className="col-span-2 flex items-start justify-between gap-3">
+                  <dt className="text-muted-foreground">{o.label}</dt>
+                  <dd className="max-w-[60%] text-right font-medium break-words">{o.value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className="mt-2 text-sm text-muted-foreground">Aucune option particulière</p>
+          )}
+        </section>
+
+        {/* Tarif et paiement */}
+        <section className="mt-4 rounded-3xl border border-border bg-card p-5 shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+          <p className="text-sm font-semibold">Tarif et paiement</p>
+          <div className="mt-3 flex items-center justify-between">
+            <span className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Euro className="size-4" /> {paid ? "Montant payé" : "Montant total"}
+            </span>
+            <span className="text-lg font-extrabold">
+              {price ? formatEuro(Number(price)) : "Non défini"}
+            </span>
+          </div>
+          <dl className="mt-3 grid grid-cols-2 gap-y-2 border-t border-border pt-3 text-sm">
+            <dt className="text-muted-foreground">État du paiement</dt>
+            <dd className="text-right font-medium">
+              {paid ? "Payée" : invoice ? "En attente de règlement" : "À régler auprès du chauffeur"}
+            </dd>
+            {paymentLabel ? (
+              <>
+                <dt className="text-muted-foreground">Moyen de paiement</dt>
+                <dd className="text-right font-medium">{paymentLabel}</dd>
+              </>
+            ) : null}
+            {invoice?.paid_at ? (
+              <>
+                <dt className="text-muted-foreground">Réglée le</dt>
+                <dd className="text-right font-medium">{formatDateTime(invoice.paid_at)}</dd>
+              </>
+            ) : null}
+          </dl>
+        </section>
+
+        {/* Reçu / facture */}
+        {invoice ? (
+          <div className="mt-4">
+            <InvoiceDownloadCard
+              invoice={invoice as never}
+              driverId={ride.driver_id}
+              ride={{
+                pickup_address: ride.pickup_address,
+                dropoff_address: ride.dropoff_address,
+                scheduled_at: ride.scheduled_at,
+                completed_at: ride.completed_at,
+                passengers: ride.passengers,
+                mileage_km: ride.mileage_km,
+              }}
+            />
+            <p className="mt-2 px-1 text-[11px] leading-snug text-muted-foreground">
+              Reçu généré avec Relink. La facture est émise par votre chauffeur indépendant, seul
+              responsable de son contenu.
+            </p>
+          </div>
+        ) : null}
+
+        {/* Évaluation */}
+        <section className="mt-4 rounded-3xl border border-border bg-card p-5 shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+          <p className="text-sm font-semibold">{review ? "Avis envoyé" : "Laisser un avis"}</p>
+          <div className="mt-3 flex gap-1">
+            {[1, 2, 3, 4, 5].map((n) => {
+              const value = review?.rating ?? rating;
+              return (
+                <button
+                  key={n}
+                  type="button"
+                  aria-label={`${n} étoile${n > 1 ? "s" : ""}`}
+                  disabled={!!review}
+                  onClick={() => setRating(n)}
+                  className="transition-transform active:scale-90"
+                >
+                  <StarIcon
+                    className={`size-8 ${n <= value ? "fill-warning text-warning" : "text-muted-foreground"}`}
+                  />
+                </button>
+              );
+            })}
+          </div>
+          {review ? (
+            review.comment ? (
+              <p className="mt-3 text-sm text-muted-foreground">« {review.comment} »</p>
+            ) : null
+          ) : (
+            <>
+              <Textarea
+                className="mt-3 rounded-2xl"
+                placeholder="Un mot sur votre trajet (facultatif)"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+              />
+              <Button
+                className="mt-3 h-12 w-full rounded-2xl font-bold"
+                disabled={rating < 1 || busy}
+                onClick={submitReview}
+              >
+                {busy ? <Loader2 className="size-4 animate-spin" /> : <StarIcon className="size-4" />}
+                Envoyer mon évaluation
+              </Button>
+            </>
+          )}
+        </section>
+
+        {/* Actions après la course */}
+        <section className="mt-4 space-y-2">
+          <Button
+            className="h-12 w-full rounded-2xl font-bold"
+            onClick={() => {
+              saveRequestDraft({
+                driver_id: ride.driver_id,
+                pickup_address: ride.pickup_address,
+                dropoff_address: ride.dropoff_address,
+                scheduled_at: "",
+                whenMode: "later",
+                pickupOk: true,
+                dropoffOk: true,
+              });
+              navigate({ to: "/espace/demandes" });
+            }}
+          >
+            Réserver à nouveau
+          </Button>
+          <Link
+            to="/aide"
+            className="block w-full rounded-2xl border border-border px-4 py-3 text-center text-sm font-semibold hover:bg-muted/50"
+          >
+            Contacter l'assistance
+          </Link>
+        </section>
+      </div>
+    );
+  }
+
   return (
+
     <div className="pb-10">
       <Header />
 
