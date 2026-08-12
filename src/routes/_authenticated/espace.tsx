@@ -11,6 +11,10 @@ export const Route = createFileRoute("/_authenticated/espace")({
 function ClientLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isHome = pathname === "/espace" || pathname === "/espace/";
+  // Formulaire de demande : parcours plein écran, sans logo ni onglets.
+  const isRequestFlow = pathname.startsWith("/espace/demandes");
+
+  if (isRequestFlow) return <Outlet />;
 
   // Accueil : interface plein écran centrée sur la carte (sans header).
   if (isHome) {

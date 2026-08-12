@@ -29,6 +29,12 @@ import { formatDateTime, formatEuro } from "@/lib/labels";
 import { LiveDriversMap } from "@/components/LiveDriversMap";
 import { RouteMiniMap } from "@/components/RouteMiniMap";
 import { AddressSearchPanel, pushRecentAddress } from "@/components/request/AddressSearchPanel";
+import {
+  OptionsStep,
+  serializeNeeds,
+  type ReturnMode,
+  type SpecialNeedsState,
+} from "@/components/request/OptionsStep";
 import { estimateRoute, reverseGeocode } from "@/lib/route-estimate.functions";
 import { checkDriverAvailability } from "@/lib/availability.functions";
 import {
@@ -146,6 +152,9 @@ function ClientRequests() {
   } | null>(null);
   const [previewState, setPreviewState] = useState<"idle" | "loading" | "error">("idle");
   const [showPreviewMap, setShowPreviewMap] = useState(false);
+  const [needs, setNeeds] = useState<SpecialNeedsState>({ keys: [], details: {} });
+  const [returnMode, setReturnMode] = useState<ReturnMode>("immediate");
+  const [returnTrip, setReturnTrip] = useState({ at: "", pickup: "", dropoff: "" });
 
   const [form, setForm] = useState({
     driver_id: search.driver ?? "",
@@ -410,7 +419,12 @@ function ClientRequests() {
     const estimateLine = estimate
       ? `Prix final Relink : ${formatEuro(estimate.price.total)} · ${estimate.distanceKm} km · ~${estimate.durationMin} min`
       : null;
-    const comment = [form.comment.trim(), estimateLine].filter(Boolean).join("\n");
+    const returnLine = form.round_trip
+      ? returnMode === "scheduled"
+        ? `Retour planifié : ${returnTrip.at ? formatDateTime(new Date(returnTrip.at).toISOString()) : "—"} · ${returnTrip.pickup} → ${returnTrip.dropoff}`
+        : "Retour immédiatement après la course"
+      : null;
+    const comment = [form.comment.trim(), returnLine, estimateLine].filter(Boolean).join("\n");
 
     const { data: created, error } = await supabase
       .from("ride_requests")
@@ -909,6 +923,52 @@ function ClientRequests() {
             </div>
           </div>
         </>
+      ) : step === 1 ? (
+        <OptionsStep
+          pickup={form.pickup_address}
+          dropoff={form.dropoff_address}
+          whenLabel={formatDateTime(scheduledIso())}
+          whenMode={whenMode}
+          driverName={driverName}
+          passengers={Number(form.passengers) || 1}
+          luggage={Number(form.luggage) || 0}
+          roundTrip={form.round_trip}
+          comment={form.comment}
+          needs={needs}
+          returnMode={returnMode}
+          returnAt={returnTrip.at}
+          returnPickup={returnTrip.pickup}
+          returnDropoff={returnTrip.dropoff}
+          minReturnLocal={toLocalInput(scheduledIso())}
+          busy={busy || checking}
+          onEditTrip={() => setStep(0)}
+          onContinue={() => void next()}
+          onChange={(patch) => {
+            if (patch.needs) {
+              setNeeds(patch.needs);
+              setForm((f) => ({ ...f, special_needs: serializeNeeds(patch.needs!) }));
+            }
+            if (patch.returnMode) setReturnMode(patch.returnMode);
+            if (
+              patch.returnAt !== undefined ||
+              patch.returnPickup !== undefined ||
+              patch.returnDropoff !== undefined
+            ) {
+              setReturnTrip((r) => ({
+                at: patch.returnAt ?? r.at,
+                pickup: patch.returnPickup ?? r.pickup,
+                dropoff: patch.returnDropoff ?? r.dropoff,
+              }));
+            }
+            setForm((f) => ({
+              ...f,
+              ...(patch.passengers !== undefined ? { passengers: String(patch.passengers) } : {}),
+              ...(patch.luggage !== undefined ? { luggage: String(patch.luggage) } : {}),
+              ...(patch.roundTrip !== undefined ? { round_trip: patch.roundTrip } : {}),
+              ...(patch.comment !== undefined ? { comment: patch.comment } : {}),
+            }));
+          }}
+        />
       ) : (
         <div className="mx-auto flex w-full max-w-2xl min-h-0 flex-1 flex-col px-3 pb-2">
           <div key={`h-${step}`} className="rise-in shrink-0">
@@ -923,110 +983,6 @@ function ClientRequests() {
               dir === 1 ? "step-in-right" : "step-in-left",
             )}
           >
-            {step === 1 ? (
-              <>
-                <LiveDriversMap className="h-32 shrink-0" />
-
-                <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto pb-1">
-                  <div className="grid grid-cols-2 gap-2.5">
-                    {(
-                      [
-                        { key: "passengers", label: "Passagers", icon: Users, min: 1, max: 8 },
-                        { key: "luggage", label: "Bagages", icon: Luggage, min: 0, max: 10 },
-                      ] as const
-                    ).map((f) => {
-                      const Icon = f.icon;
-                      const val = Number(form[f.key]) || 0;
-                      const set = (n: number) =>
-                        setForm((prev) => ({
-                          ...prev,
-                          [f.key]: String(Math.min(f.max, Math.max(f.min, n))),
-                        }));
-                      return (
-                        <div
-                          key={f.key}
-                          className="tap rounded-2xl border border-border bg-card px-3 py-2.5"
-                        >
-                          <p className="flex items-center gap-1.5 text-xs font-bold">
-                            <Icon className="size-3.5 text-primary" /> {f.label}
-                          </p>
-                          <div className="mt-1.5 flex items-center justify-between">
-                            <button
-                              type="button"
-                              aria-label={`Moins de ${f.label}`}
-                              onClick={() => set(val - 1)}
-                              className="tap tap-active flex size-8 items-center justify-center rounded-xl bg-muted text-lg font-bold hover:bg-accent"
-                            >
-                              −
-                            </button>
-                            <span key={val} className="animate-scale-in text-xl font-extrabold">
-                              {val}
-                            </span>
-                            <button
-                              type="button"
-                              aria-label={`Plus de ${f.label}`}
-                              onClick={() => set(val + 1)}
-                              className="tap tap-active flex size-8 items-center justify-center rounded-xl bg-primary/10 text-lg font-bold text-primary hover:bg-primary/20"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="tap flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-3.5 py-2.5">
-                    <Label htmlFor="rt" className="text-[14px] font-bold">
-                      Aller-retour
-                    </Label>
-                    <Switch
-                      id="rt"
-                      checked={form.round_trip}
-                      onCheckedChange={(v) => setForm({ ...form, round_trip: v })}
-                    />
-                  </div>
-
-                  <div className="tap flex items-center gap-2.5 rounded-2xl border border-border bg-card px-3.5 py-1.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                      <Car className="size-4" />
-                    </span>
-                    <select
-                      aria-label="Type de trajet"
-                      className="h-10 w-full appearance-none bg-transparent text-[15px] font-medium focus:outline-none"
-                      value={form.trip_type}
-                      onChange={(e) => setForm({ ...form, trip_type: e.target.value })}
-                    >
-                      <option value="">Type de trajet</option>
-                      {TRIP_TYPES.map((t) => (
-                        <option key={t} value={t}>
-                          {t}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <Input
-                    aria-label="Besoins particuliers"
-                    className="h-11 rounded-2xl text-[14px]"
-                    maxLength={200}
-                    placeholder="Besoins particuliers (facultatif)"
-                    value={form.special_needs}
-                    onChange={(e) => setForm({ ...form, special_needs: e.target.value })}
-                  />
-
-                  <Input
-                    aria-label="Informations complémentaires"
-                    className="h-11 rounded-2xl text-[14px]"
-                    maxLength={500}
-                    placeholder="Précisions : n° de vol, étage… (facultatif)"
-                    value={form.comment}
-                    onChange={(e) => setForm({ ...form, comment: e.target.value })}
-                  />
-                </div>
-              </>
-            ) : null}
-
             {step >= 2 && estimate ? (
               <>
                 <LiveDriversMap polyline={estimate.polyline} className="min-h-24 flex-1" />
