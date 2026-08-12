@@ -31,7 +31,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { RIDE_STATUS_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
+import { PAYMENT_METHODS, RIDE_STATUS_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
+import { saveRequestDraft } from "@/lib/request-draft";
 import { BLOCKING_QUERY_KEY } from "@/lib/immediate-request";
 import { ExpiryRing, useCountdown, useExpiryEffect } from "@/components/ExpiryCountdown";
 
@@ -141,22 +142,31 @@ function TrackingPage() {
         .maybeSingle();
 
       if (ride) {
-        const [{ data: driver }, { data: vehicle }, { data: review }, { data: invoice }, { data: request }] =
-          await Promise.all([
-            supabase.from("profiles").select("full_name, avatar_url").eq("id", ride.driver_id).maybeSingle(),
-            supabase
-              .from("vehicles")
-              .select("brand, model")
-              .eq("driver_id", ride.driver_id)
-              .order("is_primary", { ascending: false })
-              .limit(1)
-              .maybeSingle(),
-            supabase.from("ride_reviews").select("*").eq("ride_id", ride.id).maybeSingle(),
-            supabase.from("invoices").select("*").eq("ride_id", ride.id).maybeSingle(),
-            ride.request_id
-              ? supabase.from("ride_requests").select("*").eq("id", ride.request_id).maybeSingle()
-              : Promise.resolve({ data: null }),
-          ]);
+        const [
+          { data: driver },
+          { data: vehicle },
+          { data: review },
+          { data: invoice },
+          { data: request },
+        ] = await Promise.all([
+          supabase
+            .from("profiles")
+            .select("full_name, avatar_url")
+            .eq("id", ride.driver_id)
+            .maybeSingle(),
+          supabase
+            .from("vehicles")
+            .select("brand, model")
+            .eq("driver_id", ride.driver_id)
+            .order("is_primary", { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+          supabase.from("ride_reviews").select("*").eq("ride_id", ride.id).maybeSingle(),
+          supabase.from("invoices").select("*").eq("ride_id", ride.id).maybeSingle(),
+          ride.request_id
+            ? supabase.from("ride_requests").select("*").eq("id", ride.request_id).maybeSingle()
+            : Promise.resolve({ data: null }),
+        ]);
         return { kind: "ride" as const, ride, request, driver, vehicle, review, invoice };
       }
 
@@ -169,7 +179,11 @@ function TrackingPage() {
       if (!request) return null;
 
       const [{ data: driver }, { data: vehicle }, { data: linked }] = await Promise.all([
-        supabase.from("profiles").select("full_name, avatar_url").eq("id", request.driver_id).maybeSingle(),
+        supabase
+          .from("profiles")
+          .select("full_name, avatar_url")
+          .eq("id", request.driver_id)
+          .maybeSingle(),
         supabase
           .from("vehicles")
           .select("brand, model")
@@ -236,14 +250,12 @@ function TrackingPage() {
   const countdown = useCountdown(deadlineIso);
   const handleExpired = useCallback(() => {
     // Le serveur reste juge : on déclenche l'expiration puis on relit l'état réel.
-    void supabase
-      .rpc("get_blocking_immediate_request")
-      .then(() => {
-        void qc.invalidateQueries({ queryKey: ["client-tracking", id] });
-        void qc.invalidateQueries({ queryKey: [BLOCKING_QUERY_KEY] });
-        void qc.invalidateQueries({ queryKey: ["client-home"] });
-        void qc.invalidateQueries({ queryKey: ["client-rides"] });
-      });
+    void supabase.rpc("get_blocking_immediate_request").then(() => {
+      void qc.invalidateQueries({ queryKey: ["client-tracking", id] });
+      void qc.invalidateQueries({ queryKey: [BLOCKING_QUERY_KEY] });
+      void qc.invalidateQueries({ queryKey: ["client-home"] });
+      void qc.invalidateQueries({ queryKey: ["client-rides"] });
+    });
   }, [id, qc]);
   useExpiryEffect(deadlineIso, !!countdown?.expired, handleExpired);
 
@@ -263,12 +275,14 @@ function TrackingPage() {
 
   if (q.isLoading) return <TrackingSkeleton />;
 
-
   if (!q.data) {
     return (
       <>
         <Header />
-        <EmptyState title="Demande introuvable" description="Cette demande n'existe pas ou ne vous appartient pas." />
+        <EmptyState
+          title="Demande introuvable"
+          description="Cette demande n'existe pas ou ne vous appartient pas."
+        />
       </>
     );
   }
@@ -349,7 +363,7 @@ function TrackingPage() {
     ];
     const paid = invoice?.status === "paid" || !!invoice?.paid_at;
     const paymentLabel = ride.payment_method
-      ? PAYMENT_LABELS[ride.payment_method] ?? "Autre moyen"
+      ? (PAYMENT_METHODS[ride.payment_method] ?? "Autre moyen")
       : null;
 
     return (
@@ -402,7 +416,8 @@ function TrackingPage() {
                   {Math.max(
                     1,
                     Math.round(
-                      (new Date(ride.completed_at).getTime() - new Date(ride.started_at).getTime()) /
+                      (new Date(ride.completed_at).getTime() -
+                        new Date(ride.started_at).getTime()) /
                         60_000,
                     ),
                   )}{" "}
@@ -424,7 +439,11 @@ function TrackingPage() {
             <div className="mt-3 flex items-center gap-3">
               <span className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-full bg-primary/10 text-sm font-bold text-primary">
                 {driver.avatar_url ? (
-                  <img src={driver.avatar_url} alt={driverFirst} className="size-full object-cover" />
+                  <img
+                    src={driver.avatar_url}
+                    alt={driverFirst}
+                    className="size-full object-cover"
+                  />
                 ) : (
                   initials(driver.full_name)
                 )}
@@ -479,7 +498,11 @@ function TrackingPage() {
           <dl className="mt-3 grid grid-cols-2 gap-y-2 border-t border-border pt-3 text-sm">
             <dt className="text-muted-foreground">État du paiement</dt>
             <dd className="text-right font-medium">
-              {paid ? "Payée" : invoice ? "En attente de règlement" : "À régler auprès du chauffeur"}
+              {paid
+                ? "Payée"
+                : invoice
+                  ? "En attente de règlement"
+                  : "À régler auprès du chauffeur"}
             </dd>
             {paymentLabel ? (
               <>
@@ -557,7 +580,11 @@ function TrackingPage() {
                 disabled={rating < 1 || busy}
                 onClick={submitReview}
               >
-                {busy ? <Loader2 className="size-4 animate-spin" /> : <StarIcon className="size-4" />}
+                {busy ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <StarIcon className="size-4" />
+                )}
                 Envoyer mon évaluation
               </Button>
             </>
@@ -595,7 +622,6 @@ function TrackingPage() {
   }
 
   return (
-
     <div className="pb-10">
       <Header />
 
@@ -657,7 +683,11 @@ function TrackingPage() {
             <ExpiryRing msLeft={countdown.msLeft} label={countdown.label} size={104}>
               <span className="grid size-[72px] place-items-center overflow-hidden rounded-full bg-card text-lg font-bold text-primary shadow-sm">
                 {driver?.avatar_url ? (
-                  <img src={driver.avatar_url} alt={driverFirst} className="size-full object-cover" />
+                  <img
+                    src={driver.avatar_url}
+                    alt={driverFirst}
+                    className="size-full object-cover"
+                  />
                 ) : (
                   initials(driver?.full_name)
                 )}
@@ -669,7 +699,11 @@ function TrackingPage() {
               <span className="absolute size-20 rounded-full border-2 border-primary/50 motion-safe:animate-pulse" />
               <span className="relative grid size-16 place-items-center overflow-hidden rounded-full bg-card text-lg font-bold text-primary shadow-sm">
                 {driver?.avatar_url ? (
-                  <img src={driver.avatar_url} alt={driverFirst} className="size-full object-cover" />
+                  <img
+                    src={driver.avatar_url}
+                    alt={driverFirst}
+                    className="size-full object-cover"
+                  />
                 ) : (
                   initials(driver?.full_name)
                 )}
@@ -709,8 +743,8 @@ function TrackingPage() {
           </span>
           <p className="mt-3 text-sm font-semibold">Demande expirée</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            {driverFirst} n'a pas répondu dans les 10 minutes. Vous pouvez relancer une demande, avec le même
-            chauffeur ou un autre.
+            {driverFirst} n'a pas répondu dans les 10 minutes. Vous pouvez relancer une demande,
+            avec le même chauffeur ou un autre.
           </p>
           <Button
             className="mt-4 h-11 w-full rounded-2xl font-semibold"
@@ -730,7 +764,9 @@ function TrackingPage() {
       {/* Refus */}
       {refused ? (
         <section className="mt-4 rounded-3xl border border-destructive/25 bg-destructive/[0.05] p-5">
-          <p className="text-sm font-semibold">Le chauffeur n'est pas disponible pour cette demande</p>
+          <p className="text-sm font-semibold">
+            Le chauffeur n'est pas disponible pour cette demande
+          </p>
           <p className="mt-1 text-xs text-muted-foreground">
             Vous pouvez choisir un autre chauffeur et envoyer une nouvelle demande.
           </p>
@@ -829,7 +865,9 @@ function TrackingPage() {
           {request ? (
             <>
               <dt className="text-muted-foreground">Trajet</dt>
-              <dd className="text-right font-medium">{request.round_trip ? "Aller-retour" : "Aller simple"}</dd>
+              <dd className="text-right font-medium">
+                {request.round_trip ? "Aller-retour" : "Aller simple"}
+              </dd>
             </>
           ) : null}
           <dt className="text-muted-foreground">Chauffeur</dt>
@@ -843,7 +881,9 @@ function TrackingPage() {
           <dt className="flex items-center gap-2 text-muted-foreground">
             <Euro className="size-4" /> Prix
           </dt>
-          <dd className="text-right font-medium">{price ? formatEuro(Number(price)) : "À confirmer"}</dd>
+          <dd className="text-right font-medium">
+            {price ? formatEuro(Number(price)) : "À confirmer"}
+          </dd>
           {request?.special_needs ? (
             <>
               <dt className="text-muted-foreground">Besoins particuliers</dt>
@@ -853,7 +893,9 @@ function TrackingPage() {
         </dl>
 
         {request?.driver_message ? (
-          <p className="mt-3 rounded-2xl bg-muted p-3 text-sm text-muted-foreground">« {request.driver_message} »</p>
+          <p className="mt-3 rounded-2xl bg-muted p-3 text-sm text-muted-foreground">
+            « {request.driver_message} »
+          </p>
         ) : null}
 
         {ride ? (
@@ -870,7 +912,9 @@ function TrackingPage() {
       {/* Évaluation */}
       {completed && ride ? (
         <div className="mt-4 rounded-3xl border border-border bg-card p-5">
-          <p className="text-sm font-semibold">{review ? "Votre évaluation" : "Évaluer ce trajet"}</p>
+          <p className="text-sm font-semibold">
+            {review ? "Votre évaluation" : "Évaluer ce trajet"}
+          </p>
           <div className="mt-3 flex gap-1">
             {[1, 2, 3, 4, 5].map((n) => {
               const value = review?.rating ?? rating;
@@ -907,7 +951,11 @@ function TrackingPage() {
                 disabled={rating < 1 || busy}
                 onClick={submitReview}
               >
-                {busy ? <Loader2 className="size-4 animate-spin" /> : <StarIcon className="size-4" />}
+                {busy ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <StarIcon className="size-4" />
+                )}
                 Envoyer mon évaluation
               </Button>
             </>
@@ -930,8 +978,8 @@ function TrackingPage() {
             }}
           />
           <p className="mt-2 px-1 text-[11px] leading-snug text-muted-foreground">
-            Reçu généré avec Relink. La facture est émise par votre chauffeur indépendant, seul responsable de son
-            contenu.
+            Reçu généré avec Relink. La facture est émise par votre chauffeur indépendant, seul
+            responsable de son contenu.
           </p>
         </div>
       ) : null}
@@ -953,8 +1001,8 @@ function TrackingPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Annuler cette demande ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Le chauffeur ne recevra plus votre demande. Tant qu'aucune course n'est confirmée, l'annulation est
-              sans frais. Vous pourrez ensuite envoyer une nouvelle demande.
+              Le chauffeur ne recevra plus votre demande. Tant qu'aucune course n'est confirmée,
+              l'annulation est sans frais. Vous pourrez ensuite envoyer une nouvelle demande.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
