@@ -16,6 +16,7 @@ import { useAuth } from "@/lib/auth";
 import { LiveDriversMap } from "@/components/LiveDriversMap";
 import { BrandLogo } from "@/components/BrandLogo";
 import { RIDE_STATUS_LABELS } from "@/lib/labels";
+import { useBlockingImmediate } from "@/lib/immediate-request";
 
 export const Route = createFileRoute("/_authenticated/espace/")({
   component: ClientHome,
