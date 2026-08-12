@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { BrandLogo } from "@/components/BrandLogo";
+import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -104,23 +105,36 @@ function AuthPage() {
             </button>
           </div>
 
+          {mode === "signup" ? (
+            <div className="mb-3 grid grid-cols-2 gap-2">
+              {(["client", "driver"] as const).map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRole(r)}
+                  className={`min-h-11 rounded-lg border px-3 text-sm font-medium ${
+                    role === r ? "border-primary bg-accent text-accent-foreground" : "border-border"
+                  }`}
+                >
+                  {r === "client" ? "Je suis client" : "Je suis chauffeur"}
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          <GoogleSignInButton intent={role} next={search.next} />
+
+          <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="h-px flex-1 bg-border" />
+            ou
+            <span className="h-px flex-1 bg-border" />
+          </div>
+
           <form onSubmit={submit} className="space-y-4">
+
             {mode === "signup" ? (
               <>
-                <div className="grid grid-cols-2 gap-2">
-                  {(["client", "driver"] as const).map((r) => (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => setRole(r)}
-                      className={`rounded-lg border px-3 py-2 text-sm font-medium ${
-                        role === r ? "border-primary bg-accent text-accent-foreground" : "border-border"
-                      }`}
-                    >
-                      {r === "client" ? "Passager" : "Chauffeur VTC"}
-                    </button>
-                  ))}
-                </div>
+
                 <div>
                   <Label htmlFor="name">Prénom et nom</Label>
                   <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} required maxLength={100} />
