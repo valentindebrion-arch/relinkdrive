@@ -11,6 +11,7 @@ export const RIDE_STATUS_LABELS: Record<string, string> = {
   completed: "Terminée",
   cancelled: "Annulée",
   refused: "Refusée",
+  expired: "Expirée",
 };
 
 export const VERIFICATION_LABELS: Record<string, string> = {

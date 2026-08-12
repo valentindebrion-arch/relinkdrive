@@ -763,6 +763,7 @@ export type Database = {
           driver_id: string
           driver_message: string | null
           dropoff_address: string
+          expired_at: string | null
           id: string
           idempotency_key: string | null
           is_immediate: boolean
@@ -772,6 +773,7 @@ export type Database = {
           preferred_contact: string | null
           proposed_price: number | null
           proposed_time: string | null
+          response_deadline: string | null
           round_trip: boolean
           scheduled_at: string
           special_needs: string | null
@@ -786,6 +788,7 @@ export type Database = {
           driver_id: string
           driver_message?: string | null
           dropoff_address: string
+          expired_at?: string | null
           id?: string
           idempotency_key?: string | null
           is_immediate?: boolean
@@ -795,6 +798,7 @@ export type Database = {
           preferred_contact?: string | null
           proposed_price?: number | null
           proposed_time?: string | null
+          response_deadline?: string | null
           round_trip?: boolean
           scheduled_at: string
           special_needs?: string | null
@@ -809,6 +813,7 @@ export type Database = {
           driver_id?: string
           driver_message?: string | null
           dropoff_address?: string
+          expired_at?: string | null
           id?: string
           idempotency_key?: string | null
           is_immediate?: boolean
@@ -818,6 +823,7 @@ export type Database = {
           preferred_contact?: string | null
           proposed_price?: number | null
           proposed_time?: string | null
+          response_deadline?: string | null
           round_trip?: boolean
           scheduled_at?: string
           special_needs?: string | null
@@ -1230,6 +1236,10 @@ export type Database = {
         Args: { _driver: string; _end: string; _start: string }
         Returns: boolean
       }
+      expire_stale_immediate_requests: {
+        Args: { _client?: string }
+        Returns: number
+      }
       get_blocking_immediate_request: {
         Args: never
         Returns: {
@@ -1239,6 +1249,7 @@ export type Database = {
           driver_id: string
           kind: string
           request_id: string
+          response_deadline: string
           ride_id: string
           status: Database["public"]["Enums"]["ride_status"]
         }[]
@@ -1413,6 +1424,7 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "refused"
+        | "expired"
       verification_status:
         | "incomplete"
         | "pending"
@@ -1580,6 +1592,7 @@ export const Constants = {
         "completed",
         "cancelled",
         "refused",
+        "expired",
       ],
       verification_status: [
         "incomplete",
