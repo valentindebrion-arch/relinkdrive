@@ -170,6 +170,40 @@ function ClientRequests() {
     setAlternatives(null);
   }, [form.driver_id, form.pickup_address, form.dropoff_address, form.scheduled_at, whenMode]);
 
+  // Aperçu d'itinéraire dès que départ et arrivée sont confirmés (étape 1).
+  useEffect(() => {
+    if (!pickupOk || !dropoffOk || !form.pickup_address || !form.dropoff_address) {
+      setPreview(null);
+      setPreviewState("idle");
+      return;
+    }
+    let cancelled = false;
+    setPreviewState("loading");
+    void (async () => {
+      try {
+        const res = (await estimateFn({
+          data: { origin: form.pickup_address, destination: form.dropoff_address },
+        })) as Estimate;
+        if (cancelled) return;
+        setPreview({
+          distanceKm: res.distanceKm,
+          durationMin: res.durationMin,
+          polyline: res.polyline,
+        });
+        setEstimate(res);
+        setPreviewState("idle");
+      } catch {
+        if (cancelled) return;
+        setPreview(null);
+        setPreviewState("error");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [pickupOk, dropoffOk, form.pickup_address, form.dropoff_address, estimateFn]);
+
+
   const drivers = useQuery({
     queryKey: ["client-driver-options", user?.id],
     enabled: !!user?.id,
