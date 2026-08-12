@@ -92,26 +92,6 @@ function ClientHome() {
   const liveCta = activeRide ? "Suivre" : pendingRequest ? "Voir" : "Détails";
   const liveIso = (live as { scheduled_at?: string | null } | null)?.scheduled_at ?? null;
 
-  const favoriteName = favorite?.driver?.business_name ?? favorite?.profile?.full_name ?? "Chauffeur";
-  const favoriteAvailable = favorite?.driver?.on_duty === true;
-
-  const selectedDriver =
-    selectedDriverIdx != null ? allDrivers[selectedDriverIdx % Math.max(allDrivers.length, 1)] : undefined;
-
-  const onDriverSelect = useCallback(
-    (i: number) => {
-      setSelectedDriverIdx(i);
-      setSnap("mid");
-    },
-    [],
-  );
-
-  const cycleSnap = (dir: 1 | -1) => {
-    const i = SNAP_ORDER.indexOf(snap);
-    const nextI = Math.min(SNAP_ORDER.length - 1, Math.max(0, i + dir));
-    setSnap(SNAP_ORDER[nextI]!);
-  };
-
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden">
       {/* Carte plein écran (arrière-plan) */}
