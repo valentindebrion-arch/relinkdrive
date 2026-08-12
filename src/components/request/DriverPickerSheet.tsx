@@ -56,7 +56,7 @@ export function DriverPickerSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="max-h-[85dvh] rounded-t-[28px] p-0 sm:mx-auto sm:max-w-lg"
+        className="flex max-h-[85dvh] flex-col rounded-t-[28px] p-0 sm:mx-auto sm:max-w-lg"
       >
         <SheetHeader className="px-5 pt-5 pb-3">
           <SheetTitle className="text-[19px] font-extrabold tracking-tight">
