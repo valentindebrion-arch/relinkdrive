@@ -19,6 +19,7 @@ import {
   Luggage,
   MapPin,
   Search,
+  Star,
   UserRound,
   Users,
   X,
@@ -29,6 +30,9 @@ import { formatDateTime, formatEuro } from "@/lib/labels";
 import { LiveDriversMap } from "@/components/LiveDriversMap";
 import { RouteMiniMap } from "@/components/RouteMiniMap";
 import { AddressSearchPanel, pushRecentAddress } from "@/components/request/AddressSearchPanel";
+import { DriverPickerSheet } from "@/components/request/DriverPickerSheet";
+import { QrScannerDialog } from "@/components/QrScannerDialog";
+import { loadRequestDraft, saveRequestDraft, clearRequestDraft } from "@/lib/request-draft";
 import {
   OptionsStep,
   serializeNeeds,
@@ -160,6 +164,8 @@ function ClientRequests() {
   const [returnMode, setReturnMode] = useState<ReturnMode>("immediate");
   const [returnTrip, setReturnTrip] = useState({ at: "", pickup: "", dropoff: "" });
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [driverPickerOpen, setDriverPickerOpen] = useState(false);
+  const [scanOpen, setScanOpen] = useState(false);
   /** Empêche tout double envoi d'une même demande. */
   const sentRef = useRef(false);
 
@@ -225,14 +231,38 @@ function ClientRequests() {
         .eq("client_id", user!.id);
       const ids = (conns ?? []).map((c) => c.driver_id);
       if (!ids.length) return [];
-      const [{ data }, { data: dprofiles }] = await Promise.all([
+      const [{ data }, { data: dprofiles }, { data: cars }, { data: past }] = await Promise.all([
         supabase.from("profiles").select("id, full_name").in("id", ids),
         supabase.rpc("get_connected_driver_profiles"),
+        supabase
+          .from("vehicles")
+          .select("driver_id, brand, model, color, is_primary")
+          .in("driver_id", ids),
+        supabase.from("rides").select("driver_id").eq("client_id", user!.id),
       ]);
-      return (data ?? []).map((p) => ({
-        ...p,
-        on_duty: (dprofiles ?? []).find((d) => d.user_id === p.id)?.on_duty ?? false,
-      }));
+      // Chauffeur « favori » = celui avec le plus de courses réalisées pour ce client.
+      const counts = new Map<string, number>();
+      (past ?? []).forEach((r) => counts.set(r.driver_id, (counts.get(r.driver_id) ?? 0) + 1));
+      let favoriteId: string | null = null;
+      counts.forEach((n, id) => {
+        if (n > 0 && n > (favoriteId ? (counts.get(favoriteId) ?? 0) : 0)) favoriteId = id;
+      });
+      return (data ?? []).map((p) => {
+        const profile = (dprofiles ?? []).find((d) => d.user_id === p.id);
+        const car =
+          (cars ?? []).find((c) => c.driver_id === p.id && c.is_primary) ??
+          (cars ?? []).find((c) => c.driver_id === p.id);
+        const vehicle = car
+          ? [car.brand, car.model, car.color].filter(Boolean).join(" ").trim() || null
+          : null;
+        return {
+          ...p,
+          on_duty: profile?.on_duty ?? false,
+          zone: profile?.zone ?? null,
+          vehicle,
+          favorite: p.id === favoriteId,
+        };
+      });
     },
   });
 
@@ -360,7 +390,10 @@ function ClientRequests() {
 
   async function next() {
     if (step === 0) {
-      if (!form.driver_id) return toast.error("Choisissez un chauffeur");
+      if (!form.driver_id) {
+        setDriverPickerOpen(true);
+        return toast.error("Choisissez un chauffeur pour continuer");
+      }
       if (whenMode === "now" && !driverAvailable)
         return toast.error("Ce chauffeur est indisponible", {
           description: "Réservez pour plus tard.",
@@ -495,7 +528,19 @@ function ClientRequests() {
   const driverName = selectedDriver?.full_name;
   const driverAvailable = !!selectedDriver?.on_duty;
 
-  const tripReady = pickupOk && dropoffOk;
+  const scheduleValid =
+    whenMode === "now" ||
+    (!!form.scheduled_at && new Date(form.scheduled_at).getTime() > Date.now());
+  const missing = !form.driver_id
+    ? "Choisissez un chauffeur pour continuer."
+    : !pickupOk
+      ? "Indiquez votre point de départ."
+      : !dropoffOk
+        ? "Indiquez votre destination."
+        : !scheduleValid
+          ? "Choisissez une date et une heure valides."
+          : null;
+  const tripReady = !missing;
   const dirty =
     !!form.pickup_address || !!form.dropoff_address || !!form.scheduled_at || !!form.comment;
 
@@ -915,9 +960,9 @@ function ClientRequests() {
             style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}
           >
             <div className="mx-auto w-full max-w-lg">
-              {!tripReady ? (
-                <p className="mb-2 text-center text-[12px] text-muted-foreground">
-                  Indiquez un départ et une destination pour continuer.
+              {missing ? (
+                <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
+                  {missing}
                 </p>
               ) : null}
               <Button
@@ -1012,7 +1057,10 @@ function ClientRequests() {
           blockedReason={null}
           errorMessage={submitError}
           onEditTrip={() => setStep(0)}
-          onEditDriver={() => setStep(0)}
+          onEditDriver={() => {
+            setStep(0);
+            setDriverPickerOpen(true);
+          }}
           onEditOptions={() => setStep(1)}
           onExpandMap={() => setShowPreviewMap(true)}
           onSubmit={() => void submit()}
@@ -1060,6 +1108,59 @@ function ClientRequests() {
           />
         </div>
       ) : null}
+
+      <DriverPickerSheet
+        open={driverPickerOpen}
+        onOpenChange={setDriverPickerOpen}
+        loading={drivers.isLoading}
+        selectedId={form.driver_id}
+        drivers={(drivers.data ?? []).map((d) => ({
+          id: d.id,
+          name: d.full_name || "Chauffeur",
+          available: d.on_duty,
+          vehicle: d.vehicle,
+          zone: d.zone,
+          favorite: d.favorite,
+        }))}
+        onSelect={(id) => {
+          const picked = (drivers.data ?? []).find((d) => d.id === id);
+          setForm((f) => ({ ...f, driver_id: id }));
+          if (picked && !picked.on_duty) setWhenMode("later");
+          setDriverPickerOpen(false);
+        }}
+        onScanQr={() => {
+          setDriverPickerOpen(false);
+          setScanOpen(true);
+        }}
+        onAddDriver={() => {
+          saveRequestDraft(draft);
+          navigate({ to: "/espace/chauffeurs" });
+        }}
+      />
+
+      <QrScannerDialog
+        open={scanOpen}
+        onClose={() => setScanOpen(false)}
+        onResult={(text) => {
+          setScanOpen(false);
+          let slug: string | null = null;
+          try {
+            const url = new URL(text, window.location.origin);
+            slug = url.pathname.match(/\/chauffeur\/([^/?#]+)/)?.[1] ?? null;
+          } catch {
+            slug = null;
+          }
+          if (!slug) slug = text.trim().match(/([A-Za-z0-9-]+)$/)?.[1] ?? null;
+          if (!slug) {
+            toast.error("QR code non reconnu", {
+              description: "Ce code ne correspond pas à un chauffeur Relink.",
+            });
+            return;
+          }
+          saveRequestDraft(draft);
+          navigate({ to: "/chauffeur/$slug", params: { slug } });
+        }}
+      />
 
       <AlertDialog open={exitOpen} onOpenChange={setExitOpen}>
         <AlertDialogContent>
