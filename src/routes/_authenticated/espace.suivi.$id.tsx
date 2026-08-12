@@ -31,7 +31,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { RIDE_STATUS_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
+import { PAYMENT_METHODS, RIDE_STATUS_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
+import { saveRequestDraft } from "@/lib/request-draft";
 import { BLOCKING_QUERY_KEY } from "@/lib/immediate-request";
 import { ExpiryRing, useCountdown, useExpiryEffect } from "@/components/ExpiryCountdown";
 
@@ -141,22 +142,31 @@ function TrackingPage() {
         .maybeSingle();
 
       if (ride) {
-        const [{ data: driver }, { data: vehicle }, { data: review }, { data: invoice }, { data: request }] =
-          await Promise.all([
-            supabase.from("profiles").select("full_name, avatar_url").eq("id", ride.driver_id).maybeSingle(),
-            supabase
-              .from("vehicles")
-              .select("brand, model")
-              .eq("driver_id", ride.driver_id)
-              .order("is_primary", { ascending: false })
-              .limit(1)
-              .maybeSingle(),
-            supabase.from("ride_reviews").select("*").eq("ride_id", ride.id).maybeSingle(),
-            supabase.from("invoices").select("*").eq("ride_id", ride.id).maybeSingle(),
-            ride.request_id
-              ? supabase.from("ride_requests").select("*").eq("id", ride.request_id).maybeSingle()
-              : Promise.resolve({ data: null }),
-          ]);
+        const [
+          { data: driver },
+          { data: vehicle },
+          { data: review },
+          { data: invoice },
+          { data: request },
+        ] = await Promise.all([
+          supabase
+            .from("profiles")
+            .select("full_name, avatar_url")
+            .eq("id", ride.driver_id)
+            .maybeSingle(),
+          supabase
+            .from("vehicles")
+            .select("brand, model")
+            .eq("driver_id", ride.driver_id)
+            .order("is_primary", { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+          supabase.from("ride_reviews").select("*").eq("ride_id", ride.id).maybeSingle(),
+          supabase.from("invoices").select("*").eq("ride_id", ride.id).maybeSingle(),
+          ride.request_id
+            ? supabase.from("ride_requests").select("*").eq("id", ride.request_id).maybeSingle()
+            : Promise.resolve({ data: null }),
+        ]);
         return { kind: "ride" as const, ride, request, driver, vehicle, review, invoice };
       }
 
@@ -169,7 +179,11 @@ function TrackingPage() {
       if (!request) return null;
 
       const [{ data: driver }, { data: vehicle }, { data: linked }] = await Promise.all([
-        supabase.from("profiles").select("full_name, avatar_url").eq("id", request.driver_id).maybeSingle(),
+        supabase
+          .from("profiles")
+          .select("full_name, avatar_url")
+          .eq("id", request.driver_id)
+          .maybeSingle(),
         supabase
           .from("vehicles")
           .select("brand, model")
@@ -236,16 +250,28 @@ function TrackingPage() {
   const countdown = useCountdown(deadlineIso);
   const handleExpired = useCallback(() => {
     // Le serveur reste juge : on déclenche l'expiration puis on relit l'état réel.
-    void supabase
-      .rpc("get_blocking_immediate_request")
-      .then(() => {
-        void qc.invalidateQueries({ queryKey: ["client-tracking", id] });
-        void qc.invalidateQueries({ queryKey: [BLOCKING_QUERY_KEY] });
-        void qc.invalidateQueries({ queryKey: ["client-home"] });
-        void qc.invalidateQueries({ queryKey: ["client-rides"] });
-      });
+    void supabase.rpc("get_blocking_immediate_request").then(() => {
+      void qc.invalidateQueries({ queryKey: ["client-tracking", id] });
+      void qc.invalidateQueries({ queryKey: [BLOCKING_QUERY_KEY] });
+      void qc.invalidateQueries({ queryKey: ["client-home"] });
+      void qc.invalidateQueries({ queryKey: ["client-rides"] });
+    });
   }, [id, qc]);
   useExpiryEffect(deadlineIso, !!countdown?.expired, handleExpired);
+
+  // Fiche publique du chauffeur (uniquement si le client lui est bien relié).
+  const completedDriverId =
+    q.data?.ride?.status === "completed" ? (q.data.ride.driver_id ?? null) : null;
+  const driverPublic = useQuery({
+    queryKey: ["connected-driver-slug", completedDriverId],
+    enabled: !!completedDriverId,
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data } = await supabase.rpc("get_connected_driver_profiles");
+      const row = (data ?? []).find((d) => d.user_id === completedDriverId);
+      return row ? { slug: row.slug, businessName: row.business_name } : null;
+    },
+  });
 
   if (q.isLoading) return <TrackingSkeleton />;
 
@@ -253,7 +279,10 @@ function TrackingPage() {
     return (
       <>
         <Header />
-        <EmptyState title="Demande introuvable" description="Cette demande n'existe pas ou ne vous appartient pas." />
+        <EmptyState
+          title="Demande introuvable"
+          description="Cette demande n'existe pas ou ne vous appartient pas."
+        />
       </>
     );
   }
@@ -312,6 +341,289 @@ function TrackingPage() {
     }
     toast.success("Merci pour votre évaluation !");
     void qc.invalidateQueries({ queryKey: ["client-tracking", id] });
+  }
+
+  // ─── Course réellement terminée : page de détail compacte, sans encadré de
+  // statut ni chronologie (les historiques restent stockés côté serveur).
+  if (completed && ride) {
+    const endLabel = ride.completed_at
+      ? `Terminée le ${formatDateTime(ride.completed_at)}`
+      : `Course du ${formatDateTime(scheduled)}`;
+    const options: { label: string; value: string }[] = [
+      { label: "Passagers", value: String(passengers) },
+      ...(luggage != null ? [{ label: "Bagages", value: String(luggage) }] : []),
+      ...(request
+        ? [{ label: "Trajet", value: request.round_trip ? "Aller-retour" : "Aller simple" }]
+        : []),
+      ...(request?.special_needs
+        ? [{ label: "Besoins particuliers", value: request.special_needs }]
+        : []),
+      ...(request?.comment ? [{ label: "Consignes au chauffeur", value: request.comment }] : []),
+      ...(ride.notes ? [{ label: "Informations complémentaires", value: ride.notes }] : []),
+    ];
+    const paid = invoice?.status === "paid" || !!invoice?.paid_at;
+    // Le nom public du chauffeur ne doit jamais être la marque Relink.
+    const business = (driverPublic.data?.businessName ?? "").trim();
+    const legal = (driver?.full_name ?? "").trim();
+    const rawName = business || (/^relink$/i.test(legal) ? "" : firstName(legal));
+    const publicDriverName = rawName && !/^relink$/i.test(rawName) ? rawName : "Chauffeur";
+    const paymentLabel = ride.payment_method
+      ? (PAYMENT_METHODS[ride.payment_method] ?? "Autre moyen")
+      : null;
+
+    return (
+      <div className="pb-10">
+        <Header />
+
+        <header className="animate-fade-in">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-extrabold tracking-tight">Détail de la course</h1>
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+              Terminée
+            </span>
+          </div>
+          <p className="mt-0.5 text-sm text-muted-foreground">{endLabel}</p>
+        </header>
+
+        {/* Votre trajet */}
+        <section className="mt-4 rounded-3xl border border-border bg-card p-5 shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+          <p className="text-sm font-semibold">Votre trajet</p>
+          <div className="mt-3 flex items-start gap-3">
+            <span className="mt-1.5 block size-3 shrink-0 rounded-full bg-primary" />
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">Adresse de départ</p>
+              <p className="text-sm font-medium break-words">{pickup}</p>
+            </div>
+          </div>
+          <div className="my-1 ml-[6px] h-4 border-l border-dashed border-border" />
+          <div className="flex items-start gap-3">
+            <MapPin className="mt-0.5 size-4 shrink-0 text-primary" />
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">Destination</p>
+              <p className="text-sm font-medium break-words">{dropoff}</p>
+            </div>
+          </div>
+          <dl className="mt-4 grid grid-cols-2 gap-y-2 border-t border-border pt-4 text-sm">
+            <dt className="flex items-center gap-2 text-muted-foreground">
+              <Clock className="size-4" /> Date et heure
+            </dt>
+            <dd className="text-right font-medium">{formatDateTime(scheduled)}</dd>
+            {ride.mileage_km != null ? (
+              <>
+                <dt className="text-muted-foreground">Distance parcourue</dt>
+                <dd className="text-right font-medium">{Number(ride.mileage_km)} km</dd>
+              </>
+            ) : null}
+            {ride.started_at && ride.completed_at ? (
+              <>
+                <dt className="text-muted-foreground">Durée du trajet</dt>
+                <dd className="text-right font-medium">
+                  {Math.max(
+                    1,
+                    Math.round(
+                      (new Date(ride.completed_at).getTime() -
+                        new Date(ride.started_at).getTime()) /
+                        60_000,
+                    ),
+                  )}{" "}
+                  min
+                </dd>
+              </>
+            ) : null}
+            <dt className="text-muted-foreground">Type de trajet</dt>
+            <dd className="text-right font-medium">
+              {request?.round_trip ? "Aller-retour" : "Aller simple"}
+            </dd>
+          </dl>
+        </section>
+
+        {/* Votre chauffeur */}
+        {driver ? (
+          <section className="mt-4 rounded-3xl border border-border bg-card p-5 shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+            <p className="text-sm font-semibold">Votre chauffeur</p>
+            <div className="mt-3 flex items-center gap-3">
+              <span className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-full bg-primary/10 text-sm font-bold text-primary">
+                {driver.avatar_url ? (
+                  <img
+                    src={driver.avatar_url}
+                    alt={driverFirst}
+                    className="size-full object-cover"
+                  />
+                ) : (
+                  initials(driver.full_name)
+                )}
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-semibold">{publicDriverName}</span>
+                <span className="block truncate text-xs text-muted-foreground">
+                  {vehicleLabel ?? "Chauffeur partenaire"}
+                </span>
+              </span>
+            </div>
+            {driverPublic.data?.slug ? (
+              <Link
+                to="/chauffeur/$slug"
+                params={{ slug: driverPublic.data.slug }}
+                className="mt-3 inline-flex w-full items-center justify-between rounded-2xl border border-border px-4 py-3 text-sm font-semibold hover:bg-muted/50"
+              >
+                Voir le profil du chauffeur <ChevronRight className="size-4" />
+              </Link>
+            ) : null}
+          </section>
+        ) : null}
+
+        {/* Vos options */}
+        <section className="mt-4 rounded-3xl border border-border bg-card p-5 shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+          <p className="text-sm font-semibold">Vos options</p>
+          {options.length ? (
+            <dl className="mt-3 grid grid-cols-2 gap-y-2 text-sm">
+              {options.map((o) => (
+                <div key={o.label} className="col-span-2 flex items-start justify-between gap-3">
+                  <dt className="text-muted-foreground">{o.label}</dt>
+                  <dd className="max-w-[60%] text-right font-medium break-words">{o.value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className="mt-2 text-sm text-muted-foreground">Aucune option particulière</p>
+          )}
+        </section>
+
+        {/* Tarif et paiement */}
+        <section className="mt-4 rounded-3xl border border-border bg-card p-5 shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+          <p className="text-sm font-semibold">Tarif et paiement</p>
+          <div className="mt-3 flex items-center justify-between">
+            <span className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Euro className="size-4" /> {paid ? "Montant payé" : "Montant total"}
+            </span>
+            <span className="text-lg font-extrabold">
+              {price ? formatEuro(Number(price)) : "Non défini"}
+            </span>
+          </div>
+          <dl className="mt-3 grid grid-cols-2 gap-y-2 border-t border-border pt-3 text-sm">
+            <dt className="text-muted-foreground">État du paiement</dt>
+            <dd className="text-right font-medium">
+              {paid
+                ? "Payée"
+                : invoice
+                  ? "En attente de règlement"
+                  : "À régler auprès du chauffeur"}
+            </dd>
+            {paymentLabel ? (
+              <>
+                <dt className="text-muted-foreground">Moyen de paiement</dt>
+                <dd className="text-right font-medium">{paymentLabel}</dd>
+              </>
+            ) : null}
+            {invoice?.paid_at ? (
+              <>
+                <dt className="text-muted-foreground">Réglée le</dt>
+                <dd className="text-right font-medium">{formatDateTime(invoice.paid_at)}</dd>
+              </>
+            ) : null}
+          </dl>
+        </section>
+
+        {/* Reçu / facture */}
+        {invoice ? (
+          <div className="mt-4">
+            <InvoiceDownloadCard
+              invoice={invoice as never}
+              driverId={ride.driver_id}
+              ride={{
+                pickup_address: ride.pickup_address,
+                dropoff_address: ride.dropoff_address,
+                scheduled_at: ride.scheduled_at,
+                completed_at: ride.completed_at,
+                passengers: ride.passengers,
+                mileage_km: ride.mileage_km,
+              }}
+            />
+            <p className="mt-2 px-1 text-[11px] leading-snug text-muted-foreground">
+              Reçu généré avec Relink. La facture est émise par votre chauffeur indépendant, seul
+              responsable de son contenu.
+            </p>
+          </div>
+        ) : null}
+
+        {/* Évaluation */}
+        <section className="mt-4 rounded-3xl border border-border bg-card p-5 shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+          <p className="text-sm font-semibold">{review ? "Avis envoyé" : "Laisser un avis"}</p>
+          <div className="mt-3 flex gap-1">
+            {[1, 2, 3, 4, 5].map((n) => {
+              const value = review?.rating ?? rating;
+              return (
+                <button
+                  key={n}
+                  type="button"
+                  aria-label={`${n} étoile${n > 1 ? "s" : ""}`}
+                  disabled={!!review}
+                  onClick={() => setRating(n)}
+                  className="transition-transform active:scale-90"
+                >
+                  <StarIcon
+                    className={`size-8 ${n <= value ? "fill-warning text-warning" : "text-muted-foreground"}`}
+                  />
+                </button>
+              );
+            })}
+          </div>
+          {review ? (
+            review.comment ? (
+              <p className="mt-3 text-sm text-muted-foreground">« {review.comment} »</p>
+            ) : null
+          ) : (
+            <>
+              <Textarea
+                className="mt-3 rounded-2xl"
+                placeholder="Un mot sur votre trajet (facultatif)"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+              />
+              <Button
+                className="mt-3 h-12 w-full rounded-2xl font-bold"
+                disabled={rating < 1 || busy}
+                onClick={submitReview}
+              >
+                {busy ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <StarIcon className="size-4" />
+                )}
+                Envoyer mon évaluation
+              </Button>
+            </>
+          )}
+        </section>
+
+        {/* Actions après la course */}
+        <section className="mt-4 space-y-2">
+          <Button
+            className="h-12 w-full rounded-2xl font-bold"
+            onClick={() => {
+              saveRequestDraft({
+                driver_id: ride.driver_id,
+                pickup_address: ride.pickup_address,
+                dropoff_address: ride.dropoff_address,
+                scheduled_at: "",
+                whenMode: "later",
+                pickupOk: true,
+                dropoffOk: true,
+              });
+              navigate({ to: "/espace/demandes" });
+            }}
+          >
+            Réserver à nouveau
+          </Button>
+          <Link
+            to="/aide"
+            className="block w-full rounded-2xl border border-border px-4 py-3 text-center text-sm font-semibold hover:bg-muted/50"
+          >
+            Contacter l'assistance
+          </Link>
+        </section>
+      </div>
+    );
   }
 
   return (
@@ -376,7 +688,11 @@ function TrackingPage() {
             <ExpiryRing msLeft={countdown.msLeft} label={countdown.label} size={104}>
               <span className="grid size-[72px] place-items-center overflow-hidden rounded-full bg-card text-lg font-bold text-primary shadow-sm">
                 {driver?.avatar_url ? (
-                  <img src={driver.avatar_url} alt={driverFirst} className="size-full object-cover" />
+                  <img
+                    src={driver.avatar_url}
+                    alt={driverFirst}
+                    className="size-full object-cover"
+                  />
                 ) : (
                   initials(driver?.full_name)
                 )}
@@ -388,7 +704,11 @@ function TrackingPage() {
               <span className="absolute size-20 rounded-full border-2 border-primary/50 motion-safe:animate-pulse" />
               <span className="relative grid size-16 place-items-center overflow-hidden rounded-full bg-card text-lg font-bold text-primary shadow-sm">
                 {driver?.avatar_url ? (
-                  <img src={driver.avatar_url} alt={driverFirst} className="size-full object-cover" />
+                  <img
+                    src={driver.avatar_url}
+                    alt={driverFirst}
+                    className="size-full object-cover"
+                  />
                 ) : (
                   initials(driver?.full_name)
                 )}
@@ -428,8 +748,8 @@ function TrackingPage() {
           </span>
           <p className="mt-3 text-sm font-semibold">Demande expirée</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            {driverFirst} n'a pas répondu dans les 10 minutes. Vous pouvez relancer une demande, avec le même
-            chauffeur ou un autre.
+            {driverFirst} n'a pas répondu dans les 10 minutes. Vous pouvez relancer une demande,
+            avec le même chauffeur ou un autre.
           </p>
           <Button
             className="mt-4 h-11 w-full rounded-2xl font-semibold"
@@ -449,7 +769,9 @@ function TrackingPage() {
       {/* Refus */}
       {refused ? (
         <section className="mt-4 rounded-3xl border border-destructive/25 bg-destructive/[0.05] p-5">
-          <p className="text-sm font-semibold">Le chauffeur n'est pas disponible pour cette demande</p>
+          <p className="text-sm font-semibold">
+            Le chauffeur n'est pas disponible pour cette demande
+          </p>
           <p className="mt-1 text-xs text-muted-foreground">
             Vous pouvez choisir un autre chauffeur et envoyer une nouvelle demande.
           </p>
@@ -548,7 +870,9 @@ function TrackingPage() {
           {request ? (
             <>
               <dt className="text-muted-foreground">Trajet</dt>
-              <dd className="text-right font-medium">{request.round_trip ? "Aller-retour" : "Aller simple"}</dd>
+              <dd className="text-right font-medium">
+                {request.round_trip ? "Aller-retour" : "Aller simple"}
+              </dd>
             </>
           ) : null}
           <dt className="text-muted-foreground">Chauffeur</dt>
@@ -562,7 +886,9 @@ function TrackingPage() {
           <dt className="flex items-center gap-2 text-muted-foreground">
             <Euro className="size-4" /> Prix
           </dt>
-          <dd className="text-right font-medium">{price ? formatEuro(Number(price)) : "À confirmer"}</dd>
+          <dd className="text-right font-medium">
+            {price ? formatEuro(Number(price)) : "À confirmer"}
+          </dd>
           {request?.special_needs ? (
             <>
               <dt className="text-muted-foreground">Besoins particuliers</dt>
@@ -572,7 +898,9 @@ function TrackingPage() {
         </dl>
 
         {request?.driver_message ? (
-          <p className="mt-3 rounded-2xl bg-muted p-3 text-sm text-muted-foreground">« {request.driver_message} »</p>
+          <p className="mt-3 rounded-2xl bg-muted p-3 text-sm text-muted-foreground">
+            « {request.driver_message} »
+          </p>
         ) : null}
 
         {ride ? (
@@ -589,7 +917,9 @@ function TrackingPage() {
       {/* Évaluation */}
       {completed && ride ? (
         <div className="mt-4 rounded-3xl border border-border bg-card p-5">
-          <p className="text-sm font-semibold">{review ? "Votre évaluation" : "Évaluer ce trajet"}</p>
+          <p className="text-sm font-semibold">
+            {review ? "Votre évaluation" : "Évaluer ce trajet"}
+          </p>
           <div className="mt-3 flex gap-1">
             {[1, 2, 3, 4, 5].map((n) => {
               const value = review?.rating ?? rating;
@@ -626,7 +956,11 @@ function TrackingPage() {
                 disabled={rating < 1 || busy}
                 onClick={submitReview}
               >
-                {busy ? <Loader2 className="size-4 animate-spin" /> : <StarIcon className="size-4" />}
+                {busy ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <StarIcon className="size-4" />
+                )}
                 Envoyer mon évaluation
               </Button>
             </>
@@ -649,8 +983,8 @@ function TrackingPage() {
             }}
           />
           <p className="mt-2 px-1 text-[11px] leading-snug text-muted-foreground">
-            Reçu généré avec Relink. La facture est émise par votre chauffeur indépendant, seul responsable de son
-            contenu.
+            Reçu généré avec Relink. La facture est émise par votre chauffeur indépendant, seul
+            responsable de son contenu.
           </p>
         </div>
       ) : null}
@@ -672,8 +1006,8 @@ function TrackingPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Annuler cette demande ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Le chauffeur ne recevra plus votre demande. Tant qu'aucune course n'est confirmée, l'annulation est
-              sans frais. Vous pourrez ensuite envoyer une nouvelle demande.
+              Le chauffeur ne recevra plus votre demande. Tant qu'aucune course n'est confirmée,
+              l'annulation est sans frais. Vous pourrez ensuite envoyer une nouvelle demande.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
