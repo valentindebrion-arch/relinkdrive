@@ -163,7 +163,9 @@ export function ReviewStep(props: ReviewStepProps) {
               className="mt-2 flex items-center gap-1.5 text-[13px] font-bold text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
             >
               Voir le détail du tarif
-              <ChevronDown className={cn("size-4 transition-transform", detailOpen && "rotate-180")} />
+              <ChevronDown
+                className={cn("size-4 transition-transform", detailOpen && "rotate-180")}
+              />
             </button>
 
             {detailOpen && estimate ? (
@@ -250,7 +252,11 @@ export function ReviewStep(props: ReviewStepProps) {
           </Card>
 
           {/* Votre chauffeur */}
-          <Card title="Votre chauffeur" editLabel="Modifier le chauffeur" onEdit={props.onEditDriver}>
+          <Card
+            title="Votre chauffeur"
+            editLabel="Modifier le chauffeur"
+            onEdit={props.onEditDriver}
+          >
             <div className="flex items-center gap-3">
               <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[15px] font-bold text-primary">
                 {driver ? driver.name.slice(0, 2).toUpperCase() : <UserRound className="size-5" />}

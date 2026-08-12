@@ -70,7 +70,6 @@ const DOCS: Record<string, Doc> = {
     ],
   },
   confidentialite: {
-
     title: "Politique de confidentialité",
     description: "Comment Relink collecte, utilise et protège vos données personnelles.",
     sections: [
@@ -153,7 +152,9 @@ export const Route = createFileRoute("/legal/$doc")({
     return doc;
   },
   head: ({ loaderData }) => {
-    const title = loaderData ? `${loaderData.title} — ${BRAND.name}` : `Informations légales — ${BRAND.name}`;
+    const title = loaderData
+      ? `${loaderData.title} — ${BRAND.name}`
+      : `Informations légales — ${BRAND.name}`;
     const description = loaderData?.description ?? "Informations légales Relink.";
     return {
       meta: [

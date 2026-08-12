@@ -412,7 +412,9 @@ function ClientRequests() {
       if (!verdict || verdict.status !== "available") {
         sentRef.current = false;
         setBusy(false);
-        setSubmitError(verdict ? availabilityMessage(verdict) : "Ce créneau n'est plus réalisable.");
+        setSubmitError(
+          verdict ? availabilityMessage(verdict) : "Ce créneau n'est plus réalisable.",
+        );
         setAvail(verdict);
         setStep(0);
         toast.error("Ce créneau n'est plus réalisable", {
@@ -1014,12 +1016,14 @@ function ClientRequests() {
           needsLabel={form.special_needs}
           comment={form.comment}
           driver={
-            selectedDriver
-              ? { name: driverName ?? "Chauffeur", available: driverAvailable }
-              : null
+            selectedDriver ? { name: driverName ?? "Chauffeur", available: driverAvailable } : null
           }
           driverStatusLabel={
-            selectedDriver ? (driverAvailable ? "En service actuellement" : "Hors service actuellement") : null
+            selectedDriver
+              ? driverAvailable
+                ? "En service actuellement"
+                : "Hors service actuellement"
+              : null
           }
           busy={busy || checking}
           blockedReason={null}
