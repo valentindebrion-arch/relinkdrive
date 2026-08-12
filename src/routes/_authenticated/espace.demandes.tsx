@@ -36,6 +36,8 @@ import {
   type SpecialNeedsState,
 } from "@/components/request/OptionsStep";
 import { estimateRoute, reverseGeocode } from "@/lib/route-estimate.functions";
+import { ReviewStep } from "@/components/request/ReviewStep";
+import { LEGAL_VERSIONS } from "@/lib/legal-versions";
 import { checkDriverAvailability } from "@/lib/availability.functions";
 import {
   SAFETY_MARGIN_MIN,
@@ -74,7 +76,7 @@ type Estimate = {
   price: { base: number; total: number; tip: number };
 };
 
-const STEP_LABELS = ["Votre trajet", "Vos options", "Récapitulatif", "Confirmation"];
+const STEP_LABELS = ["Votre trajet", "Vos options", "Vérification et confirmation"];
 
 const TRIP_TYPES = [
   "Aéroport",
@@ -92,8 +94,10 @@ const HEADINGS = [
     sub: "Indiquez où votre chauffeur doit vous récupérer et où vous souhaitez aller.",
   },
   { title: "Vos options", sub: "Passagers, bagages et précisions pour le chauffeur." },
-  { title: "Votre récapitulatif", sub: "Vérifiez l'itinéraire et le tarif estimé." },
-  { title: "Confirmer la demande", sub: "Elle sera transmise à votre chauffeur." },
+  {
+    title: "Vérifiez et confirmez",
+    sub: "Contrôlez les informations avant d'envoyer votre demande.",
+  },
 ];
 
 /** Progression minimaliste : « Étape n sur 4 » + barre fine. */
@@ -155,6 +159,9 @@ function ClientRequests() {
   const [needs, setNeeds] = useState<SpecialNeedsState>({ keys: [], details: {} });
   const [returnMode, setReturnMode] = useState<ReturnMode>("immediate");
   const [returnTrip, setReturnTrip] = useState({ at: "", pickup: "", dropoff: "" });
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  /** Empêche tout double envoi d'une même demande. */
+  const sentRef = useRef(false);
 
   const [form, setForm] = useState({
     driver_id: search.driver ?? "",
@@ -368,7 +375,6 @@ function ClientRequests() {
       return setStep(1);
     }
     if (step === 1) return void computeEstimate();
-    if (step === 2) return setStep(3);
   }
 
   function resetForm() {
@@ -388,6 +394,9 @@ function ClientRequests() {
   }
 
   async function submit() {
+    if (busy || sentRef.current) return;
+    sentRef.current = true;
+    setSubmitError(null);
     setBusy(true);
     // Vérification finale avec les données les plus récentes (anti-conflit).
     try {
@@ -401,7 +410,9 @@ function ClientRequests() {
       });
       const verdict = res.results[0] ?? null;
       if (!verdict || verdict.status !== "available") {
+        sentRef.current = false;
         setBusy(false);
+        setSubmitError(verdict ? availabilityMessage(verdict) : "Ce créneau n'est plus réalisable.");
         setAvail(verdict);
         setStep(0);
         toast.error("Ce créneau n'est plus réalisable", {
@@ -410,7 +421,9 @@ function ClientRequests() {
         return;
       }
     } catch {
+      sentRef.current = false;
       setBusy(false);
+      setSubmitError("Vérification du créneau impossible. Réessayez dans un instant.");
       toast.error("Vérification du créneau impossible", {
         description: "Réessayez dans un instant.",
       });
@@ -447,6 +460,8 @@ function ClientRequests() {
       .single();
     setBusy(false);
     if (error) {
+      sentRef.current = false;
+      setSubmitError(error.message);
       // Dernier rempart serveur : disponibilités déclarées du chauffeur.
       if (/disponible/i.test(error.message)) {
         setStep(0);
@@ -458,6 +473,16 @@ function ClientRequests() {
       toast.error(error.message);
       return;
     }
+
+    // Traçabilité de l'acceptation des conditions (versions réellement affichées).
+    const { error: termsError } = await supabase.from("ride_request_terms_acceptances").insert({
+      request_id: created.id,
+      user_id: user!.id,
+      cgu_version: LEGAL_VERSIONS.cgu,
+      cgv_version: LEGAL_VERSIONS.cgv,
+      cancellation_version: LEGAL_VERSIONS.cancellation,
+    });
+    if (termsError) console.error("Enregistrement de l'acceptation impossible", termsError);
 
     toast.success("Demande envoyée — en attente de confirmation du chauffeur");
     resetForm();
