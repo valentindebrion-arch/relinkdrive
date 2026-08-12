@@ -17,6 +17,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedEspaceRouteImport } from './routes/_authenticated/espace'
 import { Route as AuthenticatedProRouteImport } from './routes/_authenticated/pro'
+import { Route as AuthConfirmRouteImport } from './routes/auth.confirm'
 import { Route as ChauffeurSlugRouteImport } from './routes/chauffeur.$slug'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminChauffeursRouteImport } from './routes/_authenticated/admin.chauffeurs'
@@ -91,6 +92,11 @@ const AuthenticatedProRoute = AuthenticatedProRouteImport.update({
   id: '/pro',
   path: '/pro',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthConfirmRoute = AuthConfirmRouteImport.update({
+  id: '/confirm',
+  path: '/confirm',
+  getParentRoute: () => AuthRoute,
 } as any)
 const ChauffeurSlugRoute = ChauffeurSlugRouteImport.update({
   id: '/chauffeur/$slug',
@@ -298,12 +304,13 @@ const AuthenticatedProCoursesRideIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/chauffeurs': typeof ChauffeursRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/espace': typeof AuthenticatedEspaceRouteWithChildren
   '/pro': typeof AuthenticatedProRouteWithChildren
+  '/auth/confirm': typeof AuthConfirmRoute
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
   '/admin/chauffeurs': typeof AuthenticatedAdminChauffeursRoute
   '/admin/courses': typeof AuthenticatedAdminCoursesRoute
@@ -342,9 +349,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/chauffeurs': typeof ChauffeursRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/auth/confirm': typeof AuthConfirmRoute
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
   '/admin/chauffeurs': typeof AuthenticatedAdminChauffeursRoute
   '/admin/courses': typeof AuthenticatedAdminCoursesRoute
@@ -384,12 +392,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/chauffeurs': typeof ChauffeursRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/espace': typeof AuthenticatedEspaceRouteWithChildren
   '/_authenticated/pro': typeof AuthenticatedProRouteWithChildren
+  '/auth/confirm': typeof AuthConfirmRoute
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
   '/_authenticated/admin/chauffeurs': typeof AuthenticatedAdminChauffeursRoute
   '/_authenticated/admin/courses': typeof AuthenticatedAdminCoursesRoute
@@ -436,6 +445,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/espace'
     | '/pro'
+    | '/auth/confirm'
     | '/chauffeur/$slug'
     | '/admin/chauffeurs'
     | '/admin/courses'
@@ -477,6 +487,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/chauffeurs'
     | '/sitemap.xml'
+    | '/auth/confirm'
     | '/chauffeur/$slug'
     | '/admin/chauffeurs'
     | '/admin/courses'
@@ -521,6 +532,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/espace'
     | '/_authenticated/pro'
+    | '/auth/confirm'
     | '/chauffeur/$slug'
     | '/_authenticated/admin/chauffeurs'
     | '/_authenticated/admin/courses'
@@ -561,7 +573,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
   ChauffeursRoute: typeof ChauffeursRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ChauffeurSlugRoute: typeof ChauffeurSlugRoute
@@ -625,6 +637,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/pro'
       preLoaderRoute: typeof AuthenticatedProRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/auth/confirm': {
+      id: '/auth/confirm'
+      path: '/confirm'
+      fullPath: '/auth/confirm'
+      preLoaderRoute: typeof AuthConfirmRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/chauffeur/$slug': {
       id: '/chauffeur/$slug'
@@ -997,10 +1016,20 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface AuthRouteChildren {
+  AuthConfirmRoute: typeof AuthConfirmRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthConfirmRoute: AuthConfirmRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
   ChauffeursRoute: ChauffeursRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ChauffeurSlugRoute: ChauffeurSlugRoute,

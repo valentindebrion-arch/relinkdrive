@@ -58,7 +58,7 @@ function AuthPage() {
           email: loginEmail,
           password,
           options: {
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: `${window.location.origin}/auth/confirm`,
             data: { full_name: fullName, phone, role },
           },
         });
