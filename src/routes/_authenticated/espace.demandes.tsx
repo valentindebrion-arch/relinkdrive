@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
@@ -995,110 +995,41 @@ function ClientRequests() {
           }}
         />
       ) : (
-        <div className="mx-auto flex w-full max-w-2xl min-h-0 flex-1 flex-col px-3 pb-2">
-          <div key={`h-${step}`} className="rise-in shrink-0">
-            <h2 className="text-xl font-extrabold tracking-tight">{heading.title}</h2>
-            <p className="text-xs text-muted-foreground">{heading.sub}</p>
-          </div>
-
-          <div
-            key={step}
-            className={cn(
-              "mt-2.5 flex min-h-0 flex-1 flex-col gap-3 overflow-hidden",
-              dir === 1 ? "step-in-right" : "step-in-left",
-            )}
-          >
-            {step >= 2 && estimate ? (
-              <>
-                <LiveDriversMap polyline={estimate.polyline} className="min-h-24 flex-1" />
-
-                <div className="animate-scale-in flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-accent px-3 py-2">
-                  <div>
-                    <p className="text-[10px] font-semibold tracking-wide text-accent-foreground uppercase">
-                      Prix final
-                    </p>
-                    <p className="text-2xl font-extrabold leading-tight">
-                      {formatEuro(estimate.price.total)}
-                    </p>
-                    <p className="text-[11px] text-accent-foreground">
-                      Tarif garanti, aucun supplément
-                    </p>
-                  </div>
-                  <div className="text-right text-xs text-accent-foreground">
-                    <p>{estimate.distanceKm} km</p>
-                    <p>~{estimate.durationMin} min</p>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-border bg-card px-3 py-2 text-[13px]">
-                  <div className="flex items-start gap-2.5">
-                    <span className="mt-1.5 block size-2.5 shrink-0 rounded-full bg-primary" />
-                    <p className="truncate font-medium">{form.pickup_address}</p>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <MapPin className="mt-0.5 size-4 shrink-0" />
-                    <p className="truncate font-medium">{form.dropoff_address}</p>
-                  </div>
-                  <dl className="mt-2 grid grid-cols-2 gap-y-1 border-t border-border pt-2 text-xs">
-                    <dt className="text-muted-foreground">Chauffeur</dt>
-                    <dd className="truncate text-right font-medium">{driverName ?? "—"}</dd>
-                    <dt className="text-muted-foreground">Départ</dt>
-                    <dd className="text-right font-medium">{formatDateTime(scheduledIso())}</dd>
-                    <dt className="text-muted-foreground">Passagers · bagages</dt>
-                    <dd className="text-right font-medium">
-                      {form.passengers} · {form.luggage}
-                      {form.round_trip ? " · A/R" : ""}
-                    </dd>
-                  </dl>
-                </div>
-
-                {step === 3 ? (
-                  <p className="text-[11px] text-muted-foreground">
-                    En confirmant, votre demande est transmise à {driverName ?? "votre chauffeur"}{" "}
-                    et reste « en attente » tant qu'il ne l'a pas acceptée.
-                  </p>
-                ) : null}
-              </>
-            ) : null}
-          </div>
-
-          <div
-            className="mt-2 flex shrink-0 items-center gap-2"
-            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-          >
-            <Button
-              variant="outline"
-              size="lg"
-              className="h-12 flex-1 rounded-2xl text-sm"
-              disabled={step === 0 || busy}
-              onClick={() => setStep(step - 1)}
-            >
-              <ArrowLeft className="size-4" /> Retour
-            </Button>
-            {step < 3 ? (
-              <Button
-                size="lg"
-                className="h-12 flex-[2] rounded-2xl text-sm font-bold transition-transform active:scale-[0.98]"
-                onClick={() => void next()}
-                disabled={busy || checking}
-              >
-                {busy || checking ? <Loader2 className="size-4 animate-spin" /> : null}
-                Continuer
-                <ArrowRight className="size-4" />
-              </Button>
-            ) : (
-              <Button
-                size="lg"
-                className="h-12 flex-[2] rounded-2xl text-sm font-bold transition-transform active:scale-[0.98]"
-                onClick={submit}
-                disabled={busy}
-              >
-                {busy ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
-                Confirmer
-              </Button>
-            )}
-          </div>
-        </div>
+        <ReviewStep
+          pickup={form.pickup_address}
+          dropoff={form.dropoff_address}
+          whenLabel={formatDateTime(scheduledIso())}
+          whenMode={whenMode}
+          estimate={estimate}
+          roundTrip={form.round_trip}
+          returnLabel={
+            form.round_trip
+              ? returnMode === "scheduled"
+                ? `${returnTrip.at ? formatDateTime(new Date(returnTrip.at).toISOString()) : "—"} · ${returnTrip.pickup || form.dropoff_address} → ${returnTrip.dropoff || form.pickup_address}`
+                : "Immédiatement après la course"
+              : null
+          }
+          passengers={Number(form.passengers) || 1}
+          luggage={Number(form.luggage) || 0}
+          needsLabel={form.special_needs}
+          comment={form.comment}
+          driver={
+            selectedDriver
+              ? { name: driverName ?? "Chauffeur", available: driverAvailable }
+              : null
+          }
+          driverStatusLabel={
+            selectedDriver ? (driverAvailable ? "En service actuellement" : "Hors service actuellement") : null
+          }
+          busy={busy || checking}
+          blockedReason={null}
+          errorMessage={submitError}
+          onEditTrip={() => setStep(0)}
+          onEditDriver={() => setStep(0)}
+          onEditOptions={() => setStep(1)}
+          onExpandMap={() => setShowPreviewMap(true)}
+          onSubmit={() => void submit()}
+        />
       )}
 
       {searchField ? (
@@ -1123,7 +1054,7 @@ function ClientRequests() {
         />
       ) : null}
 
-      {showPreviewMap && preview ? (
+      {showPreviewMap && (step === 2 ? estimate?.polyline : preview?.polyline) ? (
         <div className="fixed inset-0 z-[60] flex flex-col bg-background">
           <div className="relative flex shrink-0 items-center justify-center px-2 py-2">
             <button
@@ -1137,7 +1068,7 @@ function ClientRequests() {
             <p className="text-[15px] font-bold">Aperçu de l'itinéraire</p>
           </div>
           <RouteMiniMap
-            polyline={preview.polyline}
+            polyline={(step === 2 ? estimate?.polyline : preview?.polyline) ?? ""}
             className="min-h-0 flex-1 rounded-none border-0"
           />
         </div>
