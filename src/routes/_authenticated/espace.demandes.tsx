@@ -52,6 +52,7 @@ import { estimateRoute, reverseGeocode } from "@/lib/route-estimate.functions";
 import { ReviewStep } from "@/components/request/ReviewStep";
 import { LEGAL_VERSIONS } from "@/lib/legal-versions";
 import { checkDriverAvailability } from "@/lib/availability.functions";
+import { formatSlotFull } from "@/lib/schedule-slots";
 import {
   SAFETY_MARGIN_MIN,
   availabilityMessage,
