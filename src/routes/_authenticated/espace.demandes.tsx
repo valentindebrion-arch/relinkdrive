@@ -1263,6 +1263,36 @@ function ClientRequests() {
         </div>
       ) : null}
 
+      {scheduleOpen && form.driver_id && pickupOk && dropoffOk ? (
+        <ScheduleSheet
+          open
+          driverId={form.driver_id}
+          driverName={driverName ?? "votre chauffeur"}
+          pickup={form.pickup_address.trim()}
+          dropoff={form.dropoff_address.trim()}
+          roundTrip={form.round_trip}
+          valueIso={form.scheduled_at || null}
+          onClose={() => setScheduleOpen(false)}
+          onConfirm={(iso) => {
+            slotContextRef.current = [
+              form.driver_id,
+              form.pickup_address,
+              form.dropoff_address,
+              String(form.round_trip),
+            ].join("|");
+            setForm((f) => ({ ...f, scheduled_at: iso }));
+            setSlotWarning(null);
+            setScheduleOpen(false);
+          }}
+          onChangeDriver={() => {
+            setScheduleOpen(false);
+            setDriverPickerOpen(true);
+          }}
+        />
+      ) : null}
+
+
+
       <DriverPickerSheet
         open={driverPickerOpen}
         onOpenChange={setDriverPickerOpen}
