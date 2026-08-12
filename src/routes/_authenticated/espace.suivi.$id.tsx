@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Check,
+  ChevronRight,
   Clock,
   Euro,
   Loader2,
@@ -20,21 +21,32 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { InvoiceDownloadCard } from "@/components/InvoiceDownloadCard";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { RIDE_STATUS_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
+import { BLOCKING_QUERY_KEY } from "@/lib/immediate-request";
 
 export const Route = createFileRoute("/_authenticated/espace/suivi/$id")({
   head: () => ({
     meta: [
-      { title: "Course en cours — Relink" },
+      { title: "Suivi de ma demande — Relink" },
       {
         name: "description",
         content:
-          "Suivez en temps réel l'avancée de votre course Relink : confirmation du chauffeur, approche, prise en charge et arrivée.",
+          "Suivez en temps réel l'avancée de votre course Relink : réponse du chauffeur, approche, prise en charge et arrivée.",
       },
-      { property: "og:title", content: "Course en cours — Relink" },
+      { property: "og:title", content: "Suivi de ma demande — Relink" },
       {
         property: "og:description",
-        content: "Suivi étape par étape de votre trajet et évaluation à l'arrivée.",
+        content: "Suivi étape par étape de votre demande et de votre trajet.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -48,11 +60,17 @@ const STEPS: { key: string; title: string; hint: string; match: string[] }[] = [
     key: "requested",
     title: "Demande envoyée",
     hint: "Votre demande a bien été transmise au chauffeur.",
-    match: ["new", "reviewing", "proposal_sent", "awaiting_client"],
+    match: ["new"],
+  },
+  {
+    key: "waiting",
+    title: "En attente de la réponse",
+    hint: "Le chauffeur consulte votre demande.",
+    match: ["reviewing", "proposal_sent", "awaiting_client"],
   },
   {
     key: "accepted",
-    title: "Chauffeur a accepté",
+    title: "Demande acceptée",
     hint: "Votre course est confirmée.",
     match: ["confirmed"],
   },
@@ -70,21 +88,31 @@ const STEPS: { key: string; title: string; hint: string; match: string[] }[] = [
   },
   {
     key: "onboard",
-    title: "En course",
+    title: "Course en cours",
     hint: "Vous êtes à bord, bonne route.",
     match: ["client_onboard", "in_progress"],
   },
   {
     key: "done",
-    title: "Arrivé à destination",
+    title: "Course terminée",
     hint: "Trajet terminé.",
     match: ["completed"],
   },
 ];
 
+const CANCELLABLE = ["new", "reviewing", "proposal_sent", "awaiting_client"];
+
 function stepIndex(status: string) {
-  const i = STEPS.findIndex((s) => s.match.includes(status));
-  return i;
+  return STEPS.findIndex((s) => s.match.includes(status));
+}
+
+function firstName(full?: string | null) {
+  const n = (full ?? "").trim().split(" ")[0];
+  return n || "votre chauffeur";
+}
+
+function initials(full?: string | null) {
+  return (full ?? "?").trim().charAt(0).toUpperCase() || "?";
 }
 
 function TrackingPage() {
@@ -95,12 +123,15 @@ function TrackingPage() {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [busy, setBusy] = useState(false);
+  const [askCancel, setAskCancel] = useState(false);
 
   const q = useQuery({
     queryKey: ["client-tracking", id, user?.id],
     enabled: !!user?.id,
     refetchInterval: 15000,
     queryFn: async () => {
+      // La lecture est filtrée côté serveur (RLS + client_id) : une demande d'un
+      // autre client ne peut jamais être ouverte, même en modifiant l'URL.
       const { data: ride } = await supabase
         .from("rides")
         .select("*")
@@ -109,14 +140,24 @@ function TrackingPage() {
         .maybeSingle();
 
       if (ride) {
-        const [{ data: driver }, { data: review }, { data: invoice }] = await Promise.all([
-          supabase.from("profiles").select("full_name, avatar_url").eq("id", ride.driver_id).maybeSingle(),
-          supabase.from("ride_reviews").select("*").eq("ride_id", ride.id).maybeSingle(),
-          supabase.from("invoices").select("*").eq("ride_id", ride.id).maybeSingle(),
-        ]);
-        return { kind: "ride" as const, ride, request: null, driver, review, invoice };
+        const [{ data: driver }, { data: vehicle }, { data: review }, { data: invoice }, { data: request }] =
+          await Promise.all([
+            supabase.from("profiles").select("full_name, avatar_url").eq("id", ride.driver_id).maybeSingle(),
+            supabase
+              .from("vehicles")
+              .select("brand, model")
+              .eq("driver_id", ride.driver_id)
+              .order("is_primary", { ascending: false })
+              .limit(1)
+              .maybeSingle(),
+            supabase.from("ride_reviews").select("*").eq("ride_id", ride.id).maybeSingle(),
+            supabase.from("invoices").select("*").eq("ride_id", ride.id).maybeSingle(),
+            ride.request_id
+              ? supabase.from("ride_requests").select("*").eq("id", ride.request_id).maybeSingle()
+              : Promise.resolve({ data: null }),
+          ]);
+        return { kind: "ride" as const, ride, request, driver, vehicle, review, invoice };
       }
-
 
       const { data: request } = await supabase
         .from("ride_requests")
@@ -126,29 +167,44 @@ function TrackingPage() {
         .maybeSingle();
       if (!request) return null;
 
-      const [{ data: driver }, { data: linked }] = await Promise.all([
+      const [{ data: driver }, { data: vehicle }, { data: linked }] = await Promise.all([
         supabase.from("profiles").select("full_name, avatar_url").eq("id", request.driver_id).maybeSingle(),
+        supabase
+          .from("vehicles")
+          .select("brand, model")
+          .eq("driver_id", request.driver_id)
+          .order("is_primary", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
         supabase.from("rides").select("*").eq("request_id", request.id).maybeSingle(),
       ]);
-      return { kind: "request" as const, ride: linked ?? null, request, driver, review: null, invoice: null };
+      return {
+        kind: "request" as const,
+        ride: linked ?? null,
+        request,
+        driver,
+        vehicle,
+        review: null,
+        invoice: null,
+      };
     },
   });
 
   const lastStatus = useRef<string | null>(null);
   const currentStatus = q.data?.ride?.status ?? q.data?.request?.status ?? null;
 
-  // Notifie le client quand le chauffeur fait avancer la course
   useEffect(() => {
     if (!currentStatus) return;
     if (lastStatus.current && lastStatus.current !== currentStatus) {
       const label = RIDE_STATUS_LABELS[currentStatus] ?? currentStatus;
       const step = STEPS.find((s) => s.match.includes(currentStatus));
       toast.info(step?.title ?? label, { description: step?.hint ?? "Statut mis à jour." });
+      void qc.invalidateQueries({ queryKey: [BLOCKING_QUERY_KEY] });
     }
     lastStatus.current = currentStatus;
-  }, [currentStatus]);
+  }, [currentStatus, qc]);
 
-  // Mise à jour en direct depuis le chauffeur
+  // Abonnement temps réel unique pour cette fiche.
   useEffect(() => {
     if (!user?.id) return;
     const channel = supabase
@@ -169,52 +225,52 @@ function TrackingPage() {
     };
   }, [id, user?.id, qc]);
 
-
-  if (q.isLoading) {
-    return <div className="surface h-64 animate-pulse rounded-2xl" />;
-  }
+  if (q.isLoading) return <TrackingSkeleton />;
 
   if (!q.data) {
     return (
       <>
         <Header />
-        <EmptyState title="Course introuvable" description="Cette course n'existe pas ou ne vous appartient pas." />
+        <EmptyState title="Demande introuvable" description="Cette demande n'existe pas ou ne vous appartient pas." />
       </>
     );
   }
 
-  const { ride, request, driver, review, invoice } = q.data;
+  const { ride, request, driver, vehicle, review, invoice } = q.data;
   const status = ride?.status ?? request?.status ?? "new";
   const pickup = ride?.pickup_address ?? request!.pickup_address;
   const dropoff = ride?.dropoff_address ?? request!.dropoff_address;
   const scheduled = ride?.scheduled_at ?? request!.scheduled_at;
   const passengers = ride?.passengers ?? request?.passengers ?? 1;
+  const luggage = request?.luggage ?? null;
   const price = ride?.price ?? request?.proposed_price ?? null;
-  const cancelled = ["cancelled", "refused"].includes(status);
+  const refused = status === "refused";
+  const cancelled = status === "cancelled";
+  const stopped = refused || cancelled;
   const current = stepIndex(status);
   const completed = status === "completed";
-  const pending =
-    !ride && !!request && ["new", "reviewing", "proposal_sent", "awaiting_client"].includes(status);
+  const waiting = !ride && !!request && CANCELLABLE.includes(status);
+  const canCancel = !!request && !ride && CANCELLABLE.includes(request.status);
+  const driverFirst = firstName(driver?.full_name);
+  const vehicleLabel = vehicle ? [vehicle.brand, vehicle.model].filter(Boolean).join(" ") : null;
+  const immediate = (request as { is_immediate?: boolean } | null)?.is_immediate ?? false;
 
   async function cancelRequest() {
     if (!request) return;
     setBusy(true);
-    const { error } = await supabase
-      .from("ride_requests")
-      .update({ status: "cancelled" })
-      .eq("id", request.id)
-      .eq("client_id", user!.id);
+    const { error } = await supabase.rpc("cancel_client_ride_request", { _request: request.id });
     setBusy(false);
+    setAskCancel(false);
     if (error) {
-      toast.error(error.message);
+      toast.error("Annulation impossible", { description: error.message });
       return;
     }
     toast.success("Demande annulée");
     void qc.invalidateQueries({ queryKey: ["client-tracking", id] });
     void qc.invalidateQueries({ queryKey: ["client-home"] });
+    void qc.invalidateQueries({ queryKey: ["client-rides"] });
+    void qc.invalidateQueries({ queryKey: [BLOCKING_QUERY_KEY] });
   }
-
-
 
   async function submitReview() {
     if (!ride || rating < 1) return;
@@ -236,73 +292,124 @@ function TrackingPage() {
   }
 
   return (
-    <div className="pb-8">
+    <div className="pb-10">
       <Header />
 
-      <div className="rounded-3xl border border-border bg-card p-5">
+      {/* En-tête */}
+      <section className="animate-fade-in rounded-3xl border border-border bg-card p-5 shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-              {completed ? "Course terminée" : cancelled ? "Course annulée" : "Course en cours"}
-            </p>
-            <h1 className="mt-1 text-xl font-bold">
-              {STEPS[current]?.title ?? RIDE_STATUS_LABELS[status] ?? status}
+          <div className="min-w-0">
+            <h1 className="text-xl font-extrabold tracking-tight">
+              {refused
+                ? "Demande refusée"
+                : cancelled
+                  ? "Demande annulée"
+                  : completed
+                    ? "Course terminée"
+                    : waiting
+                      ? "Demande envoyée"
+                      : (STEPS[current]?.title ?? RIDE_STATUS_LABELS[status] ?? status)}
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {cancelled
-                ? "Cette demande n'ira pas plus loin."
-                : (STEPS[current]?.hint ?? "En attente de confirmation du chauffeur.")}
+            <p className="mt-1 text-sm break-words text-muted-foreground">
+              {refused
+                ? `${driverFirst} n'est pas disponible pour cette demande.`
+                : cancelled
+                  ? "Cette demande a été annulée."
+                  : waiting
+                    ? `Votre demande a été transmise à ${driverFirst}.`
+                    : (STEPS[current]?.hint ?? "Statut mis à jour.")}
             </p>
           </div>
           <StatusBadge status={status} labels={RIDE_STATUS_LABELS} />
         </div>
 
         {driver ? (
-          <div className="mt-4 flex items-center gap-3 rounded-2xl bg-muted p-3">
-            <div className="flex size-10 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-sm font-bold text-primary">
+          <div className="mt-4 flex items-center gap-3 rounded-2xl bg-muted/70 p-3">
+            <span className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-full bg-primary/10 text-sm font-bold text-primary">
               {driver.avatar_url ? (
-                <img src={driver.avatar_url} alt={driver.full_name} className="size-full object-cover" />
+                <img src={driver.avatar_url} alt={driverFirst} className="size-full object-cover" />
               ) : (
-                (driver.full_name?.[0] ?? "?").toUpperCase()
+                initials(driver.full_name)
               )}
-            </div>
-            <div>
-              <p className="text-sm font-semibold">{driver.full_name}</p>
-              <p className="text-xs text-muted-foreground">Votre chauffeur</p>
-            </div>
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-semibold">{driverFirst}</span>
+              <span className="block truncate text-xs text-muted-foreground">
+                {vehicleLabel ? `Chauffeur · ${vehicleLabel}` : "Votre chauffeur"}
+              </span>
+            </span>
           </div>
         ) : null}
-      </div>
+      </section>
 
-      {pending ? (
-        <div className="mt-4 flex flex-col items-center gap-4 rounded-3xl border border-primary/30 bg-primary/5 p-6 text-center">
-          <span className="relative flex size-16 items-center justify-center">
-            <span className="absolute inline-flex size-16 animate-ping rounded-full bg-primary/25" />
-            <span className="relative grid size-14 place-items-center rounded-full bg-primary/15">
-              <Loader2 className="size-7 animate-spin text-primary" />
+      {/* Attente animée */}
+      {waiting ? (
+        <section className="mt-4 flex flex-col items-center gap-4 rounded-3xl border border-warning/30 bg-warning/[0.06] p-6 text-center">
+          <span className="relative grid size-24 place-items-center">
+            <span className="absolute size-24 rounded-full border-2 border-primary/30 motion-safe:animate-ping" />
+            <span className="absolute size-20 rounded-full border-2 border-primary/50 motion-safe:animate-pulse" />
+            <span className="relative grid size-16 place-items-center overflow-hidden rounded-full bg-card text-lg font-bold text-primary shadow-sm">
+              {driver?.avatar_url ? (
+                <img src={driver.avatar_url} alt={driverFirst} className="size-full object-cover" />
+              ) : (
+                initials(driver?.full_name)
+              )}
             </span>
           </span>
           <div>
-            <p className="text-sm font-semibold">En attente du chauffeur…</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {driver?.full_name ?? "Votre chauffeur"} doit confirmer votre course. Vous pouvez encore annuler.
+            <p className="flex items-center justify-center gap-1 text-sm font-semibold">
+              En attente de la réponse du chauffeur
+              <span aria-hidden className="inline-flex gap-0.5">
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    className="size-1 rounded-full bg-primary motion-safe:animate-bounce"
+                    style={{ animationDelay: `${i * 150}ms` }}
+                  />
+                ))}
+              </span>
+            </p>
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              Vous pouvez quitter cette page. Le statut sera actualisé automatiquement.
             </p>
           </div>
-          <Button
-            variant="outline"
-            className="h-11 w-full rounded-2xl font-semibold text-destructive"
-            disabled={busy}
-            onClick={cancelRequest}
-          >
-            {busy ? <Loader2 className="size-4 animate-spin" /> : <X className="size-4" />}
-            Annuler ma demande
-          </Button>
-        </div>
+        </section>
       ) : null}
 
+      {/* Refus */}
+      {refused ? (
+        <section className="mt-4 rounded-3xl border border-destructive/25 bg-destructive/[0.05] p-5">
+          <p className="text-sm font-semibold">Le chauffeur n'est pas disponible pour cette demande</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Vous pouvez choisir un autre chauffeur et envoyer une nouvelle demande.
+          </p>
+          <Button
+            className="mt-3 h-11 w-full rounded-2xl font-semibold"
+            onClick={() => navigate({ to: "/espace/demandes" })}
+          >
+            Choisir un autre chauffeur
+          </Button>
+          <Link
+            to="/espace/courses"
+            className="mt-2 block text-center text-sm font-medium text-muted-foreground underline underline-offset-4"
+          >
+            Retour à mes courses
+          </Link>
+        </section>
+      ) : null}
 
+      {/* Acceptation */}
+      {ride && !completed && !cancelled ? (
+        <section className="animate-fade-in mt-4 flex items-center gap-3 rounded-3xl border border-primary/30 bg-primary/[0.05] p-4">
+          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+            <Check className="size-4" />
+          </span>
+          <p className="min-w-0 text-sm font-semibold">Votre chauffeur a accepté la demande</p>
+        </section>
+      ) : null}
 
-      {!cancelled ? (
+      {/* Chronologie */}
+      {!stopped ? (
         <ol className="mt-4 rounded-3xl border border-border bg-card p-5">
           {STEPS.map((s, i) => {
             const done = current > i;
@@ -311,11 +418,11 @@ function TrackingPage() {
               <li key={s.key} className="flex gap-3">
                 <div className="flex flex-col items-center">
                   <span
-                    className={`flex size-7 shrink-0 items-center justify-center rounded-full border-2 text-[11px] font-bold ${
+                    className={`grid size-7 shrink-0 place-items-center rounded-full border-2 text-[11px] font-bold transition-colors ${
                       done
                         ? "border-primary bg-primary text-primary-foreground"
                         : active
-                          ? "border-primary bg-primary/10 text-primary"
+                          ? "border-primary bg-primary/10 text-primary motion-safe:animate-pulse"
                           : "border-border text-muted-foreground"
                     }`}
                   >
@@ -325,8 +432,10 @@ function TrackingPage() {
                     <span className={`my-1 w-px flex-1 ${done ? "bg-primary" : "bg-border"}`} />
                   ) : null}
                 </div>
-                <div className={`pb-5 ${i === STEPS.length - 1 ? "pb-0" : ""}`}>
-                  <p className={`text-sm font-semibold ${active || done ? "" : "text-muted-foreground"}`}>
+                <div className={i === STEPS.length - 1 ? "" : "pb-5"}>
+                  <p
+                    className={`text-sm ${active ? "font-bold" : done ? "font-medium" : "text-muted-foreground"}`}
+                  >
                     {s.title}
                   </p>
                   {active ? <p className="mt-0.5 text-xs text-muted-foreground">{s.hint}</p> : null}
@@ -337,44 +446,80 @@ function TrackingPage() {
         </ol>
       ) : null}
 
-      <div className="mt-4 rounded-3xl border border-border bg-card p-5">
-        <div className="flex items-start gap-3">
+      {/* Résumé de la demande */}
+      <section className="mt-4 rounded-3xl border border-border bg-card p-5">
+        <p className="text-sm font-semibold">Votre demande</p>
+
+        <div className="mt-3 flex items-start gap-3">
           <span className="mt-1.5 block size-3 shrink-0 rounded-full bg-primary" />
-          <p className="text-sm font-medium">{pickup}</p>
+          <p className="text-sm font-medium break-words">{pickup}</p>
         </div>
         <div className="my-1 ml-[6px] h-4 border-l border-dashed border-border" />
         <div className="flex items-start gap-3">
-          <MapPin className="mt-0.5 size-4 shrink-0" />
-          <p className="text-sm font-medium">{dropoff}</p>
+          <MapPin className="mt-0.5 size-4 shrink-0 text-primary" />
+          <p className="text-sm font-medium break-words">{dropoff}</p>
         </div>
 
         <dl className="mt-4 grid grid-cols-2 gap-y-2 border-t border-border pt-4 text-sm">
           <dt className="flex items-center gap-2 text-muted-foreground">
-            <Clock className="size-4" /> Départ prévu
+            <Clock className="size-4" /> {immediate ? "Maintenant" : "Planifiée"}
           </dt>
           <dd className="text-right font-medium">{formatDateTime(scheduled)}</dd>
           <dt className="flex items-center gap-2 text-muted-foreground">
             <Users className="size-4" /> Passagers
           </dt>
           <dd className="text-right font-medium">{passengers}</dd>
+          {luggage != null ? (
+            <>
+              <dt className="text-muted-foreground">Bagages</dt>
+              <dd className="text-right font-medium">{luggage}</dd>
+            </>
+          ) : null}
+          {request ? (
+            <>
+              <dt className="text-muted-foreground">Trajet</dt>
+              <dd className="text-right font-medium">{request.round_trip ? "Aller-retour" : "Aller simple"}</dd>
+            </>
+          ) : null}
+          <dt className="text-muted-foreground">Chauffeur</dt>
+          <dd className="text-right font-medium">{driverFirst}</dd>
+          {vehicleLabel ? (
+            <>
+              <dt className="text-muted-foreground">Véhicule</dt>
+              <dd className="text-right font-medium">{vehicleLabel}</dd>
+            </>
+          ) : null}
           <dt className="flex items-center gap-2 text-muted-foreground">
             <Euro className="size-4" /> Prix
           </dt>
           <dd className="text-right font-medium">{price ? formatEuro(Number(price)) : "À confirmer"}</dd>
+          {request?.special_needs ? (
+            <>
+              <dt className="text-muted-foreground">Besoins particuliers</dt>
+              <dd className="text-right font-medium break-words">{request.special_needs}</dd>
+            </>
+          ) : null}
         </dl>
 
         {request?.driver_message ? (
-          <p className="mt-3 rounded-2xl bg-muted p-3 text-sm text-muted-foreground">
-            « {request.driver_message} »
-          </p>
+          <p className="mt-3 rounded-2xl bg-muted p-3 text-sm text-muted-foreground">« {request.driver_message} »</p>
         ) : null}
-      </div>
 
+        {ride ? (
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/espace/courses/$rideId", params: { rideId: ride.id } })}
+            className="mt-4 inline-flex w-full items-center justify-between rounded-2xl border border-border px-4 py-3 text-sm font-semibold hover:bg-muted/50"
+          >
+            Voir tous les détails <ChevronRight className="size-4" />
+          </button>
+        ) : null}
+      </section>
+
+      {/* Évaluation */}
       {completed && ride ? (
         <div className="mt-4 rounded-3xl border border-border bg-card p-5">
-          <p className="text-sm font-semibold">
-            {review ? "Votre évaluation" : "Évaluer ce trajet"}
-          </p>
+          <p className="text-sm font-semibold">{review ? "Votre évaluation" : "Évaluer ce trajet"}</p>
           <div className="mt-3 flex gap-1">
             {[1, 2, 3, 4, 5].map((n) => {
               const value = review?.rating ?? rating;
@@ -440,15 +585,52 @@ function TrackingPage() {
         </div>
       ) : null}
 
-      {ride ? (
-        <Button
-          variant="outline"
-          className="mt-4 h-12 w-full rounded-2xl"
-          onClick={() => navigate({ to: "/espace/courses/$rideId", params: { rideId: ride.id } })}
+      {/* Annulation : action secondaire discrète */}
+      {canCancel ? (
+        <button
+          type="button"
+          onClick={() => setAskCancel(true)}
+          disabled={busy}
+          className="mt-5 block w-full text-center text-sm font-medium text-muted-foreground underline underline-offset-4 hover:text-destructive"
         >
-          Voir le détail complet
-        </Button>
+          Annuler ma demande
+        </button>
       ) : null}
+
+      <AlertDialog open={askCancel} onOpenChange={setAskCancel}>
+        <AlertDialogContent className="rounded-3xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Annuler cette demande ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Le chauffeur ne recevra plus votre demande. Tant qu'aucune course n'est confirmée, l'annulation est
+              sans frais. Vous pourrez ensuite envoyer une nouvelle demande.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Conserver ma demande</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                void cancelRequest();
+              }}
+            >
+              {busy ? <Loader2 className="size-4 animate-spin" /> : <X className="size-4" />}
+              Confirmer l'annulation
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
+function TrackingSkeleton() {
+  return (
+    <div className="pb-10">
+      <Header />
+      <div className="h-36 animate-pulse rounded-3xl bg-muted" />
+      <div className="mt-4 h-48 animate-pulse rounded-3xl bg-muted" />
+      <div className="mt-4 h-64 animate-pulse rounded-3xl bg-muted" />
     </div>
   );
 }
