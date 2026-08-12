@@ -171,6 +171,18 @@ export const Route = createFileRoute("/legal/$doc")({
   component: LegalPage,
 });
 
+/** Ancre stable pour les liens profonds (ex. #annulation). */
+function slugify(heading: string) {
+  return heading
+    .replace(/^\d+\.\s*/, "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 function LegalFallback() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
