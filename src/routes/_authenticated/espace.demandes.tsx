@@ -492,30 +492,32 @@ function ClientRequests() {
       : null;
     const comment = [form.comment.trim(), returnLine, estimateLine].filter(Boolean).join("\n");
 
-    const { data: created, error } = await supabase
-      .from("ride_requests")
-      .insert({
-        client_id: user!.id,
-        driver_id: form.driver_id,
-        pickup_address: form.pickup_address.trim(),
-        dropoff_address: form.dropoff_address.trim(),
-        scheduled_at: scheduledIso(),
-        passengers: Number(form.passengers),
-        luggage: Number(form.luggage),
-        comment: comment || null,
-        special_needs: form.special_needs.trim() || null,
-        round_trip: form.round_trip,
-        trip_type: form.trip_type.trim() || null,
-        proposed_price: estimate ? estimate.price.total : null,
-        status: "new",
-      })
-      .select("id")
-      .single();
+    // Création atomique côté serveur : une seule demande « Maintenant » en attente
+    // par client, rejeu protégé par clé d'idempotence, acceptation des CGU tracée.
+    const { data, error } = await supabase.rpc("create_client_ride_request", {
+      _driver: form.driver_id,
+      _pickup: form.pickup_address.trim(),
+      _dropoff: form.dropoff_address.trim(),
+      _scheduled_at: scheduledIso(),
+      _passengers: Number(form.passengers),
+      _luggage: Number(form.luggage),
+      _round_trip: form.round_trip,
+      _trip_type: form.trip_type.trim() || null,
+      _special_needs: form.special_needs.trim() || null,
+      _comment: comment || null,
+      _proposed_price: estimate ? estimate.price.total : null,
+      _immediate: whenMode === "now",
+      _idempotency_key: idempotencyRef.current,
+      _cgu_version: LEGAL_VERSIONS.cgu,
+      _cgv_version: LEGAL_VERSIONS.cgv,
+      _cancellation_version: LEGAL_VERSIONS.cancellation,
+    } as never);
     setBusy(false);
+    const created = (data as unknown as CreateResult[] | null)?.[0] ?? null;
+
     if (error) {
       sentRef.current = false;
       setSubmitError(error.message);
-      // Dernier rempart serveur : disponibilités déclarées du chauffeur.
       if (/disponible/i.test(error.message)) {
         setStep(0);
         toast.error("Ce chauffeur n'est pas disponible à la date ou à l'horaire sélectionné.", {
@@ -527,19 +529,34 @@ function ClientRequests() {
       return;
     }
 
-    // Traçabilité de l'acceptation des conditions (versions réellement affichées).
-    const { error: termsError } = await supabase.from("ride_request_terms_acceptances").insert({
-      request_id: created.id,
-      user_id: user!.id,
-      cgu_version: LEGAL_VERSIONS.cgu,
-      cgv_version: LEGAL_VERSIONS.cgv,
-      cancellation_version: LEGAL_VERSIONS.cancellation,
-    });
-    if (termsError) console.error("Enregistrement de l'acceptation impossible", termsError);
+    if (created?.blocked) {
+      sentRef.current = false;
+      setSubmitError("Une demande immédiate est déjà en attente de réponse.");
+      toast.error("Une demande est déjà en cours", {
+        description: "Suivez-la ou annulez-la avant d'en envoyer une nouvelle.",
+        action: created.blocking_request_id
+          ? {
+              label: "Suivre",
+              onClick: () =>
+                navigate({ to: "/espace/suivi/$id", params: { id: created.blocking_request_id! } }),
+            }
+          : undefined,
+      });
+      return;
+    }
 
-    toast.success("Demande envoyée — en attente de confirmation du chauffeur");
+    if (!created?.request_id) {
+      sentRef.current = false;
+      setSubmitError("Envoi impossible. Réessayez dans un instant.");
+      return;
+    }
+
+    void qc.invalidateQueries({ queryKey: [BLOCKING_QUERY_KEY] });
+    void qc.invalidateQueries({ queryKey: ["client-home"] });
+    if (!created.reused) toast.success("Demande envoyée — en attente de la réponse du chauffeur");
+    idempotencyRef.current = newIdempotencyKey();
     resetForm();
-    navigate({ to: "/espace/suivi/$id", params: { id: created.id } });
+    navigate({ to: "/espace/suivi/$id", params: { id: created.request_id } });
   }
   const heading = HEADINGS[step]!;
   const draft = {
