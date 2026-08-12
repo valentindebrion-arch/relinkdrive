@@ -7,7 +7,7 @@ import { finalizeOAuthAccount } from "@/lib/oauth-account.functions";
 import { clearOAuthIntent, readOAuthIntent } from "@/lib/oauth-intent";
 import { BRAND } from "@/lib/brand";
 
-export const Route = createFileRoute("/auth/callback")({
+export const Route = createFileRoute("/auth_/callback")({
   ssr: false,
   head: () => ({
     meta: [

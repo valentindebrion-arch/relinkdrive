@@ -17,6 +17,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedEspaceRouteImport } from './routes/_authenticated/espace'
 import { Route as AuthenticatedProRouteImport } from './routes/_authenticated/pro'
+import { Route as AuthCallbackRouteImport } from './routes/auth_.callback'
 import { Route as AuthConfirmRouteImport } from './routes/auth_.confirm'
 import { Route as ChauffeurSlugRouteImport } from './routes/chauffeur.$slug'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
@@ -92,6 +93,11 @@ const AuthenticatedProRoute = AuthenticatedProRouteImport.update({
   id: '/pro',
   path: '/pro',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth_/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthConfirmRoute = AuthConfirmRouteImport.update({
   id: '/auth_/confirm',
@@ -310,6 +316,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/espace': typeof AuthenticatedEspaceRouteWithChildren
   '/pro': typeof AuthenticatedProRouteWithChildren
+  '/auth/callback': typeof AuthCallbackRoute
   '/auth/confirm': typeof AuthConfirmRoute
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
   '/admin/chauffeurs': typeof AuthenticatedAdminChauffeursRoute
@@ -352,6 +359,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/chauffeurs': typeof ChauffeursRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/auth/confirm': typeof AuthConfirmRoute
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
   '/admin/chauffeurs': typeof AuthenticatedAdminChauffeursRoute
@@ -398,6 +406,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/espace': typeof AuthenticatedEspaceRouteWithChildren
   '/_authenticated/pro': typeof AuthenticatedProRouteWithChildren
+  '/auth_/callback': typeof AuthCallbackRoute
   '/auth_/confirm': typeof AuthConfirmRoute
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
   '/_authenticated/admin/chauffeurs': typeof AuthenticatedAdminChauffeursRoute
@@ -445,6 +454,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/espace'
     | '/pro'
+    | '/auth/callback'
     | '/auth/confirm'
     | '/chauffeur/$slug'
     | '/admin/chauffeurs'
@@ -487,6 +497,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/chauffeurs'
     | '/sitemap.xml'
+    | '/auth/callback'
     | '/auth/confirm'
     | '/chauffeur/$slug'
     | '/admin/chauffeurs'
@@ -532,6 +543,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/espace'
     | '/_authenticated/pro'
+    | '/auth_/callback'
     | '/auth_/confirm'
     | '/chauffeur/$slug'
     | '/_authenticated/admin/chauffeurs'
@@ -576,6 +588,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ChauffeursRoute: typeof ChauffeursRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
   AuthConfirmRoute: typeof AuthConfirmRoute
   ChauffeurSlugRoute: typeof ChauffeurSlugRoute
   ApiPublicPushRoute: typeof ApiPublicPushRoute
@@ -638,6 +651,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/pro'
       preLoaderRoute: typeof AuthenticatedProRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/auth_/callback': {
+      id: '/auth_/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/auth_/confirm': {
       id: '/auth_/confirm'
@@ -1023,6 +1043,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ChauffeursRoute: ChauffeursRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
   AuthConfirmRoute: AuthConfirmRoute,
   ChauffeurSlugRoute: ChauffeurSlugRoute,
   ApiPublicPushRoute: ApiPublicPushRoute,
