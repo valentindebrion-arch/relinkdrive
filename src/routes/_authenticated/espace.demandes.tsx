@@ -33,7 +33,11 @@ import { AddressSearchPanel, pushRecentAddress } from "@/components/request/Addr
 import { DriverPickerSheet } from "@/components/request/DriverPickerSheet";
 import { QrScannerDialog } from "@/components/QrScannerDialog";
 import { loadRequestDraft, saveRequestDraft, clearRequestDraft } from "@/lib/request-draft";
-import { BLOCKING_QUERY_KEY, newIdempotencyKey, useBlockingImmediate } from "@/lib/immediate-request";
+import {
+  BLOCKING_QUERY_KEY,
+  newIdempotencyKey,
+  useBlockingImmediate,
+} from "@/lib/immediate-request";
 import { useCountdown } from "@/components/ExpiryCountdown";
 
 type CreateResult = {
@@ -250,7 +254,6 @@ function ClientRequests() {
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.driver_id, form.pickup_address, form.dropoff_address, form.round_trip]);
-
 
   // Aperçu d'itinéraire dès que départ et arrivée sont confirmés (étape 1).
   useEffect(() => {
@@ -699,9 +702,7 @@ function ClientRequests() {
                 <button
                   type="button"
                   onClick={() => setDriverPickerOpen(true)}
-                  aria-label={
-                    selectedDriver ? "Modifier le chauffeur" : "Choisir un chauffeur"
-                  }
+                  aria-label={selectedDriver ? "Modifier le chauffeur" : "Choisir un chauffeur"}
                   className="flex w-full items-center gap-3 rounded-[26px] bg-card p-3.5 text-left shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)] transition-colors active:bg-muted/60"
                 >
                   <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[15px] font-bold text-primary">
@@ -901,8 +902,8 @@ function ClientRequests() {
                       </p>
                     ) : !pickupOk || !dropoffOk ? (
                       <p className="text-[13.5px] text-muted-foreground">
-                        Indiquez votre départ et votre destination pour consulter l'agenda de
-                        votre chauffeur.
+                        Indiquez votre départ et votre destination pour consulter l'agenda de votre
+                        chauffeur.
                       </p>
                     ) : form.scheduled_at ? (
                       <div className="flex items-start gap-3">
@@ -949,7 +950,6 @@ function ClientRequests() {
                   </div>
                 ) : null}
 
-
                 {blocking ? (
                   <button
                     type="button"
@@ -981,7 +981,7 @@ function ClientRequests() {
                 ) : null}
               </div>
 
-                {checking || avail ? (
+              {checking || avail ? (
                 <div
                   className={cn(
                     "rise-in mt-3 rounded-3xl px-4 py-3 text-[13px]",
@@ -1058,8 +1058,7 @@ function ClientRequests() {
                         <div className="mt-2 space-y-1 border-t border-border/60 pt-2">
                           {alternatives.filter((a) => a.status === "available").length === 0 ? (
                             <p className="text-xs text-muted-foreground">
-                              Aucun autre chauffeur de votre carnet n'est disponible à cette
-                              heure.
+                              Aucun autre chauffeur de votre carnet n'est disponible à cette heure.
                             </p>
                           ) : (
                             alternatives
@@ -1069,9 +1068,7 @@ function ClientRequests() {
                                   key={a.driverId}
                                   type="button"
                                   className="flex w-full items-center justify-between rounded-xl bg-background px-3 py-2 text-left text-[13px] font-medium"
-                                  onClick={() =>
-                                    setForm((f) => ({ ...f, driver_id: a.driverId }))
-                                  }
+                                  onClick={() => setForm((f) => ({ ...f, driver_id: a.driverId }))}
                                 >
                                   <span className="truncate">
                                     {(drivers.data ?? []).find((d) => d.id === a.driverId)
@@ -1104,8 +1101,6 @@ function ClientRequests() {
                   </p>
                 ) : null
               ) : null}
-
-
             </div>
           </div>
 
@@ -1115,7 +1110,10 @@ function ClientRequests() {
           >
             <div className="mx-auto w-full max-w-lg">
               {missing ? (
-                <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
+                <p
+                  aria-live="polite"
+                  className="mb-2 text-center text-[12px] text-muted-foreground"
+                >
                   {missing}
                 </p>
               ) : null}
@@ -1290,8 +1288,6 @@ function ClientRequests() {
           }}
         />
       ) : null}
-
-
 
       <DriverPickerSheet
         open={driverPickerOpen}

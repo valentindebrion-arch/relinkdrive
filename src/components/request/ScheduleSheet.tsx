@@ -1,15 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  AlertTriangle,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  Loader2,
-  X,
-} from "lucide-react";
+import { AlertTriangle, Check, ChevronLeft, ChevronRight, Clock, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getDriverSchedule } from "@/lib/schedule-slots.functions";
@@ -324,7 +316,11 @@ export function ScheduleSheet({
               onConfirm(selectedSlot);
             }}
           >
-            {query.isFetching ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+            {query.isFetching ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Check className="size-4" />
+            )}
             Confirmer ce créneau
           </Button>
         </div>

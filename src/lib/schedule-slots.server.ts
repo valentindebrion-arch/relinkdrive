@@ -5,7 +5,12 @@
  * marge de sécurité, durée réelle du trajet.
  */
 import { BLOCK_DURATION_MIN, SAFETY_MARGIN_MIN } from "@/lib/availability";
-import { fitsDeclaredAvailability, RELINK_TZ, type Absence, type WorkingHour } from "@/lib/schedule";
+import {
+  fitsDeclaredAvailability,
+  RELINK_TZ,
+  type Absence,
+  type WorkingHour,
+} from "@/lib/schedule";
 import {
   MAX_ADVANCE_DAYS,
   MIN_NOTICE_MIN,
@@ -132,8 +137,7 @@ export async function buildDriverSchedule(
     });
   }
 
-  const overlaps = (start: number, end: number) =>
-    busy.some((b) => start < b.end && end > b.start);
+  const overlaps = (start: number, end: number) => busy.some((b) => start < b.end && end > b.start);
 
   const todayKey = parisDay(now);
   const horizonKey = parisDay(horizon);
