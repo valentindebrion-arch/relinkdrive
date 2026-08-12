@@ -199,7 +199,7 @@ function LegalPage() {
       <p className="mt-1 text-sm text-muted-foreground">{doc.description}</p>
       <div className="mt-6 space-y-5">
         {doc.sections.map((s) => (
-          <section key={s.heading} className="surface p-5">
+          <section key={s.heading} id={slugify(s.heading)} className="surface scroll-mt-6 p-5">
             <h2 className="text-base font-semibold">{s.heading}</h2>
             {s.body.map((p) => (
               <p key={p} className="mt-2 text-sm text-muted-foreground">
