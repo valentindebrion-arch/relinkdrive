@@ -176,6 +176,9 @@ function ClientRequests() {
   const [scanOpen, setScanOpen] = useState(false);
   /** Empêche tout double envoi d'une même demande. */
   const sentRef = useRef(false);
+  /** Clé d'idempotence : un rejeu réseau ne crée jamais de doublon côté serveur. */
+  const idempotencyRef = useRef(newIdempotencyKey());
+  const qc = useQueryClient();
 
   const [form, setForm] = useState({
     driver_id: search.driver ?? "",
