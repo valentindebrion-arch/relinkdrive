@@ -29,6 +29,12 @@ import { formatDateTime, formatEuro } from "@/lib/labels";
 import { LiveDriversMap } from "@/components/LiveDriversMap";
 import { RouteMiniMap } from "@/components/RouteMiniMap";
 import { AddressSearchPanel, pushRecentAddress } from "@/components/request/AddressSearchPanel";
+import {
+  OptionsStep,
+  serializeNeeds,
+  type ReturnMode,
+  type SpecialNeedsState,
+} from "@/components/request/OptionsStep";
 import { estimateRoute, reverseGeocode } from "@/lib/route-estimate.functions";
 import { checkDriverAvailability } from "@/lib/availability.functions";
 import {
@@ -413,7 +419,12 @@ function ClientRequests() {
     const estimateLine = estimate
       ? `Prix final Relink : ${formatEuro(estimate.price.total)} · ${estimate.distanceKm} km · ~${estimate.durationMin} min`
       : null;
-    const comment = [form.comment.trim(), estimateLine].filter(Boolean).join("\n");
+    const returnLine = form.round_trip
+      ? returnMode === "scheduled"
+        ? `Retour planifié : ${returnTrip.at ? formatDateTime(new Date(returnTrip.at).toISOString()) : "—"} · ${returnTrip.pickup} → ${returnTrip.dropoff}`
+        : "Retour immédiatement après la course"
+      : null;
+    const comment = [form.comment.trim(), returnLine, estimateLine].filter(Boolean).join("\n");
 
     const { data: created, error } = await supabase
       .from("ride_requests")
@@ -912,6 +923,52 @@ function ClientRequests() {
             </div>
           </div>
         </>
+      ) : step === 1 ? (
+        <OptionsStep
+          pickup={form.pickup_address}
+          dropoff={form.dropoff_address}
+          whenLabel={formatDateTime(scheduledIso())}
+          whenMode={whenMode}
+          driverName={driverName}
+          passengers={Number(form.passengers) || 1}
+          luggage={Number(form.luggage) || 0}
+          roundTrip={form.round_trip}
+          comment={form.comment}
+          needs={needs}
+          returnMode={returnMode}
+          returnAt={returnTrip.at}
+          returnPickup={returnTrip.pickup}
+          returnDropoff={returnTrip.dropoff}
+          minReturnLocal={toLocalInput(scheduledIso())}
+          busy={busy || checking}
+          onEditTrip={() => setStep(0)}
+          onContinue={() => void next()}
+          onChange={(patch) => {
+            if (patch.needs) {
+              setNeeds(patch.needs);
+              setForm((f) => ({ ...f, special_needs: serializeNeeds(patch.needs!) }));
+            }
+            if (patch.returnMode) setReturnMode(patch.returnMode);
+            if (
+              patch.returnAt !== undefined ||
+              patch.returnPickup !== undefined ||
+              patch.returnDropoff !== undefined
+            ) {
+              setReturnTrip((r) => ({
+                at: patch.returnAt ?? r.at,
+                pickup: patch.returnPickup ?? r.pickup,
+                dropoff: patch.returnDropoff ?? r.dropoff,
+              }));
+            }
+            setForm((f) => ({
+              ...f,
+              ...(patch.passengers !== undefined ? { passengers: String(patch.passengers) } : {}),
+              ...(patch.luggage !== undefined ? { luggage: String(patch.luggage) } : {}),
+              ...(patch.roundTrip !== undefined ? { round_trip: patch.roundTrip } : {}),
+              ...(patch.comment !== undefined ? { comment: patch.comment } : {}),
+            }));
+          }}
+        />
       ) : (
         <div className="mx-auto flex w-full max-w-2xl min-h-0 flex-1 flex-col px-3 pb-2">
           <div key={`h-${step}`} className="rise-in shrink-0">
