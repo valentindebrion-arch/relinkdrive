@@ -530,19 +530,97 @@ function ClientRequests() {
       {step === 0 ? (
         <>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[calc(7rem+env(safe-area-inset-bottom))]">
-            <div className="mx-auto w-full max-w-lg space-y-7">
-              <div className="rise-in pt-1">
-                <h2 className="text-[27px] leading-[1.15] font-extrabold tracking-tight">
-                  {heading.title}
+            <div className="mx-auto w-full max-w-lg space-y-4">
+              <div className="rise-in">
+                <h2 className="text-[22px] leading-tight font-extrabold tracking-tight">
+                  Préparons votre trajet
                 </h2>
-                <p className="mt-1.5 text-[14px] leading-snug text-muted-foreground">
-                  {heading.sub}
+                <p className="mt-1 hidden text-[13.5px] leading-snug text-muted-foreground min-[400px]:block">
+                  Choisissez votre chauffeur et indiquez votre trajet.
                 </p>
               </div>
 
+              {/* 1. Chauffeur — obligatoire, première action */}
+              <section aria-labelledby="drv">
+                <div className="mb-2 flex items-baseline justify-between gap-2">
+                  <h3 id="drv" className="text-[15px] font-extrabold tracking-tight">
+                    Votre chauffeur
+                  </h3>
+                  <span className="text-[12px] font-semibold text-muted-foreground">
+                    Obligatoire
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setDriverPickerOpen(true)}
+                  aria-label={
+                    selectedDriver ? "Modifier le chauffeur" : "Choisir un chauffeur"
+                  }
+                  className="flex w-full items-center gap-3 rounded-[26px] bg-card p-3.5 text-left shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)] transition-colors active:bg-muted/60"
+                >
+                  <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[15px] font-bold text-primary">
+                    {selectedDriver ? (
+                      (selectedDriver.full_name ?? "C").slice(0, 2).toUpperCase()
+                    ) : (
+                      <Users className="size-5" />
+                    )}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    {selectedDriver ? (
+                      <>
+                        <span className="flex items-center gap-1.5">
+                          <span className="truncate text-[15.5px] font-bold">
+                            Course demandée à {selectedDriver.full_name ?? "votre chauffeur"}
+                          </span>
+                          {selectedDriver.favorite ? (
+                            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
+                              <Star className="size-3" /> Favori
+                            </span>
+                          ) : null}
+                        </span>
+                        <span
+                          className={cn(
+                            "mt-0.5 block text-[12.5px] font-bold",
+                            driverAvailable ? "text-primary" : "text-muted-foreground",
+                          )}
+                        >
+                          {driverAvailable ? "Disponible maintenant" : "Hors service actuellement"}
+                        </span>
+                        {selectedDriver.vehicle ? (
+                          <span className="block truncate text-[12.5px] text-muted-foreground">
+                            {selectedDriver.vehicle}
+                          </span>
+                        ) : null}
+                      </>
+                    ) : (
+                      <>
+                        <span className="block text-[15.5px] font-bold">Choisir un chauffeur</span>
+                        <span className="block text-[12.5px] text-muted-foreground">
+                          Sélectionnez un chauffeur de confiance
+                        </span>
+                      </>
+                    )}
+                  </span>
+                  <span className="shrink-0 text-[13px] font-bold text-primary">
+                    {selectedDriver ? "Modifier" : <ChevronRight className="size-5" />}
+                  </span>
+                </button>
+
+                {selectedDriver && !driverAvailable ? (
+                  <p className="mt-2 flex items-start gap-2 rounded-2xl bg-muted/70 px-3.5 py-2.5 text-[12.5px] leading-snug text-muted-foreground">
+                    <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                    <span>
+                      Ce chauffeur n'est pas disponible immédiatement. Planifiez votre trajet ou
+                      choisissez un autre chauffeur.
+                    </span>
+                  </p>
+                ) : null}
+              </section>
+
               {/* Carte principale : l'itinéraire */}
-              <div className="relative rounded-[28px] bg-card p-5 shadow-[0_18px_40px_-28px_rgba(0,0,0,0.45)]">
-                <span className="absolute top-[46px] left-[31px] h-[52px] w-px bg-primary/35" />
+              <div className="relative rounded-[26px] bg-card p-4 shadow-[0_18px_40px_-28px_rgba(0,0,0,0.45)]">
+                <span className="absolute top-[42px] left-[27px] h-[48px] w-px bg-primary/35" />
 
                 <button
                   type="button"
@@ -613,39 +691,6 @@ function ClientRequests() {
                   <Search className="size-4 shrink-0 text-muted-foreground" />
                 </button>
               </div>
-
-              {/* Aperçu cartographique compact, uniquement après saisie complète */}
-              {tripReady ? (
-                previewState === "loading" ? (
-                  <p className="flex items-center gap-2 px-1 text-[13px] text-muted-foreground">
-                    <Loader2 className="size-4 animate-spin" /> Calcul de l'itinéraire…
-                  </p>
-                ) : preview ? (
-                  <div className="rise-in overflow-hidden rounded-[24px] bg-card shadow-[0_18px_40px_-30px_rgba(0,0,0,0.45)]">
-                    <RouteMiniMap
-                      polyline={preview.polyline}
-                      className="h-36 rounded-none border-0"
-                    />
-                    <div className="flex items-center justify-between gap-3 px-4 py-3">
-                      <p className="text-[14px] font-semibold">
-                        {preview.distanceKm} km · ~{preview.durationMin} min
-                      </p>
-                      <button
-                        type="button"
-                        className="text-[13px] font-bold text-primary"
-                        onClick={() => setShowPreviewMap(true)}
-                      >
-                        Vérifier sur la carte
-                      </button>
-                    </div>
-                  </div>
-                ) : previewState === "error" ? (
-                  <p className="px-1 text-[13px] text-muted-foreground">
-                    L'itinéraire n'a pas pu être calculé pour le moment. Vous pouvez continuer ou
-                    modifier vos adresses.
-                  </p>
-                ) : null
-              ) : null}
 
               {/* Moment du départ */}
               <div>
@@ -723,207 +768,145 @@ function ClientRequests() {
                 ) : null}
               </div>
 
-              {/* Chauffeur — facultatif, en dernier */}
-              <div>
-                <div className="mb-3 flex items-baseline gap-2">
-                  <h3 className="text-[17px] font-extrabold tracking-tight">
-                    Avec quel chauffeur ?
-                  </h3>
-                  <span className="text-[12px] font-medium text-muted-foreground">Facultatif</span>
-                </div>
-
-                {selectedDriver ? (
-                  <div className="rounded-3xl bg-card p-4 shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)]">
-                    <div className="flex items-center gap-3">
-                      <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[15px] font-bold text-primary">
-                        {(selectedDriver.full_name ?? "C").slice(0, 2).toUpperCase()}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[11px] font-bold tracking-wide text-primary uppercase">
-                          Chauffeur sélectionné
-                        </p>
-                        <p className="truncate text-[16px] font-bold">
-                          Course demandée à {selectedDriver.full_name ?? "votre chauffeur"}
-                        </p>
-                        <p className="text-[13px] text-muted-foreground">
-                          {driverAvailable
-                            ? "Disponible actuellement"
-                            : "Hors service actuellement"}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="relative mt-3">
-                      <select
-                        aria-label="Modifier le chauffeur"
-                        className="h-11 w-full appearance-none rounded-2xl bg-muted px-4 text-[14px] font-semibold focus:outline-none"
-                        value={form.driver_id}
-                        onChange={(e) => {
-                          const id = e.target.value;
-                          setForm({ ...form, driver_id: id });
-                          const picked = (drivers.data ?? []).find((d) => d.id === id);
-                          if (picked && !picked.on_duty) setWhenMode("later");
-                        }}
-                      >
-                        <option value="">Modifier — aucun chauffeur</option>
-                        {(drivers.data ?? []).map((d) => (
-                          <option key={d.id} value={d.id}>
-                            {d.full_name} {d.on_duty ? "· Disponible" : "· Indisponible"}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronRight className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 rotate-90 text-muted-foreground" />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="rounded-3xl bg-card p-4 shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)]">
-                    <div className="flex items-center gap-3">
-                      <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                        <UserRound className="size-5" />
-                      </span>
-                      <div className="min-w-0">
-                        <p className="text-[15px] font-bold">Trouver un chauffeur disponible</p>
-                        <p className="text-[13px] text-muted-foreground">
-                          ReLink recherchera un chauffeur adapté à votre demande
-                        </p>
-                      </div>
-                    </div>
-                    <div className="relative mt-3">
-                      <select
-                        aria-label="Choisir parmi mes chauffeurs"
-                        className="h-11 w-full appearance-none rounded-2xl bg-muted px-4 text-[14px] font-semibold focus:outline-none"
-                        value={form.driver_id}
-                        onChange={(e) => {
-                          const id = e.target.value;
-                          setForm({ ...form, driver_id: id });
-                          const picked = (drivers.data ?? []).find((d) => d.id === id);
-                          if (picked && !picked.on_duty) setWhenMode("later");
-                        }}
-                      >
-                        <option value="">Choisir parmi mes chauffeurs</option>
-                        {(drivers.data ?? []).map((d) => (
-                          <option key={d.id} value={d.id}>
-                            {d.full_name} {d.on_duty ? "· Disponible" : "· Indisponible"}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronRight className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 rotate-90 text-muted-foreground" />
-                    </div>
-                    {drivers.data && drivers.data.length === 0 ? (
-                      <p className="mt-2 text-[12px] text-muted-foreground">
-                        Aucun chauffeur dans votre carnet pour l'instant : ajoutez-en un depuis
-                        l'onglet Chauffeurs.
-                      </p>
-                    ) : null}
-                  </div>
-                )}
-
                 {checking || avail ? (
-                  <div
-                    className={cn(
-                      "rise-in mt-3 rounded-3xl px-4 py-3 text-[13px]",
-                      avail?.status === "available"
-                        ? "bg-primary/10"
-                        : avail?.status === "unavailable"
-                          ? "bg-destructive/10"
-                          : "bg-card",
-                    )}
-                  >
-                    {checking ? (
-                      <p className="flex items-center gap-2 font-medium text-muted-foreground">
-                        <Loader2 className="size-4 animate-spin" /> Vérification du créneau…
+                <div
+                  className={cn(
+                    "rise-in mt-3 rounded-3xl px-4 py-3 text-[13px]",
+                    avail?.status === "available"
+                      ? "bg-primary/10"
+                      : avail?.status === "unavailable"
+                        ? "bg-destructive/10"
+                        : "bg-card",
+                  )}
+                >
+                  {checking ? (
+                    <p className="flex items-center gap-2 font-medium text-muted-foreground">
+                      <Loader2 className="size-4 animate-spin" /> Vérification du créneau…
+                    </p>
+                  ) : avail ? (
+                    <>
+                      <p className="flex items-start gap-2 font-semibold">
+                        {avail.status === "available" ? (
+                          <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" />
+                        ) : (
+                          <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                        )}
+                        <span>{availabilityMessage(avail)}</span>
                       </p>
-                    ) : avail ? (
-                      <>
-                        <p className="flex items-start gap-2 font-semibold">
-                          {avail.status === "available" ? (
-                            <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" />
-                          ) : (
-                            <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-                          )}
-                          <span>{availabilityMessage(avail)}</span>
-                        </p>
-                        {avail.status === "later" && avail.earliestIso ? (
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            <Button
-                              size="sm"
-                              className="rounded-xl"
-                              onClick={() => {
-                                setWhenMode("later");
-                                setForm((f) => ({
-                                  ...f,
-                                  scheduled_at: toLocalInput(avail.earliestIso!),
-                                }));
-                                toast.success(
-                                  `Créneau ${formatSlot(avail.earliestIso!)} sélectionné`,
-                                );
-                              }}
-                            >
-                              Choisir ce créneau
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="rounded-xl"
-                              onClick={() => void findOtherDrivers()}
-                            >
-                              Voir d'autres chauffeurs
-                            </Button>
-                          </div>
-                        ) : null}
-                        {avail.status === "unavailable" ? (
+                      {avail.status === "later" && avail.earliestIso ? (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <Button
+                            size="sm"
+                            className="rounded-xl"
+                            onClick={() => {
+                              setWhenMode("later");
+                              setForm((f) => ({
+                                ...f,
+                                scheduled_at: toLocalInput(avail.earliestIso!),
+                              }));
+                              toast.success(
+                                `Créneau ${formatSlot(avail.earliestIso!)} sélectionné`,
+                              );
+                            }}
+                          >
+                            Choisir ce créneau
+                          </Button>
                           <Button
                             size="sm"
                             variant="outline"
-                            className="mt-2 rounded-xl"
+                            className="rounded-xl"
                             onClick={() => void findOtherDrivers()}
                           >
                             Voir d'autres chauffeurs
                           </Button>
-                        ) : null}
-                        {avail.status === "unknown" ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="mt-2 rounded-xl"
-                            onClick={() => void checkSelectedDriver()}
-                          >
-                            Réessayer
-                          </Button>
-                        ) : null}
-                        {alternatives ? (
-                          <div className="mt-2 space-y-1 border-t border-border/60 pt-2">
-                            {alternatives.filter((a) => a.status === "available").length === 0 ? (
-                              <p className="text-xs text-muted-foreground">
-                                Aucun autre chauffeur de votre carnet n'est disponible à cette
-                                heure.
-                              </p>
-                            ) : (
-                              alternatives
-                                .filter((a) => a.status === "available")
-                                .map((a) => (
-                                  <button
-                                    key={a.driverId}
-                                    type="button"
-                                    className="flex w-full items-center justify-between rounded-xl bg-background px-3 py-2 text-left text-[13px] font-medium"
-                                    onClick={() =>
-                                      setForm((f) => ({ ...f, driver_id: a.driverId }))
-                                    }
-                                  >
-                                    <span className="truncate">
-                                      {(drivers.data ?? []).find((d) => d.id === a.driverId)
-                                        ?.full_name ?? "Chauffeur"}
-                                    </span>
-                                    <span className="text-primary">Disponible</span>
-                                  </button>
-                                ))
-                            )}
-                          </div>
-                        ) : null}
-                      </>
-                    ) : null}
+                        </div>
+                      ) : null}
+                      {avail.status === "unavailable" ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="mt-2 rounded-xl"
+                          onClick={() => void findOtherDrivers()}
+                        >
+                          Voir d'autres chauffeurs
+                        </Button>
+                      ) : null}
+                      {avail.status === "unknown" ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="mt-2 rounded-xl"
+                          onClick={() => void checkSelectedDriver()}
+                        >
+                          Réessayer
+                        </Button>
+                      ) : null}
+                      {alternatives ? (
+                        <div className="mt-2 space-y-1 border-t border-border/60 pt-2">
+                          {alternatives.filter((a) => a.status === "available").length === 0 ? (
+                            <p className="text-xs text-muted-foreground">
+                              Aucun autre chauffeur de votre carnet n'est disponible à cette
+                              heure.
+                            </p>
+                          ) : (
+                            alternatives
+                              .filter((a) => a.status === "available")
+                              .map((a) => (
+                                <button
+                                  key={a.driverId}
+                                  type="button"
+                                  className="flex w-full items-center justify-between rounded-xl bg-background px-3 py-2 text-left text-[13px] font-medium"
+                                  onClick={() =>
+                                    setForm((f) => ({ ...f, driver_id: a.driverId }))
+                                  }
+                                >
+                                  <span className="truncate">
+                                    {(drivers.data ?? []).find((d) => d.id === a.driverId)
+                                      ?.full_name ?? "Chauffeur"}
+                                  </span>
+                                  <span className="text-primary">Disponible</span>
+                                </button>
+                              ))
+                          )}
+                        </div>
+                      ) : null}
+                    </>
+                  ) : null}
+                </div>
+              ) : null}
+              {/* Aperçu cartographique compact, uniquement après saisie complète */}
+              {tripReady ? (
+                previewState === "loading" ? (
+                  <p className="flex items-center gap-2 px-1 text-[13px] text-muted-foreground">
+                    <Loader2 className="size-4 animate-spin" /> Calcul de l'itinéraire…
+                  </p>
+                ) : preview ? (
+                  <div className="rise-in overflow-hidden rounded-[24px] bg-card shadow-[0_18px_40px_-30px_rgba(0,0,0,0.45)]">
+                    <RouteMiniMap
+                      polyline={preview.polyline}
+                      className="h-36 rounded-none border-0"
+                    />
+                    <div className="flex items-center justify-between gap-3 px-4 py-3">
+                      <p className="text-[14px] font-semibold">
+                        {preview.distanceKm} km · ~{preview.durationMin} min
+                      </p>
+                      <button
+                        type="button"
+                        className="text-[13px] font-bold text-primary"
+                        onClick={() => setShowPreviewMap(true)}
+                      >
+                        Vérifier sur la carte
+                      </button>
+                    </div>
                   </div>
-                ) : null}
-              </div>
+                ) : previewState === "error" ? (
+                  <p className="px-1 text-[13px] text-muted-foreground">
+                    L'itinéraire n'a pas pu être calculé pour le moment. Vous pouvez continuer ou
+                    modifier vos adresses.
+                  </p>
+                ) : null
+              ) : null}
+
             </div>
           </div>
 
