@@ -433,18 +433,24 @@ function ClientRides() {
       </header>
 
       <Link
-        to="/espace/courses/demandes"
+        {...(singlePending
+          ? ({ to: "/espace/suivi/$id", params: { id: singlePending.id } } as const)
+          : ({ to: "/espace/courses/demandes" } as const))}
         className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-[0_1px_6px_rgba(0,0,0,0.04)] transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none active:scale-[0.99]"
       >
         <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
           <Inbox aria-hidden className="size-4.5" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-semibold">Mes demandes</span>
+          <span className="block truncate text-sm font-semibold">
+            {singlePending ? "Suivre ma demande" : "Mes demandes"}
+          </span>
           <span className="block truncate text-xs text-muted-foreground">
-            {pendingRequests > 0
-              ? `${pendingRequests} demande${pendingRequests > 1 ? "s" : ""} attend${pendingRequests > 1 ? "ent" : ""} votre réponse`
-              : "Aucune demande en attente"}
+            {singlePending
+              ? "En attente de la réponse du chauffeur"
+              : pendingRequests > 0
+                ? `${pendingRequests} demande${pendingRequests > 1 ? "s" : ""} en attente de réponse`
+                : "Aucune demande en attente"}
           </span>
         </span>
         {pendingRequests > 0 ? (
