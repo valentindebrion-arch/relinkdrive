@@ -859,25 +859,60 @@ function ClientRequests() {
 
                 {whenMode === "later" ? (
                   <div className="rise-in mt-3 rounded-3xl bg-card p-4 shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)]">
-                    <Label htmlFor="when" className="text-[13px] font-bold">
-                      Date et heure du départ
-                    </Label>
-                    <Input
-                      id="when"
-                      aria-label="Date et heure du départ"
-                      type="datetime-local"
-                      min={toLocalInput(new Date(Date.now() + 15 * 60_000).toISOString())}
-                      className="mt-2 h-12 rounded-2xl border-0 bg-muted text-[15px]"
-                      value={form.scheduled_at}
-                      onChange={(e) => setForm({ ...form, scheduled_at: e.target.value })}
-                    />
-                    {form.scheduled_at ? (
-                      <p className="mt-2 text-[13px] font-semibold text-primary">
-                        Départ prévu {formatDateTime(new Date(form.scheduled_at).toISOString())}
+                    {!form.driver_id ? (
+                      <p className="text-[13.5px] text-muted-foreground">
+                        Choisissez d'abord un chauffeur pour consulter ses disponibilités.
+                      </p>
+                    ) : !pickupOk || !dropoffOk ? (
+                      <p className="text-[13.5px] text-muted-foreground">
+                        Indiquez votre départ et votre destination pour consulter l'agenda de
+                        votre chauffeur.
+                      </p>
+                    ) : form.scheduled_at ? (
+                      <div className="flex items-start gap-3">
+                        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+                          <CalendarDays className="size-5" />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[13px] font-bold">Course planifiée</p>
+                          <p className="text-[15px] font-semibold">
+                            {formatSlotFull(form.scheduled_at)}
+                          </p>
+                          <p className="text-[12px] text-muted-foreground">
+                            Avec {driverName ?? "votre chauffeur"} · heure de Paris
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          className="shrink-0 text-[13px] font-bold text-primary"
+                          onClick={() => setScheduleOpen(true)}
+                        >
+                          Modifier le créneau
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-[13px] font-bold">Date et heure du départ</p>
+                        <p className="mt-0.5 text-[12.5px] text-muted-foreground">
+                          Agenda synchronisé avec le planning de {driverName ?? "votre chauffeur"}.
+                        </p>
+                        <Button
+                          className="mt-3 h-12 w-full rounded-2xl text-[14.5px] font-bold"
+                          onClick={() => setScheduleOpen(true)}
+                        >
+                          <CalendarDays className="size-4" /> Voir les disponibilités
+                        </Button>
+                      </>
+                    )}
+                    {slotWarning ? (
+                      <p className="mt-2 flex items-start gap-2 text-[12.5px] text-destructive">
+                        <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                        {slotWarning}
                       </p>
                     ) : null}
                   </div>
                 ) : null}
+
 
                 {blocking ? (
                   <button
