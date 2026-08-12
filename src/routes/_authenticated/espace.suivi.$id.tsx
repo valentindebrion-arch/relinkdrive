@@ -366,7 +366,7 @@ function TrackingPage() {
     const business = (driverPublic.data?.businessName ?? "").trim();
     const legal = (driver?.full_name ?? "").trim();
     const rawName = business || (/^relink$/i.test(legal) ? "" : firstName(legal));
-    const publicDriverName = rawName && !/^relink$/i.test(rawName) ? rawName : "Votre chauffeur";
+    const publicDriverName = rawName && !/^relink$/i.test(rawName) ? rawName : "Chauffeur";
     const paymentLabel = ride.payment_method
       ? (PAYMENT_METHODS[ride.payment_method] ?? "Autre moyen")
       : null;
