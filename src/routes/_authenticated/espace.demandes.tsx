@@ -5,19 +5,20 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
+  AlertTriangle,
   ArrowLeft,
   ArrowRight,
   CalendarDays,
   Car,
   Check,
   CheckCircle2,
+  ChevronRight,
   Clock,
-  FileText,
   Loader2,
   LocateFixed,
   Luggage,
   MapPin,
-  SlidersHorizontal,
+  Search,
   UserRound,
   Users,
   X,
@@ -26,7 +27,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { formatDateTime, formatEuro } from "@/lib/labels";
 import { LiveDriversMap } from "@/components/LiveDriversMap";
-import { AddressAutocomplete } from "@/components/AddressAutocomplete";
+import { RouteMiniMap } from "@/components/RouteMiniMap";
+import {
+  AddressSearchPanel,
+  pushRecentAddress,
+} from "@/components/request/AddressSearchPanel";
 import { estimateRoute, reverseGeocode } from "@/lib/route-estimate.functions";
 import { checkDriverAvailability } from "@/lib/availability.functions";
 import {
@@ -39,8 +44,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
 const searchSchema = z.object({ driver: z.string().optional() });
@@ -57,12 +71,7 @@ type Estimate = {
   price: { base: number; total: number; tip: number };
 };
 
-const STEPS = [
-  { label: "Trajet", icon: Car },
-  { label: "Options", icon: SlidersHorizontal },
-  { label: "Récapitulatif", icon: FileText },
-  { label: "Confirmation", icon: CheckCircle2 },
-];
+const STEP_LABELS = ["Votre trajet", "Vos options", "Récapitulatif", "Confirmation"];
 
 const TRIP_TYPES = [
   "Aéroport",
@@ -75,47 +84,31 @@ const TRIP_TYPES = [
 ] as const;
 
 const HEADINGS = [
-  { title: "Où allez-vous ?", sub: "Renseignez votre trajet en quelques secondes." },
+  {
+    title: "Préparons votre trajet",
+    sub: "Indiquez où votre chauffeur doit vous récupérer et où vous souhaitez aller.",
+  },
   { title: "Vos options", sub: "Passagers, bagages et précisions pour le chauffeur." },
   { title: "Votre récapitulatif", sub: "Vérifiez l'itinéraire et le tarif estimé." },
   { title: "Confirmer la demande", sub: "Elle sera transmise à votre chauffeur." },
 ];
 
-function StepBar({ step }: { step: number }) {
+/** Progression minimaliste : « Étape n sur 4 » + barre fine. */
+function StepProgress({ step }: { step: number }) {
   return (
-    <div className="flex items-center gap-1.5">
-      {STEPS.map((s, i) => {
-        const Icon = s.icon;
-        const done = i < step;
-        const active = i === step;
-        return (
-          <div key={s.label} className="flex flex-1 items-center gap-1.5">
-            <div
-              className={cn(
-                "flex size-7 shrink-0 items-center justify-center rounded-full transition-all duration-300",
-                active
-                  ? "bg-primary/10 text-primary ring-2 ring-primary"
-                  : done
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground",
-              )}
-            >
-              {done ? <Check className="size-3.5" /> : <Icon className="size-3.5" />}
-            </div>
-            {active ? (
-              <span className="truncate text-[11px] font-semibold text-primary">{s.label}</span>
-            ) : null}
-            {i < STEPS.length - 1 ? (
-              <div
-                className={cn(
-                  "h-px min-w-2 flex-1 rounded-full",
-                  done ? "bg-primary/50" : "bg-border",
-                )}
-              />
-            ) : null}
-          </div>
-        );
-      })}
+    <div>
+      <div className="flex items-baseline justify-between">
+        <p className="text-[12px] font-bold tracking-wide text-muted-foreground uppercase">
+          Étape {step + 1} sur {STEP_LABELS.length}
+        </p>
+        <p className="text-[13px] font-semibold text-primary">{STEP_LABELS[step]}</p>
+      </div>
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+        <div
+          className="h-full rounded-full bg-primary transition-all duration-500"
+          style={{ width: `${((step + 1) / STEP_LABELS.length) * 100}%` }}
+        />
+      </div>
     </div>
   );
 }
@@ -123,6 +116,7 @@ function StepBar({ step }: { step: number }) {
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return <p className="mb-1.5 text-[13px] font-bold">{children}</p>;
 }
+
 
 function ClientRequests() {
   const { user } = useAuth();
