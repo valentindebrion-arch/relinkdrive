@@ -1,7 +1,6 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
+import { useMemo } from "react";
 import {
   ArrowRight,
   CalendarClock,
@@ -10,47 +9,20 @@ import {
   Clock3,
   Loader2,
   MapPin,
-  QrCode,
   Search,
-  UserRound,
-  X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { LiveDriversMap } from "@/components/LiveDriversMap";
-import { QrScannerDialog } from "@/components/QrScannerDialog";
 import { BrandLogo } from "@/components/BrandLogo";
 import { RIDE_STATUS_LABELS } from "@/lib/labels";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/espace/")({
   component: ClientHome,
 });
 
-function initials(name?: string | null) {
-  return (name ?? "?")
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase())
-    .join("");
-}
-
-type Snap = "collapsed" | "mid" | "expanded";
-const SNAP_H: Record<Snap, string> = {
-  collapsed: "7.5rem",
-  mid: "45dvh",
-  expanded: "78dvh",
-};
-const SNAP_ORDER: Snap[] = ["collapsed", "mid", "expanded"];
-
 function ClientHome() {
-  const { user, profile } = useAuth();
-  const navigate = useNavigate();
-  const [scanOpen, setScanOpen] = useState(false);
-  const [snap, setSnap] = useState<Snap>("mid");
-  const [selectedDriverIdx, setSelectedDriverIdx] = useState<number | null>(null);
-  const dragStart = useRef<number | null>(null);
+  const { user } = useAuth();
 
   const handleScan = useCallback(
     (text: string) => {
