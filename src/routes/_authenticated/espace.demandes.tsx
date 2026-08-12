@@ -146,6 +146,9 @@ function ClientRequests() {
   } | null>(null);
   const [previewState, setPreviewState] = useState<"idle" | "loading" | "error">("idle");
   const [showPreviewMap, setShowPreviewMap] = useState(false);
+  const [needs, setNeeds] = useState<SpecialNeedsState>({ keys: [], details: {} });
+  const [returnMode, setReturnMode] = useState<ReturnMode>("immediate");
+  const [returnTrip, setReturnTrip] = useState({ at: "", pickup: "", dropoff: "" });
 
   const [form, setForm] = useState({
     driver_id: search.driver ?? "",
