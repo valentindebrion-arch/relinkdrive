@@ -133,20 +133,7 @@ function AuthPage() {
 
             {mode === "signup" ? (
               <>
-                <div className="grid grid-cols-2 gap-2">
-                  {(["client", "driver"] as const).map((r) => (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => setRole(r)}
-                      className={`rounded-lg border px-3 py-2 text-sm font-medium ${
-                        role === r ? "border-primary bg-accent text-accent-foreground" : "border-border"
-                      }`}
-                    >
-                      {r === "client" ? "Passager" : "Chauffeur VTC"}
-                    </button>
-                  ))}
-                </div>
+
                 <div>
                   <Label htmlFor="name">Prénom et nom</Label>
                   <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} required maxLength={100} />
