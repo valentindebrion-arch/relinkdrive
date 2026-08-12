@@ -33,6 +33,14 @@ import { AddressSearchPanel, pushRecentAddress } from "@/components/request/Addr
 import { DriverPickerSheet } from "@/components/request/DriverPickerSheet";
 import { QrScannerDialog } from "@/components/QrScannerDialog";
 import { loadRequestDraft, saveRequestDraft, clearRequestDraft } from "@/lib/request-draft";
+import { BLOCKING_QUERY_KEY, newIdempotencyKey } from "@/lib/immediate-request";
+
+type CreateResult = {
+  request_id: string | null;
+  blocked: boolean;
+  blocking_request_id: string | null;
+  reused: boolean;
+};
 import {
   OptionsStep,
   serializeNeeds,
