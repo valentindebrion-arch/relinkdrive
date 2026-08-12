@@ -37,6 +37,38 @@ const DOCS: Record<string, Doc> = {
       },
     ],
   },
+  cgv: {
+    title: "Conditions générales de vente",
+    description:
+      "Prix, envoi d'une demande de course et conditions d'annulation applicables sur Relink.",
+    sections: [
+      {
+        heading: "1. Tarif affiché",
+        body: [
+          "Le montant présenté avant l'envoi d'une demande est calculé par Relink à partir de l'itinéraire estimé : 1,90 € par kilomètre, avec un minimum de 9 €, arrondi à l'euro supérieur (l'écart d'arrondi revient au chauffeur).",
+          "Ce montant est une estimation transmise au chauffeur. Le chauffeur peut proposer un autre horaire ou un autre prix lorsqu'il répond à la demande : le prix devient ferme uniquement lorsque la demande est acceptée aux conditions affichées.",
+        ],
+      },
+      {
+        heading: "2. Envoi d'une demande",
+        body: [
+          "L'envoi d'une demande ne vaut pas réservation. La demande reste en attente jusqu'à son acceptation par le chauffeur indépendant, qui reste libre de l'accepter ou de la refuser.",
+        ],
+      },
+      {
+        heading: "3. Annulation",
+        body: [
+          "Vous pouvez annuler une demande ou une course depuis l'application. Relink n'applique aucun frais d'annulation et ne prélève aucun paiement : le règlement de la course s'effectue directement auprès du chauffeur, uniquement si la course est réalisée.",
+        ],
+      },
+      {
+        heading: "4. Paiement",
+        body: [
+          "Relink n'encaisse pas les courses. Le paiement, la facturation et toute condition particulière relèvent du chauffeur indépendant qui réalise la course.",
+        ],
+      },
+    ],
+  },
   confidentialite: {
     title: "Politique de confidentialité",
     description: "Comment Relink collecte, utilise et protège vos données personnelles.",
@@ -120,7 +152,9 @@ export const Route = createFileRoute("/legal/$doc")({
     return doc;
   },
   head: ({ loaderData }) => {
-    const title = loaderData ? `${loaderData.title} — ${BRAND.name}` : `Informations légales — ${BRAND.name}`;
+    const title = loaderData
+      ? `${loaderData.title} — ${BRAND.name}`
+      : `Informations légales — ${BRAND.name}`;
     const description = loaderData?.description ?? "Informations légales Relink.";
     return {
       meta: [
@@ -137,6 +171,18 @@ export const Route = createFileRoute("/legal/$doc")({
   notFoundComponent: () => <LegalFallback />,
   component: LegalPage,
 });
+
+/** Ancre stable pour les liens profonds (ex. #annulation). */
+function slugify(heading: string) {
+  return heading
+    .replace(/^\d+\.\s*/, "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
 
 function LegalFallback() {
   return (
@@ -166,7 +212,7 @@ function LegalPage() {
       <p className="mt-1 text-sm text-muted-foreground">{doc.description}</p>
       <div className="mt-6 space-y-5">
         {doc.sections.map((s) => (
-          <section key={s.heading} className="surface p-5">
+          <section key={s.heading} id={slugify(s.heading)} className="surface scroll-mt-6 p-5">
             <h2 className="text-base font-semibold">{s.heading}</h2>
             {s.body.map((p) => (
               <p key={p} className="mt-2 text-sm text-muted-foreground">
