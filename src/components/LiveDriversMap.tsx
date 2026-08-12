@@ -30,7 +30,7 @@ export function LiveDriversMap({
   interactive?: boolean;
   /** Sans bordure ni coins arrondis (mode plein écran). */
   bare?: boolean;
-  onDriverSelect?: (index: number) => void;
+  onDriverSelect?: ((index: number) => void) | undefined;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
