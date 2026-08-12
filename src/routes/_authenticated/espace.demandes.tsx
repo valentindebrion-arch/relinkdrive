@@ -28,10 +28,7 @@ import { useAuth } from "@/lib/auth";
 import { formatDateTime, formatEuro } from "@/lib/labels";
 import { LiveDriversMap } from "@/components/LiveDriversMap";
 import { RouteMiniMap } from "@/components/RouteMiniMap";
-import {
-  AddressSearchPanel,
-  pushRecentAddress,
-} from "@/components/request/AddressSearchPanel";
+import { AddressSearchPanel, pushRecentAddress } from "@/components/request/AddressSearchPanel";
 import { estimateRoute, reverseGeocode } from "@/lib/route-estimate.functions";
 import { checkDriverAvailability } from "@/lib/availability.functions";
 import {
@@ -116,7 +113,6 @@ function StepProgress({ step }: { step: number }) {
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return <p className="mb-1.5 text-[13px] font-bold">{children}</p>;
 }
-
 
 function ClientRequests() {
   const { user } = useAuth();
@@ -203,7 +199,6 @@ function ClientRequests() {
     };
   }, [pickupOk, dropoffOk, form.pickup_address, form.dropoff_address, estimateFn]);
 
-
   const drivers = useQuery({
     queryKey: ["client-driver-options", user?.id],
     enabled: !!user?.id,
@@ -231,7 +226,7 @@ function ClientRequests() {
       : new Date(form.scheduled_at).toISOString();
   }
 
-  async function useMyLocation() {
+  async function fillMyLocation() {
     if (!navigator.geolocation) {
       toast.error("Localisation indisponible sur cet appareil");
       return;
@@ -469,7 +464,12 @@ function ClientRequests() {
   }
 
   return (
-    <div className={cn("fixed inset-0 z-50 flex flex-col overflow-hidden", step === 0 ? "bg-muted/40" : "bg-background")}>
+    <div
+      className={cn(
+        "fixed inset-0 z-50 flex flex-col overflow-hidden",
+        step === 0 ? "bg-muted/40" : "bg-background",
+      )}
+    >
       <div className="relative flex shrink-0 items-center justify-center px-2 py-2">
         <button
           type="button"
@@ -530,13 +530,13 @@ function ClientRequests() {
                     className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
                     onClick={(e) => {
                       e.stopPropagation();
-                      void useMyLocation();
+                      void fillMyLocation();
                     }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         e.stopPropagation();
-                        void useMyLocation();
+                        void fillMyLocation();
                       }
                     }}
                   >
@@ -581,7 +581,10 @@ function ClientRequests() {
                   </p>
                 ) : preview ? (
                   <div className="rise-in overflow-hidden rounded-[24px] bg-card shadow-[0_18px_40px_-30px_rgba(0,0,0,0.45)]">
-                    <RouteMiniMap polyline={preview.polyline} className="h-36 rounded-none border-0" />
+                    <RouteMiniMap
+                      polyline={preview.polyline}
+                      className="h-36 rounded-none border-0"
+                    />
                     <div className="flex items-center justify-between gap-3 px-4 py-3">
                       <p className="text-[14px] font-semibold">
                         {preview.distanceKm} km · ~{preview.durationMin} min
@@ -682,7 +685,9 @@ function ClientRequests() {
               {/* Chauffeur — facultatif, en dernier */}
               <div>
                 <div className="mb-3 flex items-baseline gap-2">
-                  <h3 className="text-[17px] font-extrabold tracking-tight">Avec quel chauffeur ?</h3>
+                  <h3 className="text-[17px] font-extrabold tracking-tight">
+                    Avec quel chauffeur ?
+                  </h3>
                   <span className="text-[12px] font-medium text-muted-foreground">Facultatif</span>
                 </div>
 
@@ -700,7 +705,9 @@ function ClientRequests() {
                           Course demandée à {selectedDriver.full_name ?? "votre chauffeur"}
                         </p>
                         <p className="text-[13px] text-muted-foreground">
-                          {driverAvailable ? "Disponible actuellement" : "Hors service actuellement"}
+                          {driverAvailable
+                            ? "Disponible actuellement"
+                            : "Hors service actuellement"}
                         </p>
                       </div>
                     </div>
@@ -805,7 +812,9 @@ function ClientRequests() {
                                   ...f,
                                   scheduled_at: toLocalInput(avail.earliestIso!),
                                 }));
-                                toast.success(`Créneau ${formatSlot(avail.earliestIso!)} sélectionné`);
+                                toast.success(
+                                  `Créneau ${formatSlot(avail.earliestIso!)} sélectionné`,
+                                );
                               }}
                             >
                               Choisir ce créneau
@@ -844,7 +853,8 @@ function ClientRequests() {
                           <div className="mt-2 space-y-1 border-t border-border/60 pt-2">
                             {alternatives.filter((a) => a.status === "available").length === 0 ? (
                               <p className="text-xs text-muted-foreground">
-                                Aucun autre chauffeur de votre carnet n'est disponible à cette heure.
+                                Aucun autre chauffeur de votre carnet n'est disponible à cette
+                                heure.
                               </p>
                             ) : (
                               alternatives
@@ -854,7 +864,9 @@ function ClientRequests() {
                                     key={a.driverId}
                                     type="button"
                                     className="flex w-full items-center justify-between rounded-xl bg-background px-3 py-2 text-left text-[13px] font-medium"
-                                    onClick={() => setForm((f) => ({ ...f, driver_id: a.driverId }))}
+                                    onClick={() =>
+                                      setForm((f) => ({ ...f, driver_id: a.driverId }))
+                                    }
                                   >
                                     <span className="truncate">
                                       {(drivers.data ?? []).find((d) => d.id === a.driverId)
@@ -898,216 +910,214 @@ function ClientRequests() {
           </div>
         </>
       ) : (
-      <div className="mx-auto flex w-full max-w-2xl min-h-0 flex-1 flex-col px-3 pb-2">
-        <div key={`h-${step}`} className="rise-in shrink-0">
-          <h2 className="text-xl font-extrabold tracking-tight">{heading.title}</h2>
-          <p className="text-xs text-muted-foreground">{heading.sub}</p>
-        </div>
+        <div className="mx-auto flex w-full max-w-2xl min-h-0 flex-1 flex-col px-3 pb-2">
+          <div key={`h-${step}`} className="rise-in shrink-0">
+            <h2 className="text-xl font-extrabold tracking-tight">{heading.title}</h2>
+            <p className="text-xs text-muted-foreground">{heading.sub}</p>
+          </div>
 
-        <div
-          key={step}
-          className={cn(
-            "mt-2.5 flex min-h-0 flex-1 flex-col gap-3 overflow-hidden",
-            dir === 1 ? "step-in-right" : "step-in-left",
-          )}
-        >
+          <div
+            key={step}
+            className={cn(
+              "mt-2.5 flex min-h-0 flex-1 flex-col gap-3 overflow-hidden",
+              dir === 1 ? "step-in-right" : "step-in-left",
+            )}
+          >
+            {step === 1 ? (
+              <>
+                <LiveDriversMap className="h-32 shrink-0" />
 
-
-          {step === 1 ? (
-            <>
-              <LiveDriversMap className="h-32 shrink-0" />
-
-              <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto pb-1">
-                <div className="grid grid-cols-2 gap-2.5">
-                  {(
-                    [
-                      { key: "passengers", label: "Passagers", icon: Users, min: 1, max: 8 },
-                      { key: "luggage", label: "Bagages", icon: Luggage, min: 0, max: 10 },
-                    ] as const
-                  ).map((f) => {
-                    const Icon = f.icon;
-                    const val = Number(form[f.key]) || 0;
-                    const set = (n: number) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        [f.key]: String(Math.min(f.max, Math.max(f.min, n))),
-                      }));
-                    return (
-                      <div
-                        key={f.key}
-                        className="tap rounded-2xl border border-border bg-card px-3 py-2.5"
-                      >
-                        <p className="flex items-center gap-1.5 text-xs font-bold">
-                          <Icon className="size-3.5 text-primary" /> {f.label}
-                        </p>
-                        <div className="mt-1.5 flex items-center justify-between">
-                          <button
-                            type="button"
-                            aria-label={`Moins de ${f.label}`}
-                            onClick={() => set(val - 1)}
-                            className="tap tap-active flex size-8 items-center justify-center rounded-xl bg-muted text-lg font-bold hover:bg-accent"
-                          >
-                            −
-                          </button>
-                          <span key={val} className="animate-scale-in text-xl font-extrabold">
-                            {val}
-                          </span>
-                          <button
-                            type="button"
-                            aria-label={`Plus de ${f.label}`}
-                            onClick={() => set(val + 1)}
-                            className="tap tap-active flex size-8 items-center justify-center rounded-xl bg-primary/10 text-lg font-bold text-primary hover:bg-primary/20"
-                          >
-                            +
-                          </button>
+                <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto pb-1">
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {(
+                      [
+                        { key: "passengers", label: "Passagers", icon: Users, min: 1, max: 8 },
+                        { key: "luggage", label: "Bagages", icon: Luggage, min: 0, max: 10 },
+                      ] as const
+                    ).map((f) => {
+                      const Icon = f.icon;
+                      const val = Number(form[f.key]) || 0;
+                      const set = (n: number) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          [f.key]: String(Math.min(f.max, Math.max(f.min, n))),
+                        }));
+                      return (
+                        <div
+                          key={f.key}
+                          className="tap rounded-2xl border border-border bg-card px-3 py-2.5"
+                        >
+                          <p className="flex items-center gap-1.5 text-xs font-bold">
+                            <Icon className="size-3.5 text-primary" /> {f.label}
+                          </p>
+                          <div className="mt-1.5 flex items-center justify-between">
+                            <button
+                              type="button"
+                              aria-label={`Moins de ${f.label}`}
+                              onClick={() => set(val - 1)}
+                              className="tap tap-active flex size-8 items-center justify-center rounded-xl bg-muted text-lg font-bold hover:bg-accent"
+                            >
+                              −
+                            </button>
+                            <span key={val} className="animate-scale-in text-xl font-extrabold">
+                              {val}
+                            </span>
+                            <button
+                              type="button"
+                              aria-label={`Plus de ${f.label}`}
+                              onClick={() => set(val + 1)}
+                              className="tap tap-active flex size-8 items-center justify-center rounded-xl bg-primary/10 text-lg font-bold text-primary hover:bg-primary/20"
+                            >
+                              +
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
 
-                <div className="tap flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-3.5 py-2.5">
-                  <Label htmlFor="rt" className="text-[14px] font-bold">
-                    Aller-retour
-                  </Label>
-                  <Switch
-                    id="rt"
-                    checked={form.round_trip}
-                    onCheckedChange={(v) => setForm({ ...form, round_trip: v })}
+                  <div className="tap flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-3.5 py-2.5">
+                    <Label htmlFor="rt" className="text-[14px] font-bold">
+                      Aller-retour
+                    </Label>
+                    <Switch
+                      id="rt"
+                      checked={form.round_trip}
+                      onCheckedChange={(v) => setForm({ ...form, round_trip: v })}
+                    />
+                  </div>
+
+                  <div className="tap flex items-center gap-2.5 rounded-2xl border border-border bg-card px-3.5 py-1.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                      <Car className="size-4" />
+                    </span>
+                    <select
+                      aria-label="Type de trajet"
+                      className="h-10 w-full appearance-none bg-transparent text-[15px] font-medium focus:outline-none"
+                      value={form.trip_type}
+                      onChange={(e) => setForm({ ...form, trip_type: e.target.value })}
+                    >
+                      <option value="">Type de trajet</option>
+                      {TRIP_TYPES.map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <Input
+                    aria-label="Besoins particuliers"
+                    className="h-11 rounded-2xl text-[14px]"
+                    maxLength={200}
+                    placeholder="Besoins particuliers (facultatif)"
+                    value={form.special_needs}
+                    onChange={(e) => setForm({ ...form, special_needs: e.target.value })}
+                  />
+
+                  <Input
+                    aria-label="Informations complémentaires"
+                    className="h-11 rounded-2xl text-[14px]"
+                    maxLength={500}
+                    placeholder="Précisions : n° de vol, étage… (facultatif)"
+                    value={form.comment}
+                    onChange={(e) => setForm({ ...form, comment: e.target.value })}
                   />
                 </div>
+              </>
+            ) : null}
 
-                <div className="tap flex items-center gap-2.5 rounded-2xl border border-border bg-card px-3.5 py-1.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Car className="size-4" />
-                  </span>
-                  <select
-                    aria-label="Type de trajet"
-                    className="h-10 w-full appearance-none bg-transparent text-[15px] font-medium focus:outline-none"
-                    value={form.trip_type}
-                    onChange={(e) => setForm({ ...form, trip_type: e.target.value })}
-                  >
-                    <option value="">Type de trajet</option>
-                    {TRIP_TYPES.map((t) => (
-                      <option key={t} value={t}>
-                        {t}
-                      </option>
-                    ))}
-                  </select>
+            {step >= 2 && estimate ? (
+              <>
+                <LiveDriversMap polyline={estimate.polyline} className="min-h-24 flex-1" />
+
+                <div className="animate-scale-in flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-accent px-3 py-2">
+                  <div>
+                    <p className="text-[10px] font-semibold tracking-wide text-accent-foreground uppercase">
+                      Prix final
+                    </p>
+                    <p className="text-2xl font-extrabold leading-tight">
+                      {formatEuro(estimate.price.total)}
+                    </p>
+                    <p className="text-[11px] text-accent-foreground">
+                      Tarif garanti, aucun supplément
+                    </p>
+                  </div>
+                  <div className="text-right text-xs text-accent-foreground">
+                    <p>{estimate.distanceKm} km</p>
+                    <p>~{estimate.durationMin} min</p>
+                  </div>
                 </div>
 
-                <Input
-                  aria-label="Besoins particuliers"
-                  className="h-11 rounded-2xl text-[14px]"
-                  maxLength={200}
-                  placeholder="Besoins particuliers (facultatif)"
-                  value={form.special_needs}
-                  onChange={(e) => setForm({ ...form, special_needs: e.target.value })}
-                />
+                <div className="rounded-2xl border border-border bg-card px-3 py-2 text-[13px]">
+                  <div className="flex items-start gap-2.5">
+                    <span className="mt-1.5 block size-2.5 shrink-0 rounded-full bg-primary" />
+                    <p className="truncate font-medium">{form.pickup_address}</p>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <MapPin className="mt-0.5 size-4 shrink-0" />
+                    <p className="truncate font-medium">{form.dropoff_address}</p>
+                  </div>
+                  <dl className="mt-2 grid grid-cols-2 gap-y-1 border-t border-border pt-2 text-xs">
+                    <dt className="text-muted-foreground">Chauffeur</dt>
+                    <dd className="truncate text-right font-medium">{driverName ?? "—"}</dd>
+                    <dt className="text-muted-foreground">Départ</dt>
+                    <dd className="text-right font-medium">{formatDateTime(scheduledIso())}</dd>
+                    <dt className="text-muted-foreground">Passagers · bagages</dt>
+                    <dd className="text-right font-medium">
+                      {form.passengers} · {form.luggage}
+                      {form.round_trip ? " · A/R" : ""}
+                    </dd>
+                  </dl>
+                </div>
 
-                <Input
-                  aria-label="Informations complémentaires"
-                  className="h-11 rounded-2xl text-[14px]"
-                  maxLength={500}
-                  placeholder="Précisions : n° de vol, étage… (facultatif)"
-                  value={form.comment}
-                  onChange={(e) => setForm({ ...form, comment: e.target.value })}
-                />
-              </div>
-            </>
-          ) : null}
-
-          {step >= 2 && estimate ? (
-            <>
-              <LiveDriversMap polyline={estimate.polyline} className="min-h-24 flex-1" />
-
-              <div className="animate-scale-in flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-accent px-3 py-2">
-                <div>
-                  <p className="text-[10px] font-semibold tracking-wide text-accent-foreground uppercase">
-                    Prix final
+                {step === 3 ? (
+                  <p className="text-[11px] text-muted-foreground">
+                    En confirmant, votre demande est transmise à {driverName ?? "votre chauffeur"}{" "}
+                    et reste « en attente » tant qu'il ne l'a pas acceptée.
                   </p>
-                  <p className="text-2xl font-extrabold leading-tight">
-                    {formatEuro(estimate.price.total)}
-                  </p>
-                  <p className="text-[11px] text-accent-foreground">
-                    Tarif garanti, aucun supplément
-                  </p>
-                </div>
-                <div className="text-right text-xs text-accent-foreground">
-                  <p>{estimate.distanceKm} km</p>
-                  <p>~{estimate.durationMin} min</p>
-                </div>
-              </div>
+                ) : null}
+              </>
+            ) : null}
+          </div>
 
-              <div className="rounded-2xl border border-border bg-card px-3 py-2 text-[13px]">
-                <div className="flex items-start gap-2.5">
-                  <span className="mt-1.5 block size-2.5 shrink-0 rounded-full bg-primary" />
-                  <p className="truncate font-medium">{form.pickup_address}</p>
-                </div>
-                <div className="flex items-start gap-2.5">
-                  <MapPin className="mt-0.5 size-4 shrink-0" />
-                  <p className="truncate font-medium">{form.dropoff_address}</p>
-                </div>
-                <dl className="mt-2 grid grid-cols-2 gap-y-1 border-t border-border pt-2 text-xs">
-                  <dt className="text-muted-foreground">Chauffeur</dt>
-                  <dd className="truncate text-right font-medium">{driverName ?? "—"}</dd>
-                  <dt className="text-muted-foreground">Départ</dt>
-                  <dd className="text-right font-medium">{formatDateTime(scheduledIso())}</dd>
-                  <dt className="text-muted-foreground">Passagers · bagages</dt>
-                  <dd className="text-right font-medium">
-                    {form.passengers} · {form.luggage}
-                    {form.round_trip ? " · A/R" : ""}
-                  </dd>
-                </dl>
-              </div>
-
-              {step === 3 ? (
-                <p className="text-[11px] text-muted-foreground">
-                  En confirmant, votre demande est transmise à {driverName ?? "votre chauffeur"} et
-                  reste « en attente » tant qu'il ne l'a pas acceptée.
-                </p>
-              ) : null}
-            </>
-          ) : null}
-        </div>
-
-        <div
-          className="mt-2 flex shrink-0 items-center gap-2"
-          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-        >
-          <Button
-            variant="outline"
-            size="lg"
-            className="h-12 flex-1 rounded-2xl text-sm"
-            disabled={step === 0 || busy}
-            onClick={() => setStep(step - 1)}
+          <div
+            className="mt-2 flex shrink-0 items-center gap-2"
+            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
           >
-            <ArrowLeft className="size-4" /> Retour
-          </Button>
-          {step < 3 ? (
             <Button
+              variant="outline"
               size="lg"
-              className="h-12 flex-[2] rounded-2xl text-sm font-bold transition-transform active:scale-[0.98]"
-              onClick={() => void next()}
-              disabled={busy || checking}
+              className="h-12 flex-1 rounded-2xl text-sm"
+              disabled={step === 0 || busy}
+              onClick={() => setStep(step - 1)}
             >
-              {busy || checking ? <Loader2 className="size-4 animate-spin" /> : null}
-              Continuer
-              <ArrowRight className="size-4" />
+              <ArrowLeft className="size-4" /> Retour
             </Button>
-          ) : (
-            <Button
-              size="lg"
-              className="h-12 flex-[2] rounded-2xl text-sm font-bold transition-transform active:scale-[0.98]"
-              onClick={submit}
-              disabled={busy}
-            >
-              {busy ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
-              Confirmer
-            </Button>
-          )}
+            {step < 3 ? (
+              <Button
+                size="lg"
+                className="h-12 flex-[2] rounded-2xl text-sm font-bold transition-transform active:scale-[0.98]"
+                onClick={() => void next()}
+                disabled={busy || checking}
+              >
+                {busy || checking ? <Loader2 className="size-4 animate-spin" /> : null}
+                Continuer
+                <ArrowRight className="size-4" />
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                className="h-12 flex-[2] rounded-2xl text-sm font-bold transition-transform active:scale-[0.98]"
+                onClick={submit}
+                disabled={busy}
+              >
+                {busy ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+                Confirmer
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
       )}
 
       {searchField ? (
@@ -1115,7 +1125,7 @@ function ClientRequests() {
           field={searchField}
           initialValue={searchField === "pickup" ? form.pickup_address : form.dropoff_address}
           locating={locating}
-          {...(searchField === "pickup" ? { onUseMyLocation: () => void useMyLocation() } : {})}
+          {...(searchField === "pickup" ? { onUseMyLocation: () => void fillMyLocation() } : {})}
           onClose={() => setSearchField(null)}
 
           onSelect={(address) => {
@@ -1145,7 +1155,10 @@ function ClientRequests() {
             </button>
             <p className="text-[15px] font-bold">Aperçu de l'itinéraire</p>
           </div>
-          <RouteMiniMap polyline={preview.polyline} className="min-h-0 flex-1 rounded-none border-0" />
+          <RouteMiniMap
+            polyline={preview.polyline}
+            className="min-h-0 flex-1 rounded-none border-0"
+          />
         </div>
       ) : null}
 
@@ -1168,4 +1181,3 @@ function ClientRequests() {
     </div>
   );
 }
-
