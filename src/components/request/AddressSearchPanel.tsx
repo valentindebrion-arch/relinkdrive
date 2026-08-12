@@ -141,7 +141,9 @@ export function AddressSearchPanel({
               ref={inputRef}
               aria-label={isPickup ? "Rechercher un lieu de départ" : "Rechercher une destination"}
               className="h-13 w-full bg-transparent text-[15px] font-medium outline-none placeholder:text-muted-foreground"
-              placeholder={isPickup ? "Votre position ou une adresse" : "Rechercher une destination"}
+              placeholder={
+                isPickup ? "Votre position ou une adresse" : "Rechercher une destination"
+              }
               maxLength={160}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
