@@ -262,14 +262,14 @@ function TrackingPage() {
   // Fiche publique du chauffeur (uniquement si le client lui est bien relié).
   const completedDriverId =
     q.data?.ride?.status === "completed" ? (q.data.ride.driver_id ?? null) : null;
-  const driverSlug = useQuery({
+  const driverPublic = useQuery({
     queryKey: ["connected-driver-slug", completedDriverId],
     enabled: !!completedDriverId,
     staleTime: 5 * 60_000,
     queryFn: async () => {
       const { data } = await supabase.rpc("get_connected_driver_profiles");
       const row = (data ?? []).find((d) => d.user_id === completedDriverId);
-      return row?.slug ?? null;
+      return row ? { slug: row.slug, businessName: row.business_name } : null;
     },
   });
 
@@ -362,6 +362,10 @@ function TrackingPage() {
       ...(ride.notes ? [{ label: "Informations complémentaires", value: ride.notes }] : []),
     ];
     const paid = invoice?.status === "paid" || !!invoice?.paid_at;
+    // Le nom public du chauffeur ne doit jamais être la marque Relink.
+    const rawName = (driverPublic.data?.businessName || driver?.full_name || "").trim();
+    const publicDriverName =
+      rawName && !/^relink$/i.test(rawName) ? firstName(rawName) : "Votre chauffeur";
     const paymentLabel = ride.payment_method
       ? (PAYMENT_METHODS[ride.payment_method] ?? "Autre moyen")
       : null;
@@ -449,16 +453,16 @@ function TrackingPage() {
                 )}
               </span>
               <span className="min-w-0">
-                <span className="block truncate text-sm font-semibold">{driverFirst}</span>
+                <span className="block truncate text-sm font-semibold">{publicDriverName}</span>
                 <span className="block truncate text-xs text-muted-foreground">
                   {vehicleLabel ?? "Chauffeur partenaire"}
                 </span>
               </span>
             </div>
-            {driverSlug.data ? (
+            {driverPublic.data?.slug ? (
               <Link
                 to="/chauffeur/$slug"
-                params={{ slug: driverSlug.data }}
+                params={{ slug: driverPublic.data.slug }}
                 className="mt-3 inline-flex w-full items-center justify-between rounded-2xl border border-border px-4 py-3 text-sm font-semibold hover:bg-muted/50"
               >
                 Voir le profil du chauffeur <ChevronRight className="size-4" />
