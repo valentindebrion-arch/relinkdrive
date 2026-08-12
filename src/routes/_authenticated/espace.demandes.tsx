@@ -838,7 +838,15 @@ function ClientRequests() {
                         key={o.key}
                         type="button"
                         disabled={disabled}
-                        onClick={() => setWhenMode(o.key)}
+                        onClick={() => {
+                          setWhenMode(o.key);
+                          if (o.key === "later" && !form.driver_id) {
+                            setSlotWarning(
+                              "Choisissez d'abord un chauffeur pour consulter ses disponibilités.",
+                            );
+                            setDriverPickerOpen(true);
+                          }
+                        }}
                         className={cn(
                           "relative rounded-3xl px-4 py-4 text-left transition-all",
                           on
