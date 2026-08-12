@@ -37,7 +37,40 @@ const DOCS: Record<string, Doc> = {
       },
     ],
   },
+  cgv: {
+    title: "Conditions générales de vente",
+    description:
+      "Prix, envoi d'une demande de course et conditions d'annulation applicables sur Relink.",
+    sections: [
+      {
+        heading: "1. Tarif affiché",
+        body: [
+          "Le montant présenté avant l'envoi d'une demande est calculé par Relink à partir de l'itinéraire estimé : 1,90 € par kilomètre, avec un minimum de 9 €, arrondi à l'euro supérieur (l'écart d'arrondi revient au chauffeur).",
+          "Ce montant est une estimation transmise au chauffeur. Le chauffeur peut proposer un autre horaire ou un autre prix lorsqu'il répond à la demande : le prix devient ferme uniquement lorsque la demande est acceptée aux conditions affichées.",
+        ],
+      },
+      {
+        heading: "2. Envoi d'une demande",
+        body: [
+          "L'envoi d'une demande ne vaut pas réservation. La demande reste en attente jusqu'à son acceptation par le chauffeur indépendant, qui reste libre de l'accepter ou de la refuser.",
+        ],
+      },
+      {
+        heading: "3. Annulation",
+        body: [
+          "Vous pouvez annuler une demande ou une course depuis l'application. Relink n'applique aucun frais d'annulation et ne prélève aucun paiement : le règlement de la course s'effectue directement auprès du chauffeur, uniquement si la course est réalisée.",
+        ],
+      },
+      {
+        heading: "4. Paiement",
+        body: [
+          "Relink n'encaisse pas les courses. Le paiement, la facturation et toute condition particulière relèvent du chauffeur indépendant qui réalise la course.",
+        ],
+      },
+    ],
+  },
   confidentialite: {
+
     title: "Politique de confidentialité",
     description: "Comment Relink collecte, utilise et protège vos données personnelles.",
     sections: [
