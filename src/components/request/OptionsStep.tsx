@@ -238,8 +238,14 @@ export function OptionsStep({
           </div>
 
           {/* Votre groupe */}
-          <section aria-labelledby="grp" className="rounded-3xl bg-card px-4 shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)]">
-            <h3 id="grp" className="pt-4 text-[13px] font-bold tracking-wide text-muted-foreground uppercase">
+          <section
+            aria-labelledby="grp"
+            className="rounded-3xl bg-card px-4 shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)]"
+          >
+            <h3
+              id="grp"
+              className="pt-4 text-[13px] font-bold tracking-wide text-muted-foreground uppercase"
+            >
               Votre groupe
             </h3>
             <Stepper
@@ -366,7 +372,10 @@ export function OptionsStep({
                         onChange={(e) => onChange({ returnAt: e.target.value })}
                       />
                       {returnInvalid ? (
-                        <p id="ret-err" className="mt-1.5 text-[12px] font-semibold text-destructive">
+                        <p
+                          id="ret-err"
+                          className="mt-1.5 text-[12px] font-semibold text-destructive"
+                        >
                           Le retour doit avoir lieu après le trajet aller.
                         </p>
                       ) : null}
@@ -447,7 +456,9 @@ export function OptionsStep({
                     onClick={() => toggleNeed(n.key)}
                     className={cn(
                       "tap tap-active flex min-h-11 items-center gap-2 rounded-full px-3.5 text-[14px] font-semibold transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-                      on ? "bg-primary/8 text-foreground ring-2 ring-primary" : "bg-card shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)]",
+                      on
+                        ? "bg-primary/8 text-foreground ring-2 ring-primary"
+                        : "bg-card shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)]",
                     )}
                   >
                     {on ? (
@@ -514,7 +525,10 @@ export function OptionsStep({
               <p className="text-[12px] text-muted-foreground">
                 Ne partagez aucune information bancaire ou donnée sensible.
               </p>
-              <p aria-live="polite" className="shrink-0 text-[12px] tabular-nums text-muted-foreground">
+              <p
+                aria-live="polite"
+                className="shrink-0 text-[12px] tabular-nums text-muted-foreground"
+              >
                 {comment.length}/500
               </p>
             </div>

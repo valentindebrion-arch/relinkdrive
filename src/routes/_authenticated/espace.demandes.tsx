@@ -983,7 +983,6 @@ function ClientRequests() {
               dir === 1 ? "step-in-right" : "step-in-left",
             )}
           >
-
             {step >= 2 && estimate ? (
               <>
                 <LiveDriversMap polyline={estimate.polyline} className="min-h-24 flex-1" />
