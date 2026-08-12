@@ -145,34 +145,59 @@ function ClientHome() {
           </Link>
         ) : null}
 
-        <Link
-          to="/espace/demandes"
-          className="flex w-full items-center gap-3 rounded-xl bg-primary py-3 pr-3 pl-3.5 text-primary-foreground shadow-sm transition-transform active:scale-[0.99]"
-        >
-          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary-foreground/15">
-            <Search className="size-4" />
-          </span>
-          <span className="min-w-0 flex-1 truncate text-left text-base font-semibold">Où allez-vous ?</span>
-          <ArrowRight className="size-5 shrink-0" />
-        </Link>
-
-        <div className="mt-2 grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
-          {(
-            [
-              { key: "now", label: "Maintenant", icon: Clock3 },
-              { key: "schedule", label: "Planifier", icon: CalendarClock },
-            ] as const
-          ).map((opt) => (
+        {blocking ? (
+          <>
             <Link
-              key={opt.key}
-              to="/espace/demandes"
-              className="flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-lg text-sm font-semibold text-muted-foreground transition-colors active:scale-[0.98]"
+              to="/espace/suivi/$id"
+              params={{ id: blocking.request_id }}
+              className="flex w-full items-center gap-3 rounded-xl bg-primary py-3 pr-3 pl-3.5 text-primary-foreground shadow-sm transition-transform active:scale-[0.99]"
             >
-              <opt.icon className="size-4 shrink-0" />
-              <span className="truncate">{opt.label}</span>
+              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary-foreground/15">
+                <Loader2 className="size-4 animate-spin" />
+              </span>
+              <span className="min-w-0 flex-1 truncate text-left text-base font-semibold">
+                Suivre ma demande en cours
+              </span>
+              <ArrowRight className="size-5 shrink-0" />
             </Link>
-          ))}
-        </div>
+            <p className="mt-2 px-1 text-center text-xs text-muted-foreground">
+              Une demande « Maintenant » est déjà en attente de réponse
+              {blocking.driver_first_name ? ` de ${blocking.driver_first_name}` : ""}. Annulez-la pour en envoyer
+              une nouvelle.
+            </p>
+          </>
+        ) : (
+          <>
+            <Link
+              to="/espace/demandes"
+              className="flex w-full items-center gap-3 rounded-xl bg-primary py-3 pr-3 pl-3.5 text-primary-foreground shadow-sm transition-transform active:scale-[0.99]"
+            >
+              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary-foreground/15">
+                <Search className="size-4" />
+              </span>
+              <span className="min-w-0 flex-1 truncate text-left text-base font-semibold">Où allez-vous ?</span>
+              <ArrowRight className="size-5 shrink-0" />
+            </Link>
+
+            <div className="mt-2 grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
+              {(
+                [
+                  { key: "now", label: "Maintenant", icon: Clock3 },
+                  { key: "schedule", label: "Planifier", icon: CalendarClock },
+                ] as const
+              ).map((opt) => (
+                <Link
+                  key={opt.key}
+                  to="/espace/demandes"
+                  className="flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-lg text-sm font-semibold text-muted-foreground transition-colors active:scale-[0.98]"
+                >
+                  <opt.icon className="size-4 shrink-0" />
+                  <span className="truncate">{opt.label}</span>
+                </Link>
+              ))}
+            </div>
+          </>
+        )}
 
         {!allDrivers.length ? (
           <p className="mt-2 px-1 text-center text-xs text-muted-foreground">
