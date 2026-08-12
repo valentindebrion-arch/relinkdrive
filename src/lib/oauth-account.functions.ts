@@ -43,9 +43,9 @@ export const finalizeOAuthAccount = createServerFn({ method: "POST" })
         .upsert({ id: userId, full_name: fullName, email, avatar_url: avatar }, { onConflict: "id" });
       if (error) throw new Error(error.message);
     } else {
-      const patch: Record<string, string> = {};
-      if (!profile.full_name && fullName) patch["full_name"] = fullName;
-      if (!profile.avatar_url && avatar) patch["avatar_url"] = avatar;
+      const patch: { full_name?: string; avatar_url?: string } = {};
+      if (!profile.full_name && fullName) patch.full_name = fullName;
+      if (!profile.avatar_url && avatar) patch.avatar_url = avatar;
       if (Object.keys(patch).length) {
         await supabaseAdmin.from("profiles").update(patch).eq("id", userId);
       }
