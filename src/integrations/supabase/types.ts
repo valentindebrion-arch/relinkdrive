@@ -764,6 +764,8 @@ export type Database = {
           driver_message: string | null
           dropoff_address: string
           id: string
+          idempotency_key: string | null
+          is_immediate: boolean
           luggage: number
           passengers: number
           pickup_address: string
@@ -785,6 +787,8 @@ export type Database = {
           driver_message?: string | null
           dropoff_address: string
           id?: string
+          idempotency_key?: string | null
+          is_immediate?: boolean
           luggage?: number
           passengers?: number
           pickup_address: string
@@ -806,6 +810,8 @@ export type Database = {
           driver_message?: string | null
           dropoff_address?: string
           id?: string
+          idempotency_key?: string | null
+          is_immediate?: boolean
           luggage?: number
           passengers?: number
           pickup_address?: string
@@ -1190,9 +1196,52 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_client_ride_request: {
+        Args: { _request: string }
+        Returns: Database["public"]["Enums"]["ride_status"]
+      }
+      create_client_ride_request: {
+        Args: {
+          _cancellation_version?: string
+          _cgu_version?: string
+          _cgv_version?: string
+          _comment: string
+          _driver: string
+          _dropoff: string
+          _idempotency_key: string
+          _immediate: boolean
+          _luggage: number
+          _passengers: number
+          _pickup: string
+          _proposed_price: number
+          _round_trip: boolean
+          _scheduled_at: string
+          _special_needs: string
+          _trip_type: string
+        }
+        Returns: {
+          blocked: boolean
+          blocking_request_id: string
+          request_id: string
+          reused: boolean
+        }[]
+      }
       driver_available_between: {
         Args: { _driver: string; _end: string; _start: string }
         Returns: boolean
+      }
+      get_blocking_immediate_request: {
+        Args: never
+        Returns: {
+          can_cancel: boolean
+          created_at: string
+          driver_first_name: string
+          driver_id: string
+          kind: string
+          request_id: string
+          ride_id: string
+          status: Database["public"]["Enums"]["ride_status"]
+        }[]
       }
       get_connected_driver_profiles: {
         Args: never
