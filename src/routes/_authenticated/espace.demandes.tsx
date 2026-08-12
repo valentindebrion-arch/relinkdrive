@@ -27,8 +27,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { formatDateTime, formatEuro } from "@/lib/labels";
-import { LiveDriversMap } from "@/components/LiveDriversMap";
 import { RouteMiniMap } from "@/components/RouteMiniMap";
+import { ScheduleSheet } from "@/components/request/ScheduleSheet";
 import { AddressSearchPanel, pushRecentAddress } from "@/components/request/AddressSearchPanel";
 import { DriverPickerSheet } from "@/components/request/DriverPickerSheet";
 import { QrScannerDialog } from "@/components/QrScannerDialog";
