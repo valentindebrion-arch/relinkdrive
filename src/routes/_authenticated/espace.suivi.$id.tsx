@@ -247,7 +247,22 @@ function TrackingPage() {
   }, [id, qc]);
   useExpiryEffect(deadlineIso, !!countdown?.expired, handleExpired);
 
+  // Fiche publique du chauffeur (uniquement si le client lui est bien relié).
+  const completedDriverId =
+    q.data?.ride?.status === "completed" ? (q.data.ride.driver_id ?? null) : null;
+  const driverSlug = useQuery({
+    queryKey: ["connected-driver-slug", completedDriverId],
+    enabled: !!completedDriverId,
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data } = await supabase.rpc("get_connected_driver_profiles");
+      const row = (data ?? []).find((d) => d.user_id === completedDriverId);
+      return row?.slug ?? null;
+    },
+  });
+
   if (q.isLoading) return <TrackingSkeleton />;
+
 
   if (!q.data) {
     return (
