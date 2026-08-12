@@ -23,6 +23,8 @@ export const Route = createFileRoute("/_authenticated/espace/")({
 
 function ClientHome() {
   const { user } = useAuth();
+  // Source de vérité serveur : une seule demande « Maintenant » en attente à la fois.
+  const blocking = useBlockingImmediate().data ?? null;
 
   const data = useQuery({
     queryKey: ["client-home", user?.id],
