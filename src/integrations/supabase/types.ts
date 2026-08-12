@@ -717,6 +717,44 @@ export type Database = {
           },
         ]
       }
+      ride_request_terms_acceptances: {
+        Row: {
+          accepted_at: string
+          cancellation_version: string | null
+          cgu_version: string
+          cgv_version: string
+          id: string
+          request_id: string
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string
+          cancellation_version?: string | null
+          cgu_version: string
+          cgv_version: string
+          id?: string
+          request_id: string
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string
+          cancellation_version?: string | null
+          cgu_version?: string
+          cgv_version?: string
+          id?: string
+          request_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_request_terms_acceptances_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: true
+            referencedRelation: "ride_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ride_requests: {
         Row: {
           client_id: string
