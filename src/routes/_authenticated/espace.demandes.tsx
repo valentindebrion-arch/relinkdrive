@@ -227,6 +227,31 @@ function ClientRequests() {
     setAlternatives(null);
   }, [form.driver_id, form.pickup_address, form.dropoff_address, form.scheduled_at, whenMode]);
 
+  // Un changement de chauffeur ou de trajet rend le créneau réservé caduc :
+  // il est retiré et doit être re-choisi dans l'agenda actualisé.
+  const slotContextRef = useRef<string>("");
+  useEffect(() => {
+    const context = [
+      form.driver_id,
+      form.pickup_address,
+      form.dropoff_address,
+      String(form.round_trip),
+    ].join("|");
+    const previous = slotContextRef.current;
+    slotContextRef.current = context;
+    if (!previous || previous === context) return;
+    const [prevDriver] = previous.split("|");
+    if (!form.scheduled_at) return;
+    setForm((f) => ({ ...f, scheduled_at: "" }));
+    setSlotWarning(
+      prevDriver !== form.driver_id
+        ? "Ce créneau n'est pas disponible avec le nouveau chauffeur. Choisissez une autre date ou une autre heure."
+        : "La modification du trajet rend ce créneau indisponible. Choisissez-en un nouveau.",
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.driver_id, form.pickup_address, form.dropoff_address, form.round_trip]);
+
+
   // Aperçu d'itinéraire dès que départ et arrivée sont confirmés (étape 1).
   useEffect(() => {
     if (!pickupOk || !dropoffOk || !form.pickup_address || !form.dropoff_address) {
