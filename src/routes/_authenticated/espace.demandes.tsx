@@ -1078,9 +1078,12 @@ function ClientRequests() {
 
       {searchField ? (
         <AddressSearchPanel
-          title={searchField === "pickup" ? "Adresse de départ" : "Destination"}
-          value={searchField === "pickup" ? form.pickup_address : form.dropoff_address}
+          field={searchField}
+          initialValue={searchField === "pickup" ? form.pickup_address : form.dropoff_address}
+          locating={locating}
+          onUseMyLocation={searchField === "pickup" ? () => void useMyLocation() : undefined}
           onClose={() => setSearchField(null)}
+
           onSelect={(address) => {
             pushRecentAddress(address);
             if (searchField === "pickup") {
