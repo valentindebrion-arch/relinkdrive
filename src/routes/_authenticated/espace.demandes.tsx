@@ -182,6 +182,24 @@ function ClientRequests() {
     trip_type: "",
   });
 
+  // Restaure un brouillon laissé avant un détour « ajouter un chauffeur ».
+  useEffect(() => {
+    const saved = loadRequestDraft();
+    clearRequestDraft();
+    if (!saved) return;
+    setForm((f) => ({
+      ...f,
+      driver_id: search.driver ?? saved.driver_id ?? f.driver_id,
+      pickup_address: saved.pickup_address,
+      dropoff_address: saved.dropoff_address,
+      scheduled_at: saved.scheduled_at,
+    }));
+    setPickupOk(saved.pickupOk);
+    setDropoffOk(saved.dropoffOk);
+    setWhenMode(saved.whenMode === "later" ? "later" : "now");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Toute modification pertinente invalide la vérification de créneau.
   useEffect(() => {
     setAvail(null);
@@ -524,6 +542,16 @@ function ClientRequests() {
     navigate({ to: "/espace/suivi/$id", params: { id: created.id } });
   }
   const heading = HEADINGS[step]!;
+  const draft = {
+    driver_id: form.driver_id,
+    pickup_address: form.pickup_address,
+    dropoff_address: form.dropoff_address,
+    scheduled_at: form.scheduled_at,
+    whenMode,
+    pickupOk,
+    dropoffOk,
+  };
+
   const selectedDriver = (drivers.data ?? []).find((d) => d.id === form.driver_id);
   const driverName = selectedDriver?.full_name;
   const driverAvailable = !!selectedDriver?.on_duty;
