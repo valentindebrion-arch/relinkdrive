@@ -1074,6 +1074,61 @@ function ClientRequests() {
           )}
         </div>
       </div>
+      )}
+
+      {searchField ? (
+        <AddressSearchPanel
+          title={searchField === "pickup" ? "Adresse de départ" : "Destination"}
+          value={searchField === "pickup" ? form.pickup_address : form.dropoff_address}
+          onClose={() => setSearchField(null)}
+          onSelect={(address) => {
+            pushRecentAddress(address);
+            if (searchField === "pickup") {
+              setForm((f) => ({ ...f, pickup_address: address }));
+              setPickupOk(true);
+            } else {
+              setForm((f) => ({ ...f, dropoff_address: address }));
+              setDropoffOk(true);
+            }
+            setSearchField(null);
+          }}
+        />
+      ) : null}
+
+      {showPreviewMap && preview ? (
+        <div className="fixed inset-0 z-[60] flex flex-col bg-background">
+          <div className="relative flex shrink-0 items-center justify-center px-2 py-2">
+            <button
+              type="button"
+              aria-label="Fermer la carte"
+              className="absolute left-2 flex size-10 items-center justify-center rounded-full hover:bg-accent"
+              onClick={() => setShowPreviewMap(false)}
+            >
+              <X className="size-5" />
+            </button>
+            <p className="text-[15px] font-bold">Aperçu de l'itinéraire</p>
+          </div>
+          <RouteMiniMap polyline={preview.polyline} className="min-h-0 flex-1 rounded-none border-0" />
+        </div>
+      ) : null}
+
+      <AlertDialog open={exitOpen} onOpenChange={setExitOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Abandonner cette demande ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Les informations saisies pour ce trajet seront perdues.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Continuer ma demande</AlertDialogCancel>
+            <AlertDialogAction onClick={() => navigate({ to: "/espace" })}>
+              Quitter
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+
