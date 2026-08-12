@@ -1081,7 +1081,7 @@ function ClientRequests() {
           field={searchField}
           initialValue={searchField === "pickup" ? form.pickup_address : form.dropoff_address}
           locating={locating}
-          onUseMyLocation={searchField === "pickup" ? () => void useMyLocation() : undefined}
+          {...(searchField === "pickup" ? { onUseMyLocation: () => void useMyLocation() } : {})}
           onClose={() => setSearchField(null)}
 
           onSelect={(address) => {
