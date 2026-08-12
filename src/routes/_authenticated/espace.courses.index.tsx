@@ -381,9 +381,12 @@ function ClientRides() {
   const names = data.data?.names ?? {};
   const invoiceFor = (id: string) => invoices.find((i) => i.ride_id === id);
 
-  const pendingRequests = (data.data?.requests ?? []).filter((r) =>
+  const pendingList = (data.data?.requests ?? []).filter((r) =>
     ["new", "reviewing", "proposal_sent", "awaiting_client"].includes(r.status),
-  ).length;
+  );
+  const pendingRequests = pendingList.length;
+  /** Une seule demande en attente : on ouvre directement son suivi. */
+  const singlePending = pendingRequests === 1 ? pendingList[0]! : null;
 
   const upcomingAll = useMemo(
     () =>
