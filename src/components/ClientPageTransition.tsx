@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { useRouterState } from "@tanstack/react-router";
 
 const TAB_ORDER = ["/espace", "/espace/courses", "/espace/chauffeurs", "/espace/parametres"];
+const TAB_KEYS = ["home", "courses", "drivers", "profile"] as const;
+const TRANSITION_MS = 380;
 
 function tabIndex(pathname: string): number {
   if (pathname === "/espace" || pathname === "/espace/") return 0;
@@ -15,6 +17,11 @@ function isMainTab(pathname: string) {
   return TAB_ORDER.some((t) => pathname === t || pathname === `${t}/`);
 }
 
+function tabKey(pathname: string) {
+  const index = tabIndex(pathname);
+  return index >= 0 ? (TAB_KEYS[index] ?? pathname) : pathname;
+}
+
 function prefersReducedMotion() {
   if (typeof window === "undefined" || !window.matchMedia) return false;
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -26,19 +33,26 @@ function prefersReducedMotion() {
  * - Sous-pages : glissement discret (droite à l'ouverture, gauche au retour).
  * Le contenu seul est animé : la barre d'onglets reste fixe.
  */
-export function ClientPageTransition({ children }: { children: ReactNode }) {
+export function ClientPageTransition({
+  children,
+  onTransitionChange,
+}: {
+  children: ReactNode;
+  onTransitionChange?: (running: boolean) => void;
+}) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const previous = useRef(pathname);
   const [state, setState] = useState<{ key: string; dir: "right" | "left"; sheet: boolean } | null>(
     null,
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const from = previous.current;
     previous.current = pathname;
     if (from === pathname) return;
     if (prefersReducedMotion()) {
       setState(null);
+      onTransitionChange?.(false);
       return;
     }
 
@@ -54,30 +68,37 @@ export function ClientPageTransition({ children }: { children: ReactNode }) {
       dir = pathname.length >= from.length ? "right" : "left";
     }
 
-    setState({ key: pathname, dir, sheet: tabSwitch });
-  }, [pathname]);
+    setState({ key: tabSwitch ? tabKey(pathname) : pathname, dir, sheet: tabSwitch });
+    onTransitionChange?.(true);
+  }, [onTransitionChange, pathname]);
 
   useEffect(() => {
-    if (!state?.sheet) return;
+    if (!state) return;
     const t = window.setTimeout(() => {
-      setState((s) => (s && s.key === state.key ? { ...s, sheet: false } : s));
-    }, 320);
+      setState((s) => (s?.key === state.key ? null : s));
+      onTransitionChange?.(false);
+      window.dispatchEvent(new Event("resize"));
+    }, TRANSITION_MS);
     return () => window.clearTimeout(t);
-  }, [state?.key, state?.sheet]);
+  }, [onTransitionChange, state]);
 
   const anim = state ? (state.dir === "right" ? "client-page-in-right" : "client-page-in-left") : "";
 
   return (
-    <div className="relative isolate min-h-[100dvh]">
-      <div key={state?.key ?? "initial"} className={anim}>
+    <div
+      className={`relative isolate min-h-[100dvh] overflow-x-hidden ${state ? "pointer-events-none" : ""}`}
+      data-client-transition={state ? "running" : "idle"}
+    >
+      <div key={state?.key ?? tabKey(pathname)} className={anim}>
         {children}
       </div>
       {state?.sheet ? (
         <div
           aria-hidden
-          className={`pointer-events-none fixed inset-0 z-30 bg-primary/90 ${
+          className={`pointer-events-none fixed inset-x-0 top-0 z-30 bg-primary/90 ${
             state.dir === "right" ? "client-sheet-right" : "client-sheet-left"
           }`}
+          style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom))" }}
         />
       ) : null}
     </div>
