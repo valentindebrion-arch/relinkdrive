@@ -1,30 +1,55 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { MapPin } from "lucide-react";
+import { ChevronRight, CreditCard, FileText, MapPin, Receipt } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { PageHeader } from "@/components/Ui";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { requestLocation } from "@/lib/push";
 import { PushSettingsCard } from "@/components/PushSettingsCard";
+import { PersonalInfoSection } from "@/components/client/PersonalInfoSection";
+import { SecuritySection } from "@/components/client/SecuritySection";
+import { SupportSection } from "@/components/client/SupportSection";
+import { AccountSection } from "@/components/client/AccountSection";
 
 export const Route = createFileRoute("/_authenticated/espace/parametres")({
-  component: ClientSettings,
+  head: () => ({
+    meta: [
+      { title: "Mon profil — Relink" },
+      {
+        name: "description",
+        content:
+          "Gérez vos informations, votre sécurité, vos préférences et votre compte passager Relink.",
+      },
+      { property: "og:title", content: "Mon profil — Relink" },
+      { property: "og:description", content: "Le centre de gestion de votre compte passager Relink." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+  component: ClientProfile,
 });
 
-function ClientSettings() {
-  const { user, profile, refresh } = useAuth();
-  const [form, setForm] = useState({ full_name: "", phone: "" });
-  const [locationOn, setLocationOn] = useState(false);
-  const [busy, setBusy] = useState<null | "location">(null);
+const LEGAL_LINKS = [
+  { doc: "cgu", label: "Conditions générales d'utilisation" },
+  { doc: "confidentialite", label: "Politique de confidentialité" },
+  { doc: "mentions", label: "Mentions légales" },
+  { doc: "donnees", label: "Données personnelles et consentements" },
+] as const;
 
-  useEffect(() => {
-    if (profile) setForm({ full_name: profile.full_name ?? "", phone: profile.phone ?? "" });
-  }, [profile]);
+function initials(name: string | undefined | null) {
+  const parts = (name ?? "").trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  return (parts[0]![0]! + (parts[1]?.[0] ?? "")).toUpperCase();
+}
+
+function ClientProfile() {
+  const { user, profile } = useAuth();
+  const [locationOn, setLocationOn] = useState(false);
+  const [marketingOn, setMarketingOn] = useState(false);
+  const [busy, setBusy] = useState<null | "location">(null);
+  const [editSignal, setEditSignal] = useState(0);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -33,20 +58,16 @@ function ClientSettings() {
       .select("location_enabled")
       .eq("id", user.id)
       .maybeSingle()
-      .then(({ data }) => {
-        setLocationOn(Boolean(data?.location_enabled));
-      });
+      .then(({ data }) => setLocationOn(Boolean(data?.location_enabled)));
   }, [user?.id]);
 
-  async function save() {
-    const { error } = await supabase.from("profiles").update(form).eq("id", user!.id);
-    if (error) {
-      toast.error(error.message);
-      return;
+  useEffect(() => {
+    try {
+      setMarketingOn(localStorage.getItem("relink.marketing") === "1");
+    } catch {
+      /* stockage indisponible */
     }
-    toast.success("Profil mis à jour");
-    await refresh();
-  }
+  }, []);
 
   async function toggleLocation(next: boolean) {
     if (!user?.id) return;
@@ -67,36 +88,89 @@ function ClientSettings() {
     }
   }
 
+  function toggleMarketing(next: boolean) {
+    setMarketingOn(next);
+    try {
+      localStorage.setItem("relink.marketing", next ? "1" : "0");
+    } catch {
+      /* stockage indisponible */
+    }
+  }
+
   return (
-    <>
-      <PageHeader title="Paramètres" description="Vos informations personnelles et vos autorisations." />
-      <div className="surface grid max-w-xl gap-4 p-5">
-        <div>
-          <Label htmlFor="fn">Nom complet</Label>
-          <Input id="fn" value={form.full_name} maxLength={80} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+    <div className="space-y-4 pb-4">
+      {/* En-tête identité */}
+      <section className="surface flex items-center gap-4 p-5">
+        {profile?.avatar_url ? (
+          <img
+            src={profile.avatar_url}
+            alt={profile.full_name || "Photo de profil"}
+            className="size-16 shrink-0 rounded-full object-cover"
+          />
+        ) : (
+          <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-accent text-lg font-bold text-accent-foreground">
+            {initials(profile?.full_name)}
+          </span>
+        )}
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-lg font-bold">{profile?.full_name || "Mon compte"}</h1>
+          <p className="truncate text-xs text-muted-foreground">{profile?.email ?? ""}</p>
+          {profile?.phone ? (
+            <p className="truncate text-xs text-muted-foreground">{profile.phone}</p>
+          ) : null}
+          <Button
+            size="sm"
+            variant="outline"
+            className="mt-2 min-h-10"
+            onClick={() => setEditSignal((v) => v + 1)}
+          >
+            Modifier mon profil
+          </Button>
         </div>
-        <div>
-          <Label htmlFor="ph">Téléphone</Label>
-          <Input id="ph" value={form.phone} maxLength={20} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+      </section>
+
+      <PersonalInfoSection openSignal={editSignal} />
+
+      <SecuritySection />
+
+      {/* Paiements et factures */}
+      <section className="surface p-5">
+        <h2 className="text-base font-semibold">Paiements et factures</h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Les courses Relink se règlent directement auprès de votre chauffeur (espèces, carte à
+          bord ou virement selon ce qu'il accepte). Aucune donnée bancaire n'est stockée dans
+          l'application.
+        </p>
+        <ul className="mt-3 divide-y divide-border text-sm">
+          <li>
+            <Link
+              to="/espace/courses/terminees"
+              className="flex min-h-12 items-center justify-between gap-3 font-medium"
+            >
+              <span className="flex items-center gap-2">
+                <Receipt className="size-4 text-primary" /> Mes factures et reçus
+              </span>
+              <ChevronRight className="size-4 text-muted-foreground" />
+            </Link>
+          </li>
+          <li className="flex min-h-12 items-center gap-2 text-muted-foreground">
+            <CreditCard className="size-4" />
+            <span className="text-xs">
+              Le paiement en ligne n'est pas encore disponible sur Relink.
+            </span>
+          </li>
+        </ul>
+      </section>
+
+      {/* Préférences */}
+      <section className="surface p-5">
+        <h2 className="text-base font-semibold">Préférences</h2>
+
+        <div className="mt-3">
+          <PushSettingsCard audience="client" />
         </div>
-        <div>
-          <Label>Email</Label>
-          <Input value={profile?.email ?? ""} disabled />
-        </div>
-        <div>
-          <Button onClick={save}>Enregistrer</Button>
-        </div>
-      </div>
 
-      <div className="mt-4 max-w-xl">
-        <PushSettingsCard audience="client" />
-      </div>
-
-      <div className="surface mt-4 grid max-w-xl gap-4 p-5">
-        <p className="text-sm font-semibold">Autorisations de l'appareil</p>
-
-
-        <div className="flex items-start justify-between gap-4">
+        <div className="mt-4 flex items-start justify-between gap-4 border-t border-border pt-4">
           <div className="flex gap-3">
             <MapPin className="mt-0.5 size-5 shrink-0 text-primary" />
             <div>
@@ -113,7 +187,47 @@ function ClientSettings() {
             aria-label="Activer la position"
           />
         </div>
-      </div>
-    </>
+
+        <div className="mt-4 flex items-start justify-between gap-4 border-t border-border pt-4">
+          <div>
+            <p className="text-sm font-medium">Communications commerciales</p>
+            <p className="text-xs text-muted-foreground">
+              Facultatif. Les messages liés au suivi d'une course et à vos factures restent toujours
+              envoyés, car ils sont indispensables au service.
+            </p>
+          </div>
+          <Switch
+            checked={marketingOn}
+            onCheckedChange={toggleMarketing}
+            aria-label="Recevoir les communications commerciales"
+          />
+        </div>
+      </section>
+
+      <SupportSection />
+
+      {/* Informations légales */}
+      <section className="surface p-5">
+        <h2 className="text-base font-semibold">Informations légales</h2>
+        <ul className="mt-2 divide-y divide-border text-sm">
+          {LEGAL_LINKS.map((l) => (
+            <li key={l.doc}>
+              <Link
+                to="/legal/$doc"
+                params={{ doc: l.doc }}
+                className="flex min-h-12 items-center justify-between gap-3 font-medium"
+              >
+                <span className="flex items-center gap-2">
+                  <FileText className="size-4 text-primary" /> {l.label}
+                </span>
+                <ChevronRight className="size-4 text-muted-foreground" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <AccountSection />
+    </div>
   );
 }

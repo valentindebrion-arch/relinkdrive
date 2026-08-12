@@ -11,8 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AideRouteImport } from './routes/aide'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ChauffeursRouteImport } from './routes/chauffeurs'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedEspaceRouteImport } from './routes/_authenticated/espace'
@@ -20,6 +22,7 @@ import { Route as AuthenticatedProRouteImport } from './routes/_authenticated/pr
 import { Route as AuthCallbackRouteImport } from './routes/auth_.callback'
 import { Route as AuthConfirmRouteImport } from './routes/auth_.confirm'
 import { Route as ChauffeurSlugRouteImport } from './routes/chauffeur.$slug'
+import { Route as LegalDocRouteImport } from './routes/legal.$doc'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminChauffeursRouteImport } from './routes/_authenticated/admin.chauffeurs'
 import { Route as AuthenticatedAdminCoursesRouteImport } from './routes/_authenticated/admin.courses'
@@ -64,6 +67,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AideRoute = AideRouteImport.update({
+  id: '/aide',
+  path: '/aide',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -72,6 +80,11 @@ const AuthRoute = AuthRouteImport.update({
 const ChauffeursRoute = ChauffeursRouteImport.update({
   id: '/chauffeurs',
   path: '/chauffeurs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -107,6 +120,11 @@ const AuthConfirmRoute = AuthConfirmRouteImport.update({
 const ChauffeurSlugRoute = ChauffeurSlugRouteImport.update({
   id: '/chauffeur/$slug',
   path: '/chauffeur/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalDocRoute = LegalDocRouteImport.update({
+  id: '/legal/$doc',
+  path: '/legal/$doc',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
@@ -310,8 +328,10 @@ const AuthenticatedProCoursesRideIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/aide': typeof AideRoute
   '/auth': typeof AuthRoute
   '/chauffeurs': typeof ChauffeursRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/espace': typeof AuthenticatedEspaceRouteWithChildren
@@ -319,6 +339,7 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/confirm': typeof AuthConfirmRoute
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
+  '/legal/$doc': typeof LegalDocRoute
   '/admin/chauffeurs': typeof AuthenticatedAdminChauffeursRoute
   '/admin/courses': typeof AuthenticatedAdminCoursesRoute
   '/admin/signalements': typeof AuthenticatedAdminSignalementsRoute
@@ -356,12 +377,15 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/aide': typeof AideRoute
   '/auth': typeof AuthRoute
   '/chauffeurs': typeof ChauffeursRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/confirm': typeof AuthConfirmRoute
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
+  '/legal/$doc': typeof LegalDocRoute
   '/admin/chauffeurs': typeof AuthenticatedAdminChauffeursRoute
   '/admin/courses': typeof AuthenticatedAdminCoursesRoute
   '/admin/signalements': typeof AuthenticatedAdminSignalementsRoute
@@ -400,8 +424,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/aide': typeof AideRoute
   '/auth': typeof AuthRoute
   '/chauffeurs': typeof ChauffeursRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/espace': typeof AuthenticatedEspaceRouteWithChildren
@@ -409,6 +435,7 @@ export interface FileRoutesById {
   '/auth_/callback': typeof AuthCallbackRoute
   '/auth_/confirm': typeof AuthConfirmRoute
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
+  '/legal/$doc': typeof LegalDocRoute
   '/_authenticated/admin/chauffeurs': typeof AuthenticatedAdminChauffeursRoute
   '/_authenticated/admin/courses': typeof AuthenticatedAdminCoursesRoute
   '/_authenticated/admin/signalements': typeof AuthenticatedAdminSignalementsRoute
@@ -448,8 +475,10 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/aide'
     | '/auth'
     | '/chauffeurs'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/admin'
     | '/espace'
@@ -457,6 +486,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/auth/confirm'
     | '/chauffeur/$slug'
+    | '/legal/$doc'
     | '/admin/chauffeurs'
     | '/admin/courses'
     | '/admin/signalements'
@@ -494,12 +524,15 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/aide'
     | '/auth'
     | '/chauffeurs'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/auth/callback'
     | '/auth/confirm'
     | '/chauffeur/$slug'
+    | '/legal/$doc'
     | '/admin/chauffeurs'
     | '/admin/courses'
     | '/admin/signalements'
@@ -537,8 +570,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/aide'
     | '/auth'
     | '/chauffeurs'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/_authenticated/espace'
@@ -546,6 +581,7 @@ export interface FileRouteTypes {
     | '/auth_/callback'
     | '/auth_/confirm'
     | '/chauffeur/$slug'
+    | '/legal/$doc'
     | '/_authenticated/admin/chauffeurs'
     | '/_authenticated/admin/courses'
     | '/_authenticated/admin/signalements'
@@ -585,12 +621,15 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AideRoute: typeof AideRoute
   AuthRoute: typeof AuthRoute
   ChauffeursRoute: typeof ChauffeursRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthConfirmRoute: typeof AuthConfirmRoute
   ChauffeurSlugRoute: typeof ChauffeurSlugRoute
+  LegalDocRoute: typeof LegalDocRoute
   ApiPublicPushRoute: typeof ApiPublicPushRoute
 }
 
@@ -610,6 +649,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/aide': {
+      id: '/aide'
+      path: '/aide'
+      fullPath: '/aide'
+      preLoaderRoute: typeof AideRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -622,6 +668,13 @@ declare module '@tanstack/react-router' {
       path: '/chauffeurs'
       fullPath: '/chauffeurs'
       preLoaderRoute: typeof ChauffeursRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -671,6 +724,13 @@ declare module '@tanstack/react-router' {
       path: '/chauffeur/$slug'
       fullPath: '/chauffeur/$slug'
       preLoaderRoute: typeof ChauffeurSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/$doc': {
+      id: '/legal/$doc'
+      path: '/legal/$doc'
+      fullPath: '/legal/$doc'
+      preLoaderRoute: typeof LegalDocRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin/': {
@@ -1040,12 +1100,15 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AideRoute: AideRoute,
   AuthRoute: AuthRoute,
   ChauffeursRoute: ChauffeursRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   AuthConfirmRoute: AuthConfirmRoute,
   ChauffeurSlugRoute: ChauffeurSlugRoute,
+  LegalDocRoute: LegalDocRoute,
   ApiPublicPushRoute: ApiPublicPushRoute,
 }
 export const routeTree = rootRouteImport
