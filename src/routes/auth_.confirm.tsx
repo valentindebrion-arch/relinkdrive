@@ -21,7 +21,7 @@ const searchSchema = z.object({
   error_description: z.string().optional(),
 });
 
-export const Route = createFileRoute("/auth/confirm")({
+export const Route = createFileRoute("/auth_/confirm")({
   validateSearch: searchSchema,
   ssr: false,
   head: () => ({
