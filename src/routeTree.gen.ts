@@ -21,6 +21,7 @@ import { Route as AuthenticatedProRouteImport } from './routes/_authenticated/pr
 import { Route as AuthCallbackRouteImport } from './routes/auth_.callback'
 import { Route as AuthConfirmRouteImport } from './routes/auth_.confirm'
 import { Route as ChauffeurSlugRouteImport } from './routes/chauffeur.$slug'
+import { Route as LegalDocRouteImport } from './routes/legal.$doc'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminChauffeursRouteImport } from './routes/_authenticated/admin.chauffeurs'
 import { Route as AuthenticatedAdminCoursesRouteImport } from './routes/_authenticated/admin.courses'
@@ -113,6 +114,11 @@ const AuthConfirmRoute = AuthConfirmRouteImport.update({
 const ChauffeurSlugRoute = ChauffeurSlugRouteImport.update({
   id: '/chauffeur/$slug',
   path: '/chauffeur/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalDocRoute = LegalDocRouteImport.update({
+  id: '/legal/$doc',
+  path: '/legal/$doc',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
@@ -326,6 +332,7 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/confirm': typeof AuthConfirmRoute
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
+  '/legal/$doc': typeof LegalDocRoute
   '/admin/chauffeurs': typeof AuthenticatedAdminChauffeursRoute
   '/admin/courses': typeof AuthenticatedAdminCoursesRoute
   '/admin/signalements': typeof AuthenticatedAdminSignalementsRoute
@@ -370,6 +377,7 @@ export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/confirm': typeof AuthConfirmRoute
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
+  '/legal/$doc': typeof LegalDocRoute
   '/admin/chauffeurs': typeof AuthenticatedAdminChauffeursRoute
   '/admin/courses': typeof AuthenticatedAdminCoursesRoute
   '/admin/signalements': typeof AuthenticatedAdminSignalementsRoute
@@ -418,6 +426,7 @@ export interface FileRoutesById {
   '/auth_/callback': typeof AuthCallbackRoute
   '/auth_/confirm': typeof AuthConfirmRoute
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
+  '/legal/$doc': typeof LegalDocRoute
   '/_authenticated/admin/chauffeurs': typeof AuthenticatedAdminChauffeursRoute
   '/_authenticated/admin/courses': typeof AuthenticatedAdminCoursesRoute
   '/_authenticated/admin/signalements': typeof AuthenticatedAdminSignalementsRoute
@@ -467,6 +476,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/auth/confirm'
     | '/chauffeur/$slug'
+    | '/legal/$doc'
     | '/admin/chauffeurs'
     | '/admin/courses'
     | '/admin/signalements'
@@ -511,6 +521,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/auth/confirm'
     | '/chauffeur/$slug'
+    | '/legal/$doc'
     | '/admin/chauffeurs'
     | '/admin/courses'
     | '/admin/signalements'
@@ -558,6 +569,7 @@ export interface FileRouteTypes {
     | '/auth_/callback'
     | '/auth_/confirm'
     | '/chauffeur/$slug'
+    | '/legal/$doc'
     | '/_authenticated/admin/chauffeurs'
     | '/_authenticated/admin/courses'
     | '/_authenticated/admin/signalements'
@@ -604,6 +616,7 @@ export interface RootRouteChildren {
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthConfirmRoute: typeof AuthConfirmRoute
   ChauffeurSlugRoute: typeof ChauffeurSlugRoute
+  LegalDocRoute: typeof LegalDocRoute
   ApiPublicPushRoute: typeof ApiPublicPushRoute
 }
 
@@ -691,6 +704,13 @@ declare module '@tanstack/react-router' {
       path: '/chauffeur/$slug'
       fullPath: '/chauffeur/$slug'
       preLoaderRoute: typeof ChauffeurSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/$doc': {
+      id: '/legal/$doc'
+      path: '/legal/$doc'
+      fullPath: '/legal/$doc'
+      preLoaderRoute: typeof LegalDocRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin/': {
@@ -1067,6 +1087,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthCallbackRoute: AuthCallbackRoute,
   AuthConfirmRoute: AuthConfirmRoute,
   ChauffeurSlugRoute: ChauffeurSlugRoute,
+  LegalDocRoute: LegalDocRoute,
   ApiPublicPushRoute: ApiPublicPushRoute,
 }
 export const routeTree = rootRouteImport
