@@ -19,7 +19,7 @@ function isMainTab(pathname: string) {
 
 function tabKey(pathname: string) {
   const index = tabIndex(pathname);
-  return index >= 0 ? TAB_KEYS[index] : pathname;
+  return index >= 0 ? (TAB_KEYS[index] ?? pathname) : pathname;
 }
 
 function prefersReducedMotion() {
