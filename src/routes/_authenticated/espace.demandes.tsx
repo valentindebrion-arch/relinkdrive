@@ -27,13 +27,17 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { formatDateTime, formatEuro } from "@/lib/labels";
-import { LiveDriversMap } from "@/components/LiveDriversMap";
 import { RouteMiniMap } from "@/components/RouteMiniMap";
+import { ScheduleSheet } from "@/components/request/ScheduleSheet";
 import { AddressSearchPanel, pushRecentAddress } from "@/components/request/AddressSearchPanel";
 import { DriverPickerSheet } from "@/components/request/DriverPickerSheet";
 import { QrScannerDialog } from "@/components/QrScannerDialog";
 import { loadRequestDraft, saveRequestDraft, clearRequestDraft } from "@/lib/request-draft";
-import { BLOCKING_QUERY_KEY, newIdempotencyKey, useBlockingImmediate } from "@/lib/immediate-request";
+import {
+  BLOCKING_QUERY_KEY,
+  newIdempotencyKey,
+  useBlockingImmediate,
+} from "@/lib/immediate-request";
 import { useCountdown } from "@/components/ExpiryCountdown";
 
 type CreateResult = {
@@ -52,6 +56,7 @@ import { estimateRoute, reverseGeocode } from "@/lib/route-estimate.functions";
 import { ReviewStep } from "@/components/request/ReviewStep";
 import { LEGAL_VERSIONS } from "@/lib/legal-versions";
 import { checkDriverAvailability } from "@/lib/availability.functions";
+import { formatSlotFull } from "@/lib/schedule-slots";
 import {
   SAFETY_MARGIN_MIN,
   availabilityMessage,
@@ -180,6 +185,8 @@ function ClientRequests() {
   const [returnTrip, setReturnTrip] = useState({ at: "", pickup: "", dropoff: "" });
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [driverPickerOpen, setDriverPickerOpen] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [slotWarning, setSlotWarning] = useState<string | null>(null);
   const [scanOpen, setScanOpen] = useState(false);
   /** Empêche tout double envoi d'une même demande. */
   const sentRef = useRef(false);
@@ -223,6 +230,30 @@ function ClientRequests() {
     setAvail(null);
     setAlternatives(null);
   }, [form.driver_id, form.pickup_address, form.dropoff_address, form.scheduled_at, whenMode]);
+
+  // Un changement de chauffeur ou de trajet rend le créneau réservé caduc :
+  // il est retiré et doit être re-choisi dans l'agenda actualisé.
+  const slotContextRef = useRef<string>("");
+  useEffect(() => {
+    const context = [
+      form.driver_id,
+      form.pickup_address,
+      form.dropoff_address,
+      String(form.round_trip),
+    ].join("|");
+    const previous = slotContextRef.current;
+    slotContextRef.current = context;
+    if (!previous || previous === context) return;
+    const [prevDriver] = previous.split("|");
+    if (!form.scheduled_at) return;
+    setForm((f) => ({ ...f, scheduled_at: "" }));
+    setSlotWarning(
+      prevDriver !== form.driver_id
+        ? "Ce créneau n'est pas disponible avec le nouveau chauffeur. Choisissez une autre date ou une autre heure."
+        : "La modification du trajet rend ce créneau indisponible. Choisissez-en un nouveau.",
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.driver_id, form.pickup_address, form.dropoff_address, form.round_trip]);
 
   // Aperçu d'itinéraire dès que départ et arrivée sont confirmés (étape 1).
   useEffect(() => {
@@ -671,9 +702,7 @@ function ClientRequests() {
                 <button
                   type="button"
                   onClick={() => setDriverPickerOpen(true)}
-                  aria-label={
-                    selectedDriver ? "Modifier le chauffeur" : "Choisir un chauffeur"
-                  }
+                  aria-label={selectedDriver ? "Modifier le chauffeur" : "Choisir un chauffeur"}
                   className="flex w-full items-center gap-3 rounded-[26px] bg-card p-3.5 text-left shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)] transition-colors active:bg-muted/60"
                 >
                   <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[15px] font-bold text-primary">
@@ -835,7 +864,15 @@ function ClientRequests() {
                         key={o.key}
                         type="button"
                         disabled={disabled}
-                        onClick={() => setWhenMode(o.key)}
+                        onClick={() => {
+                          setWhenMode(o.key);
+                          if (o.key === "later" && !form.driver_id) {
+                            setSlotWarning(
+                              "Choisissez d'abord un chauffeur pour consulter ses disponibilités.",
+                            );
+                            setDriverPickerOpen(true);
+                          }
+                        }}
                         className={cn(
                           "relative rounded-3xl px-4 py-4 text-left transition-all",
                           on
@@ -859,21 +896,55 @@ function ClientRequests() {
 
                 {whenMode === "later" ? (
                   <div className="rise-in mt-3 rounded-3xl bg-card p-4 shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)]">
-                    <Label htmlFor="when" className="text-[13px] font-bold">
-                      Date et heure du départ
-                    </Label>
-                    <Input
-                      id="when"
-                      aria-label="Date et heure du départ"
-                      type="datetime-local"
-                      min={toLocalInput(new Date(Date.now() + 15 * 60_000).toISOString())}
-                      className="mt-2 h-12 rounded-2xl border-0 bg-muted text-[15px]"
-                      value={form.scheduled_at}
-                      onChange={(e) => setForm({ ...form, scheduled_at: e.target.value })}
-                    />
-                    {form.scheduled_at ? (
-                      <p className="mt-2 text-[13px] font-semibold text-primary">
-                        Départ prévu {formatDateTime(new Date(form.scheduled_at).toISOString())}
+                    {!form.driver_id ? (
+                      <p className="text-[13.5px] text-muted-foreground">
+                        Choisissez d'abord un chauffeur pour consulter ses disponibilités.
+                      </p>
+                    ) : !pickupOk || !dropoffOk ? (
+                      <p className="text-[13.5px] text-muted-foreground">
+                        Indiquez votre départ et votre destination pour consulter l'agenda de votre
+                        chauffeur.
+                      </p>
+                    ) : form.scheduled_at ? (
+                      <div className="flex items-start gap-3">
+                        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+                          <CalendarDays className="size-5" />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[13px] font-bold">Course planifiée</p>
+                          <p className="text-[15px] font-semibold">
+                            {formatSlotFull(form.scheduled_at)}
+                          </p>
+                          <p className="text-[12px] text-muted-foreground">
+                            Avec {driverName ?? "votre chauffeur"} · heure de Paris
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          className="shrink-0 text-[13px] font-bold text-primary"
+                          onClick={() => setScheduleOpen(true)}
+                        >
+                          Modifier le créneau
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-[13px] font-bold">Date et heure du départ</p>
+                        <p className="mt-0.5 text-[12.5px] text-muted-foreground">
+                          Agenda synchronisé avec le planning de {driverName ?? "votre chauffeur"}.
+                        </p>
+                        <Button
+                          className="mt-3 h-12 w-full rounded-2xl text-[14.5px] font-bold"
+                          onClick={() => setScheduleOpen(true)}
+                        >
+                          <CalendarDays className="size-4" /> Voir les disponibilités
+                        </Button>
+                      </>
+                    )}
+                    {slotWarning ? (
+                      <p className="mt-2 flex items-start gap-2 text-[12.5px] text-destructive">
+                        <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                        {slotWarning}
                       </p>
                     ) : null}
                   </div>
@@ -910,7 +981,7 @@ function ClientRequests() {
                 ) : null}
               </div>
 
-                {checking || avail ? (
+              {checking || avail ? (
                 <div
                   className={cn(
                     "rise-in mt-3 rounded-3xl px-4 py-3 text-[13px]",
@@ -944,7 +1015,7 @@ function ClientRequests() {
                               setWhenMode("later");
                               setForm((f) => ({
                                 ...f,
-                                scheduled_at: toLocalInput(avail.earliestIso!),
+                                scheduled_at: avail.earliestIso!,
                               }));
                               toast.success(
                                 `Créneau ${formatSlot(avail.earliestIso!)} sélectionné`,
@@ -987,8 +1058,7 @@ function ClientRequests() {
                         <div className="mt-2 space-y-1 border-t border-border/60 pt-2">
                           {alternatives.filter((a) => a.status === "available").length === 0 ? (
                             <p className="text-xs text-muted-foreground">
-                              Aucun autre chauffeur de votre carnet n'est disponible à cette
-                              heure.
+                              Aucun autre chauffeur de votre carnet n'est disponible à cette heure.
                             </p>
                           ) : (
                             alternatives
@@ -998,9 +1068,7 @@ function ClientRequests() {
                                   key={a.driverId}
                                   type="button"
                                   className="flex w-full items-center justify-between rounded-xl bg-background px-3 py-2 text-left text-[13px] font-medium"
-                                  onClick={() =>
-                                    setForm((f) => ({ ...f, driver_id: a.driverId }))
-                                  }
+                                  onClick={() => setForm((f) => ({ ...f, driver_id: a.driverId }))}
                                 >
                                   <span className="truncate">
                                     {(drivers.data ?? []).find((d) => d.id === a.driverId)
@@ -1016,31 +1084,16 @@ function ClientRequests() {
                   ) : null}
                 </div>
               ) : null}
-              {/* Aperçu cartographique compact, uniquement après saisie complète */}
+              {/* Itinéraire calculé en arrière-plan : aucun affichage cartographique ici. */}
               {tripReady ? (
                 previewState === "loading" ? (
                   <p className="flex items-center gap-2 px-1 text-[13px] text-muted-foreground">
                     <Loader2 className="size-4 animate-spin" /> Calcul de l'itinéraire…
                   </p>
                 ) : preview ? (
-                  <div className="rise-in overflow-hidden rounded-[24px] bg-card shadow-[0_18px_40px_-30px_rgba(0,0,0,0.45)]">
-                    <RouteMiniMap
-                      polyline={preview.polyline}
-                      className="h-36 rounded-none border-0"
-                    />
-                    <div className="flex items-center justify-between gap-3 px-4 py-3">
-                      <p className="text-[14px] font-semibold">
-                        {preview.distanceKm} km · ~{preview.durationMin} min
-                      </p>
-                      <button
-                        type="button"
-                        className="text-[13px] font-bold text-primary"
-                        onClick={() => setShowPreviewMap(true)}
-                      >
-                        Vérifier sur la carte
-                      </button>
-                    </div>
-                  </div>
+                  <p className="px-1 text-[13px] font-semibold text-muted-foreground">
+                    Trajet estimé : {preview.distanceKm} km · ~{preview.durationMin} min
+                  </p>
                 ) : previewState === "error" ? (
                   <p className="px-1 text-[13px] text-muted-foreground">
                     L'itinéraire n'a pas pu être calculé pour le moment. Vous pouvez continuer ou
@@ -1048,7 +1101,6 @@ function ClientRequests() {
                   </p>
                 ) : null
               ) : null}
-
             </div>
           </div>
 
@@ -1058,7 +1110,10 @@ function ClientRequests() {
           >
             <div className="mx-auto w-full max-w-lg">
               {missing ? (
-                <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
+                <p
+                  aria-live="polite"
+                  className="mb-2 text-center text-[12px] text-muted-foreground"
+                >
                   {missing}
                 </p>
               ) : null}
@@ -1204,6 +1259,34 @@ function ClientRequests() {
             className="min-h-0 flex-1 rounded-none border-0"
           />
         </div>
+      ) : null}
+
+      {scheduleOpen && form.driver_id && pickupOk && dropoffOk ? (
+        <ScheduleSheet
+          open
+          driverId={form.driver_id}
+          driverName={driverName ?? "votre chauffeur"}
+          pickup={form.pickup_address.trim()}
+          dropoff={form.dropoff_address.trim()}
+          roundTrip={form.round_trip}
+          valueIso={form.scheduled_at || null}
+          onClose={() => setScheduleOpen(false)}
+          onConfirm={(iso) => {
+            slotContextRef.current = [
+              form.driver_id,
+              form.pickup_address,
+              form.dropoff_address,
+              String(form.round_trip),
+            ].join("|");
+            setForm((f) => ({ ...f, scheduled_at: iso }));
+            setSlotWarning(null);
+            setScheduleOpen(false);
+          }}
+          onChangeDriver={() => {
+            setScheduleOpen(false);
+            setDriverPickerOpen(true);
+          }}
+        />
       ) : null}
 
       <DriverPickerSheet
