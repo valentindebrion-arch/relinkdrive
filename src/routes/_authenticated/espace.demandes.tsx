@@ -1016,31 +1016,16 @@ function ClientRequests() {
                   ) : null}
                 </div>
               ) : null}
-              {/* Aperçu cartographique compact, uniquement après saisie complète */}
+              {/* Itinéraire calculé en arrière-plan : aucun affichage cartographique ici. */}
               {tripReady ? (
                 previewState === "loading" ? (
                   <p className="flex items-center gap-2 px-1 text-[13px] text-muted-foreground">
                     <Loader2 className="size-4 animate-spin" /> Calcul de l'itinéraire…
                   </p>
                 ) : preview ? (
-                  <div className="rise-in overflow-hidden rounded-[24px] bg-card shadow-[0_18px_40px_-30px_rgba(0,0,0,0.45)]">
-                    <RouteMiniMap
-                      polyline={preview.polyline}
-                      className="h-36 rounded-none border-0"
-                    />
-                    <div className="flex items-center justify-between gap-3 px-4 py-3">
-                      <p className="text-[14px] font-semibold">
-                        {preview.distanceKm} km · ~{preview.durationMin} min
-                      </p>
-                      <button
-                        type="button"
-                        className="text-[13px] font-bold text-primary"
-                        onClick={() => setShowPreviewMap(true)}
-                      >
-                        Vérifier sur la carte
-                      </button>
-                    </div>
-                  </div>
+                  <p className="px-1 text-[13px] font-semibold text-muted-foreground">
+                    Trajet estimé : {preview.distanceKm} km · ~{preview.durationMin} min
+                  </p>
                 ) : previewState === "error" ? (
                   <p className="px-1 text-[13px] text-muted-foreground">
                     L'itinéraire n'a pas pu être calculé pour le moment. Vous pouvez continuer ou
@@ -1048,6 +1033,7 @@ function ClientRequests() {
                   </p>
                 ) : null
               ) : null}
+
 
             </div>
           </div>
