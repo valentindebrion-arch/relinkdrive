@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router";
 import { ClientShell } from "@/components/ClientShell";
+import { ClientPageTransition } from "@/components/ClientPageTransition";
 import { ClientTabBar } from "@/components/ClientTabBar";
 import { requireRoles } from "@/lib/role-guard";
 
@@ -20,7 +21,9 @@ function ClientLayout() {
   if (isHome) {
     return (
       <div className="relative min-h-[100dvh] overflow-hidden bg-background">
-        <Outlet />
+        <ClientPageTransition>
+          <Outlet />
+        </ClientPageTransition>
         <ClientTabBar />
       </div>
     );
@@ -28,7 +31,9 @@ function ClientLayout() {
 
   return (
     <ClientShell>
-      <Outlet />
+      <ClientPageTransition>
+        <Outlet />
+      </ClientPageTransition>
     </ClientShell>
   );
 }
