@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Home, Car, Users, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -12,6 +13,7 @@ const TABS = [
 /** Navigation principale fixe de l'espace client (4 onglets). */
 export function ClientTabBar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const lastNav = useRef(0);
 
   return (
     <nav
@@ -28,6 +30,14 @@ export function ClientTabBar() {
               <Link
                 to={tab.to}
                 aria-current={active ? "page" : undefined}
+                onClick={(e) => {
+                  const now = Date.now();
+                  if (!active && now - lastNav.current < 300) {
+                    e.preventDefault();
+                    return;
+                  }
+                  lastNav.current = now;
+                }}
                 className={cn(
                   "flex min-h-14 flex-col items-center justify-center gap-1 text-[11px] font-semibold transition-colors",
                   active ? "text-primary" : "text-muted-foreground",
