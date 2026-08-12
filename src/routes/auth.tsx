@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { BrandLogo } from "@/components/BrandLogo";
+import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
