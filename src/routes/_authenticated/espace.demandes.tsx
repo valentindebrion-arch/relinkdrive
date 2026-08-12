@@ -141,6 +141,15 @@ function ClientRequests() {
   const [checking, setChecking] = useState(false);
   const [avail, setAvail] = useState<AvailabilityResult | null>(null);
   const [alternatives, setAlternatives] = useState<AvailabilityResult[] | null>(null);
+  const [searchField, setSearchField] = useState<"pickup" | "dropoff" | null>(null);
+  const [exitOpen, setExitOpen] = useState(false);
+  const [preview, setPreview] = useState<{
+    distanceKm: number;
+    durationMin: number;
+    polyline: string;
+  } | null>(null);
+  const [previewState, setPreviewState] = useState<"idle" | "loading" | "error">("idle");
+  const [showPreviewMap, setShowPreviewMap] = useState(false);
 
   const [form, setForm] = useState({
     driver_id: search.driver ?? "",
