@@ -363,9 +363,10 @@ function TrackingPage() {
     ];
     const paid = invoice?.status === "paid" || !!invoice?.paid_at;
     // Le nom public du chauffeur ne doit jamais être la marque Relink.
-    const rawName = (driverPublic.data?.businessName || driver?.full_name || "").trim();
-    const publicDriverName =
-      rawName && !/^relink$/i.test(rawName) ? firstName(rawName) : "Votre chauffeur";
+    const business = (driverPublic.data?.businessName ?? "").trim();
+    const legal = (driver?.full_name ?? "").trim();
+    const rawName = business || (/^relink$/i.test(legal) ? "" : firstName(legal));
+    const publicDriverName = rawName && !/^relink$/i.test(rawName) ? rawName : "Votre chauffeur";
     const paymentLabel = ride.payment_method
       ? (PAYMENT_METHODS[ride.payment_method] ?? "Autre moyen")
       : null;
