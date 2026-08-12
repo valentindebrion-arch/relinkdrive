@@ -982,7 +982,7 @@ function ClientRequests() {
                               setWhenMode("later");
                               setForm((f) => ({
                                 ...f,
-                                scheduled_at: toLocalInput(avail.earliestIso!),
+                                scheduled_at: avail.earliestIso!,
                               }));
                               toast.success(
                                 `Créneau ${formatSlot(avail.earliestIso!)} sélectionné`,
