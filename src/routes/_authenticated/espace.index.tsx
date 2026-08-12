@@ -71,7 +71,6 @@ function ClientHome() {
   const upcoming = rides
     .filter((r) => new Date(r.scheduled_at) >= new Date() && !["cancelled", "completed"].includes(r.status))
     .sort((a, b) => +new Date(a.scheduled_at) - +new Date(b.scheduled_at));
-  const favorite = allDrivers[0];
   const next = upcoming[0];
 
   const activeRide = rides.find((r) =>
@@ -96,12 +95,7 @@ function ClientHome() {
     <div className="relative h-[100dvh] w-full overflow-hidden">
       {/* Carte plein écran (arrière-plan) */}
       <div className="absolute inset-0">
-        <LiveDriversMap
-          className="h-full w-full"
-          bare
-          interactive
-          onDriverSelect={allDrivers.length ? onDriverSelect : undefined}
-        />
+        <LiveDriversMap className="h-full w-full" bare interactive />
       </div>
 
       {/* Capsule logo centrée (seul élément supérieur) */}
