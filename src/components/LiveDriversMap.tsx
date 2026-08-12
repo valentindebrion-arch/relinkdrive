@@ -20,9 +20,17 @@ function makeDrivers(center: { lat: number; lng: number }, count: number): FakeD
 export function LiveDriversMap({
   className,
   polyline,
+  interactive = false,
+  bare = false,
+  onDriverSelect,
 }: {
   className?: string;
   polyline?: string;
+  /** Autorise le déplacement et le zoom tactile. */
+  interactive?: boolean;
+  /** Sans bordure ni coins arrondis (mode plein écran). */
+  bare?: boolean;
+  onDriverSelect?: ((index: number) => void) | undefined;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +53,7 @@ export function LiveDriversMap({
           }
           const map = new maps.Map(ref.current, {
             disableDefaultUI: true,
-            gestureHandling: polyline ? "cooperative" : "none",
+            gestureHandling: interactive ? "greedy" : polyline ? "cooperative" : "none",
             keyboardShortcuts: false,
             zoom: 14,
             center,
@@ -101,6 +109,7 @@ export function LiveDriversMap({
               new maps.Marker({
                 map,
                 position: { lat: d.lat, lng: d.lng },
+                cursor: onDriverSelect ? "pointer" : undefined,
                 icon: {
                   url: `data:image/svg+xml;charset=UTF-8,${CAR_SVG}`,
                   scaledSize: new maps.Size(30, 30),
@@ -108,6 +117,9 @@ export function LiveDriversMap({
                 },
               }),
           );
+          if (onDriverSelect) {
+            markers.forEach((m, i) => m.addListener("click", () => onDriverSelect(i)));
+          }
 
           setReady(true);
 
@@ -142,12 +154,12 @@ export function LiveDriversMap({
       cancelled = true;
       if (timer) clearInterval(timer);
     };
-  }, [polyline]);
+  }, [polyline, interactive, onDriverSelect]);
 
   if (error) {
     return (
       <div
-        className={`flex items-center justify-center rounded-2xl border border-border bg-muted text-xs text-muted-foreground ${className ?? "h-40"}`}
+        className={`flex items-center justify-center bg-muted text-center text-xs text-muted-foreground ${bare ? "" : "rounded-2xl border border-border"} ${className ?? "h-40"}`}
       >
         Aperçu de carte indisponible
       </div>
@@ -155,12 +167,16 @@ export function LiveDriversMap({
   }
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl border border-border ${className ?? "h-40"}`}>
+    <div
+      className={`relative overflow-hidden ${bare ? "" : "rounded-2xl border border-border"} ${className ?? "h-40"}`}
+    >
       <div ref={ref} className="size-full" />
       {!ready ? <div className="absolute inset-0 animate-pulse bg-muted" /> : null}
+      {bare ? null : (
       <div className="animate-fade-in pointer-events-none absolute bottom-2 left-2 rounded-full bg-card/90 px-2.5 py-1 text-[11px] font-semibold shadow-sm backdrop-blur">
         {polyline ? "Votre itinéraire" : "Chauffeurs autour de vous"}
       </div>
+      )}
     </div>
   );
 }
