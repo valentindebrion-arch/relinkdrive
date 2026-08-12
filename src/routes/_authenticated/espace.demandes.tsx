@@ -33,7 +33,8 @@ import { AddressSearchPanel, pushRecentAddress } from "@/components/request/Addr
 import { DriverPickerSheet } from "@/components/request/DriverPickerSheet";
 import { QrScannerDialog } from "@/components/QrScannerDialog";
 import { loadRequestDraft, saveRequestDraft, clearRequestDraft } from "@/lib/request-draft";
-import { BLOCKING_QUERY_KEY, newIdempotencyKey } from "@/lib/immediate-request";
+import { BLOCKING_QUERY_KEY, newIdempotencyKey, useBlockingImmediate } from "@/lib/immediate-request";
+import { useCountdown } from "@/components/ExpiryCountdown";
 
 type CreateResult = {
   request_id: string | null;
@@ -155,6 +156,12 @@ function ClientRequests() {
   const [pickupOk, setPickupOk] = useState(false);
   const [dropoffOk, setDropoffOk] = useState(false);
   const [whenMode, setWhenMode] = useState<"now" | "later">("now");
+  // Vérité serveur : une seule demande « Maintenant » active par client.
+  const blocking = useBlockingImmediate().data ?? null;
+  const blockingCountdown = useCountdown(blocking?.response_deadline ?? null);
+  useEffect(() => {
+    if (blocking) setWhenMode("later");
+  }, [blocking]);
   const [estimate, setEstimate] = useState<Estimate | null>(null);
   const [checking, setChecking] = useState(false);
   const [avail, setAvail] = useState<AvailabilityResult | null>(null);
@@ -423,6 +430,15 @@ function ClientRequests() {
         setDriverPickerOpen(true);
         return toast.error("Choisissez un chauffeur pour continuer");
       }
+      if (whenMode === "now" && blocking)
+        return toast.error("Une demande « Maintenant » est déjà en cours", {
+          description: "Suivez-la ou annulez-la avant d'en envoyer une nouvelle.",
+          action: {
+            label: "Suivre",
+            onClick: () =>
+              navigate({ to: "/espace/suivi/$id", params: { id: blocking.request_id } }),
+          },
+        });
       if (whenMode === "now" && !driverAvailable)
         return toast.error("Ce chauffeur est indisponible", {
           description: "Réservez pour plus tard.",
@@ -812,7 +828,8 @@ function ClientRequests() {
                   ).map((o) => {
                     const Icon = o.icon;
                     const on = whenMode === o.key;
-                    const disabled = o.key === "now" && !!form.driver_id && !driverAvailable;
+                    const disabled =
+                      o.key === "now" && (!!blocking || (!!form.driver_id && !driverAvailable));
                     return (
                       <button
                         key={o.key}
@@ -862,7 +879,31 @@ function ClientRequests() {
                   </div>
                 ) : null}
 
-                {form.driver_id && !driverAvailable ? (
+                {blocking ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigate({ to: "/espace/suivi/$id", params: { id: blocking.request_id } })
+                    }
+                    className="mt-3 flex w-full items-center gap-3 rounded-3xl border border-primary/30 bg-primary/[0.06] p-3.5 text-left"
+                  >
+                    <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+                      <Loader2 className="size-4 animate-spin" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[14px] font-bold">
+                        Une demande « Maintenant » est déjà en cours
+                      </span>
+                      <span className="block text-[12px] text-muted-foreground">
+                        {blockingCountdown
+                          ? `Réponse attendue sous ${blockingCountdown.label}. `
+                          : ""}
+                        Suivez-la ou annulez-la pour en envoyer une nouvelle.
+                      </span>
+                    </span>
+                    <ChevronRight className="size-4 shrink-0 text-primary" />
+                  </button>
+                ) : form.driver_id && !driverAvailable ? (
                   <p className="mt-2 px-1 text-[12px] text-muted-foreground">
                     Ce chauffeur n'est pas en service : planifiez votre course.
                   </p>

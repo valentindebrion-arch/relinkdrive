@@ -17,6 +17,7 @@ import { LiveDriversMap } from "@/components/LiveDriversMap";
 import { BrandLogo } from "@/components/BrandLogo";
 import { RIDE_STATUS_LABELS } from "@/lib/labels";
 import { useBlockingImmediate } from "@/lib/immediate-request";
+import { useCountdown } from "@/components/ExpiryCountdown";
 
 export const Route = createFileRoute("/_authenticated/espace/")({
   component: ClientHome,
@@ -26,6 +27,7 @@ function ClientHome() {
   const { user } = useAuth();
   // Source de vérité serveur : une seule demande « Maintenant » en attente à la fois.
   const blocking = useBlockingImmediate().data ?? null;
+  const blockingCountdown = useCountdown(blocking?.response_deadline ?? null);
 
   const data = useQuery({
     queryKey: ["client-home", user?.id],
@@ -158,8 +160,15 @@ function ClientHome() {
               <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary-foreground/15">
                 <Loader2 className="size-4 animate-spin" />
               </span>
-              <span className="min-w-0 flex-1 truncate text-left text-base font-semibold">
-                Suivre ma demande en cours
+              <span className="min-w-0 flex-1 text-left">
+                <span className="block truncate text-base font-semibold">
+                  Suivre ma demande en cours
+                </span>
+                {blockingCountdown ? (
+                  <span className="block text-xs font-medium tabular-nums text-primary-foreground/80">
+                    Réponse sous {blockingCountdown.label}
+                  </span>
+                ) : null}
               </span>
               <ArrowRight className="size-5 shrink-0" />
             </Link>

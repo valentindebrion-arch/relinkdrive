@@ -15,6 +15,8 @@ export type BlockingImmediate = {
   driver_first_name: string | null;
   created_at: string;
   can_cancel: boolean;
+  /** Échéance serveur de réponse du chauffeur (10 min) pour les demandes « Maintenant ». */
+  response_deadline: string | null;
 };
 
 export const BLOCKING_QUERY_KEY = "blocking-immediate";

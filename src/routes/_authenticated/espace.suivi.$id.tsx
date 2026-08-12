@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { RIDE_STATUS_LABELS, formatDateTime, formatEuro } from "@/lib/labels";
 import { BLOCKING_QUERY_KEY } from "@/lib/immediate-request";
+import { ExpiryRing, useCountdown, useExpiryEffect } from "@/components/ExpiryCountdown";
 
 export const Route = createFileRoute("/_authenticated/espace/suivi/$id")({
   head: () => ({
@@ -225,6 +226,27 @@ function TrackingPage() {
     };
   }, [id, user?.id, qc]);
 
+  // Compte à rebours de réponse (10 min) : l'échéance est celle du serveur.
+  const trackedRequest = q.data?.request ?? null;
+  const trackedRide = q.data?.ride ?? null;
+  const deadlineIso =
+    !trackedRide && trackedRequest?.is_immediate && CANCELLABLE.includes(trackedRequest.status)
+      ? (trackedRequest.response_deadline ?? null)
+      : null;
+  const countdown = useCountdown(deadlineIso);
+  const handleExpired = useCallback(() => {
+    // Le serveur reste juge : on déclenche l'expiration puis on relit l'état réel.
+    void supabase
+      .rpc("get_blocking_immediate_request")
+      .then(() => {
+        void qc.invalidateQueries({ queryKey: ["client-tracking", id] });
+        void qc.invalidateQueries({ queryKey: [BLOCKING_QUERY_KEY] });
+        void qc.invalidateQueries({ queryKey: ["client-home"] });
+        void qc.invalidateQueries({ queryKey: ["client-rides"] });
+      });
+  }, [id, qc]);
+  useExpiryEffect(deadlineIso, !!countdown?.expired, handleExpired);
+
   if (q.isLoading) return <TrackingSkeleton />;
 
   if (!q.data) {
@@ -246,7 +268,8 @@ function TrackingPage() {
   const price = ride?.price ?? request?.proposed_price ?? null;
   const refused = status === "refused";
   const cancelled = status === "cancelled";
-  const stopped = refused || cancelled;
+  const expired = status === "expired";
+  const stopped = refused || cancelled || expired;
   const current = stepIndex(status);
   const completed = status === "completed";
   const waiting = !ride && !!request && CANCELLABLE.includes(status);
@@ -304,20 +327,24 @@ function TrackingPage() {
                 ? "Demande refusée"
                 : cancelled
                   ? "Demande annulée"
-                  : completed
-                    ? "Course terminée"
-                    : waiting
-                      ? "Demande envoyée"
-                      : (STEPS[current]?.title ?? RIDE_STATUS_LABELS[status] ?? status)}
+                  : expired
+                    ? "Demande expirée"
+                    : completed
+                      ? "Course terminée"
+                      : waiting
+                        ? "Demande envoyée"
+                        : (STEPS[current]?.title ?? RIDE_STATUS_LABELS[status] ?? status)}
             </h1>
             <p className="mt-1 text-sm break-words text-muted-foreground">
               {refused
                 ? `${driverFirst} n'est pas disponible pour cette demande.`
                 : cancelled
                   ? "Cette demande a été annulée."
-                  : waiting
-                    ? `Votre demande a été transmise à ${driverFirst}.`
-                    : (STEPS[current]?.hint ?? "Statut mis à jour.")}
+                  : expired
+                    ? `${driverFirst} n'a pas répondu dans le délai de 10 minutes.`
+                    : waiting
+                      ? `Votre demande a été transmise à ${driverFirst}.`
+                      : (STEPS[current]?.hint ?? "Statut mis à jour.")}
             </p>
           </div>
           <StatusBadge status={status} labels={RIDE_STATUS_LABELS} />
@@ -345,17 +372,34 @@ function TrackingPage() {
       {/* Attente animée */}
       {waiting ? (
         <section className="mt-4 flex flex-col items-center gap-4 rounded-3xl border border-warning/30 bg-warning/[0.06] p-6 text-center">
-          <span className="relative grid size-24 place-items-center">
-            <span className="absolute size-24 rounded-full border-2 border-primary/30 motion-safe:animate-ping" />
-            <span className="absolute size-20 rounded-full border-2 border-primary/50 motion-safe:animate-pulse" />
-            <span className="relative grid size-16 place-items-center overflow-hidden rounded-full bg-card text-lg font-bold text-primary shadow-sm">
-              {driver?.avatar_url ? (
-                <img src={driver.avatar_url} alt={driverFirst} className="size-full object-cover" />
-              ) : (
-                initials(driver?.full_name)
-              )}
+          {countdown ? (
+            <ExpiryRing msLeft={countdown.msLeft} label={countdown.label} size={104}>
+              <span className="grid size-[72px] place-items-center overflow-hidden rounded-full bg-card text-lg font-bold text-primary shadow-sm">
+                {driver?.avatar_url ? (
+                  <img src={driver.avatar_url} alt={driverFirst} className="size-full object-cover" />
+                ) : (
+                  initials(driver?.full_name)
+                )}
+              </span>
+            </ExpiryRing>
+          ) : (
+            <span className="relative grid size-24 place-items-center">
+              <span className="absolute size-24 rounded-full border-2 border-primary/30 motion-safe:animate-ping" />
+              <span className="absolute size-20 rounded-full border-2 border-primary/50 motion-safe:animate-pulse" />
+              <span className="relative grid size-16 place-items-center overflow-hidden rounded-full bg-card text-lg font-bold text-primary shadow-sm">
+                {driver?.avatar_url ? (
+                  <img src={driver.avatar_url} alt={driverFirst} className="size-full object-cover" />
+                ) : (
+                  initials(driver?.full_name)
+                )}
+              </span>
             </span>
-          </span>
+          )}
+          {countdown ? (
+            <p className="-mt-2 text-xs font-semibold tabular-nums text-muted-foreground">
+              Réponse attendue sous <span className="text-foreground">{countdown.label}</span>
+            </p>
+          ) : null}
           <div>
             <p className="flex items-center justify-center gap-1 text-sm font-semibold">
               En attente de la réponse du chauffeur
@@ -373,6 +417,32 @@ function TrackingPage() {
               Vous pouvez quitter cette page. Le statut sera actualisé automatiquement.
             </p>
           </div>
+        </section>
+      ) : null}
+
+      {/* Expiration après 10 minutes sans réponse */}
+      {expired ? (
+        <section className="animate-fade-in mt-4 rounded-3xl border border-destructive/25 bg-destructive/[0.05] p-5 text-center">
+          <span className="mx-auto grid size-12 place-items-center rounded-full bg-destructive/10 text-destructive">
+            <Clock className="size-5" />
+          </span>
+          <p className="mt-3 text-sm font-semibold">Demande expirée</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {driverFirst} n'a pas répondu dans les 10 minutes. Vous pouvez relancer une demande, avec le même
+            chauffeur ou un autre.
+          </p>
+          <Button
+            className="mt-4 h-11 w-full rounded-2xl font-semibold"
+            onClick={() => navigate({ to: "/espace/demandes" })}
+          >
+            Faire une nouvelle demande
+          </Button>
+          <Link
+            to="/espace/courses"
+            className="mt-2 block text-center text-sm font-medium text-muted-foreground underline underline-offset-4"
+          >
+            Retour à mes courses
+          </Link>
         </section>
       ) : null}
 
