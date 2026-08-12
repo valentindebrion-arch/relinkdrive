@@ -180,6 +180,8 @@ function ClientRequests() {
   const [returnTrip, setReturnTrip] = useState({ at: "", pickup: "", dropoff: "" });
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [driverPickerOpen, setDriverPickerOpen] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [slotWarning, setSlotWarning] = useState<string | null>(null);
   const [scanOpen, setScanOpen] = useState(false);
   /** Empêche tout double envoi d'une même demande. */
   const sentRef = useRef(false);
