@@ -425,32 +425,445 @@ function ClientRequests() {
   const driverName = selectedDriver?.full_name;
   const driverAvailable = !!selectedDriver?.on_duty;
 
+  const tripReady = pickupOk && dropoffOk;
+  const dirty =
+    !!form.pickup_address || !!form.dropoff_address || !!form.scheduled_at || !!form.comment;
+
+  function leave() {
+    if (dirty) return setExitOpen(true);
+    navigate({ to: "/espace" });
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-background">
-      <div className="flex shrink-0 items-center justify-between border-b border-border px-3 py-2">
+    <div className={cn("fixed inset-0 z-50 flex flex-col overflow-hidden", step === 0 ? "bg-muted/40" : "bg-background")}>
+      <div className="relative flex shrink-0 items-center justify-center px-2 py-2">
         <button
           type="button"
           aria-label="Retour"
-          className="flex size-9 items-center justify-center rounded-full transition-colors hover:bg-accent"
-          onClick={() => (step > 0 ? setStep(step - 1) : navigate({ to: "/espace" }))}
+          className="absolute left-2 flex size-10 items-center justify-center rounded-full transition-colors hover:bg-accent"
+          onClick={() => (step > 0 ? setStep(step - 1) : leave())}
         >
           <ArrowLeft className="size-5" />
         </button>
-        <h1 className="text-sm font-bold">Demander un trajet</h1>
-        <button
-          type="button"
-          aria-label="Fermer"
-          className="flex size-9 items-center justify-center rounded-full transition-colors hover:bg-accent"
-          onClick={() => navigate({ to: "/espace" })}
-        >
-          <X className="size-5" />
-        </button>
+        <h1 className="text-[15px] font-bold">Nouvelle course</h1>
       </div>
 
-      <div className="shrink-0 px-3 py-2">
-        <StepBar step={step} />
+      <div className="mx-auto w-full max-w-lg shrink-0 px-4 pt-1 pb-3">
+        <StepProgress step={step} />
       </div>
 
+      {step === 0 ? (
+        <>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[calc(7rem+env(safe-area-inset-bottom))]">
+            <div className="mx-auto w-full max-w-lg space-y-7">
+              <div className="rise-in pt-1">
+                <h2 className="text-[27px] leading-[1.15] font-extrabold tracking-tight">
+                  {heading.title}
+                </h2>
+                <p className="mt-1.5 text-[14px] leading-snug text-muted-foreground">
+                  {heading.sub}
+                </p>
+              </div>
+
+              {/* Carte principale : l'itinéraire */}
+              <div className="relative rounded-[28px] bg-card p-5 shadow-[0_18px_40px_-28px_rgba(0,0,0,0.45)]">
+                <span className="absolute top-[46px] left-[31px] h-[52px] w-px bg-primary/35" />
+
+                <button
+                  type="button"
+                  onClick={() => setSearchField("pickup")}
+                  className="flex w-full items-center gap-4 rounded-2xl py-2 text-left transition-colors active:bg-muted/60"
+                >
+                  <span className="flex size-3.5 shrink-0 items-center justify-center rounded-full bg-primary shadow-[0_0_0_4px_color-mix(in_oklab,var(--primary)_18%,transparent)]" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[12px] font-bold tracking-wide text-muted-foreground uppercase">
+                      Départ
+                    </span>
+                    <span
+                      className={cn(
+                        "block truncate text-[16px] font-semibold",
+                        pickupOk ? "text-foreground" : "text-muted-foreground",
+                      )}
+                    >
+                      {form.pickup_address || "Votre position ou une adresse"}
+                    </span>
+                  </span>
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Utiliser ma position"
+                    title="Utiliser ma position"
+                    className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void useMyLocation();
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        void useMyLocation();
+                      }
+                    }}
+                  >
+                    {locating ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <LocateFixed className="size-4" />
+                    )}
+                  </span>
+                </button>
+
+                <div className="my-1 h-px bg-border/50" />
+
+                <button
+                  type="button"
+                  onClick={() => setSearchField("dropoff")}
+                  className="flex w-full items-center gap-4 rounded-2xl py-2 text-left transition-colors active:bg-muted/60"
+                >
+                  <span className="size-3.5 shrink-0 rounded-[5px] bg-foreground" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[12px] font-bold tracking-wide text-muted-foreground uppercase">
+                      Arrivée
+                    </span>
+                    <span
+                      className={cn(
+                        "block truncate text-[16px] font-semibold",
+                        dropoffOk ? "text-foreground" : "text-muted-foreground",
+                      )}
+                    >
+                      {form.dropoff_address || "Rechercher une destination"}
+                    </span>
+                  </span>
+                  <Search className="size-4 shrink-0 text-muted-foreground" />
+                </button>
+              </div>
+
+              {/* Aperçu cartographique compact, uniquement après saisie complète */}
+              {tripReady ? (
+                previewState === "loading" ? (
+                  <p className="flex items-center gap-2 px-1 text-[13px] text-muted-foreground">
+                    <Loader2 className="size-4 animate-spin" /> Calcul de l'itinéraire…
+                  </p>
+                ) : preview ? (
+                  <div className="rise-in overflow-hidden rounded-[24px] bg-card shadow-[0_18px_40px_-30px_rgba(0,0,0,0.45)]">
+                    <RouteMiniMap polyline={preview.polyline} className="h-36 rounded-none border-0" />
+                    <div className="flex items-center justify-between gap-3 px-4 py-3">
+                      <p className="text-[14px] font-semibold">
+                        {preview.distanceKm} km · ~{preview.durationMin} min
+                      </p>
+                      <button
+                        type="button"
+                        className="text-[13px] font-bold text-primary"
+                        onClick={() => setShowPreviewMap(true)}
+                      >
+                        Vérifier sur la carte
+                      </button>
+                    </div>
+                  </div>
+                ) : previewState === "error" ? (
+                  <p className="px-1 text-[13px] text-muted-foreground">
+                    L'itinéraire n'a pas pu être calculé pour le moment. Vous pouvez continuer ou
+                    modifier vos adresses.
+                  </p>
+                ) : null
+              ) : null}
+
+              {/* Moment du départ */}
+              <div>
+                <h3 className="mb-3 text-[17px] font-extrabold tracking-tight">
+                  Quand souhaitez-vous partir ?
+                </h3>
+                <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
+                  {(
+                    [
+                      { key: "now", label: "Maintenant", sub: "Dès que possible", icon: Clock },
+                      {
+                        key: "later",
+                        label: "Planifier",
+                        sub: "Choisir une date",
+                        icon: CalendarDays,
+                      },
+                    ] as const
+                  ).map((o) => {
+                    const Icon = o.icon;
+                    const on = whenMode === o.key;
+                    const disabled = o.key === "now" && !!form.driver_id && !driverAvailable;
+                    return (
+                      <button
+                        key={o.key}
+                        type="button"
+                        disabled={disabled}
+                        onClick={() => setWhenMode(o.key)}
+                        className={cn(
+                          "relative rounded-3xl px-4 py-4 text-left transition-all",
+                          on
+                            ? "bg-primary/8 ring-2 ring-primary"
+                            : "bg-card shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)]",
+                          disabled && "opacity-50",
+                        )}
+                      >
+                        <Icon className={cn("size-6", on ? "text-primary" : "text-foreground")} />
+                        <p className="mt-2.5 text-[16px] font-bold">{o.label}</p>
+                        <p className="text-[13px] text-muted-foreground">{o.sub}</p>
+                        {on ? (
+                          <span className="animate-scale-in absolute top-3.5 right-3.5 flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                            <Check className="size-3" />
+                          </span>
+                        ) : null}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {whenMode === "later" ? (
+                  <div className="rise-in mt-3 rounded-3xl bg-card p-4 shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)]">
+                    <Label htmlFor="when" className="text-[13px] font-bold">
+                      Date et heure du départ
+                    </Label>
+                    <Input
+                      id="when"
+                      aria-label="Date et heure du départ"
+                      type="datetime-local"
+                      min={toLocalInput(new Date(Date.now() + 15 * 60_000).toISOString())}
+                      className="mt-2 h-12 rounded-2xl border-0 bg-muted text-[15px]"
+                      value={form.scheduled_at}
+                      onChange={(e) => setForm({ ...form, scheduled_at: e.target.value })}
+                    />
+                    {form.scheduled_at ? (
+                      <p className="mt-2 text-[13px] font-semibold text-primary">
+                        Départ prévu {formatDateTime(new Date(form.scheduled_at).toISOString())}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {form.driver_id && !driverAvailable ? (
+                  <p className="mt-2 px-1 text-[12px] text-muted-foreground">
+                    Ce chauffeur n'est pas en service : planifiez votre course.
+                  </p>
+                ) : null}
+              </div>
+
+              {/* Chauffeur — facultatif, en dernier */}
+              <div>
+                <div className="mb-3 flex items-baseline gap-2">
+                  <h3 className="text-[17px] font-extrabold tracking-tight">Avec quel chauffeur ?</h3>
+                  <span className="text-[12px] font-medium text-muted-foreground">Facultatif</span>
+                </div>
+
+                {selectedDriver ? (
+                  <div className="rounded-3xl bg-card p-4 shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)]">
+                    <div className="flex items-center gap-3">
+                      <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[15px] font-bold text-primary">
+                        {(selectedDriver.full_name ?? "C").slice(0, 2).toUpperCase()}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] font-bold tracking-wide text-primary uppercase">
+                          Chauffeur sélectionné
+                        </p>
+                        <p className="truncate text-[16px] font-bold">
+                          Course demandée à {selectedDriver.full_name ?? "votre chauffeur"}
+                        </p>
+                        <p className="text-[13px] text-muted-foreground">
+                          {driverAvailable ? "Disponible actuellement" : "Hors service actuellement"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="relative mt-3">
+                      <select
+                        aria-label="Modifier le chauffeur"
+                        className="h-11 w-full appearance-none rounded-2xl bg-muted px-4 text-[14px] font-semibold focus:outline-none"
+                        value={form.driver_id}
+                        onChange={(e) => {
+                          const id = e.target.value;
+                          setForm({ ...form, driver_id: id });
+                          const picked = (drivers.data ?? []).find((d) => d.id === id);
+                          if (picked && !picked.on_duty) setWhenMode("later");
+                        }}
+                      >
+                        <option value="">Modifier — aucun chauffeur</option>
+                        {(drivers.data ?? []).map((d) => (
+                          <option key={d.id} value={d.id}>
+                            {d.full_name} {d.on_duty ? "· Disponible" : "· Indisponible"}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronRight className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 rotate-90 text-muted-foreground" />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-3xl bg-card p-4 shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)]">
+                    <div className="flex items-center gap-3">
+                      <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <UserRound className="size-5" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[15px] font-bold">Trouver un chauffeur disponible</p>
+                        <p className="text-[13px] text-muted-foreground">
+                          ReLink recherchera un chauffeur adapté à votre demande
+                        </p>
+                      </div>
+                    </div>
+                    <div className="relative mt-3">
+                      <select
+                        aria-label="Choisir parmi mes chauffeurs"
+                        className="h-11 w-full appearance-none rounded-2xl bg-muted px-4 text-[14px] font-semibold focus:outline-none"
+                        value={form.driver_id}
+                        onChange={(e) => {
+                          const id = e.target.value;
+                          setForm({ ...form, driver_id: id });
+                          const picked = (drivers.data ?? []).find((d) => d.id === id);
+                          if (picked && !picked.on_duty) setWhenMode("later");
+                        }}
+                      >
+                        <option value="">Choisir parmi mes chauffeurs</option>
+                        {(drivers.data ?? []).map((d) => (
+                          <option key={d.id} value={d.id}>
+                            {d.full_name} {d.on_duty ? "· Disponible" : "· Indisponible"}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronRight className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 rotate-90 text-muted-foreground" />
+                    </div>
+                    {drivers.data && drivers.data.length === 0 ? (
+                      <p className="mt-2 text-[12px] text-muted-foreground">
+                        Aucun chauffeur dans votre carnet pour l'instant : ajoutez-en un depuis
+                        l'onglet Chauffeurs.
+                      </p>
+                    ) : null}
+                  </div>
+                )}
+
+                {checking || avail ? (
+                  <div
+                    className={cn(
+                      "rise-in mt-3 rounded-3xl px-4 py-3 text-[13px]",
+                      avail?.status === "available"
+                        ? "bg-primary/10"
+                        : avail?.status === "unavailable"
+                          ? "bg-destructive/10"
+                          : "bg-card",
+                    )}
+                  >
+                    {checking ? (
+                      <p className="flex items-center gap-2 font-medium text-muted-foreground">
+                        <Loader2 className="size-4 animate-spin" /> Vérification du créneau…
+                      </p>
+                    ) : avail ? (
+                      <>
+                        <p className="flex items-start gap-2 font-semibold">
+                          {avail.status === "available" ? (
+                            <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" />
+                          ) : (
+                            <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                          )}
+                          <span>{availabilityMessage(avail)}</span>
+                        </p>
+                        {avail.status === "later" && avail.earliestIso ? (
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            <Button
+                              size="sm"
+                              className="rounded-xl"
+                              onClick={() => {
+                                setWhenMode("later");
+                                setForm((f) => ({
+                                  ...f,
+                                  scheduled_at: toLocalInput(avail.earliestIso!),
+                                }));
+                                toast.success(`Créneau ${formatSlot(avail.earliestIso!)} sélectionné`);
+                              }}
+                            >
+                              Choisir ce créneau
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="rounded-xl"
+                              onClick={() => void findOtherDrivers()}
+                            >
+                              Voir d'autres chauffeurs
+                            </Button>
+                          </div>
+                        ) : null}
+                        {avail.status === "unavailable" ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="mt-2 rounded-xl"
+                            onClick={() => void findOtherDrivers()}
+                          >
+                            Voir d'autres chauffeurs
+                          </Button>
+                        ) : null}
+                        {avail.status === "unknown" ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="mt-2 rounded-xl"
+                            onClick={() => void checkSelectedDriver()}
+                          >
+                            Réessayer
+                          </Button>
+                        ) : null}
+                        {alternatives ? (
+                          <div className="mt-2 space-y-1 border-t border-border/60 pt-2">
+                            {alternatives.filter((a) => a.status === "available").length === 0 ? (
+                              <p className="text-xs text-muted-foreground">
+                                Aucun autre chauffeur de votre carnet n'est disponible à cette heure.
+                              </p>
+                            ) : (
+                              alternatives
+                                .filter((a) => a.status === "available")
+                                .map((a) => (
+                                  <button
+                                    key={a.driverId}
+                                    type="button"
+                                    className="flex w-full items-center justify-between rounded-xl bg-background px-3 py-2 text-left text-[13px] font-medium"
+                                    onClick={() => setForm((f) => ({ ...f, driver_id: a.driverId }))}
+                                  >
+                                    <span className="truncate">
+                                      {(drivers.data ?? []).find((d) => d.id === a.driverId)
+                                        ?.full_name ?? "Chauffeur"}
+                                    </span>
+                                    <span className="text-primary">Disponible</span>
+                                  </button>
+                                ))
+                            )}
+                          </div>
+                        ) : null}
+                      </>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="shrink-0 bg-gradient-to-t from-background via-background to-transparent px-4 pt-3"
+            style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}
+          >
+            <div className="mx-auto w-full max-w-lg">
+              {!tripReady ? (
+                <p className="mb-2 text-center text-[12px] text-muted-foreground">
+                  Indiquez un départ et une destination pour continuer.
+                </p>
+              ) : null}
+              <Button
+                size="lg"
+                className="h-13 w-full rounded-2xl text-[15px] font-bold transition-transform active:scale-[0.99]"
+                disabled={!tripReady || busy || checking}
+                onClick={() => void next()}
+              >
+                {busy || checking ? <Loader2 className="size-4 animate-spin" /> : null}
+                Continuer
+                <ArrowRight className="size-4" />
+              </Button>
+            </div>
+          </div>
+        </>
+      ) : (
       <div className="mx-auto flex w-full max-w-2xl min-h-0 flex-1 flex-col px-3 pb-2">
         <div key={`h-${step}`} className="rise-in shrink-0">
           <h2 className="text-xl font-extrabold tracking-tight">{heading.title}</h2>
@@ -464,244 +877,7 @@ function ClientRequests() {
             dir === 1 ? "step-in-right" : "step-in-left",
           )}
         >
-          {step === 0 ? (
-            <>
-              <div className="tap tap-active flex items-center gap-2.5 rounded-2xl border border-border bg-card px-3.5 py-2.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <UserRound className="size-4.5" />
-                </span>
-                <select
-                  aria-label="Chauffeur"
-                  className="h-11 w-full appearance-none bg-transparent text-[15px] font-medium focus:outline-none"
-                  value={form.driver_id}
-                  onChange={(e) => {
-                    const id = e.target.value;
-                    setForm({ ...form, driver_id: id });
-                    const picked = (drivers.data ?? []).find((d) => d.id === id);
-                    if (picked && !picked.on_duty) setWhenMode("later");
-                  }}
-                >
-                  <option value="">Sélectionner un chauffeur</option>
-                  {(drivers.data ?? []).map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.full_name} {d.on_duty ? "· Disponible" : "· Indisponible"}
-                    </option>
-                  ))}
-                </select>
-              </div>
 
-              <div className="tap rounded-2xl border border-border bg-card px-3.5 py-3 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
-                <AddressAutocomplete
-                  bare
-                  label="Lieu de départ"
-                  ariaLabel="Adresse de départ"
-                  placeholder="Indiquez un lieu de départ"
-                  icon={<span className="mt-1 block size-3 rounded-full bg-primary" />}
-                  value={form.pickup_address}
-                  confirmed={pickupOk}
-                  onChange={(v) => {
-                    setForm((f) => ({ ...f, pickup_address: v }));
-                    setPickupOk(false);
-                    setEstimate(null);
-                  }}
-                  onConfirm={(v) => {
-                    setForm((f) => ({ ...f, pickup_address: v }));
-                    setPickupOk(true);
-                    setEstimate(null);
-                  }}
-                  action={
-                    <button
-                      type="button"
-                      title="Utiliser ma position"
-                      aria-label="Utiliser ma position"
-                      className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground transition-colors hover:bg-accent"
-                      onClick={useMyLocation}
-                    >
-                      {locating ? (
-                        <Loader2 className="size-4 animate-spin" />
-                      ) : (
-                        <LocateFixed className="size-4" />
-                      )}
-                    </button>
-                  }
-                />
-                <div className="my-1 ml-[6px] h-3 border-l border-dashed border-border" />
-                <AddressAutocomplete
-                  bare
-                  label="Lieu d'arrivée"
-                  ariaLabel="Adresse d'arrivée"
-                  placeholder="Indiquez votre destination"
-                  icon={<MapPin className="mt-1 size-4" />}
-                  value={form.dropoff_address}
-                  confirmed={dropoffOk}
-                  onChange={(v) => {
-                    setForm((f) => ({ ...f, dropoff_address: v }));
-                    setDropoffOk(false);
-                    setEstimate(null);
-                  }}
-                  onConfirm={(v) => {
-                    setForm((f) => ({ ...f, dropoff_address: v }));
-                    setDropoffOk(true);
-                    setEstimate(null);
-                  }}
-                />
-              </div>
-
-              <div className="shrink-0">
-                <SectionTitle>Date et heure</SectionTitle>
-                <div className="grid grid-cols-2 gap-2">
-                  {(
-                    [
-                      { key: "now", label: "Maintenant", icon: Clock },
-                      { key: "later", label: "Plus tard", icon: CalendarDays },
-                    ] as const
-                  ).map((o) => {
-                    const Icon = o.icon;
-                    const on = whenMode === o.key;
-                    const disabled = o.key === "now" && !driverAvailable;
-                    return (
-                      <button
-                        key={o.key}
-                        type="button"
-                        disabled={disabled}
-                        onClick={() => setWhenMode(o.key)}
-                        className={cn(
-                          "tap tap-active flex items-center justify-center gap-2 rounded-2xl border py-3.5 text-[15px] font-semibold",
-                          disabled
-                            ? "cursor-not-allowed border-border bg-muted text-muted-foreground opacity-60"
-                            : on
-                              ? "border-primary bg-primary/10 text-primary"
-                              : "border-border bg-card text-foreground",
-                        )}
-                      >
-                        <Icon className={cn("size-4.5", on && "animate-scale-in")} /> {o.label}
-                      </button>
-                    );
-                  })}
-                </div>
-                {whenMode === "later" ? (
-                  <Input
-                    aria-label="Date et heure du départ"
-                    type="datetime-local"
-                    className="rise-in mt-2 h-12 rounded-2xl text-[15px]"
-                    value={form.scheduled_at}
-                    onChange={(e) => setForm({ ...form, scheduled_at: e.target.value })}
-                  />
-                ) : null}
-                {!driverAvailable && form.driver_id ? (
-                  <p className="rise-in mt-1 text-[11px] text-muted-foreground">
-                    Chauffeur indisponible : réservation « plus tard » uniquement.
-                  </p>
-                ) : null}
-              </div>
-
-              {checking || avail ? (
-                <div
-                  className={cn(
-                    "rise-in shrink-0 rounded-2xl border px-3 py-2.5 text-[13px]",
-                    avail?.status === "available"
-                      ? "border-primary/40 bg-primary/10"
-                      : avail?.status === "unavailable"
-                        ? "border-destructive/40 bg-destructive/5"
-                        : "border-border bg-muted",
-                  )}
-                >
-                  {checking ? (
-                    <p className="flex items-center gap-2 font-medium text-muted-foreground">
-                      <Loader2 className="size-4 animate-spin" /> Vérification du créneau…
-                    </p>
-                  ) : avail ? (
-                    <>
-                      <p className="flex items-start gap-2 font-semibold">
-                        {avail.status === "available" ? (
-                          <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" />
-                        ) : (
-                          <Clock className="mt-0.5 size-4 shrink-0" />
-                        )}
-                        <span>{availabilityMessage(avail)}</span>
-                      </p>
-                      {avail.status === "later" && avail.earliestIso ? (
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          <Button
-                            size="sm"
-                            className="rounded-xl"
-                            onClick={() => {
-                              setWhenMode("later");
-                              setForm((f) => ({
-                                ...f,
-                                scheduled_at: toLocalInput(avail.earliestIso!),
-                              }));
-                              toast.success(
-                                `Créneau ${formatSlot(avail.earliestIso!)} sélectionné`,
-                              );
-                            }}
-                          >
-                            Choisir ce créneau
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="rounded-xl"
-                            onClick={() => void findOtherDrivers()}
-                          >
-                            Voir d'autres chauffeurs
-                          </Button>
-                        </div>
-                      ) : null}
-                      {avail.status === "unavailable" ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="mt-2 rounded-xl"
-                          onClick={() => void findOtherDrivers()}
-                        >
-                          Voir d'autres chauffeurs
-                        </Button>
-                      ) : null}
-                      {avail.status === "unknown" ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="mt-2 rounded-xl"
-                          onClick={() => void checkSelectedDriver()}
-                        >
-                          Réessayer
-                        </Button>
-                      ) : null}
-                      {alternatives ? (
-                        <div className="mt-2 space-y-1 border-t border-border pt-2">
-                          {alternatives.filter((a) => a.status === "available").length === 0 ? (
-                            <p className="text-xs text-muted-foreground">
-                              Aucun autre chauffeur de votre carnet n'est disponible à cette heure.
-                            </p>
-                          ) : (
-                            alternatives
-                              .filter((a) => a.status === "available")
-                              .map((a) => (
-                                <button
-                                  key={a.driverId}
-                                  type="button"
-                                  className="tap tap-active flex w-full items-center justify-between rounded-xl bg-card px-3 py-2 text-left text-[13px] font-medium"
-                                  onClick={() => setForm((f) => ({ ...f, driver_id: a.driverId }))}
-                                >
-                                  <span className="truncate">
-                                    {(drivers.data ?? []).find((d) => d.id === a.driverId)
-                                      ?.full_name ?? "Chauffeur"}
-                                  </span>
-                                  <span className="text-primary">Disponible</span>
-                                </button>
-                              ))
-                          )}
-                        </div>
-                      ) : null}
-                    </>
-                  ) : null}
-                </div>
-              ) : null}
-
-              <LiveDriversMap className="min-h-28 flex-1" />
-            </>
-          ) : null}
 
           {step === 1 ? (
             <>
