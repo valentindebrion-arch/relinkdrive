@@ -7,7 +7,6 @@ import {
   Clock,
   Info,
   Loader2,
-  MapPin,
   Maximize2,
   Pencil,
   Send,
@@ -395,5 +394,3 @@ export function ReviewStep(props: ReviewStepProps) {
     </>
   );
 }
-
-export const REVIEW_MAP_ICON = MapPin;
