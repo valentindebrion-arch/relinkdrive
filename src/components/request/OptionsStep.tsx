@@ -220,14 +220,17 @@ export function OptionsStep({
               <MapPin className="size-4" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[14px] font-bold">
-                {pickup} <MoveRight className="inline size-3.5" /> {dropoff}
+              <p className="truncate text-[14px] font-bold">{pickup}</p>
+              <p className="flex min-w-0 items-center gap-1 truncate text-[14px] font-bold">
+                <MoveRight className="size-3.5 shrink-0 text-primary" />
+                <span className="truncate">{dropoff}</span>
               </p>
               <p className="truncate text-[12px] text-muted-foreground">
                 {whenMode === "now" ? "Maintenant" : "Planifié"} · {whenLabel}
                 {driverName ? ` · ${driverName}` : ""}
               </p>
             </div>
+
             <button
               type="button"
               onClick={onEditTrip}
