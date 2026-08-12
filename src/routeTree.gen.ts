@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ChauffeursRouteImport } from './routes/chauffeurs'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedEspaceRouteImport } from './routes/_authenticated/espace'
@@ -72,6 +73,11 @@ const AuthRoute = AuthRouteImport.update({
 const ChauffeursRoute = ChauffeursRouteImport.update({
   id: '/chauffeurs',
   path: '/chauffeurs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -312,6 +318,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/chauffeurs': typeof ChauffeursRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/espace': typeof AuthenticatedEspaceRouteWithChildren
@@ -358,6 +365,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/chauffeurs': typeof ChauffeursRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/confirm': typeof AuthConfirmRoute
@@ -402,6 +410,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/chauffeurs': typeof ChauffeursRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/espace': typeof AuthenticatedEspaceRouteWithChildren
@@ -450,6 +459,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/chauffeurs'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/admin'
     | '/espace'
@@ -496,6 +506,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/chauffeurs'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/auth/callback'
     | '/auth/confirm'
@@ -539,6 +550,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/chauffeurs'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/_authenticated/espace'
@@ -587,6 +599,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ChauffeursRoute: typeof ChauffeursRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthConfirmRoute: typeof AuthConfirmRoute
@@ -622,6 +635,13 @@ declare module '@tanstack/react-router' {
       path: '/chauffeurs'
       fullPath: '/chauffeurs'
       preLoaderRoute: typeof ChauffeursRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -1042,6 +1062,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ChauffeursRoute: ChauffeursRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   AuthConfirmRoute: AuthConfirmRoute,
