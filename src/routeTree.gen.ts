@@ -58,6 +58,7 @@ import { Route as AuthenticatedProClientsIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedProClientsClientIdRouteImport } from './routes/_authenticated/pro.clients.$clientId'
 import { Route as AuthenticatedProCoursesIndexRouteImport } from './routes/_authenticated/pro.courses.index'
 import { Route as AuthenticatedProCoursesRideIdRouteImport } from './routes/_authenticated/pro.courses.$rideId'
+import { Route as AuthenticatedProDossierCompleterRouteImport } from './routes/_authenticated/pro.dossier.completer'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -331,6 +332,12 @@ const AuthenticatedProCoursesRideIdRoute =
     path: '/courses/$rideId',
     getParentRoute: () => AuthenticatedProRoute,
   } as any)
+const AuthenticatedProDossierCompleterRoute =
+  AuthenticatedProDossierCompleterRouteImport.update({
+    id: '/completer',
+    path: '/completer',
+    getParentRoute: () => AuthenticatedProDossierRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -358,7 +365,7 @@ export interface FileRoutesByFullPath {
   '/pro/clients': typeof AuthenticatedProClientsRouteWithChildren
   '/pro/demandes': typeof AuthenticatedProDemandesRoute
   '/pro/disponibilites': typeof AuthenticatedProDisponibilitesRoute
-  '/pro/dossier': typeof AuthenticatedProDossierRoute
+  '/pro/dossier': typeof AuthenticatedProDossierRouteWithChildren
   '/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/pro/factures': typeof AuthenticatedProFacturesRoute
   '/pro/parametres': typeof AuthenticatedProParametresRoute
@@ -378,6 +385,7 @@ export interface FileRoutesByFullPath {
   '/espace/suivi/$id': typeof AuthenticatedEspaceSuiviIdRoute
   '/pro/clients/$clientId': typeof AuthenticatedProClientsClientIdRoute
   '/pro/courses/$rideId': typeof AuthenticatedProCoursesRideIdRoute
+  '/pro/dossier/completer': typeof AuthenticatedProDossierCompleterRoute
   '/espace/courses/': typeof AuthenticatedEspaceCoursesIndexRoute
   '/pro/clients/': typeof AuthenticatedProClientsIndexRoute
   '/pro/courses/': typeof AuthenticatedProCoursesIndexRoute
@@ -404,7 +412,7 @@ export interface FileRoutesByTo {
   '/pro/assistant': typeof AuthenticatedProAssistantRoute
   '/pro/demandes': typeof AuthenticatedProDemandesRoute
   '/pro/disponibilites': typeof AuthenticatedProDisponibilitesRoute
-  '/pro/dossier': typeof AuthenticatedProDossierRoute
+  '/pro/dossier': typeof AuthenticatedProDossierRouteWithChildren
   '/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/pro/factures': typeof AuthenticatedProFacturesRoute
   '/pro/parametres': typeof AuthenticatedProParametresRoute
@@ -424,6 +432,7 @@ export interface FileRoutesByTo {
   '/espace/suivi/$id': typeof AuthenticatedEspaceSuiviIdRoute
   '/pro/clients/$clientId': typeof AuthenticatedProClientsClientIdRoute
   '/pro/courses/$rideId': typeof AuthenticatedProCoursesRideIdRoute
+  '/pro/dossier/completer': typeof AuthenticatedProDossierCompleterRoute
   '/espace/courses': typeof AuthenticatedEspaceCoursesIndexRoute
   '/pro/clients': typeof AuthenticatedProClientsIndexRoute
   '/pro/courses': typeof AuthenticatedProCoursesIndexRoute
@@ -456,7 +465,7 @@ export interface FileRoutesById {
   '/_authenticated/pro/clients': typeof AuthenticatedProClientsRouteWithChildren
   '/_authenticated/pro/demandes': typeof AuthenticatedProDemandesRoute
   '/_authenticated/pro/disponibilites': typeof AuthenticatedProDisponibilitesRoute
-  '/_authenticated/pro/dossier': typeof AuthenticatedProDossierRoute
+  '/_authenticated/pro/dossier': typeof AuthenticatedProDossierRouteWithChildren
   '/_authenticated/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/_authenticated/pro/factures': typeof AuthenticatedProFacturesRoute
   '/_authenticated/pro/parametres': typeof AuthenticatedProParametresRoute
@@ -476,6 +485,7 @@ export interface FileRoutesById {
   '/_authenticated/espace/suivi/$id': typeof AuthenticatedEspaceSuiviIdRoute
   '/_authenticated/pro/clients/$clientId': typeof AuthenticatedProClientsClientIdRoute
   '/_authenticated/pro/courses/$rideId': typeof AuthenticatedProCoursesRideIdRoute
+  '/_authenticated/pro/dossier/completer': typeof AuthenticatedProDossierCompleterRoute
   '/_authenticated/espace/courses/': typeof AuthenticatedEspaceCoursesIndexRoute
   '/_authenticated/pro/clients/': typeof AuthenticatedProClientsIndexRoute
   '/_authenticated/pro/courses/': typeof AuthenticatedProCoursesIndexRoute
@@ -528,6 +538,7 @@ export interface FileRouteTypes {
     | '/espace/suivi/$id'
     | '/pro/clients/$clientId'
     | '/pro/courses/$rideId'
+    | '/pro/dossier/completer'
     | '/espace/courses/'
     | '/pro/clients/'
     | '/pro/courses/'
@@ -574,6 +585,7 @@ export interface FileRouteTypes {
     | '/espace/suivi/$id'
     | '/pro/clients/$clientId'
     | '/pro/courses/$rideId'
+    | '/pro/dossier/completer'
     | '/espace/courses'
     | '/pro/clients'
     | '/pro/courses'
@@ -625,6 +637,7 @@ export interface FileRouteTypes {
     | '/_authenticated/espace/suivi/$id'
     | '/_authenticated/pro/clients/$clientId'
     | '/_authenticated/pro/courses/$rideId'
+    | '/_authenticated/pro/dossier/completer'
     | '/_authenticated/espace/courses/'
     | '/_authenticated/pro/clients/'
     | '/_authenticated/pro/courses/'
@@ -990,6 +1003,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProCoursesRideIdRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
+    '/_authenticated/pro/dossier/completer': {
+      id: '/_authenticated/pro/dossier/completer'
+      path: '/completer'
+      fullPath: '/pro/dossier/completer'
+      preLoaderRoute: typeof AuthenticatedProDossierCompleterRouteImport
+      parentRoute: typeof AuthenticatedProDossierRoute
+    }
   }
 }
 
@@ -1060,13 +1080,28 @@ const AuthenticatedProClientsRouteWithChildren =
     AuthenticatedProClientsRouteChildren,
   )
 
+interface AuthenticatedProDossierRouteChildren {
+  AuthenticatedProDossierCompleterRoute: typeof AuthenticatedProDossierCompleterRoute
+}
+
+const AuthenticatedProDossierRouteChildren: AuthenticatedProDossierRouteChildren =
+  {
+    AuthenticatedProDossierCompleterRoute:
+      AuthenticatedProDossierCompleterRoute,
+  }
+
+const AuthenticatedProDossierRouteWithChildren =
+  AuthenticatedProDossierRoute._addFileChildren(
+    AuthenticatedProDossierRouteChildren,
+  )
+
 interface AuthenticatedProRouteChildren {
   AuthenticatedProActiviteRoute: typeof AuthenticatedProActiviteRoute
   AuthenticatedProAssistantRoute: typeof AuthenticatedProAssistantRoute
   AuthenticatedProClientsRoute: typeof AuthenticatedProClientsRouteWithChildren
   AuthenticatedProDemandesRoute: typeof AuthenticatedProDemandesRoute
   AuthenticatedProDisponibilitesRoute: typeof AuthenticatedProDisponibilitesRoute
-  AuthenticatedProDossierRoute: typeof AuthenticatedProDossierRoute
+  AuthenticatedProDossierRoute: typeof AuthenticatedProDossierRouteWithChildren
   AuthenticatedProEntrepriseRoute: typeof AuthenticatedProEntrepriseRoute
   AuthenticatedProFacturesRoute: typeof AuthenticatedProFacturesRoute
   AuthenticatedProParametresRoute: typeof AuthenticatedProParametresRoute
@@ -1086,7 +1121,7 @@ const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
   AuthenticatedProClientsRoute: AuthenticatedProClientsRouteWithChildren,
   AuthenticatedProDemandesRoute: AuthenticatedProDemandesRoute,
   AuthenticatedProDisponibilitesRoute: AuthenticatedProDisponibilitesRoute,
-  AuthenticatedProDossierRoute: AuthenticatedProDossierRoute,
+  AuthenticatedProDossierRoute: AuthenticatedProDossierRouteWithChildren,
   AuthenticatedProEntrepriseRoute: AuthenticatedProEntrepriseRoute,
   AuthenticatedProFacturesRoute: AuthenticatedProFacturesRoute,
   AuthenticatedProParametresRoute: AuthenticatedProParametresRoute,

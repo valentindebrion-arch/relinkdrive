@@ -238,6 +238,99 @@ export type Database = {
         }
         Relationships: []
       }
+      driver_dossier_details: {
+        Row: {
+          auto_company: string | null
+          auto_contract: string | null
+          auto_expires_on: string | null
+          auto_plate: string | null
+          auto_starts_on: string | null
+          birth_date: string | null
+          certified_at: string | null
+          created_at: string
+          driver_id: string
+          id_doc_expires_on: string | null
+          id_doc_type: string | null
+          license_categories: string | null
+          license_expires_on: string | null
+          license_issued_on: string | null
+          license_number: string | null
+          postal_address: string | null
+          rc_company: string | null
+          rc_contract: string | null
+          rc_expires_on: string | null
+          rc_starts_on: string | null
+          registration_holder: string | null
+          revtc_number: string | null
+          siren: string | null
+          trade_name: string | null
+          updated_at: string
+          vtc_authority: string | null
+          vtc_expires_on: string | null
+          vtc_issued_on: string | null
+        }
+        Insert: {
+          auto_company?: string | null
+          auto_contract?: string | null
+          auto_expires_on?: string | null
+          auto_plate?: string | null
+          auto_starts_on?: string | null
+          birth_date?: string | null
+          certified_at?: string | null
+          created_at?: string
+          driver_id: string
+          id_doc_expires_on?: string | null
+          id_doc_type?: string | null
+          license_categories?: string | null
+          license_expires_on?: string | null
+          license_issued_on?: string | null
+          license_number?: string | null
+          postal_address?: string | null
+          rc_company?: string | null
+          rc_contract?: string | null
+          rc_expires_on?: string | null
+          rc_starts_on?: string | null
+          registration_holder?: string | null
+          revtc_number?: string | null
+          siren?: string | null
+          trade_name?: string | null
+          updated_at?: string
+          vtc_authority?: string | null
+          vtc_expires_on?: string | null
+          vtc_issued_on?: string | null
+        }
+        Update: {
+          auto_company?: string | null
+          auto_contract?: string | null
+          auto_expires_on?: string | null
+          auto_plate?: string | null
+          auto_starts_on?: string | null
+          birth_date?: string | null
+          certified_at?: string | null
+          created_at?: string
+          driver_id?: string
+          id_doc_expires_on?: string | null
+          id_doc_type?: string | null
+          license_categories?: string | null
+          license_expires_on?: string | null
+          license_issued_on?: string | null
+          license_number?: string | null
+          postal_address?: string | null
+          rc_company?: string | null
+          rc_contract?: string | null
+          rc_expires_on?: string | null
+          rc_starts_on?: string | null
+          registration_holder?: string | null
+          revtc_number?: string | null
+          siren?: string | null
+          trade_name?: string | null
+          updated_at?: string
+          vtc_authority?: string | null
+          vtc_expires_on?: string | null
+          vtc_issued_on?: string | null
+        }
+        Relationships: []
+      }
       driver_notes: {
         Row: {
           client_id: string
