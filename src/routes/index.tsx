@@ -72,74 +72,87 @@ function Landing() {
   }, [loading, session, roles, navigate]);
 
   return (
-    <div className="min-h-screen">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
-        <BrandLogo to="/" size="md" />
-        <nav className="flex items-center gap-2 text-sm">
-          <Link to="/chauffeurs" className="rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground">
+    <div className="min-h-screen overflow-x-hidden">
+      <header className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-4 sm:px-5 sm:py-5">
+        <div className="min-w-0">
+          <BrandLogo to="/" size="md" />
+        </div>
+        <nav className="flex shrink-0 items-center gap-1.5 text-sm">
+          <Link
+            to="/chauffeurs"
+            className="hidden rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground sm:inline-flex"
+          >
             Chauffeurs
           </Link>
           {!loading && session ? (
             <Link
               to={homeForRoles(roles)}
-              className="rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground"
+              className="rounded-lg bg-primary px-3 py-2 font-medium text-primary-foreground sm:px-4"
             >
               Mon espace
             </Link>
           ) : (
             <>
-              <Link to="/auth" search={{ mode: "signin" }} className="rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground">
+              <Link
+                to="/auth"
+                search={{ mode: "signin" }}
+                className="rounded-lg px-2.5 py-2 text-muted-foreground hover:text-foreground sm:px-3"
+              >
                 Connexion
               </Link>
               <Link
                 to="/auth"
                 search={{ mode: "signup", role: "driver" }}
-                className="rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground"
+                className="rounded-lg bg-primary px-3 py-2 font-medium text-primary-foreground sm:px-4"
               >
-                Créer mon compte chauffeur
+                <span className="sm:hidden">Inscription</span>
+                <span className="hidden sm:inline">Créer mon compte chauffeur</span>
               </Link>
             </>
           )}
         </nav>
       </header>
 
-      <section className="mx-auto max-w-6xl px-5 pt-10 pb-14">
-        <p className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-accent px-3 py-1 text-xs font-medium text-accent-foreground">
-          <Sparkles className="size-3.5" /> Outil post-course · sans commission
+      <section className="mx-auto w-full max-w-6xl px-4 pt-6 pb-10 sm:px-5 sm:pt-10 sm:pb-14">
+        <p className="inline-flex max-w-full items-center gap-2 rounded-full border border-primary/25 bg-accent px-3 py-1 text-[11px] font-medium text-accent-foreground sm:text-xs">
+          <Sparkles className="size-3.5 shrink-0" />
+          <span className="truncate">Outil post-course · sans commission</span>
         </p>
-        <h1 className="mt-5 max-w-3xl text-4xl leading-tight font-semibold sm:text-5xl">
+        <h1 className="mt-4 max-w-3xl text-[1.75rem] leading-tight font-semibold text-balance sm:mt-5 sm:text-4xl lg:text-5xl">
           {BRAND.tagline}
         </h1>
-        <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
+        <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:mt-4 sm:text-lg">
           {BRAND.name} est le lien direct entre un chauffeur VTC indépendant et ses passagers.
           Le passager garde dans son carnet privé les chauffeurs en qui il a confiance et réserve
           directement auprès d'eux ; le chauffeur gère ses demandes, son planning et ses factures
-          au même endroit. Pas de plateforme de mise en relation, pas d'enchère, pas de commission.
+          au même endroit. Pas de plateforme, pas d'enchère, pas de commission.
         </p>
-        <div className="mt-7 flex flex-wrap gap-3">
+        <div className="mt-5 grid gap-2 sm:mt-7 sm:flex sm:flex-wrap sm:gap-3">
           <Link
             to="/auth"
             search={{ mode: "signup", role: "driver" }}
-            className="rounded-xl bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-sm"
+            className="rounded-xl bg-primary px-5 py-3 text-center text-sm font-medium text-primary-foreground shadow-sm"
           >
             Je suis chauffeur VTC
           </Link>
           <Link
             to="/auth"
             search={{ mode: "signup", role: "client" }}
-            className="rounded-xl border border-border bg-card px-5 py-3 text-sm font-medium"
+            className="rounded-xl border border-border bg-card px-5 py-3 text-center text-sm font-medium"
           >
             Je suis passager
           </Link>
         </div>
-        <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+        <ul className="mt-5 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-muted-foreground sm:mt-6 sm:flex sm:flex-wrap sm:gap-x-6 sm:text-sm">
           {["Sans commission", "Chauffeurs vérifiés", "Réservation directe", "Factures conformes"].map((t) => (
-            <li key={t} className="inline-flex items-center gap-1.5">
-              <Check className="size-4 text-primary" /> {t}
+            <li key={t} className="inline-flex min-w-0 items-center gap-1.5">
+              <Check className="size-4 shrink-0 text-primary" />
+              <span className="truncate">{t}</span>
             </li>
           ))}
         </ul>
       </section>
+
 
       {/* Deux publics, deux promesses */}
       <section className="border-y border-border bg-card/60 py-14">
