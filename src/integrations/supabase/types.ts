@@ -379,6 +379,117 @@ export type Database = {
         }
         Relationships: []
       }
+      driver_tariff_migrations: {
+        Row: {
+          created_at: string
+          decision: string
+          driver_id: string
+          id: string
+          new_minimum_ht: number
+          new_price_per_km_ht: number
+          previous_basis: string
+          previous_minimum: number | null
+          previous_price_per_km: number | null
+          vat_rate: number | null
+        }
+        Insert: {
+          created_at?: string
+          decision: string
+          driver_id: string
+          id?: string
+          new_minimum_ht: number
+          new_price_per_km_ht: number
+          previous_basis: string
+          previous_minimum?: number | null
+          previous_price_per_km?: number | null
+          vat_rate?: number | null
+        }
+        Update: {
+          created_at?: string
+          decision?: string
+          driver_id?: string
+          id?: string
+          new_minimum_ht?: number
+          new_price_per_km_ht?: number
+          previous_basis?: string
+          previous_minimum?: number | null
+          previous_price_per_km?: number | null
+          vat_rate?: number | null
+        }
+        Relationships: []
+      }
+      driver_tariffs: {
+        Row: {
+          basis: string
+          basis_confirmed_at: string | null
+          created_at: string
+          driver_id: string
+          minimum_ht: number
+          price_per_km_ht: number
+          updated_at: string
+        }
+        Insert: {
+          basis?: string
+          basis_confirmed_at?: string | null
+          created_at?: string
+          driver_id: string
+          minimum_ht?: number
+          price_per_km_ht?: number
+          updated_at?: string
+        }
+        Update: {
+          basis?: string
+          basis_confirmed_at?: string | null
+          created_at?: string
+          driver_id?: string
+          minimum_ht?: number
+          price_per_km_ht?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      driver_tax_profiles: {
+        Row: {
+          confirmed_at: string
+          created_at: string
+          created_by: string | null
+          driver_id: string
+          effective_from: string
+          id: string
+          legal_mention: string | null
+          rate_label: string | null
+          regime: string
+          vat_number: string | null
+          vat_rate: number | null
+        }
+        Insert: {
+          confirmed_at?: string
+          created_at?: string
+          created_by?: string | null
+          driver_id: string
+          effective_from: string
+          id?: string
+          legal_mention?: string | null
+          rate_label?: string | null
+          regime: string
+          vat_number?: string | null
+          vat_rate?: number | null
+        }
+        Update: {
+          confirmed_at?: string
+          created_at?: string
+          created_by?: string | null
+          driver_id?: string
+          effective_from?: string
+          id?: string
+          legal_mention?: string | null
+          rate_label?: string | null
+          regime?: string
+          vat_number?: string | null
+          vat_rate?: number | null
+        }
+        Relationships: []
+      }
       driver_working_hours: {
         Row: {
           active: boolean
@@ -423,6 +534,9 @@ export type Database = {
           payment_method: string | null
           ride_id: string | null
           status: Database["public"]["Enums"]["invoice_status"]
+          tax_legal_mention: string | null
+          tax_regime: string | null
+          tax_vat_number: string | null
           updated_at: string
           vat_rate: number
         }
@@ -442,6 +556,9 @@ export type Database = {
           payment_method?: string | null
           ride_id?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
+          tax_legal_mention?: string | null
+          tax_regime?: string | null
+          tax_vat_number?: string | null
           updated_at?: string
           vat_rate?: number
         }
@@ -461,6 +578,9 @@ export type Database = {
           payment_method?: string | null
           ride_id?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
+          tax_legal_mention?: string | null
+          tax_regime?: string | null
+          tax_vat_number?: string | null
           updated_at?: string
           vat_rate?: number
         }
@@ -757,6 +877,8 @@ export type Database = {
       }
       ride_requests: {
         Row: {
+          amount_ht: number | null
+          amount_ttc: number | null
           client_id: string
           comment: string | null
           created_at: string
@@ -778,10 +900,20 @@ export type Database = {
           scheduled_at: string
           special_needs: string | null
           status: Database["public"]["Enums"]["ride_status"]
+          tax_computed_at: string | null
+          tax_effective_from: string | null
+          tax_legal_mention: string | null
+          tax_legal_name: string | null
+          tax_regime: string | null
+          tax_vat_number: string | null
+          tax_vat_rate: number | null
           trip_type: string | null
           updated_at: string
+          vat_amount: number | null
         }
         Insert: {
+          amount_ht?: number | null
+          amount_ttc?: number | null
           client_id: string
           comment?: string | null
           created_at?: string
@@ -803,10 +935,20 @@ export type Database = {
           scheduled_at: string
           special_needs?: string | null
           status?: Database["public"]["Enums"]["ride_status"]
+          tax_computed_at?: string | null
+          tax_effective_from?: string | null
+          tax_legal_mention?: string | null
+          tax_legal_name?: string | null
+          tax_regime?: string | null
+          tax_vat_number?: string | null
+          tax_vat_rate?: number | null
           trip_type?: string | null
           updated_at?: string
+          vat_amount?: number | null
         }
         Update: {
+          amount_ht?: number | null
+          amount_ttc?: number | null
           client_id?: string
           comment?: string | null
           created_at?: string
@@ -828,8 +970,16 @@ export type Database = {
           scheduled_at?: string
           special_needs?: string | null
           status?: Database["public"]["Enums"]["ride_status"]
+          tax_computed_at?: string | null
+          tax_effective_from?: string | null
+          tax_legal_mention?: string | null
+          tax_legal_name?: string | null
+          tax_regime?: string | null
+          tax_vat_number?: string | null
+          tax_vat_rate?: number | null
           trip_type?: string | null
           updated_at?: string
+          vat_amount?: number | null
         }
         Relationships: []
       }
@@ -933,6 +1083,8 @@ export type Database = {
       }
       rides: {
         Row: {
+          amount_ht: number | null
+          amount_ttc: number | null
           cancel_decided_at: string | null
           cancel_decided_by: string | null
           cancel_request_reason: string | null
@@ -961,9 +1113,19 @@ export type Database = {
           scheduled_at: string
           started_at: string | null
           status: Database["public"]["Enums"]["ride_status"]
+          tax_computed_at: string | null
+          tax_effective_from: string | null
+          tax_legal_mention: string | null
+          tax_legal_name: string | null
+          tax_regime: string | null
+          tax_vat_number: string | null
+          tax_vat_rate: number | null
           updated_at: string
+          vat_amount: number | null
         }
         Insert: {
+          amount_ht?: number | null
+          amount_ttc?: number | null
           cancel_decided_at?: string | null
           cancel_decided_by?: string | null
           cancel_request_reason?: string | null
@@ -992,9 +1154,19 @@ export type Database = {
           scheduled_at: string
           started_at?: string | null
           status?: Database["public"]["Enums"]["ride_status"]
+          tax_computed_at?: string | null
+          tax_effective_from?: string | null
+          tax_legal_mention?: string | null
+          tax_legal_name?: string | null
+          tax_regime?: string | null
+          tax_vat_number?: string | null
+          tax_vat_rate?: number | null
           updated_at?: string
+          vat_amount?: number | null
         }
         Update: {
+          amount_ht?: number | null
+          amount_ttc?: number | null
           cancel_decided_at?: string | null
           cancel_decided_by?: string | null
           cancel_request_reason?: string | null
@@ -1023,7 +1195,15 @@ export type Database = {
           scheduled_at?: string
           started_at?: string | null
           status?: Database["public"]["Enums"]["ride_status"]
+          tax_computed_at?: string | null
+          tax_effective_from?: string | null
+          tax_legal_mention?: string | null
+          tax_legal_name?: string | null
+          tax_regime?: string | null
+          tax_vat_number?: string | null
+          tax_vat_rate?: number | null
           updated_at?: string
+          vat_amount?: number | null
         }
         Relationships: [
           {
@@ -1206,35 +1386,100 @@ export type Database = {
         Args: { _request: string }
         Returns: Database["public"]["Enums"]["ride_status"]
       }
-      create_client_ride_request: {
+      compute_ride_quote: {
         Args: {
-          _cancellation_version?: string
-          _cgu_version?: string
-          _cgv_version?: string
-          _comment: string
+          _at?: string
+          _distance_km: number
           _driver: string
-          _dropoff: string
-          _idempotency_key: string
-          _immediate: boolean
-          _luggage: number
-          _passengers: number
-          _pickup: string
-          _proposed_price: number
-          _round_trip: boolean
-          _scheduled_at: string
-          _special_needs: string
-          _trip_type: string
+          _round_trip?: boolean
         }
         Returns: {
-          blocked: boolean
-          blocking_request_id: string
-          request_id: string
-          reused: boolean
+          amount_ht: number
+          amount_ttc: number
+          base_ht: number
+          effective_from: string
+          legal_mention: string
+          minimum_ht: number
+          price_per_km_ht: number
+          rate_label: string
+          regime: string
+          rounding_ht: number
+          tariff_confirmed: boolean
+          tax_configured: boolean
+          vat_amount: number
+          vat_number: string
+          vat_rate: number
         }[]
       }
+      create_client_ride_request:
+        | {
+            Args: {
+              _cancellation_version?: string
+              _cgu_version?: string
+              _cgv_version?: string
+              _comment: string
+              _driver: string
+              _dropoff: string
+              _idempotency_key: string
+              _immediate: boolean
+              _luggage: number
+              _passengers: number
+              _pickup: string
+              _proposed_price: number
+              _round_trip: boolean
+              _scheduled_at: string
+              _special_needs: string
+              _trip_type: string
+            }
+            Returns: {
+              blocked: boolean
+              blocking_request_id: string
+              request_id: string
+              reused: boolean
+            }[]
+          }
+        | {
+            Args: {
+              _cancellation_version?: string
+              _cgu_version?: string
+              _cgv_version?: string
+              _comment: string
+              _distance_km?: number
+              _driver: string
+              _dropoff: string
+              _idempotency_key: string
+              _immediate: boolean
+              _luggage: number
+              _passengers: number
+              _pickup: string
+              _proposed_price: number
+              _round_trip: boolean
+              _scheduled_at: string
+              _special_needs: string
+              _trip_type: string
+            }
+            Returns: {
+              blocked: boolean
+              blocking_request_id: string
+              request_id: string
+              reused: boolean
+            }[]
+          }
       driver_available_between: {
         Args: { _driver: string; _end: string; _start: string }
         Returns: boolean
+      }
+      driver_tax_at: {
+        Args: { _at?: string; _driver: string }
+        Returns: {
+          configured: boolean
+          effective_from: string
+          legal_mention: string
+          rate_label: string
+          regime: string
+          vat_number: string
+          vat_rate: number
+        }[]
       }
       expire_stale_immediate_requests: {
         Args: { _client?: string }

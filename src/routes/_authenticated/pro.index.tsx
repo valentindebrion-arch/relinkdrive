@@ -22,6 +22,7 @@ import { useDriverProfile, useMyVehicle, useMyDocuments } from "@/lib/driver-que
 import { useDriverData, computeStats, PERIOD_LABELS, type Period } from "@/lib/pro-stats";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ActiveRidePanel } from "@/components/ActiveRidePanel";
+import { TaxSetupBanner } from "@/components/pro/TaxSetupBanner";
 import { RIDE_STATUS_LABELS, VERIFICATION_LABELS, formatDate, formatEuro } from "@/lib/labels";
 import type { ReactNode } from "react";
 
@@ -286,6 +287,7 @@ function ProOverview() {
         </Link>
       ) : null}
 
+      <TaxSetupBanner />
       <ActiveRidePanel />
 
       {/* 3. Demandes à traiter */}

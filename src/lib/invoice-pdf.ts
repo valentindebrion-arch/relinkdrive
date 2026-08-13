@@ -24,6 +24,9 @@ export type InvoiceData = {
   status: string;
   payment_method?: string | null;
   paid_at?: string | null;
+  tax_regime?: string | null;
+  tax_legal_mention?: string | null;
+  tax_vat_number?: string | null;
 };
 
 export type InvoiceRide = {
@@ -51,6 +54,12 @@ export function buildInvoicePdf(opts: {
   ride?: InvoiceRide | null;
 }) {
   const { invoice, issuer, client, ride } = opts;
+  // Régime figé au moment de la course : un changement ultérieur ne modifie jamais cette facture.
+  const liable =
+    invoice.tax_regime === "liable" ||
+    (invoice.tax_regime == null && !!issuer.vat_applicable && Number(invoice.vat_rate) > 0);
+  const franchiseMention =
+    invoice.tax_legal_mention || issuer.billing_legal_info || "TVA non applicable, art. 293 B du CGI";
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const W = 210;
   const M = 16;
@@ -90,6 +99,7 @@ export function buildInvoicePdf(opts: {
     issuer.professional_address || "",
     issuer.siret ? `SIRET : ${issuer.siret}` : "",
     issuer.vtc_card_number ? `Carte VTC n° ${issuer.vtc_card_number}` : "",
+    liable && invoice.tax_vat_number ? `N° TVA : ${invoice.tax_vat_number}` : "",
     issuer.public_phone ? `Tél. : ${issuer.public_phone}` : "",
     issuer.email || "",
   ].filter(Boolean) as string[];
@@ -143,7 +153,7 @@ export function buildInvoicePdf(opts: {
   doc.rect(M, y, W - 2 * M, 8, "F");
   text("Désignation", M + 3, y + 5.5, 9, true, [255, 255, 255]);
   doc.setTextColor(255, 255, 255);
-  doc.text("Montant HT", W - M - 3, y + 5.5, { align: "right" });
+  doc.text(liable ? "Montant HT" : "Montant", W - M - 3, y + 5.5, { align: "right" });
   y += 12;
 
   const desc = invoice.description || "Prestation de transport de personnes (VTC)";
@@ -170,12 +180,18 @@ export function buildInvoicePdf(opts: {
     y += size === 9 ? 5.5 : 7;
   };
 
-  totalRow("Total HT", formatEuro(invoice.amount_ht));
-  totalRow(
-    `TVA (${Number(invoice.vat_rate)} %)`,
-    formatEuro(Number(invoice.amount_ttc) - Number(invoice.amount_ht)),
-  );
-  totalRow("Total TTC", formatEuro(invoice.amount_ttc), true, 12);
+  if (liable) {
+    totalRow("Total HT", formatEuro(invoice.amount_ht));
+    totalRow(
+      `TVA (${Number(invoice.vat_rate)} %)`,
+      formatEuro(Number(invoice.amount_ttc) - Number(invoice.amount_ht)),
+    );
+    totalRow("Total TTC", formatEuro(invoice.amount_ttc), true, 12);
+  } else {
+    totalRow("Montant de la prestation", formatEuro(invoice.amount_ttc));
+    totalRow("TVA", "Non applicable");
+    totalRow("Total à payer", formatEuro(invoice.amount_ttc), true, 12);
+  }
 
   y += 4;
   if (invoice.payment_method) {
@@ -202,8 +218,8 @@ export function buildInvoicePdf(opts: {
 
   // Legal mentions
   const legal: string[] = [];
-  if (!issuer.vat_applicable || Number(invoice.vat_rate) === 0) {
-    legal.push(issuer.billing_legal_info || "TVA non applicable, art. 293 B du CGI.");
+  if (!liable) {
+    legal.push(franchiseMention);
   } else if (issuer.billing_legal_info) {
     legal.push(issuer.billing_legal_info);
   }
