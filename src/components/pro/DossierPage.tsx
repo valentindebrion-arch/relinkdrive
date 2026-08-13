@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock,
+  LogOut,
   FileWarning,
   ShieldCheck,
   Upload,
