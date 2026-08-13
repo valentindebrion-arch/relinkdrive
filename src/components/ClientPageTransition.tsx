@@ -31,15 +31,38 @@ function prefersReducedMotion() {
 export function ClientPageTransition({
   children,
   onTransitionChange,
+  tabOrder = CLIENT_TAB_ORDER,
+  tabKeys = CLIENT_TAB_KEYS,
+  bottomOffset = "3.5rem",
 }: {
   children: ReactNode;
   onTransitionChange?: (running: boolean) => void;
+  /** Ordre réel des onglets principaux (index 0 = premier onglet). */
+  tabOrder?: string[];
+  /** Clés stables associées aux onglets, même longueur que tabOrder. */
+  tabKeys?: string[];
+  /** Hauteur de la barre de navigation inférieure (la couche verte s'arrête au-dessus). */
+  bottomOffset?: string;
 }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const previous = useRef(pathname);
   const [state, setState] = useState<{ key: string; dir: "right" | "left"; sheet: boolean } | null>(
     null,
   );
+
+  const tabIndex = useMemo(() => makeTabIndex(tabOrder), [tabOrder]);
+  const isMainTab = useCallback(
+    (p: string) => tabOrder.some((t) => p === t || p === `${t}/`),
+    [tabOrder],
+  );
+  const tabKey = useCallback(
+    (p: string) => {
+      const i = tabIndex(p);
+      return i >= 0 ? (tabKeys[i] ?? p) : p;
+    },
+    [tabIndex, tabKeys],
+  );
+
 
   useLayoutEffect(() => {
     const from = previous.current;
