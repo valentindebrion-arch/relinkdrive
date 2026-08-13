@@ -7,7 +7,8 @@ export const Route = createFileRoute("/_authenticated/pro/dossier/completer")({
       { title: "Compléter mon dossier — ReLink" },
       {
         name: "description",
-        content: "Complétez les informations nécessaires à la vérification de votre compte chauffeur ReLink.",
+        content:
+          "Complétez les informations nécessaires à la vérification de votre compte chauffeur ReLink.",
       },
       { property: "og:title", content: "Compléter mon dossier — ReLink" },
       {

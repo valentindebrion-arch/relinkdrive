@@ -1,6 +1,17 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { Home, Car, Users, Receipt, Bot, UserRound, CalendarDays, ShieldCheck, Building2, HelpCircle } from "lucide-react";
+import {
+  Home,
+  Car,
+  Users,
+  Receipt,
+  Bot,
+  UserRound,
+  CalendarDays,
+  ShieldCheck,
+  Building2,
+  HelpCircle,
+} from "lucide-react";
 import { DashboardShell, type NavItem } from "@/components/DashboardShell";
 import { ClientPageTransition } from "@/components/ClientPageTransition";
 import { useAuth } from "@/lib/auth";

@@ -6,7 +6,10 @@ import type { AppRole } from "@/lib/auth";
 export async function fetchCurrentRoles(): Promise<{ userId: string; roles: AppRole[] } | null> {
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) return null;
-  const { data: rows } = await supabase.from("user_roles").select("role").eq("user_id", data.user.id);
+  const { data: rows } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", data.user.id);
   return { userId: data.user.id, roles: ((rows ?? []) as { role: AppRole }[]).map((r) => r.role) };
 }
 

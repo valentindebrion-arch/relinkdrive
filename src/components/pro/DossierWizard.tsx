@@ -453,7 +453,13 @@ export function DossierWizard() {
   return (
     <div className="space-y-4 pb-8">
       <div className="flex items-center gap-2">
-        <Button type="button" variant="ghost" size="sm" onClick={back} aria-label="Retour au statut du compte">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={back}
+          aria-label="Retour au statut du compte"
+        >
           <ArrowLeft className="size-4" /> Statut du compte
         </Button>
       </div>
@@ -1140,7 +1146,13 @@ export function DossierWizard() {
             )}
             Enregistrer et continuer
           </Button>
-          <Button type="button" size="lg" variant="outline" disabled={saving} onClick={() => void saveAndQuit()}>
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            disabled={saving}
+            onClick={() => void saveAndQuit()}
+          >
             <Save className="size-4" /> Enregistrer et quitter
           </Button>
         </div>
