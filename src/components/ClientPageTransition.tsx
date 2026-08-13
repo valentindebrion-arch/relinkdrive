@@ -1,4 +1,13 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+
 import { useRouterState } from "@tanstack/react-router";
 
 const CLIENT_TAB_ORDER = ["/espace", "/espace/courses", "/espace/chauffeurs", "/espace/parametres"];
