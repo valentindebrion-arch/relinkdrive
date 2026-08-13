@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Clock3, Loader2, Map as MapIcon, MapPin, LocateFixed, X } from "lucide-react";
+import { ArrowLeft, Clock3, Loader2, MapPin, LocateFixed, X } from "lucide-react";
 import { suggestAddresses } from "@/lib/route-estimate.functions";
-import { MapPointPicker } from "@/components/request/MapPointPicker";
 
 const RECENTS_KEY = "relink:recent-addresses";
 
@@ -53,7 +52,6 @@ export function AddressSearchPanel({
   const [items, setItems] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
-  const [pickingOnMap, setPickingOnMap] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const recents = useRef<string[]>(readRecentAddresses()).current;
 
@@ -98,16 +96,6 @@ export function AddressSearchPanel({
   function choose(address: string) {
     pushRecentAddress(address);
     onSelect(address);
-  }
-
-  if (pickingOnMap) {
-    return (
-      <MapPointPicker
-        title={title}
-        onClose={() => setPickingOnMap(false)}
-        onConfirm={(address) => choose(address)}
-      />
-    );
   }
 
   return (
@@ -181,16 +169,6 @@ export function AddressSearchPanel({
                 <span className="text-[15px] font-semibold text-primary">Utiliser ma position</span>
               </button>
             ) : null}
-            <button
-              type="button"
-              onClick={() => setPickingOnMap(true)}
-              className="flex w-full items-center gap-3 rounded-2xl px-2 py-3 text-left transition-colors active:bg-muted"
-            >
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted">
-                <MapIcon className="size-4" />
-              </span>
-              <span className="text-[15px] font-semibold">Choisir sur la carte</span>
-            </button>
           </div>
 
           {items.length > 0 ? (
@@ -223,7 +201,7 @@ export function AddressSearchPanel({
             <p className="mt-6 px-2 text-center text-[13px] text-muted-foreground">
               {failed
                 ? "La recherche d'adresse est momentanément indisponible. Réessayez dans un instant."
-                : "Aucune adresse trouvée. Vérifiez l'orthographe ou choisissez le point sur la carte."}
+                : "Aucune adresse trouvée. Vérifiez l'orthographe ou ou saisissez le code postal."}
             </p>
           ) : null}
 

@@ -27,7 +27,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { formatDateTime, formatEuro } from "@/lib/labels";
-import { RouteMiniMap } from "@/components/RouteMiniMap";
 import { ScheduleSheet } from "@/components/request/ScheduleSheet";
 import { AddressSearchPanel, pushRecentAddress } from "@/components/request/AddressSearchPanel";
 import { DriverPickerSheet } from "@/components/request/DriverPickerSheet";
@@ -93,7 +92,6 @@ type Estimate = {
   distanceKm: number;
   oneWayKm: number;
   durationMin: number;
-  polyline: string;
   price: { base: number; total: number; tip: number };
   quote: RideQuote | null;
 };
@@ -180,10 +178,8 @@ function ClientRequests() {
   const [preview, setPreview] = useState<{
     distanceKm: number;
     durationMin: number;
-    polyline: string;
   } | null>(null);
   const [previewState, setPreviewState] = useState<"idle" | "loading" | "error">("idle");
-  const [showPreviewMap, setShowPreviewMap] = useState(false);
   const [needs, setNeeds] = useState<SpecialNeedsState>({ keys: [], details: {} });
   const [returnMode, setReturnMode] = useState<ReturnMode>("immediate");
   const [returnTrip, setReturnTrip] = useState({ at: "", pickup: "", dropoff: "" });
@@ -272,14 +268,19 @@ function ClientRequests() {
       try {
         const res = (await estimateFn({
           data: { origin: form.pickup_address, destination: form.dropoff_address },
-        })) as Estimate;
+        }));
         if (cancelled) return;
         setPreview({
           distanceKm: res.distanceKm,
           durationMin: res.durationMin,
-          polyline: res.polyline,
         });
-        setEstimate(res);
+        setEstimate({
+          distanceKm: res.distanceKm,
+          oneWayKm: res.distanceKm,
+          durationMin: res.durationMin,
+          price: res.price,
+          quote: null,
+        });
         setPreviewState("idle");
       } catch {
         if (cancelled) return;
@@ -399,7 +400,6 @@ function ClientRequests() {
         distanceKm: Math.round(res.distanceKm * multiplier * 10) / 10,
         oneWayKm: res.distanceKm,
         durationMin: res.durationMin * multiplier,
-        polyline: res.polyline,
         quote,
         price: quote
           ? { base: quote.amount_ht, total: quote.amount_ttc, tip: quote.rounding_ht }
@@ -1237,7 +1237,6 @@ function ClientRequests() {
             setDriverPickerOpen(true);
           }}
           onEditOptions={() => setStep(1)}
-          onExpandMap={() => setShowPreviewMap(true)}
           onSubmit={() => void submit()}
         />
       )}
@@ -1262,26 +1261,6 @@ function ClientRequests() {
             setSearchField(null);
           }}
         />
-      ) : null}
-
-      {showPreviewMap && (step === 2 ? estimate?.polyline : preview?.polyline) ? (
-        <div className="fixed inset-0 z-[60] flex flex-col bg-background">
-          <div className="relative flex shrink-0 items-center justify-center px-2 py-2">
-            <button
-              type="button"
-              aria-label="Fermer la carte"
-              className="absolute left-2 flex size-10 items-center justify-center rounded-full hover:bg-accent"
-              onClick={() => setShowPreviewMap(false)}
-            >
-              <X className="size-5" />
-            </button>
-            <p className="text-[15px] font-bold">Aperçu de l'itinéraire</p>
-          </div>
-          <RouteMiniMap
-            polyline={(step === 2 ? estimate?.polyline : preview?.polyline) ?? ""}
-            className="min-h-0 flex-1 rounded-none border-0"
-          />
-        </div>
       ) : null}
 
       {scheduleOpen && form.driver_id && pickupOk && dropoffOk ? (
