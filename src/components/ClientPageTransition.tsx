@@ -97,7 +97,7 @@ export function ClientPageTransition({
 
     setState({ key: tabSwitch ? tabKey(pathname) : pathname, dir, sheet: tabSwitch });
     onTransitionChange?.(true);
-  }, [onTransitionChange, pathname]);
+  }, [isMainTab, onTransitionChange, pathname, tabIndex, tabKey]);
 
   useEffect(() => {
     if (!state) return;
