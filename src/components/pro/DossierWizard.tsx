@@ -444,11 +444,33 @@ export function DossierWizard() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 p-6 text-sm text-muted-foreground">
-        <Loader2 className="size-4 animate-spin" /> Chargement de votre dossier…
+      <div className="space-y-4 pb-8">
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={back}
+            aria-label="Retour au statut du compte"
+          >
+            <ArrowLeft className="size-4" /> Statut du compte
+          </Button>
+        </div>
+        <header className="surface p-4">
+          <h1 className="text-lg font-semibold">Compléter mon dossier</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Chargement de vos informations…
+          </p>
+        </header>
+        <div className="surface space-y-3 p-4">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="h-10 animate-pulse rounded-lg bg-muted" />
+          ))}
+        </div>
       </div>
     );
   }
+
 
   return (
     <div className="space-y-4 pb-8">
