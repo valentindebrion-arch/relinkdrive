@@ -178,7 +178,6 @@ function ClientRequests() {
   const [preview, setPreview] = useState<{
     distanceKm: number;
     durationMin: number;
-    polyline: string;
   } | null>(null);
   const [previewState, setPreviewState] = useState<"idle" | "loading" | "error">("idle");
   const [needs, setNeeds] = useState<SpecialNeedsState>({ keys: [], details: {} });
@@ -275,7 +274,13 @@ function ClientRequests() {
           distanceKm: res.distanceKm,
           durationMin: res.durationMin,
         });
-        setEstimate(res);
+        setEstimate({
+          distanceKm: res.distanceKm,
+          oneWayKm: res.distanceKm,
+          durationMin: res.durationMin,
+          price: res.price,
+          quote: null,
+        });
         setPreviewState("idle");
       } catch {
         if (cancelled) return;
@@ -1232,7 +1237,6 @@ function ClientRequests() {
             setDriverPickerOpen(true);
           }}
           onEditOptions={() => setStep(1)}
-          onExpandMap={() => setShowPreviewMap(true)}
           onSubmit={() => void submit()}
         />
       )}
@@ -1257,26 +1261,6 @@ function ClientRequests() {
             setSearchField(null);
           }}
         />
-      ) : null}
-
-      {showPreviewMap && (step === 2 ? estimate?.polyline : preview?.polyline) ? (
-        <div className="fixed inset-0 z-[60] flex flex-col bg-background">
-          <div className="relative flex shrink-0 items-center justify-center px-2 py-2">
-            <button
-              type="button"
-              aria-label="Fermer la carte"
-              className="absolute left-2 flex size-10 items-center justify-center rounded-full hover:bg-accent"
-              onClick={() => setShowPreviewMap(false)}
-            >
-              <X className="size-5" />
-            </button>
-            <p className="text-[15px] font-bold">Aperçu de l'itinéraire</p>
-          </div>
-          <RouteMiniMap
-            polyline={(step === 2 ? estimate?.polyline : preview?.polyline) ?? ""}
-            className="min-h-0 flex-1 rounded-none border-0"
-          />
-        </div>
       ) : null}
 
       {scheduleOpen && form.driver_id && pickupOk && dropoffOk ? (
