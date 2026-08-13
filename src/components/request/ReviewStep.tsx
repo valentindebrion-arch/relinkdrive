@@ -24,6 +24,18 @@ export type ReviewEstimate = {
   durationMin: number;
   polyline: string;
   price: { base: number; total: number; tip: number };
+  quote?: {
+    amount_ht: number;
+    vat_rate: number | null;
+    vat_amount: number | null;
+    amount_ttc: number;
+    regime: "franchise" | "liable";
+    legal_mention: string | null;
+    price_per_km_ht: number;
+    minimum_ht: number;
+    base_ht: number;
+    rounding_ht: number;
+  } | null;
 };
 
 export type ReviewStepProps = {
@@ -139,7 +151,7 @@ export function ReviewStep(props: ReviewStepProps) {
             className="rounded-3xl border border-primary/35 bg-primary/8 p-4"
           >
             <p id="tarif" className="text-[12px] font-bold tracking-wide text-primary uppercase">
-              Tarif estimé
+              {estimate?.quote?.regime === "liable" ? "Prix TTC estimé" : "Total à payer estimé"}
             </p>
             <div className="mt-1 flex items-end justify-between gap-3">
               <p className="text-[34px] leading-none font-extrabold tabular-nums">
@@ -174,15 +186,54 @@ export function ReviewStep(props: ReviewStepProps) {
                   label={`Distance estimée${roundTrip ? " (aller-retour)" : ""}`}
                   value={`${estimate.distanceKm} km`}
                 />
-                <Row label="Tarif kilométrique" value="1,90 € / km (minimum 9 €)" />
-                <Row label="Sous-total" value={formatEuro(estimate.price.base)} />
-                <Row label="Arrondi reversé au chauffeur" value={formatEuro(estimate.price.tip)} />
+                <Row
+                  label="Tarif kilométrique HT"
+                  value={
+                    estimate.quote
+                      ? `${formatEuro(estimate.quote.price_per_km_ht)} / km (minimum ${formatEuro(estimate.quote.minimum_ht)})`
+                      : "—"
+                  }
+                />
+                {estimate.quote ? (
+                  <>
+                    <Row label="Sous-total HT" value={formatEuro(estimate.quote.base_ht)} />
+                    {estimate.quote.rounding_ht > 0 ? (
+                      <Row
+                        label="Arrondi reversé au chauffeur"
+                        value={formatEuro(estimate.quote.rounding_ht)}
+                      />
+                    ) : null}
+                    <Row
+                      label={
+                        estimate.quote.regime === "liable" ? "Montant HT" : "Montant de la prestation"
+                      }
+                      value={formatEuro(estimate.quote.amount_ht)}
+                    />
+                    {estimate.quote.regime === "liable" ? (
+                      <Row
+                        label={`TVA (${estimate.quote.vat_rate} %)`}
+                        value={formatEuro(estimate.quote.vat_amount ?? 0)}
+                      />
+                    ) : (
+                      <Row label="TVA" value="Non applicable" />
+                    )}
+                  </>
+                ) : (
+                  <Row label="Sous-total" value={formatEuro(estimate.price.base)} />
+                )}
                 <div className="mt-1 flex items-center justify-between gap-4 border-t border-border pt-2">
-                  <dt className="text-[14px] font-bold">Total</dt>
+                  <dt className="text-[14px] font-bold">
+                    {estimate.quote?.regime === "liable" ? "Total TTC" : "Total à payer"}
+                  </dt>
                   <dd className="text-[16px] font-extrabold tabular-nums">
                     {formatEuro(estimate.price.total)}
                   </dd>
                 </div>
+                {estimate.quote?.regime === "franchise" && estimate.quote.legal_mention ? (
+                  <p className="mt-2 text-[12px] text-muted-foreground">
+                    {estimate.quote.legal_mention}
+                  </p>
+                ) : null}
                 <p className="mt-2 text-[12px] text-muted-foreground">
                   Aucun autre frais n'est ajouté par Relink. Le règlement s'effectue directement
                   auprès du chauffeur.
