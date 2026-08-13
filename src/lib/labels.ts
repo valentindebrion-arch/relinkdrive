@@ -17,10 +17,12 @@ export const RIDE_STATUS_LABELS: Record<string, string> = {
 export const VERIFICATION_LABELS: Record<string, string> = {
   incomplete: "Profil incomplet",
   pending: "En attente de vérification",
+  under_review: "Vérification en cours",
   verified: "Vérifié",
   changes_requested: "Correction demandée",
   rejected: "Refusé",
   suspended: "Suspendu",
+  expired_documents: "Document expiré",
 };
 
 export const DOCUMENT_LABELS: Record<string, string> = {

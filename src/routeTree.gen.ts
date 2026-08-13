@@ -38,6 +38,7 @@ import { Route as AuthenticatedProAssistantRouteImport } from './routes/_authent
 import { Route as AuthenticatedProClientsRouteImport } from './routes/_authenticated/pro.clients'
 import { Route as AuthenticatedProDemandesRouteImport } from './routes/_authenticated/pro.demandes'
 import { Route as AuthenticatedProDisponibilitesRouteImport } from './routes/_authenticated/pro.disponibilites'
+import { Route as AuthenticatedProDossierRouteImport } from './routes/_authenticated/pro.dossier'
 import { Route as AuthenticatedProEntrepriseRouteImport } from './routes/_authenticated/pro.entreprise'
 import { Route as AuthenticatedProFacturesRouteImport } from './routes/_authenticated/pro.factures'
 import { Route as AuthenticatedProParametresRouteImport } from './routes/_authenticated/pro.parametres'
@@ -214,6 +215,11 @@ const AuthenticatedProDisponibilitesRoute =
     path: '/disponibilites',
     getParentRoute: () => AuthenticatedProRoute,
   } as any)
+const AuthenticatedProDossierRoute = AuthenticatedProDossierRouteImport.update({
+  id: '/dossier',
+  path: '/dossier',
+  getParentRoute: () => AuthenticatedProRoute,
+} as any)
 const AuthenticatedProEntrepriseRoute =
   AuthenticatedProEntrepriseRouteImport.update({
     id: '/entreprise',
@@ -352,6 +358,7 @@ export interface FileRoutesByFullPath {
   '/pro/clients': typeof AuthenticatedProClientsRouteWithChildren
   '/pro/demandes': typeof AuthenticatedProDemandesRoute
   '/pro/disponibilites': typeof AuthenticatedProDisponibilitesRoute
+  '/pro/dossier': typeof AuthenticatedProDossierRoute
   '/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/pro/factures': typeof AuthenticatedProFacturesRoute
   '/pro/parametres': typeof AuthenticatedProParametresRoute
@@ -397,6 +404,7 @@ export interface FileRoutesByTo {
   '/pro/assistant': typeof AuthenticatedProAssistantRoute
   '/pro/demandes': typeof AuthenticatedProDemandesRoute
   '/pro/disponibilites': typeof AuthenticatedProDisponibilitesRoute
+  '/pro/dossier': typeof AuthenticatedProDossierRoute
   '/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/pro/factures': typeof AuthenticatedProFacturesRoute
   '/pro/parametres': typeof AuthenticatedProParametresRoute
@@ -448,6 +456,7 @@ export interface FileRoutesById {
   '/_authenticated/pro/clients': typeof AuthenticatedProClientsRouteWithChildren
   '/_authenticated/pro/demandes': typeof AuthenticatedProDemandesRoute
   '/_authenticated/pro/disponibilites': typeof AuthenticatedProDisponibilitesRoute
+  '/_authenticated/pro/dossier': typeof AuthenticatedProDossierRoute
   '/_authenticated/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/_authenticated/pro/factures': typeof AuthenticatedProFacturesRoute
   '/_authenticated/pro/parametres': typeof AuthenticatedProParametresRoute
@@ -499,6 +508,7 @@ export interface FileRouteTypes {
     | '/pro/clients'
     | '/pro/demandes'
     | '/pro/disponibilites'
+    | '/pro/dossier'
     | '/pro/entreprise'
     | '/pro/factures'
     | '/pro/parametres'
@@ -544,6 +554,7 @@ export interface FileRouteTypes {
     | '/pro/assistant'
     | '/pro/demandes'
     | '/pro/disponibilites'
+    | '/pro/dossier'
     | '/pro/entreprise'
     | '/pro/factures'
     | '/pro/parametres'
@@ -594,6 +605,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pro/clients'
     | '/_authenticated/pro/demandes'
     | '/_authenticated/pro/disponibilites'
+    | '/_authenticated/pro/dossier'
     | '/_authenticated/pro/entreprise'
     | '/_authenticated/pro/factures'
     | '/_authenticated/pro/parametres'
@@ -838,6 +850,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProDisponibilitesRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
+    '/_authenticated/pro/dossier': {
+      id: '/_authenticated/pro/dossier'
+      path: '/dossier'
+      fullPath: '/pro/dossier'
+      preLoaderRoute: typeof AuthenticatedProDossierRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
     '/_authenticated/pro/entreprise': {
       id: '/_authenticated/pro/entreprise'
       path: '/entreprise'
@@ -1047,6 +1066,7 @@ interface AuthenticatedProRouteChildren {
   AuthenticatedProClientsRoute: typeof AuthenticatedProClientsRouteWithChildren
   AuthenticatedProDemandesRoute: typeof AuthenticatedProDemandesRoute
   AuthenticatedProDisponibilitesRoute: typeof AuthenticatedProDisponibilitesRoute
+  AuthenticatedProDossierRoute: typeof AuthenticatedProDossierRoute
   AuthenticatedProEntrepriseRoute: typeof AuthenticatedProEntrepriseRoute
   AuthenticatedProFacturesRoute: typeof AuthenticatedProFacturesRoute
   AuthenticatedProParametresRoute: typeof AuthenticatedProParametresRoute
@@ -1066,6 +1086,7 @@ const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
   AuthenticatedProClientsRoute: AuthenticatedProClientsRouteWithChildren,
   AuthenticatedProDemandesRoute: AuthenticatedProDemandesRoute,
   AuthenticatedProDisponibilitesRoute: AuthenticatedProDisponibilitesRoute,
+  AuthenticatedProDossierRoute: AuthenticatedProDossierRoute,
   AuthenticatedProEntrepriseRoute: AuthenticatedProEntrepriseRoute,
   AuthenticatedProFacturesRoute: AuthenticatedProFacturesRoute,
   AuthenticatedProParametresRoute: AuthenticatedProParametresRoute,
