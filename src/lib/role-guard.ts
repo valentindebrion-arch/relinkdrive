@@ -28,3 +28,31 @@ export async function requireRoles(allowed: AppRole[]) {
   if (!ok) throw redirect({ to: homeForRolesSafe(current.roles) });
   return current;
 }
+
+/**
+ * Seules ces pages restent accessibles au chauffeur tant que son compte
+ * n'a pas été validé par un administrateur : dossier de validation et
+ * saisie des informations obligatoires.
+ */
+const DOSSIER_ALLOWED = ["/pro/dossier", "/pro/entreprise", "/pro/vehicule", "/pro/parametres"];
+
+/**
+ * Garde de l'espace chauffeur : bloque toutes les fonctions professionnelles
+ * tant que le compte n'est pas au statut « verified ».
+ */
+export async function requireDriverAccess(pathname: string) {
+  const current = await requireRoles(["driver", "admin", "superadmin"]);
+  if (current.roles.includes("admin") || current.roles.includes("superadmin")) {
+    return { ...current, driverActive: true };
+  }
+  const { data } = await supabase
+    .from("driver_profiles")
+    .select("verification_status")
+    .eq("user_id", current.userId)
+    .maybeSingle();
+  const driverActive = data?.verification_status === "verified";
+  if (!driverActive && !DOSSIER_ALLOWED.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
+    throw redirect({ to: "/pro/dossier", replace: true });
+  }
+  return { ...current, driverActive };
+}
