@@ -1,31 +1,26 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { useRouterState } from "@tanstack/react-router";
 
-const TAB_ORDER = ["/espace", "/espace/courses", "/espace/chauffeurs", "/espace/parametres"];
-const TAB_KEYS = ["home", "courses", "drivers", "profile"] as const;
+const CLIENT_TAB_ORDER = ["/espace", "/espace/courses", "/espace/chauffeurs", "/espace/parametres"];
+const CLIENT_TAB_KEYS = ["home", "courses", "drivers", "profile"];
 const TRANSITION_MS = 380;
 
-function tabIndex(pathname: string): number {
-  if (pathname === "/espace" || pathname === "/espace/") return 0;
-  for (let i = TAB_ORDER.length - 1; i >= 1; i--) {
-    if (pathname.startsWith(TAB_ORDER[i]!)) return i;
-  }
-  return -1; // sous-page hors onglets principaux
-}
-
-function isMainTab(pathname: string) {
-  return TAB_ORDER.some((t) => pathname === t || pathname === `${t}/`);
-}
-
-function tabKey(pathname: string) {
-  const index = tabIndex(pathname);
-  return index >= 0 ? (TAB_KEYS[index] ?? pathname) : pathname;
+function makeTabIndex(order: string[]) {
+  return (pathname: string): number => {
+    const root = order[0]!;
+    if (pathname === root || pathname === `${root}/`) return 0;
+    for (let i = order.length - 1; i >= 1; i--) {
+      if (pathname.startsWith(order[i]!)) return i;
+    }
+    return -1; // sous-page hors onglets principaux
+  };
 }
 
 function prefersReducedMotion() {
   if (typeof window === "undefined" || !window.matchMedia) return false;
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
+
 
 /**
  * Transition de chevauchement entre les pages de l'espace client.
