@@ -7,14 +7,12 @@ import {
   ArrowRight,
   CalendarClock,
   CalendarDays,
-  Car,
   ChevronRight,
   Clock3,
   Loader2,
   LocateFixed,
   QrCode,
   UserRound,
-  Users,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -217,8 +215,8 @@ function ClientHome() {
     <div className="min-h-[100dvh] bg-muted/40 pb-[calc(6rem+env(safe-area-inset-bottom))]">
       {/* Zone supérieure verte */}
       <header
-        className="relative overflow-hidden bg-primary px-4 pb-24 text-primary-foreground"
-        style={{ paddingTop: "calc(env(safe-area-inset-top) + 0.75rem)" }}
+        className="relative overflow-hidden bg-primary px-4 pb-10 text-primary-foreground sm:pb-12"
+        style={{ paddingTop: "calc(env(safe-area-inset-top) + 1rem)" }}
       >
         <HeroDecor />
         <div className="relative flex justify-center">
@@ -226,7 +224,7 @@ function ClientHome() {
             <BrandLogo to="/espace" size="sm" />
           </div>
         </div>
-        <div className="relative mt-5">
+        <div className="relative mt-6">
           <p className="text-[15px] font-semibold text-primary-foreground/80">
             {firstName ? `Bonjour ${firstName}` : "Bonjour"}
           </p>
@@ -239,7 +237,7 @@ function ClientHome() {
         </div>
       </header>
 
-      <div className="mx-auto -mt-16 w-full max-w-2xl space-y-3 px-3">
+      <div className="mx-auto -mt-6 w-full max-w-md space-y-3 px-3 sm:max-w-lg">
         {/* Course active en priorité */}
         {activeRide ? (
           <Link
@@ -480,25 +478,6 @@ function ClientHome() {
           </Link>
         ) : null}
 
-        {/* Raccourcis */}
-        <div className="grid grid-cols-3 gap-2">
-          {(
-            [
-              { to: "/espace/courses", label: "Mes courses", icon: Car },
-              { to: "/espace/chauffeurs", label: "Mes chauffeurs", icon: Users },
-              { to: "/espace/demandes", label: "Planifier", icon: CalendarClock },
-            ] as const
-          ).map((s) => (
-            <Link
-              key={s.to}
-              to={s.to}
-              className="flex flex-col items-center gap-1.5 rounded-2xl border border-border/60 bg-card px-2 py-3 text-center shadow-[0_6px_20px_-20px_rgba(0,0,0,0.6)]"
-            >
-              <s.icon className="size-4 text-primary" />
-              <span className="text-[12px] font-bold">{s.label}</span>
-            </Link>
-          ))}
-        </div>
       </div>
 
       {searchField ? (
