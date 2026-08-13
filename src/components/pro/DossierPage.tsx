@@ -249,18 +249,36 @@ export function DossierPage() {
           </div>
         </div>
 
-        {primary ? (
-          <Button
-            type="button"
-            size="lg"
-            className="mt-4 h-12 w-full text-base"
-            disabled={submitting || dossier.isLoading || openingApplication}
-            aria-label={primary.label}
-            onClick={primary.action}
-          >
-            {openingApplication ? "Ouverture du dossier…" : primary.label}
-          </Button>
+        {dossier.isError || driver.isError ? (
+          <div className="mt-4 space-y-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+            <p>Impossible de charger l’état de votre dossier pour le moment.</p>
+            <Button type="button" variant="outline" size="sm" onClick={() => refresh()}>
+              Réessayer
+            </Button>
+          </div>
         ) : null}
+
+        <Button
+          type="button"
+          size="lg"
+          className="mt-4 h-12 w-full text-base"
+          disabled={openingApplication}
+          aria-label={primary?.label ?? "Compléter mon dossier"}
+          onClick={primary ? primary.action : () => goSection(resumeKey)}
+        >
+          {primary?.label ?? "Compléter mon dossier"}
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          className="mt-3 h-12 w-full text-base"
+          onClick={() => setSignOutOpen(true)}
+        >
+          <LogOut className="size-4" /> Se déconnecter
+        </Button>
+
 
         {readOnly ? (
           <p className="mt-4 flex items-start gap-2 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
