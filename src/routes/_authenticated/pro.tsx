@@ -42,7 +42,13 @@ function ProLayout() {
 
   return (
     <DashboardShell items={items} bottomItems={bottomItems} area="Espace chauffeur" settingsTo="/pro/profil" brandTo="/pro">
-      <Outlet />
+      <ClientPageTransition
+        tabOrder={PRO_TAB_ORDER}
+        tabKeys={PRO_TAB_KEYS}
+        bottomOffset="5.5rem"
+      >
+        <Outlet />
+      </ClientPageTransition>
     </DashboardShell>
   );
 }
