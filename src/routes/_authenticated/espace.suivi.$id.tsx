@@ -295,6 +295,18 @@ function TrackingPage() {
   const passengers = ride?.passengers ?? request?.passengers ?? 1;
   const luggage = request?.luggage ?? null;
   const price = ride?.price ?? request?.proposed_price ?? null;
+  // Instantané fiscal figé à la création : jamais recalculé depuis le profil actuel du chauffeur.
+  const taxSource = (ride ?? request) as
+    | {
+        tax_regime?: string | null;
+        tax_vat_rate?: number | null;
+        amount_ht?: number | null;
+        vat_amount?: number | null;
+        tax_legal_mention?: string | null;
+      }
+    | null
+    | undefined;
+  const taxLiable = taxSource?.tax_regime === "liable" && !!taxSource.tax_vat_rate;
   const refused = status === "refused";
   const cancelled = status === "cancelled";
   const expired = status === "expired";
@@ -494,12 +506,36 @@ function TrackingPage() {
           <p className="text-sm font-semibold">Tarif et paiement</p>
           <div className="mt-3 flex items-center justify-between">
             <span className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Euro className="size-4" /> {paid ? "Montant payé" : "Montant total"}
+              <Euro className="size-4" />{" "}
+              {paid ? "Montant payé" : taxLiable ? "Prix TTC" : "Total à payer"}
             </span>
             <span className="text-lg font-extrabold">
               {price ? formatEuro(Number(price)) : "Non défini"}
             </span>
           </div>
+          {price ? (
+            <dl className="mt-2 grid grid-cols-2 gap-y-1 text-[13px]">
+              {taxLiable ? (
+                <>
+                  <dt className="text-muted-foreground">Montant HT</dt>
+                  <dd className="text-right font-medium">
+                    {formatEuro(Number(taxSource?.amount_ht ?? 0))}
+                  </dd>
+                  <dt className="text-muted-foreground">
+                    TVA ({Number(taxSource?.tax_vat_rate)} %)
+                  </dt>
+                  <dd className="text-right font-medium">
+                    {formatEuro(Number(taxSource?.vat_amount ?? 0))}
+                  </dd>
+                </>
+              ) : (
+                <>
+                  <dt className="text-muted-foreground">TVA</dt>
+                  <dd className="text-right font-medium">Non applicable</dd>
+                </>
+              )}
+            </dl>
+          ) : null}
           <dl className="mt-3 grid grid-cols-2 gap-y-2 border-t border-border pt-3 text-sm">
             <dt className="text-muted-foreground">État du paiement</dt>
             <dd className="text-right font-medium">
@@ -884,7 +920,7 @@ function TrackingPage() {
             </>
           ) : null}
           <dt className="flex items-center gap-2 text-muted-foreground">
-            <Euro className="size-4" /> Prix
+            <Euro className="size-4" /> {taxLiable ? "Prix TTC" : "Total à payer"}
           </dt>
           <dd className="text-right font-medium">
             {price ? formatEuro(Number(price)) : "À confirmer"}
