@@ -267,6 +267,8 @@ export type Database = {
           accepting_requests: boolean
           admin_note: string | null
           airports: string[]
+          approved_at: string | null
+          approved_by: string | null
           availability: string[]
           billing_legal_info: string | null
           bio: string | null
@@ -274,6 +276,7 @@ export type Database = {
           business_name: string | null
           city: string | null
           created_at: string
+          expiry_notified_at: string | null
           facebook_url: string | null
           instagram_url: string | null
           languages: string[]
@@ -292,6 +295,9 @@ export type Database = {
           siret: string | null
           slug: string
           stations: string[]
+          submitted_at: string | null
+          suspended_at: string | null
+          suspension_reason: string | null
           tiktok_url: string | null
           updated_at: string
           user_id: string
@@ -305,6 +311,8 @@ export type Database = {
           accepting_requests?: boolean
           admin_note?: string | null
           airports?: string[]
+          approved_at?: string | null
+          approved_by?: string | null
           availability?: string[]
           billing_legal_info?: string | null
           bio?: string | null
@@ -312,6 +320,7 @@ export type Database = {
           business_name?: string | null
           city?: string | null
           created_at?: string
+          expiry_notified_at?: string | null
           facebook_url?: string | null
           instagram_url?: string | null
           languages?: string[]
@@ -330,6 +339,9 @@ export type Database = {
           siret?: string | null
           slug: string
           stations?: string[]
+          submitted_at?: string | null
+          suspended_at?: string | null
+          suspension_reason?: string | null
           tiktok_url?: string | null
           updated_at?: string
           user_id: string
@@ -343,6 +355,8 @@ export type Database = {
           accepting_requests?: boolean
           admin_note?: string | null
           airports?: string[]
+          approved_at?: string | null
+          approved_by?: string | null
           availability?: string[]
           billing_legal_info?: string | null
           bio?: string | null
@@ -350,6 +364,7 @@ export type Database = {
           business_name?: string | null
           city?: string | null
           created_at?: string
+          expiry_notified_at?: string | null
           facebook_url?: string | null
           instagram_url?: string | null
           languages?: string[]
@@ -368,6 +383,9 @@ export type Database = {
           siret?: string | null
           slug?: string
           stations?: string[]
+          submitted_at?: string | null
+          suspended_at?: string | null
+          suspension_reason?: string | null
           tiktok_url?: string | null
           updated_at?: string
           user_id?: string
@@ -1382,6 +1400,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_decide_driver: {
+        Args: { _decision: string; _driver: string; _reason?: string }
+        Returns: Json
+      }
+      admin_review_document: {
+        Args: {
+          _decision: Database["public"]["Enums"]["document_status"]
+          _document: string
+          _note?: string
+        }
+        Returns: undefined
+      }
       cancel_client_ride_request: {
         Args: { _request: string }
         Returns: Database["public"]["Enums"]["ride_status"]
@@ -1469,6 +1499,7 @@ export type Database = {
         Args: { _driver: string; _end: string; _start: string }
         Returns: boolean
       }
+      driver_dossier_state: { Args: { _driver: string }; Returns: Json }
       driver_tax_at: {
         Args: { _at?: string; _driver: string }
         Returns: {
@@ -1631,6 +1662,8 @@ export type Database = {
         Args: { _kind: string; _recipient: string }
         Returns: undefined
       }
+      process_document_expiry: { Args: never; Returns: number }
+      submit_driver_dossier: { Args: never; Returns: Json }
       track_driver_event: {
         Args: { _event: string; _slug: string }
         Returns: undefined
