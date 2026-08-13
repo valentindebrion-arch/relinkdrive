@@ -22,24 +22,31 @@ function AssistantPage() {
     queryKey: ["assistant", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const [{ data: rides }, { data: invoices }, { data: requests }, { data: conns }] = await Promise.all([
-        supabase.from("rides").select("*").eq("driver_id", user!.id).eq("is_block", false),
-        supabase.from("invoices").select("*").eq("driver_id", user!.id),
-        supabase.from("ride_requests").select("*").eq("driver_id", user!.id),
-        supabase.from("driver_client_connections").select("*").eq("driver_id", user!.id),
-      ]);
-      return { rides: rides ?? [], invoices: invoices ?? [], requests: requests ?? [], conns: conns ?? [] };
+      const [{ data: rides }, { data: invoices }, { data: requests }, { data: conns }] =
+        await Promise.all([
+          supabase.from("rides").select("*").eq("driver_id", user!.id).eq("is_block", false),
+          supabase.from("invoices").select("*").eq("driver_id", user!.id),
+          supabase.from("ride_requests").select("*").eq("driver_id", user!.id),
+          supabase.from("driver_client_connections").select("*").eq("driver_id", user!.id),
+        ]);
+      return {
+        rides: rides ?? [],
+        invoices: invoices ?? [],
+        requests: requests ?? [],
+        conns: conns ?? [],
+      };
     },
   });
 
   const tips: Tip[] = [];
-  const soon = (d?: string | null) => d && new Date(d).getTime() - Date.now() < 1000 * 60 * 60 * 24 * 45;
+  const soon = (d?: string | null) =>
+    d && new Date(d).getTime() - Date.now() < 1000 * 60 * 60 * 24 * 45;
 
   if (driver.data && driver.data.verification_status !== "verified") {
     tips.push({
       title: "Finalisez votre vérification",
       body: "Tant que votre dossier n'est pas validé, votre page publique reste inactive.",
-      to: "/pro/verification",
+      to: "/pro/dossier/completer",
       cta: "Compléter mon dossier",
       tone: "warn",
     });
@@ -57,7 +64,7 @@ function AssistantPage() {
     tips.push({
       title: "Assurance bientôt expirée",
       body: `Échéance le ${formatDate(vehicle.data?.insurance_expires_at)}. Pensez à renouveler et à mettre à jour votre justificatif.`,
-      to: "/pro/verification",
+      to: "/pro/dossier/completer",
       cta: "Mettre à jour",
       tone: "warn",
     });
@@ -74,7 +81,7 @@ function AssistantPage() {
       tips.push({
         title: `${DOCUMENT_LABELS[d.doc_type] ?? d.doc_type} refusé`,
         body: d.review_note ?? "Un administrateur demande une nouvelle version de ce document.",
-        to: "/pro/verification",
+        to: "/pro/dossier/completer",
         cta: "Renvoyer le document",
         tone: "warn",
       });
@@ -136,7 +143,10 @@ function AssistantPage() {
 
   return (
     <>
-      <PageHeader title="Assistant" description="Des recommandations simples basées sur votre activité réelle." />
+      <PageHeader
+        title="Assistant"
+        description="Des recommandations simples basées sur votre activité réelle."
+      />
       {tips.length === 0 ? (
         <div className="surface p-6 text-sm text-muted-foreground">
           Tout est à jour. Continuez à partager votre QR code après chaque course.

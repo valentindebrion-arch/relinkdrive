@@ -24,7 +24,8 @@ export const Route = createFileRoute("/chauffeurs")({
       { property: "og:title", content: `Espace chauffeurs VTC — ${BRAND.name}` },
       {
         property: "og:description",
-        content: "QR code, demandes, planning, CRM et factures : tout votre suivi post-course au même endroit.",
+        content:
+          "QR code, demandes, planning, CRM et factures : tout votre suivi post-course au même endroit.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -34,12 +35,36 @@ export const Route = createFileRoute("/chauffeurs")({
 });
 
 const features = [
-  { icon: QrCode, title: "QR code de fidélisation", text: "Votre page personnelle que le client scanne en fin de course pour vous ajouter à son carnet." },
-  { icon: Users, title: "CRM clients", text: "Historique, statut de fidélité et notes privées invisibles pour vos clients." },
-  { icon: CalendarClock, title: "Planning hebdomadaire", text: "Vos courses confirmées et vos créneaux d'indisponibilité en un coup d'œil." },
-  { icon: Receipt, title: "Facturation", text: "Factures numérotées avec TVA calculée automatiquement à la fin de la course." },
-  { icon: Car, title: "Véhicule & documents", text: "Assurance, contrôle technique et carte VTC suivis avec alertes d'expiration." },
-  { icon: Bot, title: "Assistant", text: "Relances clients, factures manquantes et documents à renouveler suggérés chaque jour." },
+  {
+    icon: QrCode,
+    title: "QR code de fidélisation",
+    text: "Votre page personnelle que le client scanne en fin de course pour vous ajouter à son carnet.",
+  },
+  {
+    icon: Users,
+    title: "CRM clients",
+    text: "Historique, statut de fidélité et notes privées invisibles pour vos clients.",
+  },
+  {
+    icon: CalendarClock,
+    title: "Planning hebdomadaire",
+    text: "Vos courses confirmées et vos créneaux d'indisponibilité en un coup d'œil.",
+  },
+  {
+    icon: Receipt,
+    title: "Facturation",
+    text: "Factures numérotées avec TVA calculée automatiquement à la fin de la course.",
+  },
+  {
+    icon: Car,
+    title: "Véhicule & documents",
+    text: "Assurance, contrôle technique et carte VTC suivis avec alertes d'expiration.",
+  },
+  {
+    icon: Bot,
+    title: "Assistant",
+    text: "Relances clients, factures manquantes et documents à renouveler suggérés chaque jour.",
+  },
 ];
 
 const steps = [
@@ -61,7 +86,10 @@ function DriversPage() {
         </Link>
         <nav className="flex items-center gap-2 text-sm">
           {signedInDriver ? (
-            <Link to="/pro" className="rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground">
+            <Link
+              to="/pro"
+              className="rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground"
+            >
               Mon espace chauffeur
             </Link>
           ) : (
@@ -93,8 +121,8 @@ function DriversPage() {
           L'espace dédié aux chauffeurs VTC indépendants
         </h1>
         <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-          {BRAND.name} ne vous met jamais en concurrence : vos clients vous ajoutent volontairement après
-          une première course, puis réservent directement auprès de vous.
+          {BRAND.name} ne vous met jamais en concurrence : vos clients vous ajoutent volontairement
+          après une première course, puis réservent directement auprès de vous.
         </p>
         <div className="mt-7 flex flex-wrap gap-3">
           <Link
@@ -149,12 +177,13 @@ function DriversPage() {
             <div>
               <p className="font-semibold">Dossier vérifié par notre équipe</p>
               <p className="text-sm text-muted-foreground">
-                Carte VTC, assurance et documents contrôlés avant la publication de votre page publique.
+                Carte VTC, assurance et documents contrôlés avant la publication de votre page
+                publique.
               </p>
             </div>
           </div>
           <Link
-            to={signedInDriver ? "/pro/verification" : "/auth"}
+            to={signedInDriver ? "/pro/dossier/completer" : "/auth"}
             search={signedInDriver ? {} : { mode: "signup", role: "driver" }}
             className="shrink-0 rounded-xl bg-primary px-5 py-3 text-center text-sm font-medium text-primary-foreground"
           >

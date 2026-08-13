@@ -1,6 +1,17 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { Home, Car, Users, Receipt, Bot, UserRound, CalendarDays, ShieldCheck, Building2, HelpCircle } from "lucide-react";
+import {
+  Home,
+  Car,
+  Users,
+  Receipt,
+  Bot,
+  UserRound,
+  CalendarDays,
+  ShieldCheck,
+  Building2,
+  HelpCircle,
+} from "lucide-react";
 import { DashboardShell, type NavItem } from "@/components/DashboardShell";
 import { ClientPageTransition } from "@/components/ClientPageTransition";
 import { useAuth } from "@/lib/auth";
@@ -72,13 +83,9 @@ function ProLayout() {
       settingsTo={active ? "/pro/profil" : "/pro/parametres"}
       brandTo={active ? "/pro" : "/pro/dossier"}
     >
-      {active ? (
-        <ClientPageTransition tabOrder={PRO_TAB_ORDER} tabKeys={PRO_TAB_KEYS} bottomOffset="5.5rem">
-          <Outlet />
-        </ClientPageTransition>
-      ) : (
+      <ClientPageTransition tabOrder={PRO_TAB_ORDER} tabKeys={PRO_TAB_KEYS} bottomOffset="5.5rem">
         <Outlet />
-      )}
+      </ClientPageTransition>
     </DashboardShell>
   );
 }

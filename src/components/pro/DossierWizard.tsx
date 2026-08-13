@@ -108,6 +108,32 @@ export function DossierWizard() {
   const [certified, setCertified] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const hydrated = useRef(false);
+  const initialized = useRef(false);
+
+  // Une seule ligne par chauffeur (clé primaire driver_id) : l'upsert est idempotent.
+  useEffect(() => {
+    if (!user?.id || details.isLoading || details.data || initialized.current) return;
+    initialized.current = true;
+    void saveDossierDetails(user.id, {}).then(
+      () => void qc.invalidateQueries({ queryKey: ["dossier-details", user.id] }),
+      () => toast.error("Impossible de préparer votre dossier. Réessayez."),
+    );
+  }, [details.data, details.isLoading, qc, user?.id]);
+
+  // Une ouverture directe reprend la première correction ou section incomplète.
+  useEffect(() => {
+    if (search.section || !dossier.data?.sections.length) return;
+    const sections = dossier.data.sections;
+    const target =
+      sections.find((section) => section.state === "changes" || section.state === "expired") ??
+      sections.find((section) => section.state === "todo");
+    if (!target || target.key === "identity") return;
+    void navigate({
+      to: "/pro/dossier/completer",
+      search: { section: target.key },
+      replace: true,
+    });
+  }, [dossier.data?.sections, navigate, search.section]);
 
   // Préremplissage : les données déjà connues ne sont jamais effacées.
   useEffect(() => {
@@ -183,9 +209,7 @@ export function DossierWizard() {
     if (target === "identity") {
       if (!f["first_name"]?.trim() || !f["last_name"]?.trim())
         return "Indiquez votre prénom et votre nom.";
-      if (!f["birth_date"]) return "Indiquez votre date de naissance.";
-      if (!f["postal_address"]?.trim()) return "Indiquez votre adresse postale.";
-      if (!/^[+\d][\d\s.-]{7,}$/.test(f["phone"] ?? ""))
+      if (f["phone"] && !/^[+\d][\d\s.-]{7,}$/.test(f["phone"]))
         return "Indiquez un numéro de téléphone valide.";
     }
     if (target === "license") {
@@ -429,7 +453,13 @@ export function DossierWizard() {
   return (
     <div className="space-y-4 pb-8">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" onClick={back} aria-label="Retour au statut du compte">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={back}
+          aria-label="Retour au statut du compte"
+        >
           <ArrowLeft className="size-4" /> Statut du compte
         </Button>
       </div>
@@ -1108,7 +1138,7 @@ export function DossierWizard() {
 
       {step === "review" || readOnly ? null : (
         <div className="grid gap-2 sm:grid-cols-2">
-          <Button size="lg" disabled={saving} onClick={() => void saveAndContinue()}>
+          <Button type="button" size="lg" disabled={saving} onClick={() => void saveAndContinue()}>
             {saving ? (
               <Loader2 className="size-4 animate-spin" />
             ) : (
@@ -1116,7 +1146,13 @@ export function DossierWizard() {
             )}
             Enregistrer et continuer
           </Button>
-          <Button size="lg" variant="outline" disabled={saving} onClick={() => void saveAndQuit()}>
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            disabled={saving}
+            onClick={() => void saveAndQuit()}
+          >
             <Save className="size-4" /> Enregistrer et quitter
           </Button>
         </div>
