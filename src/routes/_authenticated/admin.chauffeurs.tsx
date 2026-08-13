@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { VERIFICATION_LABELS, DOCUMENT_LABELS, DOC_STATUS_LABELS, formatDate } from "@/lib/labels";
+import { fetchDossierState, SECTION_STATE_LABELS, type DossierState } from "@/lib/driver-dossier";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -13,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/admin/chauffeurs")({
   component: AdminDrivers,
 });
 
-const STATUSES = ["incomplete", "pending", "verified", "changes_requested", "rejected", "suspended"] as const;
+const FILTERS = ["pending", "under_review", "changes_requested", "expired_documents", "verified", "all"];
 
 function AdminDrivers() {
   const qc = useQueryClient();
@@ -24,7 +25,7 @@ function AdminDrivers() {
     queryKey: ["admin", "drivers", filter],
     queryFn: async () => {
       let q = supabase.from("driver_profiles").select("*").order("updated_at", { ascending: false });
-      if (filter !== "all") q = q.eq("verification_status", filter as (typeof STATUSES)[number]);
+      if (filter !== "all") q = q.eq("verification_status", filter as never);
       const { data, error } = await q;
       if (error) throw error;
       const ids = (data ?? []).map((d) => d.user_id);
@@ -32,10 +33,21 @@ function AdminDrivers() {
         ids.length ? supabase.from("profiles").select("id, full_name, email, phone, status").in("id", ids) : { data: [] },
         ids.length ? supabase.from("verification_documents").select("*").in("driver_id", ids) : { data: [] },
       ]);
+      const states = await Promise.all(
+        ids.map(async (id) => {
+          try {
+            return [id, await fetchDossierState(id)] as const;
+          } catch {
+            return [id, null] as const;
+          }
+        }),
+      );
+      const stateMap = new Map<string, DossierState | null>(states);
       return (data ?? []).map((d) => ({
         ...d,
         profile: (profiles ?? []).find((p) => p.id === d.user_id) ?? null,
         docs: (docs ?? []).filter((doc) => doc.driver_id === d.user_id),
+        dossier: stateMap.get(d.user_id) ?? null,
       }));
     },
   });
@@ -43,37 +55,42 @@ function AdminDrivers() {
   const decide = useMutation({
     mutationFn: async ({
       userId,
-      status,
+      decision,
       reason,
     }: {
       userId: string;
-      status: (typeof STATUSES)[number];
+      decision: "approve" | "changes" | "reject" | "suspend" | "reinstate";
       reason?: string | undefined;
     }) => {
-      const { error } = await supabase
-        .from("driver_profiles")
-        .update({
-          verification_status: status,
-          rejection_reason: status === "verified" ? null : (reason ?? null),
-          admin_note: reason ?? null,
-          page_published: status === "verified",
-        })
-        .eq("user_id", userId);
+      const { error } = await supabase.rpc("admin_decide_driver", {
+        _driver: userId,
+        _decision: decision,
+        _reason: reason ?? "",
+      });
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Dossier mis à jour");
+      toast.success("Décision enregistrée");
       void qc.invalidateQueries({ queryKey: ["admin"] });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erreur"),
   });
 
   const reviewDoc = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: "approved" | "rejected" }) => {
-      const { error } = await supabase
-        .from("verification_documents")
-        .update({ status, reviewed_at: new Date().toISOString() })
-        .eq("id", id);
+    mutationFn: async ({
+      id,
+      status,
+      note: reviewNote,
+    }: {
+      id: string;
+      status: "approved" | "rejected";
+      note?: string | undefined;
+    }) => {
+      const { error } = await supabase.rpc("admin_review_document", {
+        _document: id,
+        _decision: status,
+        _note: reviewNote ?? "",
+      });
       if (error) throw error;
     },
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["admin", "drivers"] }),
@@ -82,16 +99,19 @@ function AdminDrivers() {
 
   return (
     <div>
-      <PageHeader title="Vérification des chauffeurs" description="Contrôlez les dossiers et autorisez la mise en ligne des pages publiques." />
+      <PageHeader
+        title="Vérification des chauffeurs"
+        description="Contrôlez les dossiers pièce par pièce et autorisez l'activation des comptes professionnels."
+      />
 
       <div className="mb-4 flex flex-wrap gap-2">
-        {["pending", "changes_requested", "verified", "all"].map((f) => (
+        {FILTERS.map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
             className={`rounded-full border px-3 py-1.5 text-sm ${filter === f ? "border-primary bg-accent" : "border-border text-muted-foreground"}`}
           >
-            {f === "all" ? "Tous" : VERIFICATION_LABELS[f]}
+            {f === "all" ? "Tous" : (VERIFICATION_LABELS[f] ?? f)}
           </button>
         ))}
       </div>
@@ -117,6 +137,30 @@ function AdminDrivers() {
                 <StatusBadge status={d.verification_status} labels={VERIFICATION_LABELS} />
               </div>
 
+              {d.dossier ? (
+                <div className="mt-4 grid gap-1.5 sm:grid-cols-2">
+                  <p className="text-xs text-muted-foreground sm:col-span-2">
+                    Dossier complété à {d.dossier.percent} %
+                  </p>
+                  {d.dossier.sections.map((s) => (
+                    <div key={s.key} className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-1.5 text-xs">
+                      <span>{s.label}</span>
+                      <span
+                        className={
+                          s.state === "approved"
+                            ? "text-primary"
+                            : s.state === "todo"
+                              ? "text-muted-foreground"
+                              : "text-destructive"
+                        }
+                      >
+                        {SECTION_STATE_LABELS[s.state]}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
               <div className="mt-4 grid gap-2">
                 {d.docs.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Aucun document déposé.</p>
@@ -132,7 +176,11 @@ function AdminDrivers() {
                         <Button size="sm" variant="outline" onClick={() => reviewDoc.mutate({ id: doc.id, status: "approved" })}>
                           Valider
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => reviewDoc.mutate({ id: doc.id, status: "rejected" })}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => reviewDoc.mutate({ id: doc.id, status: "rejected", note: note[d.user_id] })}
+                        >
                           Refuser
                         </Button>
                       </div>
@@ -143,35 +191,45 @@ function AdminDrivers() {
 
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <Input
-                  placeholder="Motif / note de modération"
+                  placeholder="Motif communiqué au chauffeur"
                   value={note[d.user_id] ?? ""}
                   onChange={(e) => setNote((n) => ({ ...n, [d.user_id]: e.target.value }))}
                   className="max-w-xs"
                 />
-                <Button size="sm" onClick={() => decide.mutate({ userId: d.user_id, status: "verified" })}>
-                  Accepter le chauffeur
+                <Button
+                  size="sm"
+                  disabled={!d.dossier?.all_approved}
+                  title={d.dossier?.all_approved ? undefined : "Toutes les pièces doivent être validées"}
+                  onClick={() => decide.mutate({ userId: d.user_id, decision: "approve" })}
+                >
+                  Valider le compte
                 </Button>
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => decide.mutate({ userId: d.user_id, status: "changes_requested", reason: note[d.user_id] })}
+                  onClick={() => decide.mutate({ userId: d.user_id, decision: "changes", reason: note[d.user_id] })}
                 >
                   Demander une correction
                 </Button>
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => decide.mutate({ userId: d.user_id, status: "rejected", reason: note[d.user_id] })}
+                  onClick={() => decide.mutate({ userId: d.user_id, decision: "reject", reason: note[d.user_id] })}
                 >
                   Refuser
                 </Button>
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => decide.mutate({ userId: d.user_id, status: "suspended", reason: note[d.user_id] })}
+                  onClick={() => decide.mutate({ userId: d.user_id, decision: "suspend", reason: note[d.user_id] })}
                 >
                   Suspendre
                 </Button>
+                {d.verification_status === "suspended" ? (
+                  <Button size="sm" variant="outline" onClick={() => decide.mutate({ userId: d.user_id, decision: "reinstate" })}>
+                    Réactiver
+                  </Button>
+                ) : null}
               </div>
             </div>
           ))}
