@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_reauth_events: {
+        Row: {
+          admin_id: string
+          id: string
+          method: string
+          verified_at: string
+        }
+        Insert: {
+          admin_id: string
+          id?: string
+          method?: string
+          verified_at?: string
+        }
+        Update: {
+          admin_id?: string
+          id?: string
+          method?: string
+          verified_at?: string
+        }
+        Relationships: []
+      }
       analytics_events: {
         Row: {
           city: string | null
@@ -180,6 +201,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      dossier_admin_notes: {
+        Row: {
+          admin_id: string
+          created_at: string
+          driver_id: string
+          id: string
+          note: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          driver_id: string
+          id?: string
+          note: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          driver_id?: string
+          id?: string
+          note?: string
+        }
+        Relationships: []
+      }
+      dossier_section_reviews: {
+        Row: {
+          admin_id: string | null
+          created_at: string
+          driver_id: string
+          id: string
+          note: string | null
+          section: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_id?: string | null
+          created_at?: string
+          driver_id: string
+          id?: string
+          note?: string | null
+          section: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_id?: string | null
+          created_at?: string
+          driver_id?: string
+          id?: string
+          note?: string | null
+          section?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       driver_absences: {
         Row: {
@@ -1504,6 +1582,10 @@ export type Database = {
           _note?: string
         }
         Returns: undefined
+      }
+      admin_validate_section: {
+        Args: { _driver: string; _note?: string; _section: string }
+        Returns: Json
       }
       cancel_client_ride_request: {
         Args: { _request: string }

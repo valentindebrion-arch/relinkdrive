@@ -10,7 +10,7 @@ import { fetchDossierState, SECTION_STATE_LABELS, type DossierState } from "@/li
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export const Route = createFileRoute("/_authenticated/admin/chauffeurs")({
+export const Route = createFileRoute("/_authenticated/admin/chauffeurs/")({
   component: AdminDrivers,
 });
 
