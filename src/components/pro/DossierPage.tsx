@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock,
+  LogOut,
   FileWarning,
   ShieldCheck,
   Upload,
@@ -66,7 +67,7 @@ function isDone(s: SectionState) {
 }
 
 export function DossierPage() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const driver = useDriverProfile();
   const docs = useMyDocuments();
   const dossier = useDossierState();
@@ -75,6 +76,7 @@ export function DossierPage() {
   const search = useSearch({ strict: false }) as { section?: string };
   const [busy, setBusy] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [signOutOpen, setSignOutOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [openingApplication, setOpeningApplication] = useState(false);
 
@@ -92,17 +94,22 @@ export function DossierPage() {
     }
   }, [openKey]);
 
-  async function goSection(key: string | undefined) {
-    if (openingApplication) return;
+  function goSection(key: string | undefined) {
     setOpeningApplication(true);
-    try {
-      await navigate({ to: "/pro/dossier/completer", search: key ? { section: key } : {} });
-    } catch {
-      toast.error("Impossible d’ouvrir votre dossier pour le moment. Réessayez.");
-    } finally {
-      setOpeningApplication(false);
-    }
+    // Navigation immédiate : la page du dossier charge ses données elle-même.
+    void navigate({ to: "/pro/dossier/completer", search: key ? { section: key } : {} })
+      .catch(() => toast.error("Impossible d’ouvrir votre dossier pour le moment. Réessayez."))
+      .finally(() => setOpeningApplication(false));
   }
+
+  async function handleSignOut() {
+    setSignOutOpen(false);
+    await qc.cancelQueries();
+    qc.clear();
+    await signOut();
+    void navigate({ to: "/auth", replace: true });
+  }
+
 
   function refresh() {
     void qc.invalidateQueries({ queryKey: ["my-documents"] });
@@ -179,25 +186,26 @@ export function DossierPage() {
   const changesCount = sections.filter((s) => s.state === "changes").length;
   const started = (state?.percent ?? 0) > 0;
 
-  const primary: { label: string; action: () => void } | null = (() => {
-    if (readOnly) return null;
+  const primary: { label: string; action: () => void } = (() => {
     if (status === "verified")
       return {
         label: "Accéder à mon espace professionnel",
         action: () => void navigate({ to: "/pro" }),
       };
-    if (status === "suspended" || status === "rejected") return null;
+    if (readOnly)
+      return { label: "Consulter mon dossier", action: () => goSection(resumeKey) };
     if (status === "expired_documents")
-      return { label: "Mettre à jour mes documents", action: () => void goSection(resumeKey) };
+      return { label: "Mettre à jour mes documents", action: () => goSection(resumeKey) };
     if (status === "changes_requested")
-      return { label: "Corriger mon dossier", action: () => void goSection(resumeKey) };
+      return { label: "Corriger mon dossier", action: () => goSection(resumeKey) };
     if (state?.complete)
-      return { label: "Vérifier et envoyer mon dossier", action: () => void goSection("review") };
+      return { label: "Vérifier et envoyer mon dossier", action: () => goSection("review") };
     return {
       label: started ? "Reprendre mon dossier" : "Compléter mon dossier",
-      action: () => void goSection(resumeKey),
+      action: () => goSection(resumeKey),
     };
   })();
+
 
   function nextSectionKey(from: string) {
     const idx = sections.findIndex((s) => s.key === from);
@@ -243,18 +251,38 @@ export function DossierPage() {
           </div>
         </div>
 
-        {primary ? (
-          <Button
-            type="button"
-            size="lg"
-            className="mt-4 h-12 w-full text-base"
-            disabled={submitting || dossier.isLoading || openingApplication}
-            aria-label={primary.label}
-            onClick={primary.action}
-          >
-            {openingApplication ? "Ouverture du dossier…" : primary.label}
-          </Button>
+        {dossier.isError || driver.isError ? (
+          <div className="mt-4 space-y-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+            <p>Impossible de charger l’état de votre dossier pour le moment.</p>
+            <Button type="button" variant="outline" size="sm" onClick={() => refresh()}>
+              Réessayer
+            </Button>
+          </div>
         ) : null}
+
+        <Button
+          type="button"
+          size="lg"
+          className="mt-4 h-12 w-full text-base"
+          disabled={openingApplication}
+          aria-label={primary.label}
+          onClick={primary.action}
+        >
+          {primary.label}
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          className="mt-3 h-12 w-full text-base"
+          onClick={() => setSignOutOpen(true)}
+        >
+          <LogOut className="size-4" /> Se déconnecter
+        </Button>
+
+
+
 
         {readOnly ? (
           <p className="mt-4 flex items-start gap-2 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
@@ -365,6 +393,23 @@ export function DossierPage() {
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction onClick={() => void submitDossier()}>
               Confirmer l'envoi
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={signOutOpen} onOpenChange={setSignOutOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Souhaitez-vous vous déconnecter ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vos informations et documents déjà enregistrés seront conservés.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Rester connecté</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void handleSignOut()}>
+              Se déconnecter
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

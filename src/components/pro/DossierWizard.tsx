@@ -107,6 +107,7 @@ export function DossierWizard() {
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [certified, setCertified] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [initError, setInitError] = useState(false);
   const hydrated = useRef(false);
   const initialized = useRef(false);
 
@@ -115,10 +116,24 @@ export function DossierWizard() {
     if (!user?.id || details.isLoading || details.data || initialized.current) return;
     initialized.current = true;
     void saveDossierDetails(user.id, {}).then(
-      () => void qc.invalidateQueries({ queryKey: ["dossier-details", user.id] }),
-      () => toast.error("Impossible de préparer votre dossier. Réessayez."),
+      () => {
+        setInitError(false);
+        void qc.invalidateQueries({ queryKey: ["dossier-details", user.id] });
+      },
+      () => setInitError(true),
     );
   }, [details.data, details.isLoading, qc, user?.id]);
+
+  function retryInit() {
+    if (!user?.id) return;
+    setInitError(false);
+    initialized.current = true;
+    void saveDossierDetails(user.id, {}).then(
+      () => void qc.invalidateQueries({ queryKey: ["dossier-details", user.id] }),
+      () => setInitError(true),
+    );
+  }
+
 
   // Une ouverture directe reprend la première correction ou section incomplète.
   useEffect(() => {
@@ -444,11 +459,33 @@ export function DossierWizard() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 p-6 text-sm text-muted-foreground">
-        <Loader2 className="size-4 animate-spin" /> Chargement de votre dossier…
+      <div className="space-y-4 pb-8">
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={back}
+            aria-label="Retour au statut du compte"
+          >
+            <ArrowLeft className="size-4" /> Statut du compte
+          </Button>
+        </div>
+        <header className="surface p-4">
+          <h1 className="text-lg font-semibold">Compléter mon dossier</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Chargement de vos informations…
+          </p>
+        </header>
+        <div className="surface space-y-3 p-4">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="h-10 animate-pulse rounded-lg bg-muted" />
+          ))}
+        </div>
       </div>
     );
   }
+
 
   return (
     <div className="space-y-4 pb-8">
@@ -463,6 +500,22 @@ export function DossierWizard() {
           <ArrowLeft className="size-4" /> Statut du compte
         </Button>
       </div>
+
+      {initError ? (
+        <div className="surface space-y-3 border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+          <p>Impossible d’initialiser votre dossier pour le moment.</p>
+          <div className="flex gap-2">
+            <Button type="button" size="sm" onClick={retryInit}>
+              Réessayer
+            </Button>
+            <Button type="button" size="sm" variant="outline" onClick={back}>
+              Retour au statut du compte
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+
 
       <header className="surface p-4">
         <h1 className="text-lg font-semibold">Compléter mon dossier</h1>
