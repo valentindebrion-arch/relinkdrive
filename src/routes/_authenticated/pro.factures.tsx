@@ -242,14 +242,18 @@ function DriverInvoices() {
 
   function exportCsv(rowsList: Invoice[]) {
     const rows = [
-      ["Numero", "Date", "Client", "Description", "HT", "TVA", "TTC", "Statut"],
+      ["Numero", "Date", "Client", "Description", "Regime", "HT", "Taux TVA", "TVA", "TTC", "Statut"],
       ...rowsList.map((i) => [
         i.number,
         i.issued_on,
         clientName(i).replace(/;/g, ","),
         (i.description ?? "").replace(/;/g, ","),
+        (i as { tax_regime?: string | null }).tax_regime === "liable" ? "Redevable" : "Franchise",
         String(i.amount_ht),
-        String(i.vat_rate),
+        (i as { tax_regime?: string | null }).tax_regime === "liable" ? String(i.vat_rate) : "",
+        (i as { tax_regime?: string | null }).tax_regime === "liable"
+          ? String(Math.round((Number(i.amount_ttc) - Number(i.amount_ht)) * 100) / 100)
+          : "",
         String(i.amount_ttc),
         INVOICE_LABELS[i.status] ?? i.status,
       ]),
