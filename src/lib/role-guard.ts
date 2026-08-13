@@ -34,7 +34,27 @@ export async function requireRoles(allowed: AppRole[]) {
  * n'a pas été validé par un administrateur : dossier de validation et
  * saisie des informations obligatoires.
  */
-const DOSSIER_ALLOWED = ["/pro/dossier", "/pro/entreprise", "/pro/vehicule", "/pro/parametres"];
+const PRE_APPROVAL_ROUTES = [
+  "/pro/dossier",
+  "/pro/dossier/completer",
+  "/pro/entreprise",
+  "/pro/vehicule",
+  "/pro/parametres",
+  "/aide",
+] as const;
+
+/** Les anciennes valeurs et les lignes absentes restent toujours non validées. */
+export function normalizeDriverVerificationStatus(status?: string | null) {
+  if (!status || ["dossier_incomplet", "not_verified"].includes(status)) return "incomplete";
+  return status;
+}
+
+export function isPreApprovalRoute(pathname: string) {
+  const cleanPath = pathname.replace(/\/+$/, "") || "/";
+  return PRE_APPROVAL_ROUTES.some(
+    (route) => cleanPath === route || cleanPath.startsWith(`${route}/`),
+  );
+}
 
 /**
  * Garde de l'espace chauffeur : bloque toutes les fonctions professionnelles
@@ -50,9 +70,10 @@ export async function requireDriverAccess(pathname: string) {
     .select("verification_status")
     .eq("user_id", current.userId)
     .maybeSingle();
-  const driverActive = data?.verification_status === "verified";
-  if (!driverActive && !DOSSIER_ALLOWED.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
+  const verificationStatus = normalizeDriverVerificationStatus(data?.verification_status);
+  const driverActive = verificationStatus === "verified";
+  if (!driverActive && !isPreApprovalRoute(pathname)) {
     throw redirect({ to: "/pro/dossier", replace: true });
   }
-  return { ...current, driverActive };
+  return { ...current, driverActive, verificationStatus };
 }

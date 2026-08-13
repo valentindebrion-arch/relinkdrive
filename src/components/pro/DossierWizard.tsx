@@ -108,6 +108,32 @@ export function DossierWizard() {
   const [certified, setCertified] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const hydrated = useRef(false);
+  const initialized = useRef(false);
+
+  // Une seule ligne par chauffeur (clé primaire driver_id) : l'upsert est idempotent.
+  useEffect(() => {
+    if (!user?.id || details.isLoading || details.data || initialized.current) return;
+    initialized.current = true;
+    void saveDossierDetails(user.id, {}).then(
+      () => void qc.invalidateQueries({ queryKey: ["dossier-details", user.id] }),
+      () => toast.error("Impossible de préparer votre dossier. Réessayez."),
+    );
+  }, [details.data, details.isLoading, qc, user?.id]);
+
+  // Une ouverture directe reprend la première correction ou section incomplète.
+  useEffect(() => {
+    if (search.section || !dossier.data?.sections.length) return;
+    const sections = dossier.data.sections;
+    const target =
+      sections.find((section) => section.state === "changes" || section.state === "expired") ??
+      sections.find((section) => section.state === "todo");
+    if (!target || target.key === "identity") return;
+    void navigate({
+      to: "/pro/dossier/completer",
+      search: { section: target.key },
+      replace: true,
+    });
+  }, [dossier.data?.sections, navigate, search.section]);
 
   // Préremplissage : les données déjà connues ne sont jamais effacées.
   useEffect(() => {
@@ -429,7 +455,7 @@ export function DossierWizard() {
   return (
     <div className="space-y-4 pb-8">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" onClick={back} aria-label="Retour au statut du compte">
+        <Button type="button" variant="ghost" size="sm" onClick={back} aria-label="Retour au statut du compte">
           <ArrowLeft className="size-4" /> Statut du compte
         </Button>
       </div>

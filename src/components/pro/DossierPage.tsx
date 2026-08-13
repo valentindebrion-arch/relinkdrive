@@ -76,6 +76,7 @@ export function DossierPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [openingApplication, setOpeningApplication] = useState(false);
 
   const status = driver.data?.verification_status ?? "incomplete";
   const state = dossier.data;
@@ -91,8 +92,15 @@ export function DossierPage() {
     }
   }, [openKey]);
 
-  function goSection(key: string | undefined) {
-    void navigate({ to: "/pro/dossier/completer", search: key ? { section: key } : {} });
+  async function goSection(key: string | undefined) {
+    if (openingApplication) return;
+    setOpeningApplication(true);
+    try {
+      await navigate({ to: "/pro/dossier/completer", search: key ? { section: key } : {} });
+    } catch {
+      setOpeningApplication(false);
+      toast.error("Impossible d’ouvrir votre dossier pour le moment. Réessayez.");
+    }
   }
 
   function refresh() {
@@ -179,14 +187,14 @@ export function DossierPage() {
       };
     if (status === "suspended" || status === "rejected") return null;
     if (status === "expired_documents")
-      return { label: "Mettre à jour mes documents", action: () => goSection(resumeKey) };
+      return { label: "Mettre à jour mes documents", action: () => void goSection(resumeKey) };
     if (status === "changes_requested")
-      return { label: "Corriger mon dossier", action: () => goSection(resumeKey) };
+      return { label: "Corriger mon dossier", action: () => void goSection(resumeKey) };
     if (state?.complete)
-      return { label: "Vérifier et envoyer mon dossier", action: () => goSection("review") };
+      return { label: "Vérifier et envoyer mon dossier", action: () => void goSection("review") };
     return {
       label: started ? "Reprendre mon dossier" : "Compléter mon dossier",
-      action: () => goSection(resumeKey),
+      action: () => void goSection(resumeKey),
     };
   })();
 
@@ -236,13 +244,14 @@ export function DossierPage() {
 
         {primary ? (
           <Button
+            type="button"
             size="lg"
             className="mt-4 h-12 w-full text-base"
-            disabled={submitting || dossier.isLoading}
+            disabled={submitting || dossier.isLoading || openingApplication}
             aria-label={primary.label}
             onClick={primary.action}
           >
-            {primary.label}
+            {openingApplication ? "Ouverture du dossier…" : primary.label}
           </Button>
         ) : null}
 

@@ -72,13 +72,9 @@ function ProLayout() {
       settingsTo={active ? "/pro/profil" : "/pro/parametres"}
       brandTo={active ? "/pro" : "/pro/dossier"}
     >
-      {active ? (
-        <ClientPageTransition tabOrder={PRO_TAB_ORDER} tabKeys={PRO_TAB_KEYS} bottomOffset="5.5rem">
-          <Outlet />
-        </ClientPageTransition>
-      ) : (
+      <ClientPageTransition tabOrder={PRO_TAB_ORDER} tabKeys={PRO_TAB_KEYS} bottomOffset="5.5rem">
         <Outlet />
-      )}
+      </ClientPageTransition>
     </DashboardShell>
   );
 }
