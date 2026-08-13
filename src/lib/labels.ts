@@ -33,6 +33,15 @@ export const DOCUMENT_LABELS: Record<string, string> = {
   registration: "Carte grise",
   insurance: "Assurance",
   inspection: "Contrôle technique",
+  driver_photo: "Photo du chauffeur",
+  identity_back: "Pièce d'identité (verso)",
+  driving_license_back: "Permis de conduire (verso)",
+  adcs: "Attestation ADCS",
+  vtc_card_back: "Carte VTC (verso)",
+  revtc_proof: "Justificatif REVTC",
+  rne_kbis: "Extrait RNE / Kbis",
+  insurance_rc: "Attestation RC professionnelle",
+  vehicle_ownership: "Justificatif d'utilisation du véhicule",
   other: "Autre justificatif",
 };
 
