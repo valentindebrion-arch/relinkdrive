@@ -2,6 +2,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/pro/verification")({
   beforeLoad: () => {
-    throw redirect({ to: "/pro/profil", replace: true });
+    throw redirect({ to: "/pro/dossier", replace: true });
   },
 });
