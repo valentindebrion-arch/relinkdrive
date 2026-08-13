@@ -107,6 +107,7 @@ export function DossierWizard() {
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [certified, setCertified] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [initError, setInitError] = useState(false);
   const hydrated = useRef(false);
   const initialized = useRef(false);
 
@@ -115,10 +116,24 @@ export function DossierWizard() {
     if (!user?.id || details.isLoading || details.data || initialized.current) return;
     initialized.current = true;
     void saveDossierDetails(user.id, {}).then(
-      () => void qc.invalidateQueries({ queryKey: ["dossier-details", user.id] }),
-      () => toast.error("Impossible de préparer votre dossier. Réessayez."),
+      () => {
+        setInitError(false);
+        void qc.invalidateQueries({ queryKey: ["dossier-details", user.id] });
+      },
+      () => setInitError(true),
     );
   }, [details.data, details.isLoading, qc, user?.id]);
+
+  function retryInit() {
+    if (!user?.id) return;
+    setInitError(false);
+    initialized.current = true;
+    void saveDossierDetails(user.id, {}).then(
+      () => void qc.invalidateQueries({ queryKey: ["dossier-details", user.id] }),
+      () => setInitError(true),
+    );
+  }
+
 
   // Une ouverture directe reprend la première correction ou section incomplète.
   useEffect(() => {
