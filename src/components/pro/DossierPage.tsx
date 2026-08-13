@@ -72,7 +72,7 @@ export function DossierPage() {
   const dossier = useDossierState();
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const search = useSearch({ from: "/_authenticated/pro/dossier" }) as { section?: string };
+  const search = useSearch({ strict: false }) as { section?: string };
   const [busy, setBusy] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -98,8 +98,9 @@ export function DossierPage() {
     try {
       await navigate({ to: "/pro/dossier/completer", search: key ? { section: key } : {} });
     } catch {
-      setOpeningApplication(false);
       toast.error("Impossible d’ouvrir votre dossier pour le moment. Réessayez.");
+    } finally {
+      setOpeningApplication(false);
     }
   }
 
