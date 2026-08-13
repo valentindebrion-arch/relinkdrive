@@ -209,9 +209,7 @@ export function DossierWizard() {
     if (target === "identity") {
       if (!f["first_name"]?.trim() || !f["last_name"]?.trim())
         return "Indiquez votre prénom et votre nom.";
-      if (!f["birth_date"]) return "Indiquez votre date de naissance.";
-      if (!f["postal_address"]?.trim()) return "Indiquez votre adresse postale.";
-      if (!/^[+\d][\d\s.-]{7,}$/.test(f["phone"] ?? ""))
+      if (f["phone"] && !/^[+\d][\d\s.-]{7,}$/.test(f["phone"]))
         return "Indiquez un numéro de téléphone valide.";
     }
     if (target === "license") {
@@ -1134,7 +1132,7 @@ export function DossierWizard() {
 
       {step === "review" || readOnly ? null : (
         <div className="grid gap-2 sm:grid-cols-2">
-          <Button size="lg" disabled={saving} onClick={() => void saveAndContinue()}>
+          <Button type="button" size="lg" disabled={saving} onClick={() => void saveAndContinue()}>
             {saving ? (
               <Loader2 className="size-4 animate-spin" />
             ) : (
@@ -1142,7 +1140,7 @@ export function DossierWizard() {
             )}
             Enregistrer et continuer
           </Button>
-          <Button size="lg" variant="outline" disabled={saving} onClick={() => void saveAndQuit()}>
+          <Button type="button" size="lg" variant="outline" disabled={saving} onClick={() => void saveAndQuit()}>
             <Save className="size-4" /> Enregistrer et quitter
           </Button>
         </div>
