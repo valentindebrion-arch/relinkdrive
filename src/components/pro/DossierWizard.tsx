@@ -501,6 +501,22 @@ export function DossierWizard() {
         </Button>
       </div>
 
+      {initError ? (
+        <div className="surface space-y-3 border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+          <p>Impossible d’initialiser votre dossier pour le moment.</p>
+          <div className="flex gap-2">
+            <Button type="button" size="sm" onClick={retryInit}>
+              Réessayer
+            </Button>
+            <Button type="button" size="sm" variant="outline" onClick={back}>
+              Retour au statut du compte
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+
+
       <header className="surface p-4">
         <h1 className="text-lg font-semibold">Compléter mon dossier</h1>
         <p className="mt-1 text-sm text-muted-foreground">
