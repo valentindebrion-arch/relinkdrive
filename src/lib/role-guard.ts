@@ -37,6 +37,7 @@ export async function requireRoles(allowed: AppRole[]) {
 const PRE_APPROVAL_ROUTES = [
   "/pro/dossier",
   "/pro/dossier/completer",
+  "/pro/verification",
   "/pro/entreprise",
   "/pro/vehicule",
   "/pro/parametres",

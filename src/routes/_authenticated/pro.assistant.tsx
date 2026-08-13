@@ -39,7 +39,7 @@ function AssistantPage() {
     tips.push({
       title: "Finalisez votre vérification",
       body: "Tant que votre dossier n'est pas validé, votre page publique reste inactive.",
-      to: "/pro/verification",
+      to: "/pro/dossier/completer",
       cta: "Compléter mon dossier",
       tone: "warn",
     });
@@ -57,7 +57,7 @@ function AssistantPage() {
     tips.push({
       title: "Assurance bientôt expirée",
       body: `Échéance le ${formatDate(vehicle.data?.insurance_expires_at)}. Pensez à renouveler et à mettre à jour votre justificatif.`,
-      to: "/pro/verification",
+      to: "/pro/dossier/completer",
       cta: "Mettre à jour",
       tone: "warn",
     });
