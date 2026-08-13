@@ -69,7 +69,8 @@ export function useRideQuote(params: {
   return useQuery({
     queryKey: ["ride-quote", driverId, distanceKm, roundTrip, at ?? null],
     enabled: !!driverId && typeof distanceKm === "number" && distanceKm >= 0,
-    queryFn: async () => fetchRideQuote({ driverId: driverId!, distanceKm: distanceKm!, roundTrip, at }),
+    queryFn: async () =>
+      fetchRideQuote({ driverId: driverId!, distanceKm: distanceKm!, roundTrip, at: at ?? null }),
   });
 }
 
