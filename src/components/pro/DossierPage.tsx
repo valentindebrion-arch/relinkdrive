@@ -397,6 +397,23 @@ export function DossierPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={signOutOpen} onOpenChange={setSignOutOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Souhaitez-vous vous déconnecter ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vos informations et documents déjà enregistrés seront conservés.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Rester connecté</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void handleSignOut()}>
+              Se déconnecter
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
