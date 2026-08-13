@@ -66,7 +66,7 @@ function isDone(s: SectionState) {
 }
 
 export function DossierPage() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const driver = useDriverProfile();
   const docs = useMyDocuments();
   const dossier = useDossierState();
@@ -75,6 +75,7 @@ export function DossierPage() {
   const search = useSearch({ strict: false }) as { section?: string };
   const [busy, setBusy] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [signOutOpen, setSignOutOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [openingApplication, setOpeningApplication] = useState(false);
 
