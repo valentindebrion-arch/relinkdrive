@@ -155,22 +155,24 @@ function Landing() {
 
 
       {/* Deux publics, deux promesses */}
-      <section className="border-y border-border bg-card/60 py-14">
-        <div className="mx-auto grid max-w-6xl gap-6 px-5 lg:grid-cols-2">
-          <div className="surface p-6">
+      <section className="border-y border-border bg-card/60 py-10 sm:py-14">
+        <div className="mx-auto grid max-w-6xl gap-4 px-4 sm:gap-6 sm:px-5 lg:grid-cols-2">
+          <div className="surface min-w-0 p-4 sm:p-6">
             <p className="text-xs font-semibold tracking-wide text-primary uppercase">Pour les chauffeurs</p>
-            <h2 className="mt-2 text-2xl font-semibold">Transformez une course en client fidèle</h2>
+            <h2 className="mt-2 text-xl font-semibold text-balance sm:text-2xl">
+              Transformez une course en client fidèle
+            </h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Un QR code à la fin de la course, et votre passager peut vous rappeler directement,
               sans repasser par une application de réservation.
             </p>
             <ul className="mt-5 grid gap-4">
               {driverPoints.map((p) => (
-                <li key={p.title} className="flex gap-3">
+                <li key={p.title} className="flex min-w-0 gap-3">
                   <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
                     <p.icon className="size-4" />
                   </span>
-                  <span>
+                  <span className="min-w-0">
                     <span className="block font-medium">{p.title}</span>
                     <span className="block text-sm text-muted-foreground">{p.text}</span>
                   </span>
@@ -180,26 +182,28 @@ function Landing() {
             <Link
               to="/auth"
               search={{ mode: "signup", role: "driver" }}
-              className="mt-6 inline-block rounded-xl bg-primary px-5 py-3 text-sm font-medium text-primary-foreground"
+              className="mt-6 block rounded-xl bg-primary px-5 py-3 text-center text-sm font-medium text-primary-foreground sm:inline-block"
             >
               {BRAND.driverPromise}
             </Link>
           </div>
 
-          <div className="surface p-6">
+          <div className="surface min-w-0 p-4 sm:p-6">
             <p className="text-xs font-semibold tracking-wide text-primary uppercase">Pour les passagers</p>
-            <h2 className="mt-2 text-2xl font-semibold">Votre carnet privé de chauffeurs de confiance</h2>
+            <h2 className="mt-2 text-xl font-semibold text-balance sm:text-2xl">
+              Votre carnet privé de chauffeurs de confiance
+            </h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Plus de loterie sur le conducteur : vous réservez celles et ceux que vous connaissez
               déjà, au tarif qu'ils annoncent.
             </p>
             <ul className="mt-5 grid gap-4">
               {clientPoints.map((p) => (
-                <li key={p.title} className="flex gap-3">
+                <li key={p.title} className="flex min-w-0 gap-3">
                   <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
                     <p.icon className="size-4" />
                   </span>
-                  <span>
+                  <span className="min-w-0">
                     <span className="block font-medium">{p.title}</span>
                     <span className="block text-sm text-muted-foreground">{p.text}</span>
                   </span>
@@ -209,7 +213,7 @@ function Landing() {
             <Link
               to="/auth"
               search={{ mode: "signup", role: "client" }}
-              className="mt-6 inline-block rounded-xl border border-border bg-card px-5 py-3 text-sm font-medium"
+              className="mt-6 block rounded-xl border border-border bg-card px-5 py-3 text-center text-sm font-medium sm:inline-block"
             >
               Créer mon compte passager
             </Link>
@@ -217,30 +221,30 @@ function Landing() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-5 py-14">
-        <h2 className="text-2xl font-semibold">Comment ça marche</h2>
+      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-5 sm:py-14">
+        <h2 className="text-xl font-semibold sm:text-2xl">Comment ça marche</h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Le parcours est le même des deux côtés : une première course, puis une relation directe.
         </p>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-5 grid gap-3 sm:mt-6 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
           {steps.map((s, i) => (
-            <div key={s.title} className="surface p-5">
+            <div key={s.title} className="surface min-w-0 p-4 sm:p-5">
               <div className="flex size-9 items-center justify-center rounded-lg bg-accent text-accent-foreground">
                 <s.icon className="size-4" />
               </div>
               <p className="mt-3 text-xs font-medium text-muted-foreground">Étape {i + 1}</p>
-              <h3 className="mt-1 font-semibold">{s.title}</h3>
+              <h3 className="mt-1 font-semibold text-balance">{s.title}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{s.text}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-5 pb-16">
-        <div className="surface flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <ShieldCheck className="mt-0.5 size-5 text-primary" />
-            <div>
+      <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-5 sm:pb-16">
+        <div className="surface flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div className="flex min-w-0 items-start gap-3">
+            <ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" />
+            <div className="min-w-0">
               <p className="font-semibold">Chauffeurs vérifiés, données protégées</p>
               <p className="text-sm text-muted-foreground">
                 Documents contrôlés par notre équipe, géolocalisation temporaire et uniquement pendant
@@ -257,6 +261,7 @@ function Landing() {
           </Link>
         </div>
       </section>
+
 
       <footer className="border-t border-border px-5 py-8 text-center text-xs text-muted-foreground">
         {BRAND.name} — aucune commission sur les courses. Nom et identité provisoires.
