@@ -27,7 +27,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { formatDateTime, formatEuro } from "@/lib/labels";
-import { RouteMiniMap } from "@/components/RouteMiniMap";
 import { ScheduleSheet } from "@/components/request/ScheduleSheet";
 import { AddressSearchPanel, pushRecentAddress } from "@/components/request/AddressSearchPanel";
 import { DriverPickerSheet } from "@/components/request/DriverPickerSheet";
@@ -93,7 +92,6 @@ type Estimate = {
   distanceKm: number;
   oneWayKm: number;
   durationMin: number;
-  polyline: string;
   price: { base: number; total: number; tip: number };
   quote: RideQuote | null;
 };
@@ -183,7 +181,6 @@ function ClientRequests() {
     polyline: string;
   } | null>(null);
   const [previewState, setPreviewState] = useState<"idle" | "loading" | "error">("idle");
-  const [showPreviewMap, setShowPreviewMap] = useState(false);
   const [needs, setNeeds] = useState<SpecialNeedsState>({ keys: [], details: {} });
   const [returnMode, setReturnMode] = useState<ReturnMode>("immediate");
   const [returnTrip, setReturnTrip] = useState({ at: "", pickup: "", dropoff: "" });
@@ -272,12 +269,11 @@ function ClientRequests() {
       try {
         const res = (await estimateFn({
           data: { origin: form.pickup_address, destination: form.dropoff_address },
-        })) as Estimate;
+        }));
         if (cancelled) return;
         setPreview({
           distanceKm: res.distanceKm,
           durationMin: res.durationMin,
-          polyline: res.polyline,
         });
         setEstimate(res);
         setPreviewState("idle");
@@ -399,7 +395,6 @@ function ClientRequests() {
         distanceKm: Math.round(res.distanceKm * multiplier * 10) / 10,
         oneWayKm: res.distanceKm,
         durationMin: res.durationMin * multiplier,
-        polyline: res.polyline,
         quote,
         price: quote
           ? { base: quote.amount_ht, total: quote.amount_ttc, tip: quote.rounding_ht }
