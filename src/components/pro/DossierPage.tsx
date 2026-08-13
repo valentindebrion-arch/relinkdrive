@@ -185,25 +185,26 @@ export function DossierPage() {
   const changesCount = sections.filter((s) => s.state === "changes").length;
   const started = (state?.percent ?? 0) > 0;
 
-  const primary: { label: string; action: () => void } | null = (() => {
-    if (readOnly) return null;
+  const primary: { label: string; action: () => void } = (() => {
     if (status === "verified")
       return {
         label: "Accéder à mon espace professionnel",
         action: () => void navigate({ to: "/pro" }),
       };
-    if (status === "suspended" || status === "rejected") return null;
+    if (readOnly)
+      return { label: "Consulter mon dossier", action: () => goSection(resumeKey) };
     if (status === "expired_documents")
-      return { label: "Mettre à jour mes documents", action: () => void goSection(resumeKey) };
+      return { label: "Mettre à jour mes documents", action: () => goSection(resumeKey) };
     if (status === "changes_requested")
-      return { label: "Corriger mon dossier", action: () => void goSection(resumeKey) };
+      return { label: "Corriger mon dossier", action: () => goSection(resumeKey) };
     if (state?.complete)
-      return { label: "Vérifier et envoyer mon dossier", action: () => void goSection("review") };
+      return { label: "Vérifier et envoyer mon dossier", action: () => goSection("review") };
     return {
       label: started ? "Reprendre mon dossier" : "Compléter mon dossier",
-      action: () => void goSection(resumeKey),
+      action: () => goSection(resumeKey),
     };
   })();
+
 
   function nextSectionKey(from: string) {
     const idx = sections.findIndex((s) => s.key === from);
