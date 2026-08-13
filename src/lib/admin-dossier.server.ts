@@ -194,10 +194,23 @@ function pdfEscape(text: string) {
   return text.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
 }
 
+const TYPOGRAPHIC: Record<string, string> = {
+  "\u2014": "-",
+  "\u2013": "-",
+  "\u2019": "'",
+  "\u2018": "'",
+  "\u201c": '"',
+  "\u201d": '"',
+  "\u2026": "...",
+  "\u00a0": " ",
+  "\u20ac": "EUR",
+};
+
 function latin1(text: string) {
-  const out = new Uint8Array(text.length);
-  for (let i = 0; i < text.length; i++) {
-    const code = text.charCodeAt(i);
+  const normalized = text.replace(/[\u2013\u2014\u2018\u2019\u201c\u201d\u2026\u00a0\u20ac]/g, (c) => TYPOGRAPHIC[c] ?? c);
+  const out = new Uint8Array(normalized.length);
+  for (let i = 0; i < normalized.length; i++) {
+    const code = normalized.charCodeAt(i);
     out[i] = code < 256 ? code : 63; // "?" pour les caractères hors WinAnsi
   }
   return out;
