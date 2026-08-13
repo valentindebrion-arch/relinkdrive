@@ -1,8 +1,18 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { AlertCircle, CheckCircle2, ChevronRight, Clock, FileWarning, ShieldCheck, Upload } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  FileWarning,
+  ShieldCheck,
+  Upload,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useDriverProfile, useMyDocuments } from "@/lib/driver-queries";
@@ -10,6 +20,7 @@ import {
   DOSSIER_STATUS_LABELS,
   SECTION_STATE_LABELS,
   useDossierState,
+  type DossierSection,
   type SectionState,
 } from "@/lib/driver-dossier";
 import { DOCUMENT_LABELS, formatDate } from "@/lib/labels";
@@ -47,18 +58,43 @@ const STATE_STYLES: Record<SectionState, string> = {
   expired: "bg-destructive/10 text-destructive",
 };
 
+const LAST_SECTION_KEY = "relink:dossier:last-section";
+const READ_ONLY = ["pending", "under_review"];
+
+function isDone(s: SectionState) {
+  return s === "review" || s === "approved";
+}
+
 export function DossierPage() {
   const { user } = useAuth();
   const driver = useDriverProfile();
   const docs = useMyDocuments();
   const dossier = useDossierState();
   const qc = useQueryClient();
+  const navigate = useNavigate();
+  const search = useSearch({ from: "/_authenticated/pro/dossier" }) as { section?: string };
   const [busy, setBusy] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const status = driver.data?.verification_status ?? "incomplete";
   const state = dossier.data;
+  const sections = useMemo(() => state?.sections ?? [], [state]);
+  const readOnly = READ_ONLY.includes(status);
+
+  const openKey = search.section;
+  const openSection = sections.find((s) => s.key === openKey) ?? null;
+
+  useEffect(() => {
+    if (openKey && typeof window !== "undefined") {
+      window.localStorage.setItem(LAST_SECTION_KEY, openKey);
+      window.scrollTo({ top: 0 });
+    }
+  }, [openKey]);
+
+  function goSection(key: string | undefined) {
+    void navigate({ to: "/pro/dossier", search: key ? { section: key } : {} });
+  }
 
   function refresh() {
     void qc.invalidateQueries({ queryKey: ["my-documents"] });
@@ -98,7 +134,7 @@ export function DossierPage() {
       toast.error(error.message);
       return;
     }
-    toast.success("Document transmis, il sera vérifié par ReLink.");
+    toast.success("Document enregistré. Son statut passe à « À vérifier ».");
     refresh();
   }
 
@@ -118,6 +154,161 @@ export function DossierPage() {
   const canSubmit =
     !!state?.complete && ["incomplete", "changes_requested", "expired_documents"].includes(status);
 
+  /** Section de reprise : corrections d'abord, puis dernière section commencée, puis première incomplète. */
+  const resumeKey = useMemo(() => {
+    if (!sections.length) return undefined;
+    const fix = sections.find((s) => s.state === "changes" || s.state === "expired");
+    if (fix) return fix.key;
+    const last = typeof window !== "undefined" ? window.localStorage.getItem(LAST_SECTION_KEY) : null;
+    if (last && sections.some((s) => s.key === last && !isDone(s.state))) return last;
+    const todo = sections.find((s) => !isDone(s.state));
+    return (todo ?? sections[0])!.key;
+  }, [sections]);
+
+  const changesCount = sections.filter((s) => s.state === "changes").length;
+  const started = (state?.percent ?? 0) > 0;
+
+  const primary: { label: string; action: () => void } | null = (() => {
+    if (readOnly) return null;
+    if (status === "verified")
+      return { label: "Accéder à mon espace professionnel", action: () => void navigate({ to: "/pro" }) };
+    if (status === "suspended" || status === "rejected") return null;
+    if (status === "expired_documents")
+      return { label: "Mettre à jour mes documents", action: () => goSection(resumeKey) };
+    if (status === "changes_requested")
+      return { label: "Corriger mon dossier", action: () => goSection(resumeKey) };
+    if (state?.complete)
+      return { label: "Vérifier et envoyer mon dossier", action: () => setConfirmOpen(true) };
+    return { label: started ? "Reprendre mon dossier" : "Compléter mon dossier", action: () => goSection(resumeKey) };
+  })();
+
+  function nextSectionKey(from: string) {
+    const idx = sections.findIndex((s) => s.key === from);
+    const rest = sections.slice(idx + 1);
+    return (rest.find((s) => !isDone(s.state)) ?? rest[0])?.key;
+  }
+
+  function renderDocs(section: DossierSection) {
+    return section.docs.map((type) => {
+      const doc = (docs.data ?? []).find((d) => d.doc_type === type);
+      const expired = doc?.expires_at ? new Date(doc.expires_at) < new Date() : false;
+      return (
+        <div key={type} className="rounded-lg border border-border p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-medium">{DOCUMENT_LABELS[type] ?? type}</p>
+            <span className="text-xs text-muted-foreground">
+              {!doc?.file_path
+                ? "Aucun document"
+                : expired
+                  ? "Expiré"
+                  : doc.status === "approved"
+                    ? "Validé"
+                    : doc.status === "rejected"
+                      ? "Correction demandée"
+                      : "À vérifier"}
+            </span>
+          </div>
+          {doc?.file_path ? (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Transmis{doc.expires_at ? ` · valable jusqu'au ${formatDate(doc.expires_at)}` : ""}
+            </p>
+          ) : null}
+          {doc?.review_note && doc.status === "rejected" ? (
+            <p className="mt-1 flex items-start gap-1.5 text-xs text-destructive">
+              <FileWarning className="mt-0.5 size-3.5 shrink-0" />
+              {doc.review_note}
+            </p>
+          ) : null}
+          {readOnly ? null : (
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <div>
+                <Label htmlFor={`exp-${type}`} className="text-xs">
+                  Date de validité
+                </Label>
+                <Input id={`exp-${type}`} type="date" defaultValue={doc?.expires_at ?? ""} />
+              </div>
+              <div>
+                <Label htmlFor={`file-${type}`} className="text-xs">
+                  {doc?.file_path ? "Remplacer le document" : "Déposer le document"}
+                </Label>
+                <Input
+                  id={`file-${type}`}
+                  type="file"
+                  accept="image/*,application/pdf"
+                  disabled={busy === type}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    const exp = (document.getElementById(`exp-${type}`) as HTMLInputElement | null)?.value ?? "";
+                    if (file) void uploadDoc(type, file, exp);
+                  }}
+                />
+              </div>
+            </div>
+          )}
+          {doc?.status === "approved" ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Un document remplacé repasse automatiquement en vérification.
+            </p>
+          ) : null}
+        </div>
+      );
+    });
+  }
+
+  /* ---------- Vue d'une section du parcours ---------- */
+  if (openSection) {
+    const target = FIELD_TARGETS[openSection.key];
+    const fieldsMissing = openSection.missing.includes("fields");
+    const next = nextSectionKey(openSection.key);
+    return (
+      <div className="space-y-4 pb-4">
+        <Button variant="ghost" size="sm" onClick={() => goSection(undefined)}>
+          <ArrowLeft className="size-4" /> Statut du compte
+        </Button>
+
+        <div className="surface p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h1 className="text-lg font-semibold">{openSection.label}</h1>
+            <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATE_STYLES[openSection.state]}`}>
+              {SECTION_STATE_LABELS[openSection.state]}
+            </span>
+          </div>
+
+          {fieldsMissing && target ? (
+            <Link
+              to={target.to}
+              className="mt-3 flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm"
+            >
+              <span className="flex items-center gap-2">
+                <AlertCircle className="size-4 text-muted-foreground" />
+                {target.label}
+              </span>
+              <ChevronRight className="size-4 text-muted-foreground" />
+            </Link>
+          ) : null}
+
+          <div className="mt-3 space-y-3">{renderDocs(openSection)}</div>
+          {!openSection.docs.length && !fieldsMissing ? (
+            <p className="mt-3 text-sm text-muted-foreground">Cette section est complète.</p>
+          ) : null}
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-2">
+          <Button size="lg" disabled={!next} onClick={() => next && goSection(next)}>
+            Enregistrer et continuer <ArrowRight className="size-4" />
+          </Button>
+          <Button size="lg" variant="outline" onClick={() => goSection(undefined)}>
+            Enregistrer et quitter
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Vos informations et pièces sont enregistrées automatiquement dès leur dépôt.
+        </p>
+      </div>
+    );
+  }
+
+  /* ---------- Statut du compte ---------- */
   return (
     <div className="space-y-5">
       <header className="surface p-5">
@@ -150,6 +341,31 @@ export function DossierPage() {
           </div>
         </div>
 
+        {primary ? (
+          <Button
+            size="lg"
+            className="mt-4 h-12 w-full text-base"
+            disabled={submitting || dossier.isLoading}
+            aria-label={primary.label}
+            onClick={primary.action}
+          >
+            {primary.label}
+          </Button>
+        ) : null}
+
+        {readOnly ? (
+          <p className="mt-4 flex items-start gap-2 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
+            <Clock className="mt-0.5 size-4 shrink-0" />
+            Votre dossier est en cours de vérification.
+          </p>
+        ) : null}
+
+        {changesCount > 0 ? (
+          <p className="mt-3 text-sm text-destructive">
+            {changesCount} section{changesCount > 1 ? "s" : ""} à corriger.
+          </p>
+        ) : null}
+
         {status === "changes_requested" && driver.data?.rejection_reason ? (
           <p className="mt-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
             Des corrections sont nécessaires avant la validation de votre compte : {driver.data.rejection_reason}
@@ -170,111 +386,38 @@ export function DossierPage() {
             Un justificatif obligatoire a expiré. Remplacez-le puis renvoyez votre dossier.
           </p>
         ) : null}
-        {status === "pending" || status === "under_review" ? (
-          <p className="mt-4 flex items-start gap-2 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
-            <Clock className="mt-0.5 size-4 shrink-0" />
-            Votre dossier a bien été transmis. Il est en cours de vérification par l'équipe ReLink.
-          </p>
-        ) : null}
       </header>
 
-      <section className="space-y-3">
-        {(state?.sections ?? []).map((section) => {
-          const target = FIELD_TARGETS[section.key];
-          const fieldsMissing = section.missing.includes("fields");
-          return (
-            <div key={section.key} className="surface p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="font-medium">{section.label}</p>
-                <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATE_STYLES[section.state]}`}>
-                  {SECTION_STATE_LABELS[section.state]}
+      <section className="space-y-2">
+        <h2 className="text-sm font-semibold text-muted-foreground">Sections du dossier</h2>
+        {sections.map((section) => (
+          <button
+            key={section.key}
+            type="button"
+            onClick={() => goSection(section.key)}
+            className={`surface tap-active flex w-full items-center justify-between gap-3 p-4 text-left ${
+              section.state === "changes" || section.state === "expired" ? "border-destructive/40 bg-destructive/5" : ""
+            }`}
+          >
+            <span className="min-w-0">
+              <span className="block truncate font-medium">{section.label}</span>
+              {section.missing.length ? (
+                <span className="block text-xs text-muted-foreground">
+                  {section.missing.includes("fields") ? "Informations à compléter" : "Pièces à fournir"}
                 </span>
-              </div>
-
-              {fieldsMissing && target ? (
-                <Link
-                  to={target.to}
-                  className="mt-3 flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm"
-                >
-                  <span className="flex items-center gap-2">
-                    <AlertCircle className="size-4 text-muted-foreground" />
-                    {target.label}
-                  </span>
-                  <ChevronRight className="size-4 text-muted-foreground" />
-                </Link>
               ) : null}
-
-              <div className="mt-3 space-y-3">
-                {section.docs.map((type) => {
-                  const doc = (docs.data ?? []).find((d) => d.doc_type === type);
-                  const expired = doc?.expires_at ? new Date(doc.expires_at) < new Date() : false;
-                  return (
-                    <div key={type} className="rounded-lg border border-border p-3">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="text-sm font-medium">{DOCUMENT_LABELS[type] ?? type}</p>
-                        <span className="text-xs text-muted-foreground">
-                          {!doc?.file_path
-                            ? "Aucun document"
-                            : expired
-                              ? "Expiré"
-                              : doc.status === "approved"
-                                ? "Validé"
-                                : doc.status === "rejected"
-                                  ? "Correction demandée"
-                                  : "À vérifier"}
-                        </span>
-                      </div>
-                      {doc?.file_path ? (
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          Transmis{doc.expires_at ? ` · valable jusqu'au ${formatDate(doc.expires_at)}` : ""}
-                        </p>
-                      ) : null}
-                      {doc?.review_note && doc.status === "rejected" ? (
-                        <p className="mt-1 flex items-start gap-1.5 text-xs text-destructive">
-                          <FileWarning className="mt-0.5 size-3.5 shrink-0" />
-                          {doc.review_note}
-                        </p>
-                      ) : null}
-                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                        <div>
-                          <Label htmlFor={`exp-${type}`} className="text-xs">
-                            Date de validité
-                          </Label>
-                          <Input id={`exp-${type}`} type="date" defaultValue={doc?.expires_at ?? ""} />
-                        </div>
-                        <div>
-                          <Label htmlFor={`file-${type}`} className="text-xs">
-                            {doc?.file_path ? "Remplacer le document" : "Déposer le document"}
-                          </Label>
-                          <Input
-                            id={`file-${type}`}
-                            type="file"
-                            accept="image/*,application/pdf"
-                            disabled={busy === type}
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              const exp =
-                                (document.getElementById(`exp-${type}`) as HTMLInputElement | null)?.value ?? "";
-                              if (file) void uploadDoc(type, file, exp);
-                            }}
-                          />
-                        </div>
-                      </div>
-                      {doc?.status === "approved" ? (
-                        <p className="mt-2 text-xs text-muted-foreground">
-                          Un document remplacé repasse automatiquement en vérification.
-                        </p>
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+            </span>
+            <span className="flex shrink-0 items-center gap-2">
+              <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATE_STYLES[section.state]}`}>
+                {SECTION_STATE_LABELS[section.state]}
+              </span>
+              <ChevronRight className="size-4 text-muted-foreground" />
+            </span>
+          </button>
+        ))}
       </section>
 
-      {status !== "verified" ? (
+      {status !== "verified" && !readOnly ? (
         <div className="surface space-y-3 p-4">
           {!state?.complete ? (
             <p className="text-sm text-muted-foreground">
@@ -296,8 +439,9 @@ export function DossierPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmez-vous que les informations et documents transmis sont exacts et à jour ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Votre dossier sera transmis à l'équipe ReLink pour vérification. Vous serez informé dès qu'une décision
-              sera prise.
+              Récapitulatif : {sections.length} section{sections.length > 1 ? "s" : ""} complétées, progression{" "}
+              {state?.percent ?? 0} %. Votre dossier sera transmis à l'équipe ReLink pour vérification. Vous serez
+              informé dès qu'une décision sera prise.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
