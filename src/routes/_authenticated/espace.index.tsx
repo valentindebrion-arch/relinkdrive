@@ -212,10 +212,10 @@ function ClientHome() {
   const noDriver = !data.isLoading && drivers.length === 0;
 
   return (
-    <div className="min-h-[100dvh] bg-muted/40 pb-[calc(6rem+env(safe-area-inset-bottom))]">
+    <div className="flex min-h-[100dvh] flex-col bg-muted/40 pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
       {/* Zone supérieure verte */}
       <header
-        className="relative overflow-hidden bg-primary px-4 pb-10 text-primary-foreground sm:pb-12"
+        className="relative shrink-0 overflow-hidden bg-primary px-4 pb-4 text-primary-foreground"
         style={{ paddingTop: "calc(env(safe-area-inset-top) + 1rem)" }}
       >
         <HeroDecor />
@@ -237,7 +237,9 @@ function ClientHome() {
         </div>
       </header>
 
-      <div className="mx-auto -mt-6 w-full max-w-md space-y-3 px-3 sm:max-w-lg">
+      {/* Contenu principal : carte de réservation détachée, centrée, flottante */}
+      <main className="flex-1 grid grid-rows-[28px_minmax(0,0fr)_auto_minmax(0,1fr)_32px] place-items-center overflow-y-auto px-4">
+        <div className="col-start-1 row-start-3 w-full max-w-md space-y-3">
         {/* Course active en priorité */}
         {activeRide ? (
           <Link
@@ -478,7 +480,8 @@ function ClientHome() {
           </Link>
         ) : null}
 
-      </div>
+        </div>
+      </main>
 
       {searchField ? (
         <AddressSearchPanel
