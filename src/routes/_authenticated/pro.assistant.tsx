@@ -81,7 +81,7 @@ function AssistantPage() {
       tips.push({
         title: `${DOCUMENT_LABELS[d.doc_type] ?? d.doc_type} refusé`,
         body: d.review_note ?? "Un administrateur demande une nouvelle version de ce document.",
-        to: "/pro/verification",
+        to: "/pro/dossier/completer",
         cta: "Renvoyer le document",
         tone: "warn",
       });
