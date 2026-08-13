@@ -333,3 +333,115 @@
   animation: client-sheet-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
   will-change: transform;
 }
+
+/* Écran d'ouverture de l'espace client */
+@keyframes splash-sheet-green {
+  0% {
+    transform: translate3d(-100%, 0, 0);
+  }
+  22% {
+    transform: translate3d(0, 0, 0);
+  }
+  72% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(100%, 0, 0);
+  }
+}
+
+@keyframes splash-sheet-white {
+  0% {
+    transform: translate3d(100%, 0, 0);
+  }
+  30% {
+    transform: translate3d(0, 0, 0);
+  }
+  74% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(0, -100%, 0);
+  }
+}
+
+@keyframes splash-logo {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0) scale(0.96);
+  }
+  28% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  55% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1.02);
+  }
+  78% {
+    opacity: 1;
+    transform: translate3d(0, -6px, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -18px, 0) scale(0.99);
+  }
+}
+
+@keyframes splash-ring {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  40% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  70% {
+    opacity: 0.25;
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes splash-logo-reduced {
+  0% {
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@utility splash-sheet-green {
+  animation: splash-sheet-green 1.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+  will-change: transform;
+}
+
+@utility splash-sheet-white {
+  animation: splash-sheet-white 1.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+  will-change: transform;
+}
+
+@utility splash-logo {
+  animation: splash-logo 1.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+
+@utility splash-ring {
+  animation: splash-ring 1.6s ease-out both;
+  will-change: transform, opacity;
+}
+
+@utility splash-logo-reduced {
+  animation: splash-logo-reduced 0.42s linear both;
+}
