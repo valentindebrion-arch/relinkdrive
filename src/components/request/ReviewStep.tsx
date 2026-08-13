@@ -7,14 +7,12 @@ import {
   Clock,
   Info,
   Loader2,
-  Maximize2,
   Pencil,
   Send,
   UserRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { RouteMiniMap } from "@/components/RouteMiniMap";
 import { LEGAL_LINKS } from "@/lib/legal-versions";
 import { formatEuro } from "@/lib/labels";
 import { cn } from "@/lib/utils";
@@ -22,7 +20,6 @@ import { cn } from "@/lib/utils";
 export type ReviewEstimate = {
   distanceKm: number;
   durationMin: number;
-  polyline: string;
   price: { base: number; total: number; tip: number };
   quote?: {
     amount_ht: number;
@@ -58,7 +55,6 @@ export type ReviewStepProps = {
   onEditTrip: () => void;
   onEditDriver: () => void;
   onEditOptions: () => void;
-  onExpandMap: () => void;
   onSubmit: () => void;
 };
 
@@ -241,28 +237,6 @@ export function ReviewStep(props: ReviewStepProps) {
               </dl>
             ) : null}
           </section>
-
-          {/* Aperçu cartographique compact */}
-          {estimate?.polyline ? (
-            <div className="overflow-hidden rounded-3xl border border-border/70 bg-card">
-              <RouteMiniMap
-                polyline={estimate.polyline}
-                className="h-[168px] rounded-none border-0"
-              />
-              <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-                <p className="text-[13px] font-semibold text-muted-foreground">
-                  Aperçu de l'itinéraire
-                </p>
-                <button
-                  type="button"
-                  onClick={props.onExpandMap}
-                  className="flex items-center gap-1.5 text-[13px] font-bold text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                >
-                  <Maximize2 className="size-3.5" /> Agrandir la carte
-                </button>
-              </div>
-            </div>
-          ) : null}
 
           {/* Votre trajet */}
           <Card title="Votre trajet" editLabel="Modifier le trajet" onEdit={props.onEditTrip}>
