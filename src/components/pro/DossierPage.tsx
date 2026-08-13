@@ -92,17 +92,22 @@ export function DossierPage() {
     }
   }, [openKey]);
 
-  async function goSection(key: string | undefined) {
-    if (openingApplication) return;
+  function goSection(key: string | undefined) {
     setOpeningApplication(true);
-    try {
-      await navigate({ to: "/pro/dossier/completer", search: key ? { section: key } : {} });
-    } catch {
-      toast.error("Impossible d’ouvrir votre dossier pour le moment. Réessayez.");
-    } finally {
-      setOpeningApplication(false);
-    }
+    // Navigation immédiate : la page du dossier charge ses données elle-même.
+    void navigate({ to: "/pro/dossier/completer", search: key ? { section: key } : {} })
+      .catch(() => toast.error("Impossible d’ouvrir votre dossier pour le moment. Réessayez."))
+      .finally(() => setOpeningApplication(false));
   }
+
+  async function handleSignOut() {
+    setSignOutOpen(false);
+    await qc.cancelQueries();
+    qc.clear();
+    await signOut();
+    void navigate({ to: "/auth", replace: true });
+  }
+
 
   function refresh() {
     void qc.invalidateQueries({ queryKey: ["my-documents"] });
