@@ -206,8 +206,12 @@ const TYPOGRAPHIC: Record<string, string> = {
   "\u20ac": "EUR",
 };
 
+function normalizeText(text: string) {
+  return text.replace(/[\u2013\u2014\u2018\u2019\u201c\u201d\u2026\u00a0\u20ac]/g, (c) => TYPOGRAPHIC[c] ?? c);
+}
+
 function latin1(text: string) {
-  const normalized = text.replace(/[\u2013\u2014\u2018\u2019\u201c\u201d\u2026\u00a0\u20ac]/g, (c) => TYPOGRAPHIC[c] ?? c);
+  const normalized = text;
   const out = new Uint8Array(normalized.length);
   for (let i = 0; i < normalized.length; i++) {
     const code = normalized.charCodeAt(i);
@@ -219,7 +223,7 @@ function latin1(text: string) {
 export function buildTextPdf(title: string, lines: string[]): Uint8Array {
   const perPage = 48;
   const pages: string[][] = [];
-  const all = [title, "", ...lines];
+  const all = [title, "", ...lines].map(normalizeText);
   for (let i = 0; i < all.length; i += perPage) pages.push(all.slice(i, i + perPage));
   if (!pages.length) pages.push([title]);
 
