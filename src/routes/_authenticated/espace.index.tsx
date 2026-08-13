@@ -7,14 +7,12 @@ import {
   ArrowRight,
   CalendarClock,
   CalendarDays,
-  Car,
   ChevronRight,
   Clock3,
   Loader2,
   LocateFixed,
   QrCode,
   UserRound,
-  Users,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
