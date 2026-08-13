@@ -112,7 +112,9 @@ export function DossierPage() {
     }
     setBusy(docType);
     const path = `${user!.id}/${docType}-${Date.now()}-${file.name}`;
-    const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { upsert: true });
+    const { error: upErr } = await supabase.storage
+      .from("documents")
+      .upload(path, file, { upsert: true });
     if (upErr) {
       setBusy(null);
       toast.error(upErr.message);
@@ -158,7 +160,8 @@ export function DossierPage() {
     if (!sections.length) return undefined;
     const fix = sections.find((s) => s.state === "changes" || s.state === "expired");
     if (fix) return fix.key;
-    const last = typeof window !== "undefined" ? window.localStorage.getItem(LAST_SECTION_KEY) : null;
+    const last =
+      typeof window !== "undefined" ? window.localStorage.getItem(LAST_SECTION_KEY) : null;
     if (last && sections.some((s) => s.key === last && !isDone(s.state))) return last;
     const todo = sections.find((s) => !isDone(s.state));
     return (todo ?? sections[0])!.key;
@@ -170,7 +173,10 @@ export function DossierPage() {
   const primary: { label: string; action: () => void } | null = (() => {
     if (readOnly) return null;
     if (status === "verified")
-      return { label: "Accéder à mon espace professionnel", action: () => void navigate({ to: "/pro" }) };
+      return {
+        label: "Accéder à mon espace professionnel",
+        action: () => void navigate({ to: "/pro" }),
+      };
     if (status === "suspended" || status === "rejected") return null;
     if (status === "expired_documents")
       return { label: "Mettre à jour mes documents", action: () => goSection(resumeKey) };
@@ -178,7 +184,10 @@ export function DossierPage() {
       return { label: "Corriger mon dossier", action: () => goSection(resumeKey) };
     if (state?.complete)
       return { label: "Vérifier et envoyer mon dossier", action: () => goSection("review") };
-    return { label: started ? "Reprendre mon dossier" : "Compléter mon dossier", action: () => goSection(resumeKey) };
+    return {
+      label: started ? "Reprendre mon dossier" : "Compléter mon dossier",
+      action: () => goSection(resumeKey),
+    };
   })();
 
   function nextSectionKey(from: string) {
@@ -197,7 +206,9 @@ export function DossierPage() {
           </span>
           <div className="min-w-0 flex-1">
             <h1 className="text-lg font-semibold">
-              {status === "verified" ? "Votre compte professionnel est actif" : "Activez votre compte professionnel"}
+              {status === "verified"
+                ? "Votre compte professionnel est actif"
+                : "Activez votre compte professionnel"}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {status === "verified"
@@ -216,7 +227,10 @@ export function DossierPage() {
             <span className="font-semibold text-foreground">{state?.percent ?? 0} %</span>
           </div>
           <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
-            <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${state?.percent ?? 0}%` }} />
+            <div
+              className="h-full rounded-full bg-primary transition-all"
+              style={{ width: `${state?.percent ?? 0}%` }}
+            />
           </div>
         </div>
 
@@ -247,7 +261,8 @@ export function DossierPage() {
 
         {status === "changes_requested" && driver.data?.rejection_reason ? (
           <p className="mt-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-            Des corrections sont nécessaires avant la validation de votre compte : {driver.data.rejection_reason}
+            Des corrections sont nécessaires avant la validation de votre compte :{" "}
+            {driver.data.rejection_reason}
           </p>
         ) : null}
         {status === "rejected" && driver.data?.rejection_reason ? (
@@ -275,19 +290,25 @@ export function DossierPage() {
             type="button"
             onClick={() => goSection(section.key)}
             className={`surface tap-active flex w-full items-center justify-between gap-3 p-4 text-left ${
-              section.state === "changes" || section.state === "expired" ? "border-destructive/40 bg-destructive/5" : ""
+              section.state === "changes" || section.state === "expired"
+                ? "border-destructive/40 bg-destructive/5"
+                : ""
             }`}
           >
             <span className="min-w-0">
               <span className="block truncate font-medium">{section.label}</span>
               {section.missing.length ? (
                 <span className="block text-xs text-muted-foreground">
-                  {section.missing.includes("fields") ? "Informations à compléter" : "Pièces à fournir"}
+                  {section.missing.includes("fields")
+                    ? "Informations à compléter"
+                    : "Pièces à fournir"}
                 </span>
               ) : null}
             </span>
             <span className="flex shrink-0 items-center gap-2">
-              <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATE_STYLES[section.state]}`}>
+              <span
+                className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATE_STYLES[section.state]}`}
+              >
                 {SECTION_STATE_LABELS[section.state]}
               </span>
               <ChevronRight className="size-4 text-muted-foreground" />
@@ -300,14 +321,19 @@ export function DossierPage() {
         <div className="surface space-y-3 p-4">
           {!state?.complete ? (
             <p className="text-sm text-muted-foreground">
-              Il manque encore des informations ou des pièces obligatoires pour envoyer votre dossier.
+              Il manque encore des informations ou des pièces obligatoires pour envoyer votre
+              dossier.
             </p>
           ) : (
             <p className="flex items-center gap-2 text-sm text-muted-foreground">
               <CheckCircle2 className="size-4 text-primary" /> Votre dossier est complet.
             </p>
           )}
-          <Button className="w-full" disabled={!canSubmit || submitting} onClick={() => goSection("review")}>
+          <Button
+            className="w-full"
+            disabled={!canSubmit || submitting}
+            onClick={() => goSection("review")}
+          >
             <Upload className="size-4" /> Envoyer mon dossier pour vérification
           </Button>
         </div>
@@ -316,16 +342,20 @@ export function DossierPage() {
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmez-vous que les informations et documents transmis sont exacts et à jour ?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Confirmez-vous que les informations et documents transmis sont exacts et à jour ?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Récapitulatif : {sections.length} section{sections.length > 1 ? "s" : ""} complétées, progression{" "}
-              {state?.percent ?? 0} %. Votre dossier sera transmis à l'équipe ReLink pour vérification. Vous serez
-              informé dès qu'une décision sera prise.
+              Récapitulatif : {sections.length} section{sections.length > 1 ? "s" : ""} complétées,
+              progression {state?.percent ?? 0} %. Votre dossier sera transmis à l'équipe ReLink
+              pour vérification. Vous serez informé dès qu'une décision sera prise.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void submitDossier()}>Confirmer l'envoi</AlertDialogAction>
+            <AlertDialogAction onClick={() => void submitDossier()}>
+              Confirmer l'envoi
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -38,7 +38,8 @@ const STATUS_TEXT: Record<string, string> = {
 
 /** Compresse les photos volumineuses sans dégrader la lisibilité du justificatif. */
 async function compressImage(file: File): Promise<File> {
-  if (!file.type.startsWith("image/") || file.type === "image/heic" || file.type === "image/heif") return file;
+  if (!file.type.startsWith("image/") || file.type === "image/heic" || file.type === "image/heif")
+    return file;
   if (file.size < 1.5 * 1024 * 1024) return file;
   try {
     const bitmap = await createImageBitmap(file);
@@ -91,7 +92,8 @@ export function DocumentUploader({
   async function onFile(file: File) {
     setError(null);
     if (!ACCEPTED.includes(file.type)) {
-      const msg = "Format refusé. Utilisez un PDF, un JPEG, un PNG ou une photo de votre téléphone.";
+      const msg =
+        "Format refusé. Utilisez un PDF, un JPEG, un PNG ou une photo de votre téléphone.";
       setError(msg);
       toast.error(msg);
       return;
@@ -107,7 +109,9 @@ export function DocumentUploader({
       const prepared = await compressImage(file);
       const safeName = prepared.name.replace(/[^\w.\-]+/g, "_");
       const path = `${user!.id}/${docType}-${Date.now()}-${safeName}`;
-      const { error: upErr } = await supabase.storage.from("documents").upload(path, prepared, { upsert: true });
+      const { error: upErr } = await supabase.storage
+        .from("documents")
+        .upload(path, prepared, { upsert: true });
       if (upErr) throw upErr;
       const payload = {
         driver_id: user!.id,
@@ -124,7 +128,10 @@ export function DocumentUploader({
       toast.success(`${label} enregistré. Statut : à vérifier.`);
       refresh();
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Échec de l'envoi. Vérifiez votre connexion puis réessayez.";
+      const msg =
+        e instanceof Error
+          ? e.message
+          : "Échec de l'envoi. Vérifiez votre connexion puis réessayez.";
       setError(msg);
       toast.error(msg);
     } finally {
@@ -164,16 +171,27 @@ export function DocumentUploader({
     <div className="rounded-xl border border-border p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-medium">
-          {label} {required ? <span className="text-destructive">*</span> : <span className="text-muted-foreground">(facultatif)</span>}
+          {label}{" "}
+          {required ? (
+            <span className="text-destructive">*</span>
+          ) : (
+            <span className="text-muted-foreground">(facultatif)</span>
+          )}
         </p>
         <span className={`text-xs ${expired ? "text-destructive" : "text-muted-foreground"}`}>
-          {!doc?.file_path ? "Aucun document" : expired ? "Expiré" : (STATUS_TEXT[doc.status] ?? doc.status)}
+          {!doc?.file_path
+            ? "Aucun document"
+            : expired
+              ? "Expiré"
+              : (STATUS_TEXT[doc.status] ?? doc.status)}
         </span>
       </div>
       {help ? <p className="mt-1 text-xs text-muted-foreground">{help}</p> : null}
 
       {doc?.review_note && doc.status === "rejected" ? (
-        <p className="mt-2 rounded-lg bg-destructive/10 p-2 text-xs text-destructive">{doc.review_note}</p>
+        <p className="mt-2 rounded-lg bg-destructive/10 p-2 text-xs text-destructive">
+          {doc.review_note}
+        </p>
       ) : null}
 
       {doc?.file_path ? (
@@ -182,7 +200,12 @@ export function DocumentUploader({
             {isPdf || !preview.data ? (
               <FileText className="size-5 text-muted-foreground" />
             ) : (
-              <img src={preview.data} alt={`Aperçu ${label}`} className="size-full object-cover" loading="lazy" />
+              <img
+                src={preview.data}
+                alt={`Aperçu ${label}`}
+                className="size-full object-cover"
+                loading="lazy"
+              />
             )}
           </div>
           <div className="min-w-0 flex-1 text-xs text-muted-foreground">
@@ -197,7 +220,13 @@ export function DocumentUploader({
             ) : null}
           </div>
           {readOnly ? null : (
-            <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={() => void removeDoc()}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={busy}
+              onClick={() => void removeDoc()}
+            >
               <Trash2 className="size-4" />
             </Button>
           )}
