@@ -265,10 +265,10 @@ export function DossierPage() {
           size="lg"
           className="mt-4 h-12 w-full text-base"
           disabled={openingApplication}
-          aria-label={primary?.label ?? "Compléter mon dossier"}
-          onClick={primary ? primary.action : () => goSection(resumeKey)}
+          aria-label={primary.label}
+          onClick={primary.action}
         >
-          {primary?.label ?? "Compléter mon dossier"}
+          {primary.label}
         </Button>
 
         <Button
@@ -280,6 +280,8 @@ export function DossierPage() {
         >
           <LogOut className="size-4" /> Se déconnecter
         </Button>
+
+
 
 
         {readOnly ? (
