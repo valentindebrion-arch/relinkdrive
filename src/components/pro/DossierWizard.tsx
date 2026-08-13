@@ -185,7 +185,7 @@ export function DossierWizard() {
         return "Indiquez votre prénom et votre nom.";
       if (!f["birth_date"]) return "Indiquez votre date de naissance.";
       if (!f["postal_address"]?.trim()) return "Indiquez votre adresse postale.";
-      if (!/^[+\d][\d\s.\-]{7,}$/.test(f["phone"] ?? ""))
+      if (!/^[+\d][\d\s.-]{7,}$/.test(f["phone"] ?? ""))
         return "Indiquez un numéro de téléphone valide.";
     }
     if (target === "license") {

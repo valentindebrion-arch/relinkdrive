@@ -107,7 +107,7 @@ export function DocumentUploader({
     setBusy(true);
     try {
       const prepared = await compressImage(file);
-      const safeName = prepared.name.replace(/[^\w.\-]+/g, "_");
+      const safeName = prepared.name.replace(/[^\w.-]+/g, "_");
       const path = `${user!.id}/${docType}-${Date.now()}-${safeName}`;
       const { error: upErr } = await supabase.storage
         .from("documents")
