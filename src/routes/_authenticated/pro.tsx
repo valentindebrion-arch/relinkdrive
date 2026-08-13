@@ -2,9 +2,14 @@ import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Home, Car, Users, Receipt, Bot, UserRound, CalendarDays } from "lucide-react";
 import { DashboardShell, type NavItem } from "@/components/DashboardShell";
+import { ClientPageTransition } from "@/components/ClientPageTransition";
 import { useAuth } from "@/lib/auth";
 import { requireRoles } from "@/lib/role-guard";
 import { useNewRequestsCount } from "@/lib/driver-queries";
+
+// Ordre réel des onglets de la barre inférieure chauffeur (index 0 = Accueil).
+const PRO_TAB_ORDER = ["/pro", "/pro/courses", "/pro/clients", "/pro/planning", "/pro/profil"];
+const PRO_TAB_KEYS = ["pro-home", "pro-rides", "pro-clients", "pro-planning", "pro-profile"];
 
 export const Route = createFileRoute("/_authenticated/pro")({
   beforeLoad: () => requireRoles(["driver", "admin", "superadmin"]),
