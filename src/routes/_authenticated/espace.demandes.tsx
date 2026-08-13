@@ -53,6 +53,8 @@ import {
   type SpecialNeedsState,
 } from "@/components/request/OptionsStep";
 import { estimateRoute, reverseGeocode } from "@/lib/route-estimate.functions";
+import { fetchRideQuote } from "@/lib/tax-queries";
+import type { RideQuote } from "@/lib/tax";
 import { ReviewStep } from "@/components/request/ReviewStep";
 import { LEGAL_VERSIONS } from "@/lib/legal-versions";
 import { checkDriverAvailability } from "@/lib/availability.functions";
@@ -89,9 +91,11 @@ export const Route = createFileRoute("/_authenticated/espace/demandes")({
 
 type Estimate = {
   distanceKm: number;
+  oneWayKm: number;
   durationMin: number;
   polyline: string;
   price: { base: number; total: number; tip: number };
+  quote: RideQuote | null;
 };
 
 const STEP_LABELS = ["Votre trajet", "Vos options", "Vérification et confirmation"];
@@ -375,17 +379,35 @@ function ClientRequests() {
         data: { origin: form.pickup_address.trim(), destination: form.dropoff_address.trim() },
       });
       const multiplier = form.round_trip ? 2 : 1;
+      // Le prix affiché au client est le TTC recalculé côté serveur à partir
+      // du tarif HT du chauffeur et de son régime de TVA applicable à la date.
+      let quote: RideQuote | null = null;
+      if (form.driver_id) {
+        try {
+          quote = await fetchRideQuote({
+            driverId: form.driver_id,
+            distanceKm: res.distanceKm,
+            roundTrip: form.round_trip,
+            at: scheduledIso().slice(0, 10),
+          });
+        } catch {
+          quote = null;
+        }
+      }
+      const fallbackBase = res.price.base * multiplier;
       setEstimate({
         distanceKm: Math.round(res.distanceKm * multiplier * 10) / 10,
+        oneWayKm: res.distanceKm,
         durationMin: res.durationMin * multiplier,
         polyline: res.polyline,
-        price: form.round_trip
-          ? {
-              base: Math.round(res.price.base * 2 * 100) / 100,
-              total: Math.ceil(res.price.base * 2),
-              tip: Math.round((Math.ceil(res.price.base * 2) - res.price.base * 2) * 100) / 100,
-            }
-          : res.price,
+        quote,
+        price: quote
+          ? { base: quote.amount_ht, total: quote.amount_ttc, tip: quote.rounding_ht }
+          : {
+              base: Math.round(fallbackBase * 100) / 100,
+              total: Math.ceil(fallbackBase),
+              tip: Math.round((Math.ceil(fallbackBase) - fallbackBase) * 100) / 100,
+            },
       });
       setStep(2);
     } catch (e) {
@@ -541,7 +563,7 @@ function ClientRequests() {
       return;
     }
     const estimateLine = estimate
-      ? `Prix final Relink : ${formatEuro(estimate.price.total)} · ${estimate.distanceKm} km · ~${estimate.durationMin} min`
+      ? `Prix client TTC : ${formatEuro(estimate.price.total)} · ${estimate.distanceKm} km · ~${estimate.durationMin} min`
       : null;
     const returnLine = form.round_trip
       ? returnMode === "scheduled"
@@ -564,6 +586,7 @@ function ClientRequests() {
       _special_needs: form.special_needs.trim() || null,
       _comment: comment || null,
       _proposed_price: estimate ? estimate.price.total : null,
+      _distance_km: estimate ? estimate.oneWayKm : null,
       _immediate: whenMode === "now",
       _idempotency_key: idempotencyRef.current,
       _cgu_version: LEGAL_VERSIONS.cgu,
