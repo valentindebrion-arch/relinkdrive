@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { useDriverProfile } from "@/lib/driver-queries";
 import { PageHeader } from "@/components/Ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +13,6 @@ import { TariffSection } from "@/components/pro/TariffSection";
 
 export function CompanyPage() {
   const { user } = useAuth();
-  const driver = useDriverProfile();
   const qc = useQueryClient();
 
   const company = useQuery({
@@ -81,7 +79,6 @@ export function CompanyPage() {
         {field("legal_name", "Raison sociale")}
         {field("legal_form", "Forme juridique")}
         {field("siret", "SIRET")}
-        {field("vat_number", "Numéro de TVA")}
         {field("address", "Adresse")}
         {field("postal_code", "Code postal")}
         {field("city", "Ville")}
