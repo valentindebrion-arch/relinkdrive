@@ -58,6 +58,7 @@ import { Route as AuthenticatedProClientsIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedProClientsClientIdRouteImport } from './routes/_authenticated/pro.clients.$clientId'
 import { Route as AuthenticatedProCoursesIndexRouteImport } from './routes/_authenticated/pro.courses.index'
 import { Route as AuthenticatedProCoursesRideIdRouteImport } from './routes/_authenticated/pro.courses.$rideId'
+import { Route as AuthenticatedProDossierIndexRouteImport } from './routes/_authenticated/pro.dossier.index'
 import { Route as AuthenticatedProDossierCompleterRouteImport } from './routes/_authenticated/pro.dossier.completer'
 
 const IndexRoute = IndexRouteImport.update({
@@ -332,6 +333,12 @@ const AuthenticatedProCoursesRideIdRoute =
     path: '/courses/$rideId',
     getParentRoute: () => AuthenticatedProRoute,
   } as any)
+const AuthenticatedProDossierIndexRoute =
+  AuthenticatedProDossierIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedProDossierRoute,
+  } as any)
 const AuthenticatedProDossierCompleterRoute =
   AuthenticatedProDossierCompleterRouteImport.update({
     id: '/completer',
@@ -389,6 +396,7 @@ export interface FileRoutesByFullPath {
   '/espace/courses/': typeof AuthenticatedEspaceCoursesIndexRoute
   '/pro/clients/': typeof AuthenticatedProClientsIndexRoute
   '/pro/courses/': typeof AuthenticatedProCoursesIndexRoute
+  '/pro/dossier/': typeof AuthenticatedProDossierIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -412,7 +420,6 @@ export interface FileRoutesByTo {
   '/pro/assistant': typeof AuthenticatedProAssistantRoute
   '/pro/demandes': typeof AuthenticatedProDemandesRoute
   '/pro/disponibilites': typeof AuthenticatedProDisponibilitesRoute
-  '/pro/dossier': typeof AuthenticatedProDossierRouteWithChildren
   '/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/pro/factures': typeof AuthenticatedProFacturesRoute
   '/pro/parametres': typeof AuthenticatedProParametresRoute
@@ -436,6 +443,7 @@ export interface FileRoutesByTo {
   '/espace/courses': typeof AuthenticatedEspaceCoursesIndexRoute
   '/pro/clients': typeof AuthenticatedProClientsIndexRoute
   '/pro/courses': typeof AuthenticatedProCoursesIndexRoute
+  '/pro/dossier': typeof AuthenticatedProDossierIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -489,6 +497,7 @@ export interface FileRoutesById {
   '/_authenticated/espace/courses/': typeof AuthenticatedEspaceCoursesIndexRoute
   '/_authenticated/pro/clients/': typeof AuthenticatedProClientsIndexRoute
   '/_authenticated/pro/courses/': typeof AuthenticatedProCoursesIndexRoute
+  '/_authenticated/pro/dossier/': typeof AuthenticatedProDossierIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -542,6 +551,7 @@ export interface FileRouteTypes {
     | '/espace/courses/'
     | '/pro/clients/'
     | '/pro/courses/'
+    | '/pro/dossier/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -565,7 +575,6 @@ export interface FileRouteTypes {
     | '/pro/assistant'
     | '/pro/demandes'
     | '/pro/disponibilites'
-    | '/pro/dossier'
     | '/pro/entreprise'
     | '/pro/factures'
     | '/pro/parametres'
@@ -589,6 +598,7 @@ export interface FileRouteTypes {
     | '/espace/courses'
     | '/pro/clients'
     | '/pro/courses'
+    | '/pro/dossier'
   id:
     | '__root__'
     | '/'
@@ -641,6 +651,7 @@ export interface FileRouteTypes {
     | '/_authenticated/espace/courses/'
     | '/_authenticated/pro/clients/'
     | '/_authenticated/pro/courses/'
+    | '/_authenticated/pro/dossier/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1003,6 +1014,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProCoursesRideIdRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
+    '/_authenticated/pro/dossier/': {
+      id: '/_authenticated/pro/dossier/'
+      path: '/'
+      fullPath: '/pro/dossier/'
+      preLoaderRoute: typeof AuthenticatedProDossierIndexRouteImport
+      parentRoute: typeof AuthenticatedProDossierRoute
+    }
     '/_authenticated/pro/dossier/completer': {
       id: '/_authenticated/pro/dossier/completer'
       path: '/completer'
@@ -1082,12 +1100,14 @@ const AuthenticatedProClientsRouteWithChildren =
 
 interface AuthenticatedProDossierRouteChildren {
   AuthenticatedProDossierCompleterRoute: typeof AuthenticatedProDossierCompleterRoute
+  AuthenticatedProDossierIndexRoute: typeof AuthenticatedProDossierIndexRoute
 }
 
 const AuthenticatedProDossierRouteChildren: AuthenticatedProDossierRouteChildren =
   {
     AuthenticatedProDossierCompleterRoute:
       AuthenticatedProDossierCompleterRoute,
+    AuthenticatedProDossierIndexRoute: AuthenticatedProDossierIndexRoute,
   }
 
 const AuthenticatedProDossierRouteWithChildren =
