@@ -125,7 +125,7 @@ export function ClientPageTransition({
           className={`pointer-events-none fixed inset-x-0 top-0 z-30 bg-primary/90 ${
             state.dir === "right" ? "client-sheet-right" : "client-sheet-left"
           }`}
-          style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom))" }}
+          style={{ bottom: `calc(${bottomOffset} + env(safe-area-inset-bottom))` }}
         />
       ) : null}
     </div>
