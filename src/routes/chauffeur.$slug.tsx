@@ -320,7 +320,12 @@ function DriverPublicPage() {
     void supabase.rpc("track_driver_event", { _slug: slug, _event: "driver_request_click" });
   }
 
-  const primaryAction = connected ? (
+  const primaryAction = isDriver || isAdmin ? (
+    <p className="rounded-2xl border border-border bg-muted/40 px-4 py-3 text-center text-sm text-muted-foreground">
+      Vous êtes connecté avec un compte professionnel : seuls les comptes passagers peuvent ajouter un
+      chauffeur à leur carnet.
+    </p>
+  ) : connected ? (
     <div className="space-y-2">
       <p className="flex items-center justify-center gap-1.5 text-sm font-medium text-primary">
         <Check className="size-4" /> Déjà dans mes chauffeurs
