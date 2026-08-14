@@ -214,6 +214,10 @@ function DriverPublicPage() {
 
   const connect = useCallback(async () => {
     if (!user?.id || !driverId) return;
+    if (isDriver || isAdmin) {
+      toast.info("Seuls les comptes passagers peuvent ajouter un chauffeur à leur carnet.");
+      return;
+    }
     setAdding(true);
     const { error } = await supabase
       .from("driver_client_connections")
