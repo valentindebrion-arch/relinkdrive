@@ -181,8 +181,8 @@ function DriverClientsList() {
         </div>
       ) : total === 0 ? (
         <EmptyState
-          title="Votre carnet est encore vide."
-          description="Partagez votre profil ou votre QR code pour permettre à vos passagers de vous retrouver sur ReLink."
+          title="Aucun client pour le moment"
+          description="Les clients qui vous ajouteront ou vous enverront une demande apparaîtront ici."
           action={
             <Button asChild size="sm" className="mt-2">
               <Link to="/pro/qr">Partager mon QR code</Link>

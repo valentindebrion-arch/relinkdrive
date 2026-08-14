@@ -132,7 +132,7 @@ function Chip({ icon: Icon, children }: { icon?: typeof Car; children: React.Rea
 
 function DriverPublicPage() {
   const { slug } = Route.useParams();
-  const { session, user } = useAuth();
+  const { session, user, isDriver, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [adding, setAdding] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -214,6 +214,10 @@ function DriverPublicPage() {
 
   const connect = useCallback(async () => {
     if (!user?.id || !driverId) return;
+    if (isDriver || isAdmin) {
+      toast.info("Seuls les comptes passagers peuvent ajouter un chauffeur à leur carnet.");
+      return;
+    }
     setAdding(true);
     const { error } = await supabase
       .from("driver_client_connections")
@@ -238,11 +242,12 @@ function DriverPublicPage() {
     toast.success("Chauffeur ajouté à votre carnet");
     void connQuery.refetch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, driverId, driverCity, source]);
+  }, [user?.id, driverId, driverCity, source, isDriver, isAdmin]);
 
   // Ajout automatique après connexion / création de compte depuis ce lien
   useEffect(() => {
     if (!user?.id || !driverId || connQuery.isLoading || connQuery.data) return;
+    if (isDriver || isAdmin) return;
     if (sessionStorage.getItem("relink:pending-driver") !== slug) return;
     sessionStorage.removeItem("relink:pending-driver");
     void connect();
@@ -315,7 +320,12 @@ function DriverPublicPage() {
     void supabase.rpc("track_driver_event", { _slug: slug, _event: "driver_request_click" });
   }
 
-  const primaryAction = connected ? (
+  const primaryAction = isDriver || isAdmin ? (
+    <p className="rounded-2xl border border-border bg-muted/40 px-4 py-3 text-center text-sm text-muted-foreground">
+      Vous êtes connecté avec un compte professionnel : seuls les comptes passagers peuvent ajouter un
+      chauffeur à leur carnet.
+    </p>
+  ) : connected ? (
     <div className="space-y-2">
       <p className="flex items-center justify-center gap-1.5 text-sm font-medium text-primary">
         <Check className="size-4" /> Déjà dans mes chauffeurs
