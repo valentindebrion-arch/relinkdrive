@@ -242,11 +242,12 @@ function DriverPublicPage() {
     toast.success("Chauffeur ajouté à votre carnet");
     void connQuery.refetch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, driverId, driverCity, source]);
+  }, [user?.id, driverId, driverCity, source, isDriver, isAdmin]);
 
   // Ajout automatique après connexion / création de compte depuis ce lien
   useEffect(() => {
     if (!user?.id || !driverId || connQuery.isLoading || connQuery.data) return;
+    if (isDriver || isAdmin) return;
     if (sessionStorage.getItem("relink:pending-driver") !== slug) return;
     sessionStorage.removeItem("relink:pending-driver");
     void connect();
