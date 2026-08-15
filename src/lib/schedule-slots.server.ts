@@ -82,7 +82,7 @@ export async function buildDriverSchedule(
   const rangeFrom = new Date(monthStart.getTime() - 86_400_000).toISOString();
   const rangeTo = new Date(monthEnd.getTime() + 2 * 86_400_000).toISOString();
 
-  const [{ data: hoursRows }, { data: absenceRows }, { data: rides }, { data: requests }] =
+  const [{ data: hoursRows }, { data: absenceRows }, { data: rides }, { data: requests }, { data: driverProfile }] =
     await Promise.all([
       supabaseAdmin
         .from("driver_working_hours")
@@ -107,7 +107,15 @@ export async function buildDriverSchedule(
         .eq("is_immediate", false)
         .gte("scheduled_at", rangeFrom)
         .lte("scheduled_at", rangeTo),
+      supabaseAdmin
+        .from("driver_profiles")
+        .select("on_duty")
+        .eq("user_id", data.driverId)
+        .maybeSingle(),
     ]);
+
+  // Statut « Non disponible » : la journée locale en cours est entièrement bloquée.
+  const unavailableToday = !(driverProfile as any)?.on_duty;
 
   const hours: WorkingHour[] = (hoursRows ?? []) as WorkingHour[];
   const absences: Absence[] = (absenceRows ?? []) as Absence[];
@@ -150,6 +158,11 @@ export async function buildDriverSchedule(
       continue;
     }
 
+    if (unavailableToday && date === todayKey) {
+      days.push({ date, status: "full", slots: [] });
+      continue;
+    }
+
     const slots: string[] = [];
     let candidates = 0;
     for (let m = 0; m < 24 * 60; m += SLOT_UI_STEP_MIN) {
@@ -173,5 +186,5 @@ export async function buildDriverSchedule(
     days.push({ date, status, slots });
   }
 
-  return { timeZone: RELINK_TZ, tripMin, days };
+  return { timeZone: RELINK_TZ, tripMin, days, today: todayKey, unavailableToday };
 }
