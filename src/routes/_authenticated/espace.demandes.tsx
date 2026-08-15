@@ -80,6 +80,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import {
+  BookingThemeScope,
+  PoweredByRelink,
+  useDriverBranding,
+} from "@/components/BookingThemeScope";
 
 const searchSchema = z.object({ driver: z.string().optional() });
 
@@ -691,6 +696,9 @@ function ClientRequests() {
     dropoffOk,
   };
 
+  // Le parcours adopte le thème du chauffeur sélectionné (classique sinon).
+  const branding = useDriverBranding({ driverId: form.driver_id || null });
+
   const selectedDriver = (drivers.data ?? []).find((d) => d.id === form.driver_id);
   const driverName = selectedDriver?.full_name;
   const driverAvailable = !!selectedDriver?.on_duty;
@@ -717,7 +725,8 @@ function ClientRequests() {
   }
 
   return (
-    <div
+    <BookingThemeScope
+      theme={branding.data?.themeId}
       className={cn(
         "fixed inset-0 z-50 flex flex-col overflow-hidden",
         step === 0 ? "bg-muted/40" : "bg-background",
@@ -1401,6 +1410,7 @@ function ClientRequests() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      <PoweredByRelink className="pointer-events-none absolute inset-x-0 bottom-0 py-1" />
+    </BookingThemeScope>
   );
 }

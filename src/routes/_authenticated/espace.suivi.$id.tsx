@@ -16,6 +16,11 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import {
+  BookingThemeScope,
+  PoweredByRelink,
+  useDriverBranding,
+} from "@/components/BookingThemeScope";
 import { EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { InvoiceDownloadCard } from "@/components/InvoiceDownloadCard";
@@ -118,6 +123,42 @@ function initials(full?: string | null) {
 }
 
 function TrackingPage() {
+  const { id } = Route.useParams();
+  const { user } = useAuth();
+
+  // Thème du chauffeur associé à cette demande / course.
+  const owner = useQuery({
+    queryKey: ["tracking-driver", id, user?.id],
+    enabled: !!user?.id,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data: ride } = await supabase
+        .from("rides")
+        .select("driver_id")
+        .eq("id", id)
+        .eq("client_id", user!.id)
+        .maybeSingle();
+      if (ride?.driver_id) return ride.driver_id;
+      const { data: request } = await supabase
+        .from("ride_requests")
+        .select("driver_id")
+        .eq("id", id)
+        .eq("client_id", user!.id)
+        .maybeSingle();
+      return request?.driver_id ?? null;
+    },
+  });
+  const branding = useDriverBranding({ driverId: owner.data ?? null });
+
+  return (
+    <BookingThemeScope theme={branding.data?.themeId} className="min-h-full">
+      <TrackingPageInner />
+      <PoweredByRelink />
+    </BookingThemeScope>
+  );
+}
+
+function TrackingPageInner() {
   const { id } = Route.useParams();
   const { user } = useAuth();
   const qc = useQueryClient();

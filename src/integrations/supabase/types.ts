@@ -513,6 +513,11 @@ export type Database = {
           billing_legal_info: string | null
           bio: string | null
           booking_notice: string | null
+          booking_theme: string
+          brand_cover_path: string | null
+          brand_display_name: string | null
+          brand_logo_path: string | null
+          brand_welcome_message: string | null
           business_name: string | null
           city: string | null
           created_at: string
@@ -538,6 +543,7 @@ export type Database = {
           submitted_at: string | null
           suspended_at: string | null
           suspension_reason: string | null
+          theme_updated_at: string | null
           tiktok_url: string | null
           updated_at: string
           user_id: string
@@ -545,6 +551,9 @@ export type Database = {
           verification_status: Database["public"]["Enums"]["verification_status"]
           vtc_card_number: string | null
           whatsapp_number: string | null
+          women_for_women_eligible: boolean
+          women_for_women_verified_at: string | null
+          women_for_women_verified_by: string | null
           zone: string | null
         }
         Insert: {
@@ -557,6 +566,11 @@ export type Database = {
           billing_legal_info?: string | null
           bio?: string | null
           booking_notice?: string | null
+          booking_theme?: string
+          brand_cover_path?: string | null
+          brand_display_name?: string | null
+          brand_logo_path?: string | null
+          brand_welcome_message?: string | null
           business_name?: string | null
           city?: string | null
           created_at?: string
@@ -582,6 +596,7 @@ export type Database = {
           submitted_at?: string | null
           suspended_at?: string | null
           suspension_reason?: string | null
+          theme_updated_at?: string | null
           tiktok_url?: string | null
           updated_at?: string
           user_id: string
@@ -589,6 +604,9 @@ export type Database = {
           verification_status?: Database["public"]["Enums"]["verification_status"]
           vtc_card_number?: string | null
           whatsapp_number?: string | null
+          women_for_women_eligible?: boolean
+          women_for_women_verified_at?: string | null
+          women_for_women_verified_by?: string | null
           zone?: string | null
         }
         Update: {
@@ -601,6 +619,11 @@ export type Database = {
           billing_legal_info?: string | null
           bio?: string | null
           booking_notice?: string | null
+          booking_theme?: string
+          brand_cover_path?: string | null
+          brand_display_name?: string | null
+          brand_logo_path?: string | null
+          brand_welcome_message?: string | null
           business_name?: string | null
           city?: string | null
           created_at?: string
@@ -626,6 +649,7 @@ export type Database = {
           submitted_at?: string | null
           suspended_at?: string | null
           suspension_reason?: string | null
+          theme_updated_at?: string | null
           tiktok_url?: string | null
           updated_at?: string
           user_id?: string
@@ -633,6 +657,9 @@ export type Database = {
           verification_status?: Database["public"]["Enums"]["verification_status"]
           vtc_card_number?: string | null
           whatsapp_number?: string | null
+          women_for_women_eligible?: boolean
+          women_for_women_verified_at?: string | null
+          women_for_women_verified_by?: string | null
           zone?: string | null
         }
         Relationships: []
@@ -1841,6 +1868,18 @@ export type Database = {
           user_id: string
           whatsapp_number: string
           zone: string
+        }[]
+      }
+      get_driver_booking_theme: {
+        Args: { _driver?: string; _slug?: string }
+        Returns: {
+          booking_theme: string
+          brand_cover_path: string
+          brand_display_name: string
+          brand_logo_path: string
+          brand_welcome_message: string
+          slug: string
+          user_id: string
         }[]
       }
       get_invoice_issuer: {

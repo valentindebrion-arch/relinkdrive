@@ -41,6 +41,7 @@ import { Route as AuthenticatedProDossierRouteImport } from './routes/_authentic
 import { Route as AuthenticatedProEntrepriseRouteImport } from './routes/_authenticated/pro.entreprise'
 import { Route as AuthenticatedProFacturesRouteImport } from './routes/_authenticated/pro.factures'
 import { Route as AuthenticatedProParametresRouteImport } from './routes/_authenticated/pro.parametres'
+import { Route as AuthenticatedProPersonnalisationRouteImport } from './routes/_authenticated/pro.personnalisation'
 import { Route as AuthenticatedProProfilRouteImport } from './routes/_authenticated/pro.profil'
 import { Route as AuthenticatedProQrRouteImport } from './routes/_authenticated/pro.qr'
 import { Route as AuthenticatedProVehiculeRouteImport } from './routes/_authenticated/pro.vehicule'
@@ -236,6 +237,12 @@ const AuthenticatedProParametresRoute =
     path: '/parametres',
     getParentRoute: () => AuthenticatedProRoute,
   } as any)
+const AuthenticatedProPersonnalisationRoute =
+  AuthenticatedProPersonnalisationRouteImport.update({
+    id: '/personnalisation',
+    path: '/personnalisation',
+    getParentRoute: () => AuthenticatedProRoute,
+  } as any)
 const AuthenticatedProProfilRoute = AuthenticatedProProfilRouteImport.update({
   id: '/profil',
   path: '/profil',
@@ -389,6 +396,7 @@ export interface FileRoutesByFullPath {
   '/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/pro/factures': typeof AuthenticatedProFacturesRoute
   '/pro/parametres': typeof AuthenticatedProParametresRoute
+  '/pro/personnalisation': typeof AuthenticatedProPersonnalisationRoute
   '/pro/profil': typeof AuthenticatedProProfilRoute
   '/pro/qr': typeof AuthenticatedProQrRoute
   '/pro/vehicule': typeof AuthenticatedProVehiculeRoute
@@ -438,6 +446,7 @@ export interface FileRoutesByTo {
   '/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/pro/factures': typeof AuthenticatedProFacturesRoute
   '/pro/parametres': typeof AuthenticatedProParametresRoute
+  '/pro/personnalisation': typeof AuthenticatedProPersonnalisationRoute
   '/pro/profil': typeof AuthenticatedProProfilRoute
   '/pro/qr': typeof AuthenticatedProQrRoute
   '/pro/vehicule': typeof AuthenticatedProVehiculeRoute
@@ -494,6 +503,7 @@ export interface FileRoutesById {
   '/_authenticated/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/_authenticated/pro/factures': typeof AuthenticatedProFacturesRoute
   '/_authenticated/pro/parametres': typeof AuthenticatedProParametresRoute
+  '/_authenticated/pro/personnalisation': typeof AuthenticatedProPersonnalisationRoute
   '/_authenticated/pro/profil': typeof AuthenticatedProProfilRoute
   '/_authenticated/pro/qr': typeof AuthenticatedProQrRoute
   '/_authenticated/pro/vehicule': typeof AuthenticatedProVehiculeRoute
@@ -550,6 +560,7 @@ export interface FileRouteTypes {
     | '/pro/entreprise'
     | '/pro/factures'
     | '/pro/parametres'
+    | '/pro/personnalisation'
     | '/pro/profil'
     | '/pro/qr'
     | '/pro/vehicule'
@@ -599,6 +610,7 @@ export interface FileRouteTypes {
     | '/pro/entreprise'
     | '/pro/factures'
     | '/pro/parametres'
+    | '/pro/personnalisation'
     | '/pro/profil'
     | '/pro/qr'
     | '/pro/vehicule'
@@ -654,6 +666,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pro/entreprise'
     | '/_authenticated/pro/factures'
     | '/_authenticated/pro/parametres'
+    | '/_authenticated/pro/personnalisation'
     | '/_authenticated/pro/profil'
     | '/_authenticated/pro/qr'
     | '/_authenticated/pro/vehicule'
@@ -921,6 +934,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProParametresRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
+    '/_authenticated/pro/personnalisation': {
+      id: '/_authenticated/pro/personnalisation'
+      path: '/personnalisation'
+      fullPath: '/pro/personnalisation'
+      preLoaderRoute: typeof AuthenticatedProPersonnalisationRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
     '/_authenticated/pro/profil': {
       id: '/_authenticated/pro/profil'
       path: '/profil'
@@ -1169,6 +1189,7 @@ interface AuthenticatedProRouteChildren {
   AuthenticatedProEntrepriseRoute: typeof AuthenticatedProEntrepriseRoute
   AuthenticatedProFacturesRoute: typeof AuthenticatedProFacturesRoute
   AuthenticatedProParametresRoute: typeof AuthenticatedProParametresRoute
+  AuthenticatedProPersonnalisationRoute: typeof AuthenticatedProPersonnalisationRoute
   AuthenticatedProProfilRoute: typeof AuthenticatedProProfilRoute
   AuthenticatedProQrRoute: typeof AuthenticatedProQrRoute
   AuthenticatedProVehiculeRoute: typeof AuthenticatedProVehiculeRoute
@@ -1190,6 +1211,7 @@ const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
   AuthenticatedProEntrepriseRoute: AuthenticatedProEntrepriseRoute,
   AuthenticatedProFacturesRoute: AuthenticatedProFacturesRoute,
   AuthenticatedProParametresRoute: AuthenticatedProParametresRoute,
+  AuthenticatedProPersonnalisationRoute: AuthenticatedProPersonnalisationRoute,
   AuthenticatedProProfilRoute: AuthenticatedProProfilRoute,
   AuthenticatedProQrRoute: AuthenticatedProQrRoute,
   AuthenticatedProVehiculeRoute: AuthenticatedProVehiculeRoute,

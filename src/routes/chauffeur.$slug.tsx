@@ -38,6 +38,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useSignedUrl } from "@/lib/storage";
 import { BRAND } from "@/lib/brand";
+import {
+  BookingThemeScope,
+  PoweredByRelink,
+  useDriverBranding,
+} from "@/components/BookingThemeScope";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -166,6 +171,9 @@ function DriverPublicPage() {
       return data;
     },
   });
+
+  // Thème personnalisé du chauffeur (lien direct, QR code).
+  const branding = useDriverBranding({ slug });
 
   const [reviewsLimit, setReviewsLimit] = useState(3);
 
@@ -359,7 +367,7 @@ function DriverPublicPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-muted/30 pb-10">
+    <BookingThemeScope theme={branding.data?.themeId} className="min-h-screen pb-10">
       <div className="mx-auto max-w-lg space-y-3 px-4 py-6">
         <p className="text-center text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {BRAND.name}
@@ -781,7 +789,9 @@ function DriverPublicPage() {
             avec les chauffeurs de leur carnet.
           </p>
         </div>
+        <PoweredByRelink />
       </div>
+
 
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
@@ -799,6 +809,6 @@ function DriverPublicPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </BookingThemeScope>
   );
 }
