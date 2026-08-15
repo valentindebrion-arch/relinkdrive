@@ -178,10 +178,36 @@ function AdminDrivers() {
                       <div className="text-sm">
                         <span className="font-medium">{DOCUMENT_LABELS[doc.doc_type] ?? doc.doc_type}</span>
                         <span className="text-muted-foreground"> · expire le {formatDate(doc.expires_at)}</span>
+                        {!doc.file_path ? (
+                          <span className="block text-xs text-destructive">Document non transmis</span>
+                        ) : null}
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                         <StatusBadge status={doc.status} labels={DOC_STATUS_LABELS} />
-                        <Button size="sm" variant="outline" onClick={() => reviewDoc.mutate({ id: doc.id, status: "approved" })}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-primary text-primary hover:bg-accent"
+                          disabled={!doc.file_path}
+                          onClick={() => setViewer({ ...doc, driverName: d.profile?.full_name ?? d.business_name ?? null })}
+                        >
+                          <Eye className="size-4" /> Voir
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={!doc.file_path}
+                          aria-label="Télécharger"
+                          onClick={() => void downloadDoc(doc.id)}
+                        >
+                          <Download className="size-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={!doc.file_path}
+                          onClick={() => reviewDoc.mutate({ id: doc.id, status: "approved" })}
+                        >
                           Valider
                         </Button>
                         <Button
@@ -194,6 +220,7 @@ function AdminDrivers() {
                       </div>
                     </div>
                   ))
+
                 )}
               </div>
 
