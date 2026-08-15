@@ -189,6 +189,7 @@ export function DossierReview({ driverId }: { driverId: string }) {
   const runPdf = useServerFn(generateDossierPdf);
   const reauth = useServerFn(confirmAdminReauth);
 
+  const [approveOpen, setApproveOpen] = useState(false);
   const [viewer, setViewer] = useState<ReviewDocument | null>(null);
   const [docNotes, setDocNotes] = useState<Record<string, string>>({});
   const [sectionNotes, setSectionNotes] = useState<Record<string, string>>({});
@@ -337,9 +338,7 @@ export function DossierReview({ driverId }: { driverId: string }) {
   const pendingDoc = (data.documents ?? []).some((d) => d.status === "pending");
   const approveBlockedReason = !data.driver
     ? "Profil chauffeur introuvable."
-    : !data.isDriverRole
-      ? "Ce compte ne possède pas le rôle chauffeur."
-      : (state?.percent ?? 0) < 100
+    : (state?.percent ?? 0) < 100
         ? `Dossier complété à ${state?.percent ?? 0} % : des informations ou des pièces obligatoires manquent.`
         : rejectedDoc
           ? "Un document a été refusé : le chauffeur doit le renvoyer."
@@ -637,7 +636,7 @@ export function DossierReview({ driverId }: { driverId: string }) {
           {data.driver?.verification_status === "verified" ? (
             <span className="inline-flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-sm font-medium text-primary">
               <ShieldCheck className="size-4" /> Chauffeur vérifié
-              {state?.approved_at ? ` · ${formatDateTime(state.approved_at)}` : ""}
+              {data.driver?.approved_at ? ` · ${formatDateTime(data.driver.approved_at)}` : ""}
             </span>
           ) : (
             <Button
