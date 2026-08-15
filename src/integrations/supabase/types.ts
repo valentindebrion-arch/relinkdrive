@@ -1583,6 +1583,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      admin_review_section: {
+        Args: {
+          _decision: string
+          _driver: string
+          _note?: string
+          _section: string
+        }
+        Returns: Json
+      }
       admin_validate_section: {
         Args: { _driver: string; _note?: string; _section: string }
         Returns: Json

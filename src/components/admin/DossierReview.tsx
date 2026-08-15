@@ -4,12 +4,15 @@ import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
+  AlertTriangle,
   ArrowLeft,
   Check,
   Download,
   Eye,
+  FileDown,
   Loader2,
   Lock,
+  PenLine,
   ShieldCheck,
   X,
 } from "lucide-react";
@@ -17,9 +20,16 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   confirmAdminReauth,
   exportDossierArchive,
+  generateDossierPdf,
   getDriverDossier,
 } from "@/lib/admin-dossier.functions";
-import { DOCUMENT_LABELS, DOC_STATUS_LABELS, VERIFICATION_LABELS, formatDate, formatDateTime } from "@/lib/labels";
+import {
+  DOCUMENT_LABELS,
+  DOC_STATUS_LABELS,
+  VERIFICATION_LABELS,
+  formatDate,
+  formatDateTime,
+} from "@/lib/labels";
 import { SECTION_STATE_LABELS, type SectionState } from "@/lib/driver-dossier";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PageHeader } from "@/components/Ui";
@@ -27,7 +37,12 @@ import { DocumentViewer, type ReviewDocument } from "@/components/admin/Document
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +54,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+/** Pièces attendues pour chacune des sept catégories du dossier. */
 const SECTION_DOCS: Record<string, string[]> = {
   identity: ["identity", "identity_back", "driver_photo"],
   license: ["driving_license", "driving_license_back", "adcs"],
@@ -49,13 +65,31 @@ const SECTION_DOCS: Record<string, string[]> = {
   tax: [],
 };
 
+const REQUIRED_DOCS: Record<string, string[]> = {
+  identity: ["identity"],
+  license: ["driving_license"],
+  vtc: ["vtc_card"],
+  company: ["company_proof"],
+  insurance: ["insurance"],
+  vehicle: ["registration", "inspection"],
+  tax: [],
+};
+
+const SECTION_REVIEW_LABELS: Record<string, string> = {
+  approved: "Validée par l'administration",
+  rejected: "Refusée",
+  changes_requested: "Correction demandée",
+};
+
 type Dossier = Awaited<ReturnType<typeof getDriverDossier>>;
 
 function Field({ label, value }: { label: string; value?: string | number | null | undefined }) {
   return (
     <div className="rounded-lg bg-muted/40 px-3 py-2">
       <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="text-sm">{value === null || value === undefined || value === "" ? "—" : String(value)}</p>
+      <p className="text-sm break-words">
+        {value === null || value === undefined || value === "" ? "—" : String(value)}
+      </p>
     </div>
   );
 }
@@ -91,20 +125,26 @@ function sectionFields(key: string, d: Dossier) {
       ] as const;
     case "company":
       return [
-        ["Dénomination", d.company?.legal_name],
+        ["Raison sociale", d.company?.legal_name],
         ["Forme juridique", d.company?.legal_form],
         ["Nom commercial", det?.trade_name ?? d.driver?.business_name],
         ["SIREN", det?.siren],
         ["SIRET", d.company?.siret ?? d.driver?.siret],
-        ["Adresse", [d.company?.address, d.company?.postal_code, d.company?.city].filter(Boolean).join(" ")],
+        [
+          "Adresse de l'entreprise",
+          [d.company?.address, d.company?.postal_code, d.company?.city].filter(Boolean).join(" "),
+        ],
+        ["TVA intracommunautaire", d.company?.vat_number],
       ] as const;
     case "insurance":
       return [
         ["RC pro — assureur", det?.rc_company],
         ["RC pro — contrat", det?.rc_contract],
+        ["RC pro — début", formatDate(det?.rc_starts_on)],
         ["RC pro — échéance", formatDate(det?.rc_expires_on)],
         ["Auto VTC — assureur", det?.auto_company],
         ["Auto VTC — contrat", det?.auto_contract],
+        ["Auto VTC — début", formatDate(det?.auto_starts_on)],
         ["Auto VTC — échéance", formatDate(det?.auto_expires_on)],
         ["Plaque assurée", det?.auto_plate],
       ] as const;
@@ -113,15 +153,26 @@ function sectionFields(key: string, d: Dossier) {
         ["Marque et modèle", [v?.brand, v?.model].filter(Boolean).join(" ")],
         ["Immatriculation", v?.plate],
         ["Année", v?.year],
+        ["Couleur", v?.color],
+        ["Catégorie", v?.category],
+        ["Passagers / bagages", v ? `${v.max_passengers} / ${v.luggage_capacity}` : null],
         ["Titulaire de la carte grise", det?.registration_holder],
         ["Contrôle technique", formatDate(v?.inspection_expires_at)],
         ["Assurance véhicule", formatDate(v?.insurance_expires_at)],
       ] as const;
     case "tax":
       return [
-        ["Régime TVA", d.tax?.regime],
-        ["Taux", d.tax?.rate_label],
+        [
+          "Régime de TVA",
+          d.tax?.regime === "liable"
+            ? "Redevable"
+            : d.tax?.regime === "franchise"
+              ? "Franchise en base"
+              : null,
+        ],
+        ["Taux", d.tax?.rate_label ?? (d.tax?.vat_rate != null ? `${d.tax.vat_rate} %` : null)],
         ["Numéro de TVA", d.tax?.vat_number ?? d.company?.vat_number],
+        ["Applicable depuis", formatDate(d.tax?.effective_from)],
         ["Tarif au km HT", d.tariffs[0]?.price_per_km_ht],
         ["Minimum de course HT", d.tariffs[0]?.minimum_ht],
         ["Mention légale", d.tax?.legal_mention],
@@ -135,14 +186,17 @@ export function DossierReview({ driverId }: { driverId: string }) {
   const qc = useQueryClient();
   const load = useServerFn(getDriverDossier);
   const runExport = useServerFn(exportDossierArchive);
+  const runPdf = useServerFn(generateDossierPdf);
   const reauth = useServerFn(confirmAdminReauth);
 
   const [viewer, setViewer] = useState<ReviewDocument | null>(null);
   const [docNotes, setDocNotes] = useState<Record<string, string>>({});
+  const [sectionNotes, setSectionNotes] = useState<Record<string, string>>({});
   const [note, setNote] = useState("");
   const [reason, setReason] = useState("");
   const [password, setPassword] = useState("");
   const [exportOpen, setExportOpen] = useState(false);
+  const [tab, setTab] = useState<string>("identity");
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["admin", "dossier", driverId],
@@ -167,20 +221,21 @@ export function DossierReview({ driverId }: { driverId: string }) {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erreur"),
   });
 
-  const validateSection = useMutation({
-    mutationFn: async (section: string) => {
-      const { error: e } = await supabase.rpc("admin_validate_section", {
+  const reviewSection = useMutation({
+    mutationFn: async (v: { section: string; decision: "approve" | "reject" | "changes" }) => {
+      const { error: e } = await supabase.rpc("admin_review_section", {
         _driver: driverId,
-        _section: section,
-        _note: note || undefined,
-      } as never);
+        _section: v.section,
+        _decision: v.decision,
+        _note: sectionNotes[v.section] ?? "",
+      });
       if (e) throw e;
     },
     onSuccess: () => {
-      toast.success("Section validée");
+      toast.success("Décision enregistrée pour la catégorie");
       invalidate();
     },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Validation impossible"),
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Décision impossible"),
   });
 
   const addNote = useMutation({
@@ -201,9 +256,12 @@ export function DossierReview({ driverId }: { driverId: string }) {
 
   const decide = useMutation({
     mutationFn: async (decision: "approve" | "changes" | "reject" | "suspend" | "reinstate") => {
+      if (decision !== "approve" && decision !== "reinstate" && !reason.trim()) {
+        throw new Error("Un motif est obligatoire");
+      }
       const { error: e } = await supabase.rpc("admin_decide_driver", {
         _driver: driverId,
-        _decision: decision,
+        _decision: decision === "changes" ? "request_changes" : decision,
         _reason: reason,
       });
       if (e) throw e;
@@ -229,10 +287,30 @@ export function DossierReview({ driverId }: { driverId: string }) {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Export impossible"),
   });
 
+  const pdf = useMutation({
+    mutationFn: () => runPdf({ data: { driverId } }),
+    onSuccess: (r) => {
+      const bin = atob(r.base64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = r.fileName;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      toast.success("Dossier PDF généré");
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Génération impossible"),
+  });
+
   const docsBySection = useMemo(() => {
     const map = new Map<string, Dossier["documents"]>();
     for (const [key, types] of Object.entries(SECTION_DOCS)) {
-      map.set(key, (data?.documents ?? []).filter((d) => types.includes(d.doc_type)));
+      map.set(
+        key,
+        (data?.documents ?? []).filter((d) => types.includes(d.doc_type)),
+      );
     }
     return map;
   }, [data?.documents]);
@@ -250,10 +328,174 @@ export function DossierReview({ driverId }: { driverId: string }) {
 
   const state = data.state;
   const sections = state?.sections ?? [];
+  const allSectionsValidated =
+    sections.length > 0 &&
+    sections.every((s) => data.sectionReviews.find((r) => r.section === s.key)?.status === "approved");
+
+  const renderSection = (s: { key: string; label: string; state: string }) => {
+    const docs = docsBySection.get(s.key) ?? [];
+    const expected = SECTION_DOCS[s.key] ?? [];
+    const missing = expected.filter((t) => !docs.some((d) => d.doc_type === t && d.file_path));
+    const review = data.sectionReviews.find((r) => r.section === s.key);
+
+    return (
+      <div className="space-y-4">
+        <div className="grid gap-2 sm:grid-cols-2">
+          {sectionFields(s.key, data).map(([label, value]) => (
+            <Field key={label} label={label} value={value as string | number | null | undefined} />
+          ))}
+        </div>
+
+        {docs.length ? (
+          <div className="space-y-2">
+            {docs.map((doc) => (
+              <div key={doc.id} className="rounded-xl border border-border p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="text-sm">
+                    <span className="font-medium">
+                      {DOCUMENT_LABELS[doc.doc_type] ?? doc.doc_type}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {" "}
+                      · déposé le {formatDate(doc.created_at)} · échéance {formatDate(doc.expires_at)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <StatusBadge status={doc.status} labels={DOC_STATUS_LABELS} />
+                    <Button size="sm" variant="outline" onClick={() => setViewer(doc)}>
+                      <Eye className="size-4" /> Consulter
+                    </Button>
+                  </div>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <Input
+                    placeholder="Motif transmis au chauffeur"
+                    value={docNotes[doc.id] ?? ""}
+                    onChange={(e) => setDocNotes((n) => ({ ...n, [doc.id]: e.target.value }))}
+                    className="h-9 max-w-xs"
+                  />
+                  <Button size="sm" onClick={() => reviewDoc.mutate({ id: doc.id, decision: "approved" })}>
+                    <Check className="size-4" /> Valider
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive"
+                    onClick={() =>
+                      docNotes[doc.id]
+                        ? reviewDoc.mutate({
+                            id: doc.id,
+                            decision: "rejected",
+                            note: docNotes[doc.id] as string,
+                          })
+                        : toast.error("Indiquez le motif du refus")
+                    }
+                  >
+                    <X className="size-4" /> Refuser
+                  </Button>
+                </div>
+                {doc.review_note ? (
+                  <p className="mt-2 text-xs text-muted-foreground">Motif actuel : {doc.review_note}</p>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {missing.length ? (
+          <div className="space-y-1.5">
+            {missing.map((type) => {
+              const required = (REQUIRED_DOCS[s.key] ?? []).includes(type);
+              return (
+                <div
+                  key={type}
+                  className={`flex items-center gap-2 rounded-lg border border-dashed px-3 py-2 text-sm ${
+                    required ? "border-destructive/50 text-destructive" : "border-border text-muted-foreground"
+                  }`}
+                >
+                  <AlertTriangle className="size-4 shrink-0" />
+                  <span>
+                    {DOCUMENT_LABELS[type] ?? type} —{" "}
+                    {required ? "manquant (obligatoire)" : "non transmis (facultatif)"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
+
+        {!expected.length && !docs.length ? (
+          <p className="text-sm text-muted-foreground">
+            Cette catégorie ne comporte pas de justificatif à joindre.
+          </p>
+        ) : null}
+
+        <div className="space-y-2 rounded-xl bg-muted/40 p-3">
+          <p className="text-sm font-medium">Décision sur la catégorie</p>
+          {review ? (
+            <p className="text-xs text-muted-foreground">
+              {SECTION_REVIEW_LABELS[review.status] ?? review.status} ·{" "}
+              {formatDateTime(review.updated_at)}
+              {review.note ? ` · ${review.note}` : ""}
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground">Aucune décision enregistrée.</p>
+          )}
+          <Input
+            placeholder="Motif (obligatoire pour un refus ou une correction)"
+            value={sectionNotes[s.key] ?? ""}
+            onChange={(e) => setSectionNotes((n) => ({ ...n, [s.key]: e.target.value }))}
+            className="h-9 max-w-md"
+          />
+          <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              disabled={s.state !== "approved" || reviewSection.isPending}
+              title={
+                s.state === "approved" ? undefined : "Toutes les pièces obligatoires doivent être validées"
+              }
+              onClick={() => reviewSection.mutate({ section: s.key, decision: "approve" })}
+            >
+              <ShieldCheck className="size-4" /> Valider
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() =>
+                sectionNotes[s.key]?.trim()
+                  ? reviewSection.mutate({ section: s.key, decision: "changes" })
+                  : toast.error("Indiquez le motif de la correction demandée")
+              }
+            >
+              <PenLine className="size-4" /> Demander une correction
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-destructive"
+              onClick={() =>
+                sectionNotes[s.key]?.trim()
+                  ? reviewSection.mutate({ section: s.key, decision: "reject" })
+                  : toast.error("Indiquez le motif du refus")
+              }
+            >
+              <X className="size-4" /> Refuser
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const stateColor = (value: string) =>
+    value === "approved" ? "text-primary" : value === "todo" ? "text-muted-foreground" : "text-destructive";
 
   return (
     <div className="pb-16">
-      <Link to="/admin/chauffeurs" className="mb-3 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+      <Link
+        to="/admin/chauffeurs"
+        className="mb-3 inline-flex items-center gap-1.5 text-sm text-muted-foreground"
+      >
         <ArrowLeft className="size-4" /> Retour aux dossiers
       </Link>
 
@@ -263,122 +505,82 @@ export function DossierReview({ driverId }: { driverId: string }) {
       />
 
       <div className="surface mb-4 flex flex-wrap items-center justify-between gap-3 p-4">
-        <div className="flex items-center gap-2">
-          <StatusBadge status={data.driver?.verification_status ?? "incomplete"} labels={VERIFICATION_LABELS} />
-          <span className="text-xs text-muted-foreground">
-            Envoyé le {formatDateTime(data.driver?.submitted_at)}
-          </span>
+        <div className="space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge
+              status={data.driver?.verification_status ?? "incomplete"}
+              labels={VERIFICATION_LABELS}
+            />
+            <span className="text-xs text-muted-foreground">
+              Transmis le {formatDateTime(data.driver?.submitted_at)}
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Dernière modification : {formatDateTime(data.driver?.updated_at)} · dossier {driverId.slice(0, 8)}
+          </p>
         </div>
-        <Button size="sm" variant="outline" onClick={() => setExportOpen(true)}>
-          <Download className="size-4" /> Télécharger le dossier (ZIP)
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" disabled={pdf.isPending} onClick={() => pdf.mutate()}>
+            {pdf.isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <FileDown className="size-4" />
+            )}
+            Télécharger le dossier complet en PDF
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => setExportOpen(true)}>
+            <Download className="size-4" /> Télécharger les documents originaux
+          </Button>
+        </div>
       </div>
 
-      <Accordion type="multiple" className="space-y-3">
-        {sections.map((s) => {
-          const docs = docsBySection.get(s.key) ?? [];
-          const validated = data.sectionReviews.find((r) => r.section === s.key);
-          return (
-            <AccordionItem key={s.key} value={s.key} className="surface border-none px-4">
-              <AccordionTrigger className="hover:no-underline">
-                <div className="flex w-full items-center justify-between gap-3 pr-2">
-                  <span className="text-sm font-medium">{s.label}</span>
-                  <span
-                    className={`text-xs ${
-                      s.state === "approved"
-                        ? "text-primary"
-                        : s.state === "todo"
-                          ? "text-muted-foreground"
-                          : "text-destructive"
-                    }`}
-                  >
-                    {SECTION_STATE_LABELS[s.state as SectionState] ?? s.state}
-                  </span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="space-y-4 pb-4">
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {sectionFields(s.key, data).map(([label, value]) => (
-                    <Field key={label} label={label} value={value as string | number | null | undefined} />
-                  ))}
-                </div>
-
-                {docs.length ? (
-                  <div className="space-y-2">
-                    {docs.map((doc) => (
-                      <div key={doc.id} className="rounded-xl border border-border p-3">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="text-sm">
-                            <span className="font-medium">{DOCUMENT_LABELS[doc.doc_type] ?? doc.doc_type}</span>
-                            <span className="text-muted-foreground"> · échéance {formatDate(doc.expires_at)}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <StatusBadge status={doc.status} labels={DOC_STATUS_LABELS} />
-                            <Button size="sm" variant="outline" onClick={() => setViewer(doc)}>
-                              <Eye className="size-4" /> Consulter
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="mt-2 flex flex-wrap items-center gap-2">
-                          <Input
-                            placeholder="Motif transmis au chauffeur"
-                            value={docNotes[doc.id] ?? ""}
-                            onChange={(e) => setDocNotes((n) => ({ ...n, [doc.id]: e.target.value }))}
-                            className="h-9 max-w-xs"
-                          />
-                          <Button
-                            size="sm"
-                            onClick={() => reviewDoc.mutate({ id: doc.id, decision: "approved" })}
-                          >
-                            <Check className="size-4" /> Valider
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() =>
-                              docNotes[doc.id]
-                                ? reviewDoc.mutate({
-                                    id: doc.id,
-                                    decision: "rejected",
-                                    note: docNotes[doc.id] as string,
-                                  })
-                                : toast.error("Indiquez le motif du refus")
-                            }
-                          >
-                            <X className="size-4" /> Refuser
-                          </Button>
-                        </div>
-                        {doc.review_note ? (
-                          <p className="mt-2 text-xs text-muted-foreground">Motif actuel : {doc.review_note}</p>
-                        ) : null}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Aucune pièce jointe pour cette section.</p>
-                )}
-
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={s.state !== "approved"}
-                    title={s.state === "approved" ? undefined : "Toutes les pièces obligatoires doivent être validées"}
-                    onClick={() => validateSection.mutate(s.key)}
-                  >
-                    <ShieldCheck className="size-4" /> Valider cette section
-                  </Button>
-                  {validated ? (
-                    <span className="text-xs text-muted-foreground">
-                      Validée le {formatDateTime(validated.updated_at)}
-                    </span>
-                  ) : null}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          );
-        })}
+      {/* Mobile : accordéons */}
+      <Accordion type="multiple" className="space-y-3 md:hidden">
+        {sections.map((s) => (
+          <AccordionItem key={s.key} value={s.key} className="surface border-none px-4">
+            <AccordionTrigger className="hover:no-underline">
+              <div className="flex w-full items-center justify-between gap-3 pr-2">
+                <span className="text-sm font-medium">{s.label}</span>
+                <span className={`text-xs ${stateColor(s.state)}`}>
+                  {SECTION_STATE_LABELS[s.state as SectionState] ?? s.state}
+                </span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pb-4">{renderSection(s)}</AccordionContent>
+          </AccordionItem>
+        ))}
       </Accordion>
+
+      {/* Ordinateur : navigation latérale */}
+      <div className="hidden gap-4 md:grid md:grid-cols-[220px_1fr]">
+        <nav className="surface h-fit space-y-1 p-2">
+          {sections.map((s) => (
+            <button
+              key={s.key}
+              type="button"
+              onClick={() => setTab(s.key)}
+              className={`w-full rounded-lg px-3 py-2 text-left text-sm transition ${
+                tab === s.key ? "bg-primary/10 font-medium text-primary" : "hover:bg-muted"
+              }`}
+            >
+              <span className="block">{s.label}</span>
+              <span className={`text-[11px] ${stateColor(s.state)}`}>
+                {SECTION_STATE_LABELS[s.state as SectionState] ?? s.state}
+              </span>
+            </button>
+          ))}
+        </nav>
+        <div className="surface p-4">
+          {sections
+            .filter((s) => s.key === tab)
+            .map((s) => (
+              <div key={s.key} className="space-y-4">
+                <h2 className="text-base font-semibold">{s.label}</h2>
+                {renderSection(s)}
+              </div>
+            ))}
+        </div>
+      </div>
 
       <div className="surface mt-4 space-y-3 p-4">
         <p className="text-sm font-medium">Notes internes (jamais visibles par le chauffeur)</p>
@@ -414,16 +616,22 @@ export function DossierReview({ driverId }: { driverId: string }) {
         <div className="flex flex-wrap gap-2">
           <Button
             size="sm"
-            disabled={!state?.all_approved}
-            title={state?.all_approved ? undefined : "Toutes les pièces doivent être validées"}
+            disabled={!state?.all_approved || !allSectionsValidated}
+            title={
+              !state?.all_approved
+                ? "Toutes les pièces obligatoires doivent être validées"
+                : !allSectionsValidated
+                  ? "Chaque catégorie doit être validée avant l'approbation finale"
+                  : undefined
+            }
             onClick={() => decide.mutate("approve")}
           >
-            Valider le compte
+            Valider le dossier chauffeur
           </Button>
           <Button size="sm" variant="outline" onClick={() => decide.mutate("changes")}>
             Demander une correction
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => decide.mutate("reject")}>
+          <Button size="sm" variant="ghost" className="text-destructive" onClick={() => decide.mutate("reject")}>
             Refuser
           </Button>
           <Button size="sm" variant="ghost" onClick={() => decide.mutate("suspend")}>
@@ -435,6 +643,11 @@ export function DossierReview({ driverId }: { driverId: string }) {
             </Button>
           ) : null}
         </div>
+        {!allSectionsValidated ? (
+          <p className="text-xs text-muted-foreground">
+            Les sept catégories doivent être contrôlées et validées une à une avant l'approbation finale.
+          </p>
+        ) : null}
       </div>
 
       <DocumentViewer document={viewer} open={!!viewer} onOpenChange={(v) => !v && setViewer(null)} />
@@ -443,7 +656,7 @@ export function DossierReview({ driverId }: { driverId: string }) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <Lock className="size-4" /> Télécharger l'intégralité du dossier
+              <Lock className="size-4" /> Télécharger les documents originaux
             </AlertDialogTitle>
             <AlertDialogDescription>
               L'archive contient des données personnelles sensibles. Le téléchargement est journalisé et
