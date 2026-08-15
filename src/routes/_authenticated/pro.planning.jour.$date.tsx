@@ -10,6 +10,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Coffee,
+  CornerUpLeft,
   Plus,
   Trash2,
 } from "lucide-react";
@@ -242,6 +243,18 @@ function Summary({ plan, onEditHours }: { plan: DayPlan; onEditHours: () => void
         <Item label="Pauses prévues" value={breaksMin ? formatDuration(breaksMin) : "Aucune"} />
         <Item label="Temps encore disponible" value={formatDuration(free)} />
         <Item label="Temps tampon" value={plan.bufferMin ? `${plan.bufferMin} min` : "Aucun"} />
+        {plan.returnLeg ? (
+          <Item
+            label="Retour à vide"
+            value={`${minutesToTime(plan.returnLeg.startMin)} → ${minutesToTime(plan.returnLeg.endMin)} · ${plan.returnLeg.destination}`}
+          />
+        ) : null}
+        {plan.returnLeg && plan.bufferMin ? (
+          <Item
+            label="Disponibilité sûre"
+            value={minutesToTime(plan.returnLeg.endMin + plan.bufferMin)}
+          />
+        ) : null}
       </div>
 
       {!plan.available ? (
@@ -272,10 +285,40 @@ function Item({ label, value }: { label: string; value: string }) {
   );
 }
 
+/** Minutes depuis minuit (Europe/Paris) de l'instant courant. */
+function nowMinutes() {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: RELINK_TZ,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date());
+  return timeToMin(parts);
+}
+
+function todayKey() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: RELINK_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
 function Timeline({ plan, onPick }: { plan: DayPlan; onPick: (e: DayEvent) => void }) {
   const { slices } = useMemo(() => buildTimeline(plan), [plan]);
+  const [nowMin, setNowMin] = useState(() => nowMinutes());
+  useEffect(() => {
+    const id = setInterval(() => setNowMin(nowMinutes()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  const isToday = plan.date === todayKey();
   const startHour = Math.floor(plan.startMin / 60);
-  const endHour = Math.ceil(plan.endMin / 60);
+  const lastMin = Math.max(
+    plan.endMin,
+    plan.returnLeg ? plan.returnLeg.endMin + plan.bufferMin : 0,
+  );
+  const endHour = Math.ceil(lastMin / 60);
   const hours = Array.from({ length: Math.max(1, endHour - startHour) + 1 }, (_, i) => startHour + i);
   const top = (min: number) => ((min - startHour * 60) / 60) * HOUR_PX;
   const height = (a: number, b: number) => Math.max(26, ((b - a) / 60) * HOUR_PX);
@@ -309,6 +352,50 @@ function Timeline({ plan, onPick }: { plan: DayPlan; onPick: (e: DayEvent) => vo
                   style={style}
                 >
                   {formatDuration(mins)} disponibles
+                </div>
+              );
+            }
+            if (s.type === "return") {
+              const r = s.item;
+              const total = Math.max(1, r.endMin - r.startMin);
+              const inProgress = isToday && nowMin >= r.startMin && nowMin < r.endMin;
+              const remaining = Math.max(0, r.endMin - nowMin);
+              const progress = inProgress ? Math.round(((nowMin - r.startMin) / total) * 100) : 0;
+              return (
+                <div
+                  key={`ret-${i}`}
+                  className="absolute right-0 left-0 overflow-hidden rounded-lg px-3 py-2 text-xs text-white shadow-sm"
+                  style={{
+                    ...style,
+                    backgroundImage:
+                      "linear-gradient(to bottom, #DC2626 0%, #F04E30 55%, #F59E0B 100%)",
+                  }}
+                >
+                  <p className="flex items-center gap-1.5 font-semibold">
+                    <CornerUpLeft className="size-3.5 shrink-0" />
+                    Retour · {minutesToTime(r.startMin)} → {minutesToTime(r.endMin)}
+                  </p>
+                  <p className="truncate text-white/90">
+                    Trajet à vide vers {r.destination} · durée estimée {formatDuration(r.durationMin)}
+                  </p>
+                  <p className="truncate font-medium text-white/95">
+                    {inProgress
+                      ? `Retour en cours · ${formatDuration(remaining)} restantes · disponibilité estimée à ${minutesToTime(r.endMin)}`
+                      : r.interrupted
+                        ? "Retour interrompu — nouvelle prise en charge compatible"
+                        : `Indisponible sauf trajet compatible · disponibilité proche à ${minutesToTime(r.endMin)}`}
+                  </p>
+                  {inProgress ? (
+                    <div
+                      className="mt-1 h-1 rounded-full bg-white/30"
+                      role="progressbar"
+                      aria-valuenow={progress}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                    >
+                      <div className="h-1 rounded-full bg-white" style={{ width: `${progress}%` }} />
+                    </div>
+                  ) : null}
                 </div>
               );
             }
