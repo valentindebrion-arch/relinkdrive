@@ -177,10 +177,17 @@ function DriverRideDetail() {
   const startAllowed = serverNow >= opensAt;
   const isLate = serverNow > new Date(ride.scheduled_at) && !ride.started_at;
 
+  const isFlash = ride.ride_type === "flash";
+  /** Une course programmée n'ouvre ses étapes opérationnelles qu'à T - 1 h. */
+  const tooEarly =
+    !isFlash && ride.status === "confirmed" && !isImminent(ride.scheduled_at, serverNow);
+  const remaining = countdownLabel(ride.scheduled_at, serverNow);
+
   const preStart = !ride.started_at && !ride.completed_at && ride.status !== "cancelled" && ride.status !== "completed";
   const pendingCancel = ride.cancel_request_status === "pending" && preStart;
   const cancelDeadline = driverCancelDeadline(ride.scheduled_at);
   const canSelfCancel = preStart && serverNow <= cancelDeadline;
+
 
   async function doDecide(value: "accepted" | "refused") {
     if (!ride || deciding) return;
