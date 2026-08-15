@@ -300,11 +300,15 @@ function ProOverview() {
             <h2 className="flex min-w-0 items-center gap-2 text-sm font-semibold">
               <Inbox className="size-4 shrink-0 text-primary" />
               <span className="truncate">Demandes à traiter</span>
+              <span className="shrink-0 rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                {RIDE_TYPE_LABELS[topRequest.ride_type === "flash" ? "flash" : "scheduled"]}
+              </span>
             </h2>
             <span className="shrink-0 rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-primary-foreground">
               {pendingRequests.length}
             </span>
           </div>
+
           <div className="mt-2 space-y-1 text-xs">
             <p className="flex items-center gap-1.5 font-medium">
               <Clock className="size-3.5 shrink-0 text-primary" />
