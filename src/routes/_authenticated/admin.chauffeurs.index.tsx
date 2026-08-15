@@ -7,8 +7,13 @@ import { PageHeader, EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { VERIFICATION_LABELS, DOCUMENT_LABELS, DOC_STATUS_LABELS, formatDate } from "@/lib/labels";
 import { fetchDossierState, SECTION_STATE_LABELS, type DossierState } from "@/lib/driver-dossier";
+import { DocumentViewer, type ReviewDocument } from "@/components/admin/DocumentViewer";
+import { getDocumentUrl } from "@/lib/admin-dossier.functions";
+import { useServerFn } from "@tanstack/react-start";
+import { Download, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
 
 export const Route = createFileRoute("/_authenticated/admin/chauffeurs/")({
   component: AdminDrivers,
@@ -20,6 +25,18 @@ function AdminDrivers() {
   const qc = useQueryClient();
   const [filter, setFilter] = useState<string>("pending");
   const [note, setNote] = useState<Record<string, string>>({});
+  const [viewer, setViewer] = useState<ReviewDocument | null>(null);
+  const fetchDocUrl = useServerFn(getDocumentUrl);
+
+  const downloadDoc = async (documentId: string) => {
+    try {
+      const r = await fetchDocUrl({ data: { documentId, download: true } });
+      window.open(r.url, "_blank", "noopener,noreferrer");
+    } catch {
+      toast.error("Le fichier est introuvable dans le stockage.");
+    }
+  };
+
 
   const { data: drivers, isLoading } = useQuery({
     queryKey: ["admin", "drivers", filter],
@@ -178,10 +195,36 @@ function AdminDrivers() {
                       <div className="text-sm">
                         <span className="font-medium">{DOCUMENT_LABELS[doc.doc_type] ?? doc.doc_type}</span>
                         <span className="text-muted-foreground"> · expire le {formatDate(doc.expires_at)}</span>
+                        {!doc.file_path ? (
+                          <span className="block text-xs text-destructive">Document non transmis</span>
+                        ) : null}
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                         <StatusBadge status={doc.status} labels={DOC_STATUS_LABELS} />
-                        <Button size="sm" variant="outline" onClick={() => reviewDoc.mutate({ id: doc.id, status: "approved" })}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-primary text-primary hover:bg-accent"
+                          disabled={!doc.file_path}
+                          onClick={() => setViewer({ ...doc, driverName: d.profile?.full_name ?? d.business_name ?? null })}
+                        >
+                          <Eye className="size-4" /> Voir
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={!doc.file_path}
+                          aria-label="Télécharger"
+                          onClick={() => void downloadDoc(doc.id)}
+                        >
+                          <Download className="size-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={!doc.file_path}
+                          onClick={() => reviewDoc.mutate({ id: doc.id, status: "approved" })}
+                        >
                           Valider
                         </Button>
                         <Button
@@ -194,6 +237,7 @@ function AdminDrivers() {
                       </div>
                     </div>
                   ))
+
                 )}
               </div>
 
@@ -243,6 +287,8 @@ function AdminDrivers() {
           ))}
         </div>
       )}
+
+      <DocumentViewer document={viewer} open={!!viewer} onOpenChange={(v) => !v && setViewer(null)} />
     </div>
   );
 }
