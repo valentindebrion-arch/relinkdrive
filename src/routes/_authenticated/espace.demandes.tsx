@@ -613,6 +613,16 @@ function ClientRequests() {
 
     if (error) {
       sentRef.current = false;
+      if (/driver_unavailable_today/i.test(error.message)) {
+        setSubmitError(UNAVAILABLE_TODAY_MSG);
+        setSlotWarning(UNAVAILABLE_TODAY_MSG);
+        void drivers.refetch();
+        setStep(0);
+        toast.error("Chauffeur indisponible aujourd'hui", {
+          description: UNAVAILABLE_TODAY_MSG,
+        });
+        return;
+      }
       setSubmitError(error.message);
       if (/disponible/i.test(error.message)) {
         setStep(0);
