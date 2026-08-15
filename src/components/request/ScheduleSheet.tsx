@@ -51,6 +51,7 @@ export function ScheduleSheet({
   onClose,
   onConfirm,
   onChangeDriver,
+  onEditPickup,
 }: {
   open: boolean;
   driverId: string;
@@ -62,6 +63,8 @@ export function ScheduleSheet({
   onClose: () => void;
   onConfirm: (iso: string) => void;
   onChangeDriver: () => void;
+  /** Revenir à la saisie de l'adresse de départ. */
+  onEditPickup?: (() => void) | undefined;
 }) {
   const scheduleFn = useServerFn(getDriverSchedule);
   const [month, setMonth] = useState(() => (valueIso ?? new Date().toISOString()).slice(0, 7));
@@ -70,10 +73,11 @@ export function ScheduleSheet({
   );
   const [selectedSlot, setSelectedSlot] = useState<string | null>(valueIso);
   const [staleError, setStaleError] = useState<string | null>(null);
+  const [showAllSlots, setShowAllSlots] = useState(false);
 
   const query = useQuery({
     queryKey: ["driver-schedule", driverId, pickup, dropoff, roundTrip, month],
-    enabled: open && !!driverId && pickup.length > 2 && dropoff.length > 2,
+    enabled: open && !!driverId && pickup.trim().length > 4 && dropoff.trim().length > 4,
     staleTime: 0,
     gcTime: 0,
     refetchOnMount: "always",
@@ -86,7 +90,8 @@ export function ScheduleSheet({
       })) as DriverSchedule,
   });
 
-  const days = query.data?.days ?? [];
+  const addressReady = pickup.trim().length > 4 && dropoff.trim().length > 4;
+  const days = query.isFetching ? [] : (query.data?.days ?? []);
   const dayMap = useMemo(() => new Map(days.map((d) => [d.date, d])), [days]);
 
   // Le jour retenu doit rester réservable après chaque actualisation.
@@ -96,6 +101,10 @@ export function ScheduleSheet({
     if (day && day.slots.length === 0) setSelectedSlot(null);
     if (selectedSlot && day && !day.slots.includes(selectedSlot)) setSelectedSlot(null);
   }, [dayMap, selectedDay, selectedSlot]);
+
+  useEffect(() => {
+    setShowAllSlots(false);
+  }, [selectedDay, pickup, dropoff]);
 
   useEffect(() => {
     if (!open) return;
@@ -114,6 +123,17 @@ export function ScheduleSheet({
   const today = query.data?.today ?? parisDay(new Date());
   const blockedToday = !!query.data?.unavailableToday;
   const nextAvailable = days.find((d) => d.date > (selectedDay ?? "") && d.slots.length > 0);
+  const nextSlotIso = nextAvailable?.slots[0] ?? null;
+  const nextSlotLabel = nextSlotIso
+    ? new Date(nextSlotIso)
+        .toLocaleString("fr-FR", {
+          timeZone: "Europe/Paris",
+          weekday: "long",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+        .replace(" ", " à ")
+    : null;
 
   return (
     <div className="fixed inset-0 z-[70] flex flex-col justify-end bg-black/40">
@@ -164,7 +184,7 @@ export function ScheduleSheet({
             <div className="rounded-2xl bg-destructive/10 p-4 text-[13.5px]">
               <p className="flex items-start gap-2 font-semibold">
                 <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-                Les disponibilités de ce chauffeur ne peuvent pas être vérifiées pour le moment.
+                Impossible de calculer les créneaux pour le moment. Veuillez réessayer.
               </p>
               <Button
                 size="sm"
@@ -235,10 +255,21 @@ export function ScheduleSheet({
               </p>
 
               <div className="mt-4">
-                {query.isPending || query.isFetching ? (
-                  <p className="flex items-center gap-2 text-[13.5px] text-muted-foreground">
-                    <Loader2 className="size-4 animate-spin" /> Actualisation des disponibilités…
+                {!addressReady ? (
+                  <p className="text-[13.5px] text-muted-foreground">
+                    Renseignez une adresse de départ précise pour voir les créneaux compatibles.
                   </p>
+                ) : query.isPending || query.isFetching ? (
+                  <div className="space-y-2">
+                    <p className="flex items-center gap-2 text-[13.5px] text-muted-foreground">
+                      <Loader2 className="size-4 animate-spin" /> Recherche des créneaux disponibles…
+                    </p>
+                    <div className="grid grid-cols-4 gap-2">
+                      {Array.from({ length: 8 }, (_, i) => (
+                        <div key={i} className="h-11 animate-pulse rounded-2xl bg-muted" />
+                      ))}
+                    </div>
+                  </div>
                 ) : !selectedDay ? (
                   <p className="text-[13.5px] text-muted-foreground">
                     Choisissez un jour pour voir les créneaux.
@@ -251,7 +282,7 @@ export function ScheduleSheet({
                   <>
                     <p className="mb-2 text-[13px] font-bold">Créneaux disponibles</p>
                     <div className="grid grid-cols-4 gap-2">
-                      {activeDay.slots.map((iso) => {
+                      {(showAllSlots ? activeDay.slots : activeDay.slots.slice(0, 12)).map((iso) => {
                         const on = selectedSlot === iso;
                         return (
                           <button
@@ -271,6 +302,16 @@ export function ScheduleSheet({
                         );
                       })}
                     </div>
+                    {!showAllSlots && activeDay.slots.length > 12 ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="mt-2 w-full rounded-xl"
+                        onClick={() => setShowAllSlots(true)}
+                      >
+                        Voir plus de créneaux ({activeDay.slots.length - 12})
+                      </Button>
+                    ) : null}
                     <p className="mt-2 flex items-center gap-1.5 text-[12px] text-muted-foreground">
                       <Clock className="size-3.5" />
                       Durée estimée de la course : ~{query.data?.tripMin ?? "?"} min
@@ -278,8 +319,25 @@ export function ScheduleSheet({
                   </>
                 ) : (
                   <div className="rounded-2xl bg-muted/70 p-4 text-[13.5px]">
-                    <p className="font-semibold">Aucun créneau disponible ce jour-là.</p>
+                    <p className="font-semibold">
+                      Aucun créneau compatible avec ce trajet pour cette journée.
+                    </p>
+                    {nextSlotLabel ? (
+                      <p className="mt-1 text-[12.5px] text-muted-foreground">
+                        Prochain créneau disponible : {nextSlotLabel}
+                      </p>
+                    ) : null}
                     <div className="mt-3 flex flex-wrap gap-2">
+                      {onEditPickup ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-xl"
+                          onClick={onEditPickup}
+                        >
+                          Modifier mon adresse de départ
+                        </Button>
+                      ) : null}
                       {nextAvailable ? (
                         <Button
                           size="sm"
@@ -289,7 +347,7 @@ export function ScheduleSheet({
                             setSelectedSlot(null);
                           }}
                         >
-                          Voir le prochain jour disponible
+                          Voir le prochain créneau disponible
                         </Button>
                       ) : null}
                       <Button
