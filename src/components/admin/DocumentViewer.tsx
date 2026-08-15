@@ -15,7 +15,9 @@ export type ReviewDocument = {
   expires_at: string | null;
   created_at: string;
   review_note: string | null;
+  driverName?: string | null;
 };
+
 
 function isPdf(path?: string | null) {
   return !!path && path.toLowerCase().endsWith(".pdf");
