@@ -25,6 +25,18 @@ function AdminDrivers() {
   const qc = useQueryClient();
   const [filter, setFilter] = useState<string>("pending");
   const [note, setNote] = useState<Record<string, string>>({});
+  const [viewer, setViewer] = useState<ReviewDocument | null>(null);
+  const fetchDocUrl = useServerFn(getDocumentUrl);
+
+  const downloadDoc = async (documentId: string) => {
+    try {
+      const r = await fetchDocUrl({ data: { documentId, download: true } });
+      window.open(r.url, "_blank", "noopener,noreferrer");
+    } catch {
+      toast.error("Le fichier est introuvable dans le stockage.");
+    }
+  };
+
 
   const { data: drivers, isLoading } = useQuery({
     queryKey: ["admin", "drivers", filter],
