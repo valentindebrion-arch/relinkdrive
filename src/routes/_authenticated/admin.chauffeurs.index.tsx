@@ -287,6 +287,8 @@ function AdminDrivers() {
           ))}
         </div>
       )}
+
+      <DocumentViewer document={viewer} open={!!viewer} onOpenChange={(v) => !v && setViewer(null)} />
     </div>
   );
 }
