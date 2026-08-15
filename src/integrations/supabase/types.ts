@@ -1208,6 +1208,7 @@ export type Database = {
           proposed_price: number | null
           proposed_time: string | null
           response_deadline: string | null
+          ride_type: string
           round_trip: boolean
           scheduled_at: string
           special_needs: string | null
@@ -1249,6 +1250,7 @@ export type Database = {
           proposed_price?: number | null
           proposed_time?: string | null
           response_deadline?: string | null
+          ride_type?: string
           round_trip?: boolean
           scheduled_at: string
           special_needs?: string | null
@@ -1290,6 +1292,7 @@ export type Database = {
           proposed_price?: number | null
           proposed_time?: string | null
           response_deadline?: string | null
+          ride_type?: string
           round_trip?: boolean
           scheduled_at?: string
           special_needs?: string | null
@@ -1437,6 +1440,7 @@ export type Database = {
           previous_status: string | null
           price: number | null
           request_id: string | null
+          ride_type: string
           scheduled_at: string
           started_at: string | null
           status: Database["public"]["Enums"]["ride_status"]
@@ -1481,6 +1485,7 @@ export type Database = {
           previous_status?: string | null
           price?: number | null
           request_id?: string | null
+          ride_type?: string
           scheduled_at: string
           started_at?: string | null
           status?: Database["public"]["Enums"]["ride_status"]
@@ -1525,6 +1530,7 @@ export type Database = {
           previous_status?: string | null
           price?: number | null
           request_id?: string | null
+          ride_type?: string
           scheduled_at?: string
           started_at?: string | null
           status?: Database["public"]["Enums"]["ride_status"]
