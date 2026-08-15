@@ -173,8 +173,35 @@ export async function buildDayPlan(
     }))
     .sort((a, b) => a.startMin - b.startMin);
 
+  // Retour à vide vers le secteur de référence, après la dernière course.
+  let returnLeg = null as DayPlan["returnLeg"];
+  const lastRide = [...events].reverse().find((e) => e.kind !== "block");
+  if (lastRide && lastRide.durationMin !== null && available && !absent) {
+    const { getDriverReference } = await import("@/lib/driver-reference-address.server");
+    const reference = await getDriverReference(supabase, driverId);
+    if (reference.address) {
+      const back = await duration(lastRide.dropoff, reference.address);
+      if (back !== null && back > 0) {
+        const startMin = lastRide.startMin + lastRide.durationMin;
+        const endTime = new Date(
+          new Date(lastRide.startIso).getTime() + (lastRide.durationMin + back) * 60_000,
+        );
+        returnLeg = {
+          startMin,
+          endMin: startMin + back,
+          durationMin: back,
+          from: lastRide.dropoff,
+          destination: reference.label ?? reference.address,
+          interrupted: false,
+          endIso: endTime.toISOString(),
+        };
+      }
+    }
+  }
+
   return {
     date,
+    returnLeg,
     defined,
     available,
     startMin,
