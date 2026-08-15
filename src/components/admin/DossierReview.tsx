@@ -228,7 +228,7 @@ export function DossierReview({ driverId }: { driverId: string }) {
         _section: v.section,
         _decision: v.decision,
         _note: sectionNotes[v.section] ?? "",
-      } as never);
+      });
       if (e) throw e;
     },
     onSuccess: () => {
