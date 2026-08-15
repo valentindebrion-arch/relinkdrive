@@ -1,17 +1,24 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { CalendarClock, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { PageHeader, EmptyState } from "@/components/Ui";
-import { StatusBadge } from "@/components/StatusBadge";
-import { RIDE_STATUS_LABELS, formatEuro } from "@/lib/labels";
+import { PageHeader } from "@/components/Ui";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { WEEKDAYS } from "@/lib/schedule";
 
+type View = "week" | "month" | "year";
+type PlanningSearch = { view?: View | undefined; cursor?: string | undefined };
+
 export const Route = createFileRoute("/_authenticated/pro/planning/")({
+  validateSearch: (search: Record<string, unknown>): PlanningSearch => ({
+    view: (["week", "month", "year"] as const).includes(search["view"] as never)
+      ? (search["view"] as View)
+      : undefined,
+    cursor: typeof search["cursor"] === "string" ? (search["cursor"] as string) : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Planning — Relink Chauffeur" },
@@ -40,8 +47,6 @@ type Ride = {
   status: string;
   is_block: boolean;
 };
-
-type View = "week" | "month" | "year";
 
 const MONTHS = [
   "Janvier",
@@ -96,11 +101,26 @@ function StatusDot({ status }: { status: string }) {
 
 function PlanningPage() {
   const { user } = useAuth();
-  const [view, setView] = useState<View>("week");
-  const [cursor, setCursor] = useState(() => new Date());
-  const [selected, setSelected] = useState<Date | null>(null);
+  const search = Route.useSearch();
+  const navigate = useNavigate();
+  const [view, setView] = useState<View>(search.view ?? "week");
+  const [cursor, setCursor] = useState(() => (search.cursor ? new Date(`${search.cursor}T12:00:00`) : new Date()));
 
   const today = new Date();
+
+  function ymd(d: Date) {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+
+  /** Ouvre la vue journalière plein écran en conservant la période consultée. */
+  const openDay = (d: Date) => {
+    void navigate({
+      to: "/pro/planning/jour/$date",
+      params: { date: ymd(d) },
+      search: { view, cursor: ymd(cursor) },
+    });
+  };
 
   const rides = useQuery({
     queryKey: ["driver-planning", user?.id],
@@ -199,7 +219,7 @@ function PlanningPage() {
             return (
               <button
                 key={key(d)}
-                onClick={() => setSelected(d)}
+                onClick={() => openDay(d)}
                 className={cn(
                   "surface tap-active w-full p-3 text-left transition-colors hover:border-primary/40",
                   isToday && "border-primary/60 bg-primary/5",
@@ -237,7 +257,7 @@ function PlanningPage() {
           year={cursor.getFullYear()}
           month={cursor.getMonth()}
           countFor={(d) => dayRides(d).length}
-          onPick={setSelected}
+          onPick={openDay}
           today={today}
         />
       ) : (
@@ -258,7 +278,7 @@ function PlanningPage() {
                 year={cursor.getFullYear()}
                 month={i}
                 countFor={(d) => dayRides(d).length}
-                onPick={setSelected}
+                onPick={openDay}
                 today={today}
               />
             </div>
@@ -266,7 +286,6 @@ function PlanningPage() {
         </div>
       )}
 
-      {selected ? <DaySheet date={selected} rides={dayRides(selected)} onClose={() => setSelected(null)} /> : null}
     </div>
   );
 }
@@ -330,66 +349,6 @@ function MonthGrid({
           ) : (
             <span key={i} />
           ),
-        )}
-      </div>
-    </div>
-  );
-}
-
-function DaySheet({ date, rides, onClose }: { date: Date; rides: Ride[]; onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-end bg-foreground/40" onClick={onClose}>
-      <div
-        className="max-h-[80vh] w-full overflow-y-auto rounded-t-2xl bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="mb-3 flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h2 className="truncate text-base font-bold capitalize">
-              {date.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              {rides.length} course{rides.length > 1 ? "s" : ""} prévue{rides.length > 1 ? "s" : ""}
-            </p>
-          </div>
-          <Button variant="ghost" size="icon" aria-label="Fermer" onClick={onClose}>
-            <X className="size-4" />
-          </Button>
-        </div>
-
-        {rides.length === 0 ? (
-          <EmptyState title="Aucune course prévue pour cette journée." description="" />
-        ) : (
-          <div className="space-y-3">
-            {rides.map((r) => (
-              <Link
-                key={r.id}
-                to="/pro/courses/$rideId"
-                params={{ rideId: r.id }}
-                className="surface tap-active block p-3 transition-colors hover:border-primary/40"
-              >
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
-                  <div className="min-w-0">
-                    <p className="flex items-center gap-2 text-sm font-semibold">
-                      <StatusDot status={r.status} />
-                      {timeOf(r.scheduled_at)} · {r.client_label ?? "Client"}
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium">
-                        {isFlash(r) ? "Flash" : "Planifiée"}
-                      </span>
-                    </p>
-                    <p className="mt-1 truncate text-xs text-muted-foreground">{r.pickup_address}</p>
-                    <p className="truncate text-xs text-muted-foreground">→ {r.dropoff_address}</p>
-                  </div>
-                  <p className="shrink-0 text-sm font-bold text-primary">
-                    {r.price ? formatEuro(Number(r.price)) : "—"}
-                  </p>
-                </div>
-                <div className="mt-2">
-                  <StatusBadge status={r.status} labels={RIDE_STATUS_LABELS} />
-                </div>
-              </Link>
-            ))}
-          </div>
         )}
       </div>
     </div>
