@@ -149,13 +149,30 @@ export async function buildDriverSchedule(
   const hours: WorkingHour[] = (hoursRows ?? []) as WorkingHour[];
   const absences: Absence[] = (absenceRows ?? []) as Absence[];
 
-  // Durées estimées des engagements existants (mémoïsées par couple d'adresses).
+  // Engagements existants : durée estimée + temps de liaison réels avec la
+  // nouvelle course (calculés une seule fois par couple d'adresses).
   const durationCache = new Map<string, number>();
   const busy: Interval[] = [];
+  const engagements: Engagement[] = [];
   const entries = [
     ...((rides ?? []) as any[]).map((r) => ({ ...r, block: !!r.is_block })),
     ...((requests ?? []) as any[]).map((r) => ({ ...r, block: false })),
   ];
+  const gapMin = Math.max(SAFETY_MARGIN_MIN, bufferMin);
+  const linkCache = new Map<string, number | null>();
+  async function link(from: string, to: string) {
+    const key = `${from}|${to}`;
+    if (linkCache.has(key)) return linkCache.get(key)!;
+    let value: number | null = null;
+    try {
+      value = await travelMinutes(from, to);
+    } catch {
+      value = null;
+    }
+    linkCache.set(key, value);
+    return value;
+  }
+
   for (const entry of entries) {
     const start = new Date(entry.scheduled_at).getTime();
     let minutes = BLOCK_DURATION_MIN;
@@ -168,13 +185,41 @@ export async function buildDriverSchedule(
         durationCache.set(key, minutes);
       }
     }
+    const end = start + minutes * 60_000;
     busy.push({
       start: start - SAFETY_MARGIN_MIN * 60_000,
-      end: start + (minutes + Math.max(SAFETY_MARGIN_MIN, bufferMin)) * 60_000,
+      end: end + gapMin * 60_000,
+    });
+    engagements.push({
+      start,
+      end,
+      // Temps réel pour rejoindre le nouveau client depuis la fin de cet
+      // engagement : c'est ce qui autorise une prise en charge « sur le retour ».
+      linkFrom: entry.block ? 0 : await link(entry.dropoff_address, data.pickup),
+      // Temps réel pour rejoindre l'engagement suivant après la nouvelle course.
+      linkTo: entry.block ? 0 : await link(data.dropoff, entry.pickup_address),
     });
   }
+  engagements.sort((a, b) => a.start - b.start);
 
   const overlaps = (start: number, end: number) => busy.some((b) => start < b.end && end > b.start);
+
+  /** Le créneau respecte-t-il les temps de liaison réels avec les courses voisines ? */
+  function linksFit(startMs: number, endMs: number) {
+    const previous = [...engagements].filter((e) => e.end <= startMs).pop();
+    const next = engagements.find((e) => e.start > startMs);
+    if (previous) {
+      // Aucune estimation fiable : on ne propose jamais un créneau inventé.
+      if (previous.linkFrom === null) return false;
+      if (startMs < previous.end + (previous.linkFrom + gapMin) * 60_000) return false;
+    }
+    if (next) {
+      if (next.linkTo === null) return false;
+      if (endMs + (next.linkTo + gapMin) * 60_000 > next.start) return false;
+    }
+    return true;
+  }
+
 
   const todayKey = parisDay(now);
   const horizonKey = parisDay(horizon);
