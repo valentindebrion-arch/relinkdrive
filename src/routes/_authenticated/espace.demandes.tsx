@@ -57,7 +57,7 @@ import type { RideQuote } from "@/lib/tax";
 import { ReviewStep } from "@/components/request/ReviewStep";
 import { LEGAL_VERSIONS } from "@/lib/legal-versions";
 import { checkDriverAvailability } from "@/lib/availability.functions";
-import { formatSlotFull } from "@/lib/schedule-slots";
+import { formatSlotFull, parisDay, UNAVAILABLE_TODAY_MSG } from "@/lib/schedule-slots";
 import {
   SAFETY_MARGIN_MIN,
   availabilityMessage,
