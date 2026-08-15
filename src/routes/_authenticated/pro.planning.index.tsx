@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { WEEKDAYS } from "@/lib/schedule";
 
-export const Route = createFileRoute("/_authenticated/pro/planning")({
+export const Route = createFileRoute("/_authenticated/pro/planning/")({
   head: () => ({
     meta: [
       { title: "Planning — Relink Chauffeur" },
