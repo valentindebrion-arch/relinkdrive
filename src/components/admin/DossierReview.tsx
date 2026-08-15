@@ -614,20 +614,27 @@ export function DossierReview({ driverId }: { driverId: string }) {
           className="max-w-md"
         />
         <div className="flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            disabled={!state?.all_approved || !allSectionsValidated}
-            title={
-              !state?.all_approved
-                ? "Toutes les pièces obligatoires doivent être validées"
-                : !allSectionsValidated
-                  ? "Chaque catégorie doit être validée avant l'approbation finale"
-                  : undefined
-            }
-            onClick={() => decide.mutate("approve")}
-          >
-            Valider le dossier chauffeur
-          </Button>
+          {data.driver?.verification_status === "verified" ? (
+            <span className="inline-flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-sm font-medium text-primary">
+              <ShieldCheck className="size-4" /> Chauffeur vérifié
+              {state?.approved_at ? ` · ${formatDateTime(state.approved_at)}` : ""}
+            </span>
+          ) : (
+            <Button
+              size="sm"
+              disabled={!!approveBlockedReason || decide.isPending}
+              title={approveBlockedReason ?? undefined}
+              onClick={() => setApproveOpen(true)}
+            >
+              {decide.isPending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" /> Validation en cours…
+                </>
+              ) : (
+                "Valider le compte"
+              )}
+            </Button>
+          )}
           <Button size="sm" variant="outline" onClick={() => decide.mutate("changes")}>
             Demander une correction
           </Button>
@@ -643,12 +650,34 @@ export function DossierReview({ driverId }: { driverId: string }) {
             </Button>
           ) : null}
         </div>
-        {!allSectionsValidated ? (
-          <p className="text-xs text-muted-foreground">
-            Les sept catégories doivent être contrôlées et validées une à une avant l'approbation finale.
-          </p>
+        {approveBlockedReason && data.driver?.verification_status !== "verified" ? (
+          <p className="text-xs text-muted-foreground">{approveBlockedReason}</p>
         ) : null}
       </div>
+
+      <AlertDialog open={approveOpen} onOpenChange={setApproveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Valider définitivement ce chauffeur ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Le chauffeur aura immédiatement accès à l'ensemble des fonctionnalités professionnelles de ReLink.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={decide.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                decide.mutate("approve", { onSuccess: () => setApproveOpen(false) });
+              }}
+            >
+              Confirmer la validation
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
 
       <DocumentViewer document={viewer} open={!!viewer} onOpenChange={(v) => !v && setViewer(null)} />
 
