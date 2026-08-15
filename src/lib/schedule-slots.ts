@@ -26,7 +26,15 @@ export type DriverSchedule = {
   timeZone: string;
   tripMin: number;
   days: ScheduleDay[];
+  /** Date locale (Europe/Paris) du chauffeur au moment du calcul. */
+  today: string;
+  /** Le chauffeur s'est déclaré non disponible : journée en cours entièrement bloquée. */
+  unavailableToday: boolean;
 };
+
+/** Message affiché lorsqu'un créneau du jour est refusé pour cause d'indisponibilité. */
+export const UNAVAILABLE_TODAY_MSG =
+  "Ce chauffeur n'est plus disponible aujourd'hui. Veuillez choisir une autre date.";
 
 /** Décalage (minutes) du fuseau Relink pour un instant donné. */
 function offsetMinutes(d: Date) {

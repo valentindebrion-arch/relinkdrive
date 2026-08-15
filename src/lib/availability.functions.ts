@@ -9,6 +9,7 @@ import {
   type AvailabilityResult,
 } from "@/lib/availability";
 import { fitsDeclaredAvailability } from "@/lib/schedule";
+import { parisDay } from "@/lib/schedule-slots";
 
 
 const ACTIVE_STATUSES = [
@@ -67,6 +68,11 @@ export const checkDriverAvailability = createServerFn({ method: "POST" })
       .lte("scheduled_at", to)
       .order("scheduled_at");
 
+    const { data: dutyRows } = await supabaseAdmin
+      .from("driver_profiles")
+      .select("user_id, on_duty")
+      .in("user_id", driverIds);
+
     // Disponibilités déclarées (horaires hebdomadaires + absences exceptionnelles).
     const [{ data: hoursRows }, { data: absenceRows }] = await Promise.all([
       supabaseAdmin
@@ -102,6 +108,17 @@ export const checkDriverAvailability = createServerFn({ method: "POST" })
         marginMin: SAFETY_MARGIN_MIN,
         reason: "",
       };
+
+      // Statut « Non disponible » : aucune course pour la journée locale en cours.
+      const offDuty = !(dutyRows ?? []).find((d) => d.user_id === driverId)?.on_duty;
+      if (offDuty && parisDay(desired) === parisDay(new Date())) {
+        results.push({
+          ...base,
+          status: "unavailable",
+          reason: "indisponible_aujourdhui",
+        });
+        continue;
+      }
 
       if (tripMin === null) {
         results.push({ ...base, reason: "itineraire_nouvelle_course_indisponible" });

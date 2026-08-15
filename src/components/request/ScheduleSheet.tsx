@@ -8,6 +8,7 @@ import { getDriverSchedule } from "@/lib/schedule-slots.functions";
 import {
   formatSlotTime,
   parisDay,
+  UNAVAILABLE_TODAY_MSG,
   type DriverSchedule,
   type ScheduleDay,
 } from "@/lib/schedule-slots";
@@ -68,6 +69,7 @@ export function ScheduleSheet({
     valueIso ? parisDay(new Date(valueIso)) : null,
   );
   const [selectedSlot, setSelectedSlot] = useState<string | null>(valueIso);
+  const [staleError, setStaleError] = useState<string | null>(null);
 
   const query = useQuery({
     queryKey: ["driver-schedule", driverId, pickup, dropoff, roundTrip, month],
@@ -77,6 +79,7 @@ export function ScheduleSheet({
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
     retry: false,
+    refetchInterval: open ? 20_000 : false,
     queryFn: async () =>
       (await scheduleFn({
         data: { driverId, pickup, dropoff, month, roundTrip },
@@ -108,6 +111,8 @@ export function ScheduleSheet({
     Date.UTC(firstOfMonth.getUTCFullYear(), firstOfMonth.getUTCMonth() + 1, 0),
   ).getUTCDate();
   const activeDay = selectedDay ? dayMap.get(selectedDay) : undefined;
+  const today = query.data?.today ?? parisDay(new Date());
+  const blockedToday = !!query.data?.unavailableToday;
   const nextAvailable = days.find((d) => d.date > (selectedDay ?? "") && d.slots.length > 0);
 
   return (
@@ -185,14 +190,15 @@ export function ScheduleSheet({
                   const date = `${month}-${String(i + 1).padStart(2, "0")}`;
                   const day = dayMap.get(date);
                   const status = day?.status ?? "closed";
-                  const selectable = !!day && day.slots.length > 0;
+                  const isBlockedToday = blockedToday && date === today;
+                  const selectable = !!day && day.slots.length > 0 && !isBlockedToday;
                   const on = selectedDay === date;
                   return (
                     <button
                       key={date}
                       type="button"
                       disabled={!selectable || query.isFetching}
-                      aria-label={`${i + 1} ${monthLabel(month)} — ${DAY_STATUS_LABEL[status]}`}
+                      aria-label={`${i + 1} ${monthLabel(month)} — ${isBlockedToday ? "chauffeur indisponible aujourd'hui" : DAY_STATUS_LABEL[status]}`}
                       aria-pressed={on}
                       onClick={() => {
                         setSelectedDay(date);
@@ -217,6 +223,13 @@ export function ScheduleSheet({
                 })}
               </div>
 
+              {blockedToday && month === today.slice(0, 7) ? (
+                <p className="mt-3 flex items-start gap-2 rounded-2xl bg-destructive/10 px-3 py-2 text-[12.5px] font-semibold text-destructive">
+                  <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                  Chauffeur indisponible aujourd'hui
+                </p>
+              ) : null}
+
               <p className="mt-2 text-[11.5px] text-muted-foreground">
                 Les jours barrés sont complets, non travaillés ou hors période de réservation.
               </p>
@@ -230,6 +243,10 @@ export function ScheduleSheet({
                   <p className="text-[13.5px] text-muted-foreground">
                     Choisissez un jour pour voir les créneaux.
                   </p>
+                ) : blockedToday && selectedDay === today ? (
+                  <div className="rounded-2xl bg-destructive/10 p-4 text-[13.5px] font-semibold text-destructive">
+                    Chauffeur indisponible aujourd'hui
+                  </div>
                 ) : activeDay && activeDay.slots.length > 0 ? (
                   <>
                     <p className="mb-2 text-[13px] font-bold">Créneaux disponibles</p>
@@ -300,6 +317,12 @@ export function ScheduleSheet({
         </div>
 
         <div className="shrink-0 border-t border-border/60 px-4 py-3">
+          {staleError ? (
+            <p className="mb-2 flex items-start gap-2 text-[12.5px] font-semibold text-destructive">
+              <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+              {staleError}
+            </p>
+          ) : null}
           <Button
             size="lg"
             className="h-13 w-full rounded-2xl text-[15px] font-bold"
@@ -308,11 +331,18 @@ export function ScheduleSheet({
               if (!selectedSlot) return;
               // Dernière actualisation avant de figer le choix.
               const fresh = await query.refetch();
+              if (fresh.data?.unavailableToday && selectedDay === (fresh.data?.today ?? today)) {
+                setSelectedSlot(null);
+                setStaleError(UNAVAILABLE_TODAY_MSG);
+                return;
+              }
               const day = fresh.data?.days.find((d) => d.date === selectedDay);
               if (!day || !day.slots.includes(selectedSlot)) {
                 setSelectedSlot(null);
+                setStaleError("Ce créneau n'est plus disponible. Choisissez-en un autre.");
                 return;
               }
+              setStaleError(null);
               onConfirm(selectedSlot);
             }}
           >
