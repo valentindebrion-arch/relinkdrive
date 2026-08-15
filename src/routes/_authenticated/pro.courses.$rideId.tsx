@@ -275,11 +275,24 @@ function DriverRideDetail() {
 
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
         <div className="min-w-0">
-          <h1 className="truncate text-xl font-bold sm:text-2xl">Détail de la course</h1>
-          <p className="truncate text-sm text-muted-foreground">{formatDateTime(ride.scheduled_at)}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="truncate text-xl font-bold sm:text-2xl">Détail de la course</h1>
+            <span
+              className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                isFlash ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {RIDE_TYPE_LABELS[isFlash ? "flash" : "scheduled"]}
+            </span>
+          </div>
+          <p className="truncate text-sm text-muted-foreground">
+            {formatDateTime(ride.scheduled_at)}
+            {remaining && !ride.started_at ? ` · départ dans ${remaining}` : ""}
+          </p>
         </div>
         <StatusBadge status={ride.status} labels={RIDE_STATUS_LABELS} />
       </header>
+
 
       <div className="surface p-4">
         <div className="flex gap-3">
