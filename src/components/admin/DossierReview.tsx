@@ -332,6 +332,26 @@ export function DossierReview({ driverId }: { driverId: string }) {
     sections.length > 0 &&
     sections.every((s) => data.sectionReviews.find((r) => r.section === s.key)?.status === "approved");
 
+  // Raison précise du blocage, calculée sur les données réelles du dossier.
+  const rejectedDoc = (data.documents ?? []).some((d) => d.status === "rejected");
+  const pendingDoc = (data.documents ?? []).some((d) => d.status === "pending");
+  const approveBlockedReason = !data.driver
+    ? "Profil chauffeur introuvable."
+    : !data.isDriverRole
+      ? "Ce compte ne possède pas le rôle chauffeur."
+      : (state?.percent ?? 0) < 100
+        ? `Dossier complété à ${state?.percent ?? 0} % : des informations ou des pièces obligatoires manquent.`
+        : rejectedDoc
+          ? "Un document a été refusé : le chauffeur doit le renvoyer."
+          : pendingDoc
+            ? "Des documents sont encore en attente de contrôle."
+            : !state?.all_approved
+              ? "Toutes les pièces obligatoires doivent être validées."
+              : !allSectionsValidated
+                ? "Chaque catégorie doit être validée avant l'approbation finale."
+                : null;
+
+
   const renderSection = (s: { key: string; label: string; state: string }) => {
     const docs = docsBySection.get(s.key) ?? [];
     const expected = SECTION_DOCS[s.key] ?? [];
