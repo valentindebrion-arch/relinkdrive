@@ -50,6 +50,16 @@ type Params = {
 
 type Interval = { start: number; end: number };
 
+/** Engagement existant du chauffeur, enrichi des temps de liaison réels. */
+type Engagement = {
+  start: number;
+  end: number;
+  /** Minutes pour rejoindre le départ du nouveau client (null = inconnu). */
+  linkFrom: number | null;
+  /** Minutes pour rejoindre cet engagement depuis la destination du nouveau client. */
+  linkTo: number | null;
+};
+
 /** "HH:MM[:SS]" → minutes depuis minuit. */
 function hhmmToMin(value: string) {
   const [h, m] = value.split(":");
@@ -270,9 +280,10 @@ export async function buildDriverSchedule(
         if (m < windowStart || m + tripMin > windowEnd) continue;
       } else if (!fitsDeclaredAvailability(hours, absences, start, end)) continue;
       candidates++;
-      const endWithBuffer = end.getTime() + Math.max(SAFETY_MARGIN_MIN, bufferMin) * 60_000;
+      const endWithBuffer = end.getTime() + gapMin * 60_000;
       if (breakIntervals.some((b) => startMs < b.end && endWithBuffer > b.start)) continue;
       if (overlaps(startMs, endWithBuffer)) continue;
+      if (!linksFit(startMs, end.getTime())) continue;
       slots.push(start.toISOString());
     }
 
