@@ -142,7 +142,9 @@ function DriverRideDetail() {
   });
 
   function refresh() {
+    void qc.invalidateQueries({ queryKey: [DRIVER_BOARD_KEY] });
     void qc.invalidateQueries({ queryKey: ["driver-ride", rideId] });
+
     void qc.invalidateQueries({ queryKey: ["driver-active-ride"] });
     void qc.invalidateQueries({ queryKey: ["driver-rides"] });
     void qc.invalidateQueries({ queryKey: ["driver-planning"] });
