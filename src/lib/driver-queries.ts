@@ -7,6 +7,10 @@ export function useDriverProfile() {
   return useQuery({
     queryKey: ["driver-profile", user?.id],
     enabled: !!user?.id,
+    // Le statut de validation peut changer côté admin : on le resynchronise régulièrement.
+    refetchOnWindowFocus: true,
+    refetchOnMount: "always",
+    refetchInterval: 30_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("driver_profiles")

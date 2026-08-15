@@ -13,6 +13,16 @@ import { useServerFn } from "@tanstack/react-start";
 import { Download, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 
 export const Route = createFileRoute("/_authenticated/admin/chauffeurs/")({
@@ -26,6 +36,7 @@ function AdminDrivers() {
   const [filter, setFilter] = useState<string>("pending");
   const [note, setNote] = useState<Record<string, string>>({});
   const [viewer, setViewer] = useState<ReviewDocument | null>(null);
+  const [approveId, setApproveId] = useState<string | null>(null);
   const fetchDocUrl = useServerFn(getDocumentUrl);
 
   const downloadDoc = async (documentId: string) => {
@@ -86,8 +97,13 @@ function AdminDrivers() {
       });
       if (error) throw error;
     },
-    onSuccess: () => {
-      toast.success("Décision enregistrée");
+    onSuccess: (_r, v) => {
+      setApproveId(null);
+      toast.success(
+        v.decision === "approve"
+          ? "Le compte chauffeur a été validé. Il dispose désormais d'un accès complet à ReLink."
+          : "Décision enregistrée",
+      );
       void qc.invalidateQueries({ queryKey: ["admin"] });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erreur"),
@@ -248,14 +264,20 @@ function AdminDrivers() {
                   onChange={(e) => setNote((n) => ({ ...n, [d.user_id]: e.target.value }))}
                   className="max-w-xs"
                 />
-                <Button
-                  size="sm"
-                  disabled={!d.dossier?.all_approved}
-                  title={d.dossier?.all_approved ? undefined : "Toutes les pièces doivent être validées"}
-                  onClick={() => decide.mutate({ userId: d.user_id, decision: "approve" })}
-                >
-                  Valider le compte
-                </Button>
+                {d.verification_status === "verified" ? (
+                  <span className="rounded-lg bg-primary/10 px-3 py-2 text-sm font-medium text-primary">
+                    Chauffeur vérifié{d.approved_at ? ` · ${formatDate(d.approved_at)}` : ""}
+                  </span>
+                ) : (
+                  <Button
+                    size="sm"
+                    disabled={!d.dossier?.all_approved || decide.isPending}
+                    title={d.dossier?.all_approved ? undefined : "Toutes les pièces obligatoires doivent être validées"}
+                    onClick={() => setApproveId(d.user_id)}
+                  >
+                    {decide.isPending && approveId === d.user_id ? "Validation en cours…" : "Valider le compte"}
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   variant="outline"
@@ -287,6 +309,29 @@ function AdminDrivers() {
           ))}
         </div>
       )}
+
+      <AlertDialog open={!!approveId} onOpenChange={(v) => !v && setApproveId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Valider définitivement ce chauffeur ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Le chauffeur aura immédiatement accès à l'ensemble des fonctionnalités professionnelles de ReLink.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={decide.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                if (approveId) decide.mutate({ userId: approveId, decision: "approve" });
+              }}
+            >
+              Confirmer la validation
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <DocumentViewer document={viewer} open={!!viewer} onOpenChange={(v) => !v && setViewer(null)} />
     </div>

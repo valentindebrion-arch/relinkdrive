@@ -189,6 +189,7 @@ export function DossierReview({ driverId }: { driverId: string }) {
   const runPdf = useServerFn(generateDossierPdf);
   const reauth = useServerFn(confirmAdminReauth);
 
+  const [approveOpen, setApproveOpen] = useState(false);
   const [viewer, setViewer] = useState<ReviewDocument | null>(null);
   const [docNotes, setDocNotes] = useState<Record<string, string>>({});
   const [sectionNotes, setSectionNotes] = useState<Record<string, string>>({});
@@ -265,9 +266,14 @@ export function DossierReview({ driverId }: { driverId: string }) {
         _reason: reason,
       });
       if (e) throw e;
+      return decision;
     },
-    onSuccess: () => {
-      toast.success("Décision enregistrée");
+    onSuccess: (decision) => {
+      toast.success(
+        decision === "approve"
+          ? "Le compte chauffeur a été validé. Il dispose désormais d'un accès complet à ReLink."
+          : "Décision enregistrée",
+      );
       invalidate();
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erreur"),
@@ -331,6 +337,24 @@ export function DossierReview({ driverId }: { driverId: string }) {
   const allSectionsValidated =
     sections.length > 0 &&
     sections.every((s) => data.sectionReviews.find((r) => r.section === s.key)?.status === "approved");
+
+  // Raison précise du blocage, calculée sur les données réelles du dossier.
+  const rejectedDoc = (data.documents ?? []).some((d) => d.status === "rejected");
+  const pendingDoc = (data.documents ?? []).some((d) => d.status === "pending");
+  const approveBlockedReason = !data.driver
+    ? "Profil chauffeur introuvable."
+    : (state?.percent ?? 0) < 100
+        ? `Dossier complété à ${state?.percent ?? 0} % : des informations ou des pièces obligatoires manquent.`
+        : rejectedDoc
+          ? "Un document a été refusé : le chauffeur doit le renvoyer."
+          : pendingDoc
+            ? "Des documents sont encore en attente de contrôle."
+            : !state?.all_approved
+              ? "Toutes les pièces obligatoires doivent être validées."
+              : !allSectionsValidated
+                ? "Chaque catégorie doit être validée avant l'approbation finale."
+                : null;
+
 
   const renderSection = (s: { key: string; label: string; state: string }) => {
     const docs = docsBySection.get(s.key) ?? [];
@@ -614,20 +638,27 @@ export function DossierReview({ driverId }: { driverId: string }) {
           className="max-w-md"
         />
         <div className="flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            disabled={!state?.all_approved || !allSectionsValidated}
-            title={
-              !state?.all_approved
-                ? "Toutes les pièces obligatoires doivent être validées"
-                : !allSectionsValidated
-                  ? "Chaque catégorie doit être validée avant l'approbation finale"
-                  : undefined
-            }
-            onClick={() => decide.mutate("approve")}
-          >
-            Valider le dossier chauffeur
-          </Button>
+          {data.driver?.verification_status === "verified" ? (
+            <span className="inline-flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-sm font-medium text-primary">
+              <ShieldCheck className="size-4" /> Chauffeur vérifié
+              {data.driver?.approved_at ? ` · ${formatDateTime(data.driver.approved_at)}` : ""}
+            </span>
+          ) : (
+            <Button
+              size="sm"
+              disabled={!!approveBlockedReason || decide.isPending}
+              title={approveBlockedReason ?? undefined}
+              onClick={() => setApproveOpen(true)}
+            >
+              {decide.isPending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" /> Validation en cours…
+                </>
+              ) : (
+                "Valider le compte"
+              )}
+            </Button>
+          )}
           <Button size="sm" variant="outline" onClick={() => decide.mutate("changes")}>
             Demander une correction
           </Button>
@@ -643,12 +674,34 @@ export function DossierReview({ driverId }: { driverId: string }) {
             </Button>
           ) : null}
         </div>
-        {!allSectionsValidated ? (
-          <p className="text-xs text-muted-foreground">
-            Les sept catégories doivent être contrôlées et validées une à une avant l'approbation finale.
-          </p>
+        {approveBlockedReason && data.driver?.verification_status !== "verified" ? (
+          <p className="text-xs text-muted-foreground">{approveBlockedReason}</p>
         ) : null}
       </div>
+
+      <AlertDialog open={approveOpen} onOpenChange={setApproveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Valider définitivement ce chauffeur ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Le chauffeur aura immédiatement accès à l'ensemble des fonctionnalités professionnelles de ReLink.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={decide.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                decide.mutate("approve", { onSuccess: () => setApproveOpen(false) });
+              }}
+            >
+              Confirmer la validation
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
 
       <DocumentViewer document={viewer} open={!!viewer} onOpenChange={(v) => !v && setViewer(null)} />
 
