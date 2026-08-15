@@ -193,7 +193,8 @@ export async function buildDriverSchedule(
     }
 
     const override = overrides.get(date);
-    if (override && override.available === false) {
+    const absentDay = absences.some((a) => date >= a.starts_on && date <= a.ends_on);
+    if (absentDay || (override && override.available === false)) {
       days.push({ date, status: "closed", slots: [] });
       continue;
     }
