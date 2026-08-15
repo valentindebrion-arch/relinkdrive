@@ -1338,6 +1338,11 @@ function ClientRequests() {
             setScheduleOpen(false);
             setDriverPickerOpen(true);
           }}
+          onEditPickup={() => {
+            setScheduleOpen(false);
+            setSearchField("pickup");
+          }}
+
         />
       ) : null}
 
