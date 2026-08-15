@@ -116,16 +116,13 @@ function ProOverview() {
 
   const stats = computeStats(raw.data, period);
   const rides = raw.data?.rides ?? [];
-  const now = new Date();
-  const upcoming = rides
-    .filter((r) => new Date(r.scheduled_at) >= now && ["confirmed", "driver_enroute"].includes(r.status))
-    .sort((a, b) => +new Date(a.scheduled_at) - +new Date(b.scheduled_at));
-  const next = upcoming[0];
-  const pendingRequests = (raw.data?.requests ?? [])
-    .filter((r) => ["new", "reviewing", "awaiting_client", "proposal_sent"].includes(r.status))
-    .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
+  // Classement officiel (serveur) : une course n'apparaît que dans une seule section.
+  const board = useDriverBoard();
+  const serverNow = board.data ? new Date(board.data.nowIso) : new Date();
+  const pendingRequests = board.data?.pendingRequests ?? [];
   const topRequest = pendingRequests[0];
   const unpaidCount = (raw.data?.invoices ?? []).filter((i) => !["paid", "cancelled", "draft"].includes(i.status)).length;
+
   const drafts = (raw.data?.invoices ?? []).filter((i) => i.status === "draft");
   const clientsCount = new Set(
     rides.filter((r) => r.status === "completed" && r.client_id).map((r) => r.client_id),
