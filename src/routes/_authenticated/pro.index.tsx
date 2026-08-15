@@ -22,8 +22,12 @@ import { useDriverProfile, useMyVehicle, useMyDocuments } from "@/lib/driver-que
 import { useDriverData, computeStats, PERIOD_LABELS, type Period } from "@/lib/pro-stats";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ActiveRidePanel } from "@/components/ActiveRidePanel";
+import { UpcomingRides, FollowUpRides } from "@/components/pro/UpcomingRides";
+import { useDriverBoard } from "@/lib/driver-board-query";
+import { RIDE_TYPE_LABELS } from "@/lib/driver-board";
 import { TaxSetupBanner } from "@/components/pro/TaxSetupBanner";
 import { RIDE_STATUS_LABELS, VERIFICATION_LABELS, formatDate, formatEuro } from "@/lib/labels";
+
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/_authenticated/pro/")({
