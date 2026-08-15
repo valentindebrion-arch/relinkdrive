@@ -111,7 +111,7 @@ export function ActiveRidePanel({ showEmpty = false, className }: { showEmpty?: 
           ...(status === "completed" ? { completed_at: now } : {}),
         })
         .eq("id", r.id)
-        .eq("status", r.status);
+        .eq("status", r.status as never);
       if (error) {
         toast.error(error.message);
         return;
