@@ -29,6 +29,9 @@ import { getServerNow, startRide } from "@/lib/ride-start.functions";
 import { formatHour, startWindowOpensAt } from "@/lib/ride-start";
 import { decideRideCancellation, driverCancelRide } from "@/lib/ride-cancel.functions";
 import { DRIVER_CANCEL_REASONS, driverCancelDeadline } from "@/lib/ride-cancel";
+import { isImminent, countdownLabel, RIDE_TYPE_LABELS } from "@/lib/driver-board";
+import { DRIVER_BOARD_KEY } from "@/lib/driver-board-query";
+
 
 export const Route = createFileRoute("/_authenticated/pro/courses/$rideId")({
   head: () => ({
