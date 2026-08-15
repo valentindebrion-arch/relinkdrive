@@ -131,6 +131,7 @@ export function ActiveRidePanel({ showEmpty = false, className }: { showEmpty?: 
   }
 
   function refresh() {
+    void qc.invalidateQueries({ queryKey: [DRIVER_BOARD_KEY] });
     void qc.invalidateQueries({ queryKey: ["driver-active-ride"] });
     void qc.invalidateQueries({ queryKey: ["driver-rides"] });
     void qc.invalidateQueries({ queryKey: ["planning"] });
@@ -156,11 +157,23 @@ export function ActiveRidePanel({ showEmpty = false, className }: { showEmpty?: 
   return (
     <section className={`surface mb-6 overflow-hidden border-2 border-primary/50 p-0 shadow-lg shadow-primary/10 ${className ?? ""}`}>
       <div className="border-b border-border bg-primary/10 px-5 py-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-primary">Course en cours</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-xs font-semibold tracking-wide text-primary uppercase">
+            {blockTitle(r.status, isFlash, r.scheduled_at, serverNow)}
+          </p>
+          <span
+            className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+              isFlash ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+            }`}
+          >
+            {RIDE_TYPE_LABELS[isFlash ? "flash" : "scheduled"]}
+          </span>
+        </div>
         <h2 className="mt-1 text-lg font-semibold">
           {r.client_label ?? "Client"} · {formatDateTime(r.scheduled_at)}
         </h2>
       </div>
+
 
       <div className="space-y-4 p-5">
         <div className="space-y-2 text-sm">
