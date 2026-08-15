@@ -9,6 +9,7 @@ import {
   ChevronRight,
   ExternalLink,
   FileCheck2,
+  Palette,
   QrCode,
   UserRound,
 } from "lucide-react";
@@ -24,6 +25,7 @@ import { CompanyPage } from "@/components/pro/CompanyPage";
 import { VehiclePage } from "@/components/pro/VehiclePage";
 import { VerificationPage } from "@/components/pro/VerificationPage";
 import { QrPage } from "@/components/pro/QrPage";
+import { getBookingTheme } from "@/lib/booking-themes";
 
 export const Route = createFileRoute("/_authenticated/pro/profil")({
   component: ProProfileHub,
@@ -283,6 +285,17 @@ function ProProfileHub() {
       </div>
 
       <div className="space-y-3">
+        <SectionCard
+          icon={<Palette className="size-5" />}
+          title="Personnalisation — Thème de réservation"
+          badge={
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+              {getBookingTheme((d as Record<string, unknown> | null | undefined)?.["booking_theme"]).name}
+            </span>
+          }
+          lines={["Univers visuel appliqué au parcours de vos clients"]}
+          onClick={() => void navigate({ to: "/pro/personnalisation" })}
+        />
         <SectionCard
           icon={<UserRound className="size-5" />}
           title="Informations personnelles"
