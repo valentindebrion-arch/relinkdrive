@@ -365,7 +365,18 @@ function DriverRideDetail() {
         </p>
       ) : null}
 
-      {nextStep ? (
+      {tooEarly ? (
+        <div className="surface space-y-2 p-4">
+          <p className="text-sm font-semibold">Course programmée</p>
+          <p className="text-xs text-muted-foreground">
+            Les actions de départ seront disponibles une heure avant la prise en charge
+            {remaining ? ` (dans ${remaining})` : ""}.
+          </p>
+          <Button asChild variant="outline" className="w-full">
+            <Link to="/pro/planning">Voir dans mon planning</Link>
+          </Button>
+        </div>
+      ) : nextStep ? (
         <div className="space-y-1.5">
           {nextStep.status === "in_progress" ? (
             <>
@@ -395,6 +406,7 @@ function DriverRideDetail() {
           )}
         </div>
       ) : null}
+
 
       {ride.status === "driver_enroute" || ride.status === "driver_arrived" ? (
         <NotifyClientSmsButton rideId={ride.id} kind={ride.status === "driver_arrived" ? "arrival" : "departure"} />
