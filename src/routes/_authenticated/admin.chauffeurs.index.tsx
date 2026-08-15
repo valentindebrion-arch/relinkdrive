@@ -7,8 +7,13 @@ import { PageHeader, EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { VERIFICATION_LABELS, DOCUMENT_LABELS, DOC_STATUS_LABELS, formatDate } from "@/lib/labels";
 import { fetchDossierState, SECTION_STATE_LABELS, type DossierState } from "@/lib/driver-dossier";
+import { DocumentViewer, type ReviewDocument } from "@/components/admin/DocumentViewer";
+import { getDocumentUrl } from "@/lib/admin-dossier.functions";
+import { useServerFn } from "@tanstack/react-start";
+import { Download, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
 
 export const Route = createFileRoute("/_authenticated/admin/chauffeurs/")({
   component: AdminDrivers,
