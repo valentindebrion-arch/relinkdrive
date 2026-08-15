@@ -134,8 +134,16 @@ function AdminDrivers() {
                     SIRET {d.siret || "—"} · Carte VTC {d.vtc_card_number || "—"} · /chauffeur/{d.slug}
                   </p>
                 </div>
-                <StatusBadge status={d.verification_status} labels={VERIFICATION_LABELS} />
+                <div className="flex flex-col items-end gap-2">
+                  <StatusBadge status={d.verification_status} labels={VERIFICATION_LABELS} />
+                  <Button asChild size="sm" variant="outline">
+                    <Link to="/admin/chauffeurs/$driverId" params={{ driverId: d.user_id }}>
+                      Consulter le dossier
+                    </Link>
+                  </Button>
+                </div>
               </div>
+
 
               {d.dossier ? (
                 <div className="mt-4 grid gap-1.5 sm:grid-cols-2">
