@@ -77,7 +77,7 @@ export function ScheduleSheet({
 
   const query = useQuery({
     queryKey: ["driver-schedule", driverId, pickup, dropoff, roundTrip, month],
-    enabled: open && !!driverId && pickup.length > 2 && dropoff.length > 2,
+    enabled: open && !!driverId && pickup.trim().length > 4 && dropoff.trim().length > 4,
     staleTime: 0,
     gcTime: 0,
     refetchOnMount: "always",
