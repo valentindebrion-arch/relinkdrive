@@ -49,6 +49,7 @@ import { Route as ApiPublicPushRouteImport } from './routes/api/public/push'
 import { Route as AuthenticatedAdminChauffeursIndexRouteImport } from './routes/_authenticated/admin.chauffeurs.index'
 import { Route as AuthenticatedAdminChauffeursDriverIdRouteImport } from './routes/_authenticated/admin.chauffeurs.$driverId'
 import { Route as AuthenticatedAdminCoursesIndexRouteImport } from './routes/_authenticated/admin.courses.index'
+import { Route as AuthenticatedAdminCoursesRideIdRouteImport } from './routes/_authenticated/admin.courses.$rideId'
 import { Route as AuthenticatedEspaceCoursesIndexRouteImport } from './routes/_authenticated/espace.courses.index'
 import { Route as AuthenticatedEspaceCoursesRideIdRouteImport } from './routes/_authenticated/espace.courses.$rideId'
 import { Route as AuthenticatedEspaceCoursesAnnuleesRouteImport } from './routes/_authenticated/espace.courses.annulees'
@@ -282,6 +283,12 @@ const AuthenticatedAdminCoursesIndexRoute =
     path: '/courses/',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminCoursesRideIdRoute =
+  AuthenticatedAdminCoursesRideIdRouteImport.update({
+    id: '/courses/$rideId',
+    path: '/courses/$rideId',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedEspaceCoursesIndexRoute =
   AuthenticatedEspaceCoursesIndexRouteImport.update({
     id: '/courses/',
@@ -405,6 +412,7 @@ export interface FileRoutesByFullPath {
   '/espace/': typeof AuthenticatedEspaceIndexRoute
   '/pro/': typeof AuthenticatedProIndexRoute
   '/admin/chauffeurs/$driverId': typeof AuthenticatedAdminChauffeursDriverIdRoute
+  '/admin/courses/$rideId': typeof AuthenticatedAdminCoursesRideIdRoute
   '/espace/courses/$rideId': typeof AuthenticatedEspaceCoursesRideIdRoute
   '/espace/courses/annulees': typeof AuthenticatedEspaceCoursesAnnuleesRoute
   '/espace/courses/demandes': typeof AuthenticatedEspaceCoursesDemandesRoute
@@ -455,6 +463,7 @@ export interface FileRoutesByTo {
   '/espace': typeof AuthenticatedEspaceIndexRoute
   '/pro': typeof AuthenticatedProIndexRoute
   '/admin/chauffeurs/$driverId': typeof AuthenticatedAdminChauffeursDriverIdRoute
+  '/admin/courses/$rideId': typeof AuthenticatedAdminCoursesRideIdRoute
   '/espace/courses/$rideId': typeof AuthenticatedEspaceCoursesRideIdRoute
   '/espace/courses/annulees': typeof AuthenticatedEspaceCoursesAnnuleesRoute
   '/espace/courses/demandes': typeof AuthenticatedEspaceCoursesDemandesRoute
@@ -512,6 +521,7 @@ export interface FileRoutesById {
   '/_authenticated/espace/': typeof AuthenticatedEspaceIndexRoute
   '/_authenticated/pro/': typeof AuthenticatedProIndexRoute
   '/_authenticated/admin/chauffeurs/$driverId': typeof AuthenticatedAdminChauffeursDriverIdRoute
+  '/_authenticated/admin/courses/$rideId': typeof AuthenticatedAdminCoursesRideIdRoute
   '/_authenticated/espace/courses/$rideId': typeof AuthenticatedEspaceCoursesRideIdRoute
   '/_authenticated/espace/courses/annulees': typeof AuthenticatedEspaceCoursesAnnuleesRoute
   '/_authenticated/espace/courses/demandes': typeof AuthenticatedEspaceCoursesDemandesRoute
@@ -569,6 +579,7 @@ export interface FileRouteTypes {
     | '/espace/'
     | '/pro/'
     | '/admin/chauffeurs/$driverId'
+    | '/admin/courses/$rideId'
     | '/espace/courses/$rideId'
     | '/espace/courses/annulees'
     | '/espace/courses/demandes'
@@ -619,6 +630,7 @@ export interface FileRouteTypes {
     | '/espace'
     | '/pro'
     | '/admin/chauffeurs/$driverId'
+    | '/admin/courses/$rideId'
     | '/espace/courses/$rideId'
     | '/espace/courses/annulees'
     | '/espace/courses/demandes'
@@ -675,6 +687,7 @@ export interface FileRouteTypes {
     | '/_authenticated/espace/'
     | '/_authenticated/pro/'
     | '/_authenticated/admin/chauffeurs/$driverId'
+    | '/_authenticated/admin/courses/$rideId'
     | '/_authenticated/espace/courses/$rideId'
     | '/_authenticated/espace/courses/annulees'
     | '/_authenticated/espace/courses/demandes'
@@ -990,6 +1003,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCoursesIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/courses/$rideId': {
+      id: '/_authenticated/admin/courses/$rideId'
+      path: '/courses/$rideId'
+      fullPath: '/admin/courses/$rideId'
+      preLoaderRoute: typeof AuthenticatedAdminCoursesRideIdRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/espace/courses/': {
       id: '/_authenticated/espace/courses/'
       path: '/courses'
@@ -1096,6 +1116,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminUtilisateursRoute: typeof AuthenticatedAdminUtilisateursRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminChauffeursDriverIdRoute: typeof AuthenticatedAdminChauffeursDriverIdRoute
+  AuthenticatedAdminCoursesRideIdRoute: typeof AuthenticatedAdminCoursesRideIdRoute
   AuthenticatedAdminChauffeursIndexRoute: typeof AuthenticatedAdminChauffeursIndexRoute
   AuthenticatedAdminCoursesIndexRoute: typeof AuthenticatedAdminCoursesIndexRoute
 }
@@ -1106,6 +1127,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedAdminChauffeursDriverIdRoute:
     AuthenticatedAdminChauffeursDriverIdRoute,
+  AuthenticatedAdminCoursesRideIdRoute: AuthenticatedAdminCoursesRideIdRoute,
   AuthenticatedAdminChauffeursIndexRoute:
     AuthenticatedAdminChauffeursIndexRoute,
   AuthenticatedAdminCoursesIndexRoute: AuthenticatedAdminCoursesIndexRoute,
