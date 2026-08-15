@@ -623,7 +623,23 @@ function ClientRequests() {
         });
         return;
       }
+      // Contrôles serveur du planning chauffeur (horaires, pauses, journée fermée).
+      const scheduleMsg = /driver_outside_working_hours/i.test(error.message)
+        ? "Ce créneau est en dehors des horaires de travail du chauffeur."
+        : /driver_break_conflict/i.test(error.message)
+          ? "Le chauffeur a une pause sur ce créneau. Choisissez un autre horaire."
+          : /driver_day_unavailable/i.test(error.message)
+            ? "Le chauffeur n'est pas disponible à cette date."
+            : null;
+      if (scheduleMsg) {
+        setSubmitError(scheduleMsg);
+        setSlotWarning(scheduleMsg);
+        setStep(0);
+        toast.error("Créneau indisponible", { description: scheduleMsg });
+        return;
+      }
       setSubmitError(error.message);
+
       if (/disponible/i.test(error.message)) {
         setStep(0);
         toast.error("Ce chauffeur n'est pas disponible à la date ou à l'horaire sélectionné.", {

@@ -50,6 +50,12 @@ type Params = {
 
 type Interval = { start: number; end: number };
 
+/** "HH:MM[:SS]" → minutes depuis minuit. */
+function hhmmToMin(value: string) {
+  const [h, m] = value.split(":");
+  return Number(h) * 60 + Number(m);
+}
+
 export async function buildDriverSchedule(
   data: Params,
   supabase: any,
@@ -114,6 +120,29 @@ export async function buildDriverSchedule(
         .maybeSingle(),
     ]);
 
+  // Horaires exceptionnels, pauses et temps tampon configurés par le chauffeur.
+  const [{ data: overrideRows }, { data: breakRows }, { data: settingsRow }] = await Promise.all([
+    supabaseAdmin
+      .from("driver_day_overrides")
+      .select("day, available, start_time, end_time")
+      .eq("driver_id", data.driverId)
+      .gte("day", `${data.month}-01`)
+      .lte("day", `${data.month}-31`),
+    supabaseAdmin
+      .from("driver_breaks")
+      .select("day, weekday, start_time, end_time")
+      .eq("driver_id", data.driverId),
+    supabaseAdmin
+      .from("driver_schedule_settings")
+      .select("buffer_min")
+      .eq("driver_id", data.driverId)
+      .maybeSingle(),
+  ]);
+
+  const overrides = new Map<string, any>(((overrideRows ?? []) as any[]).map((o) => [o.day as string, o]));
+  const breaksAll = (breakRows ?? []) as any[];
+  const bufferMin: number = (settingsRow as any)?.buffer_min ?? SAFETY_MARGIN_MIN;
+
   // Statut « Non disponible » : la journée locale en cours est entièrement bloquée.
   const unavailableToday = !(driverProfile as any)?.on_duty;
 
@@ -141,7 +170,7 @@ export async function buildDriverSchedule(
     }
     busy.push({
       start: start - SAFETY_MARGIN_MIN * 60_000,
-      end: start + (minutes + SAFETY_MARGIN_MIN) * 60_000,
+      end: start + (minutes + Math.max(SAFETY_MARGIN_MIN, bufferMin)) * 60_000,
     });
   }
 
@@ -163,6 +192,26 @@ export async function buildDriverSchedule(
       continue;
     }
 
+    const override = overrides.get(date);
+    const absentDay = absences.some((a) => date >= a.starts_on && date <= a.ends_on);
+    if (absentDay || (override && override.available === false)) {
+      days.push({ date, status: "closed", slots: [] });
+      continue;
+    }
+
+    // Pauses du jour (ponctuelles ou récurrentes) : créneaux bloqués.
+    const dayIsoWeekday = ((new Date(`${date}T12:00:00Z`).getUTCDay() + 6) % 7) + 1;
+    const dayBreaks = breaksAll.filter((b) =>
+      b.day ? b.day === date : b.weekday === dayIsoWeekday,
+    );
+    const breakIntervals = dayBreaks.map((b) => ({
+      start: parisInstant(date, hhmmToMin(b.start_time)).getTime(),
+      end: parisInstant(date, hhmmToMin(b.end_time)).getTime(),
+    }));
+
+    const windowStart = override ? hhmmToMin(override.start_time) : null;
+    const windowEnd = override ? hhmmToMin(override.end_time) : null;
+
     const slots: string[] = [];
     let candidates = 0;
     for (let m = 0; m < 24 * 60; m += SLOT_UI_STEP_MIN) {
@@ -171,9 +220,14 @@ export async function buildDriverSchedule(
       if (startMs < now.getTime() + MIN_NOTICE_MIN * 60_000) continue;
       if (startMs > horizon.getTime()) continue;
       const end = new Date(startMs + tripMin * 60_000);
-      if (!fitsDeclaredAvailability(hours, absences, start, end)) continue;
+      if (windowStart !== null && windowEnd !== null) {
+        // Horaires exceptionnels de la journée : ils remplacent les horaires habituels.
+        if (m < windowStart || m + tripMin > windowEnd) continue;
+      } else if (!fitsDeclaredAvailability(hours, absences, start, end)) continue;
       candidates++;
-      if (overlaps(startMs, end.getTime() + SAFETY_MARGIN_MIN * 60_000)) continue;
+      const endWithBuffer = end.getTime() + Math.max(SAFETY_MARGIN_MIN, bufferMin) * 60_000;
+      if (breakIntervals.some((b) => startMs < b.end && endWithBuffer > b.start)) continue;
+      if (overlaps(startMs, endWithBuffer)) continue;
       slots.push(start.toISOString());
     }
 
