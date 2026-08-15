@@ -33,6 +33,26 @@ export type DayBreak = {
   recurring: boolean;
 };
 
+/**
+ * Retour à vide théorique du chauffeur vers son secteur de référence, calculé
+ * par le moteur d'itinéraire existant (jamais estimé arbitrairement).
+ */
+export type DayReturn = {
+  /** Minutes depuis minuit (Europe/Paris). */
+  startMin: number;
+  endMin: number;
+  /** Durée réelle du trajet retour, en minutes. */
+  durationMin: number;
+  /** Adresse de départ du retour (destination de la dernière course). */
+  from: string;
+  /** Secteur / adresse de référence du chauffeur. */
+  destination: string;
+  /** Le retour est coupé par une prise en charge compatible. */
+  interrupted: boolean;
+  /** Instant ISO de fin estimée du retour (pour la progression temps réel). */
+  endIso: string;
+};
+
 export type DayPlan = {
   /** "YYYY-MM-DD" */
   date: string;
@@ -49,6 +69,8 @@ export type DayPlan = {
   absent: boolean;
   events: DayEvent[];
   breaks: DayBreak[];
+  /** Retour à vide après la dernière course, si applicable. */
+  returnLeg: DayReturn | null;
 };
 
 export const BUFFER_OPTIONS = [0, 10, 15, 30] as const;
@@ -109,6 +131,7 @@ export const PENDING_REQUEST_STATUSES = [
 ] as const;
 
 export type TimelineSlice =
+  | { type: "return"; item: DayReturn; startMin: number; endMin: number }
   | { type: "event"; event: DayEvent; startMin: number; endMin: number; estimated: boolean; conflict: boolean }
   | { type: "break"; item: DayBreak; startMin: number; endMin: number }
   | { type: "buffer"; startMin: number; endMin: number; unknownEnd: boolean }
@@ -125,16 +148,32 @@ export function buildTimeline(plan: DayPlan): { slices: TimelineSlice[]; conflic
   let prevEnd: number | null = null;
   let conflicts = 0;
 
-  for (const ev of sorted) {
+  sorted.forEach((ev, index) => {
     const estimated = ev.durationMin === null;
     const end = ev.startMin + (ev.durationMin ?? 60);
     const conflict = prevEnd !== null && ev.startMin < prevEnd;
     if (conflict) conflicts++;
     blocks.push({ type: "event", event: ev, startMin: ev.startMin, endMin: end, estimated, conflict });
-    if (plan.bufferMin > 0) {
+    // Après la dernière course, le retour à vide remplace le tampon immédiat :
+    // le temps tampon est affiché séparément, une fois le retour terminé.
+    const followedByReturn = !!plan.returnLeg && index === sorted.length - 1;
+    if (plan.bufferMin > 0 && !followedByReturn) {
       blocks.push({ type: "buffer", startMin: end, endMin: end + plan.bufferMin, unknownEnd: estimated });
     }
-    prevEnd = end + plan.bufferMin;
+    prevEnd = end + (followedByReturn ? 0 : plan.bufferMin);
+  });
+
+  if (plan.returnLeg) {
+    const ret = plan.returnLeg;
+    blocks.push({ type: "return", item: ret, startMin: ret.startMin, endMin: ret.endMin });
+    if (plan.bufferMin > 0 && !ret.interrupted) {
+      blocks.push({
+        type: "buffer",
+        startMin: ret.endMin,
+        endMin: ret.endMin + plan.bufferMin,
+        unknownEnd: false,
+      });
+    }
   }
 
   for (const b of plan.breaks) {
