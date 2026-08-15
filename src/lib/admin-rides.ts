@@ -221,8 +221,8 @@ export async function adminCancelRide(id: string, reason: string, comment: strin
   const { data, error } = await supabase.rpc("admin_cancel_ride", {
     _ride: id,
     _reason: reason,
-    _admin_comment: comment,
+    ...(comment ? { _admin_comment: comment } : {}),
   });
   if (error) throw new Error(error.message);
-  return data as { kind: string; id: string; status: string; already: boolean };
+  return data as unknown as { kind: string; id: string; status: string; already: boolean };
 }
