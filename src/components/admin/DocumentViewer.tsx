@@ -71,9 +71,11 @@ export function DocumentViewer({
         </DialogHeader>
 
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          {doc?.driverName ? <span>{doc.driverName} ·</span> : null}
           <span>Déposé le {formatDate(doc?.created_at)}</span>
           <span>· Échéance {formatDate(doc?.expires_at)}</span>
         </div>
+
 
         <div className="flex flex-wrap gap-2">
           <Button size="sm" variant="outline" onClick={() => setZoom((z) => Math.min(4, z + 0.25))}>
