@@ -296,6 +296,10 @@ function ClientRequests() {
   const drivers = useQuery({
     queryKey: ["client-driver-options", user?.id],
     enabled: !!user?.id,
+    // Le statut de disponibilité doit se propager rapidement chez le client.
+    refetchInterval: 20_000,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
     queryFn: async () => {
       const { data: conns } = await supabase
         .from("driver_client_connections")
@@ -500,6 +504,17 @@ function ClientRequests() {
       if (!dropoffOk) return toast.error("Confirmez l'adresse d'arrivée dans la liste proposée");
       if (whenMode === "later" && !form.scheduled_at)
         return toast.error("Choisissez une date et une heure");
+      if (
+        whenMode === "later" &&
+        !driverAvailable &&
+        form.scheduled_at &&
+        parisDay(new Date(form.scheduled_at)) === parisDay(new Date())
+      ) {
+        setSlotWarning(UNAVAILABLE_TODAY_MSG);
+        return toast.error("Chauffeur indisponible aujourd'hui", {
+          description: UNAVAILABLE_TODAY_MSG,
+        });
+      }
       const verdict = avail?.status === "available" ? avail : await checkSelectedDriver();
       if (!verdict || verdict.status !== "available") return;
       setEstimate(null);
