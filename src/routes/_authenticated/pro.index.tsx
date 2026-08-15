@@ -336,61 +336,14 @@ function ProOverview() {
         </Link>
       )}
 
-      {/* 4. Prochaine course */}
-      {next ? (
-        <section className="surface p-3">
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
-            <h2 className="truncate text-sm font-semibold">Prochaine course</h2>
-            <StatusBadge status={next.status} labels={RIDE_STATUS_LABELS} />
-          </div>
-          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-            <span className="font-medium text-foreground">
-              {formatDate(next.scheduled_at)} · {timeOf(next.scheduled_at)}
-            </span>
-            {countdown(next.scheduled_at) ? <span>{countdown(next.scheduled_at)}</span> : null}
-          </p>
-          <div className="mt-2 space-y-1 text-xs">
-            <p className="flex items-start gap-1.5">
-              <span className="mt-1 size-2 shrink-0 rounded-full bg-primary" />
-              <span className="min-w-0 flex-1 truncate">{next.pickup_address}</span>
-            </p>
-            <p className="flex items-start gap-1.5">
-              <MapPin className="mt-0.5 size-3.5 shrink-0 text-primary" />
-              <span className="min-w-0 flex-1 truncate">{next.dropoff_address}</span>
-            </p>
-            {next.price != null ? <p className="font-semibold">{formatEuro(Number(next.price))}</p> : null}
-          </div>
-          <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-2">
-            <Link
-              to="/pro/courses"
-              className="flex h-10 items-center justify-center rounded-xl bg-primary text-sm font-semibold text-primary-foreground"
-            >
-              Voir la course
-            </Link>
-            <Link
-              to="/pro/planning"
-              className="flex h-10 items-center gap-1.5 rounded-xl border border-border px-3 text-xs font-medium"
-            >
-              <CalendarDays className="size-4 shrink-0" />
-              Voir mon planning
-            </Link>
-          </div>
-        </section>
-      ) : (
-        <div className="surface grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 p-3">
-          <div className="min-w-0">
-            <p className="truncate text-sm font-medium">Aucune course à venir.</p>
-            <p className="truncate text-[11px] text-muted-foreground">Vos prochaines réservations apparaîtront ici.</p>
-          </div>
-          <Link
-            to="/pro/planning"
-            className="flex shrink-0 items-center gap-1.5 rounded-xl border border-border px-3 py-2 text-xs font-medium"
-          >
-            <CalendarDays className="size-4" />
-            Planning
-          </Link>
-        </div>
-      )}
+      {/* 4. Courses programmées à venir */}
+      <FollowUpRides rides={board.data?.toFollow ?? []} now={serverNow} />
+      <UpcomingRides
+        rides={board.data?.upcomingScheduled ?? []}
+        now={serverNow}
+        conflict={!!board.data?.scheduleConflict && !board.data?.toFollow.length}
+      />
+
 
       {/* 5. Sélecteur de période */}
       <div className="grid grid-cols-2 gap-2 rounded-2xl bg-muted/60 p-1 sm:grid-cols-4">
