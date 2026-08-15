@@ -41,7 +41,6 @@ import { Route as AuthenticatedProDossierRouteImport } from './routes/_authentic
 import { Route as AuthenticatedProEntrepriseRouteImport } from './routes/_authenticated/pro.entreprise'
 import { Route as AuthenticatedProFacturesRouteImport } from './routes/_authenticated/pro.factures'
 import { Route as AuthenticatedProParametresRouteImport } from './routes/_authenticated/pro.parametres'
-import { Route as AuthenticatedProPlanningRouteImport } from './routes/_authenticated/pro.planning'
 import { Route as AuthenticatedProProfilRouteImport } from './routes/_authenticated/pro.profil'
 import { Route as AuthenticatedProQrRouteImport } from './routes/_authenticated/pro.qr'
 import { Route as AuthenticatedProVehiculeRouteImport } from './routes/_authenticated/pro.vehicule'
@@ -61,6 +60,8 @@ import { Route as AuthenticatedProCoursesIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedProCoursesRideIdRouteImport } from './routes/_authenticated/pro.courses.$rideId'
 import { Route as AuthenticatedProDossierIndexRouteImport } from './routes/_authenticated/pro.dossier.index'
 import { Route as AuthenticatedProDossierCompleterRouteImport } from './routes/_authenticated/pro.dossier.completer'
+import { Route as AuthenticatedProPlanningIndexRouteImport } from './routes/_authenticated/pro.planning.index'
+import { Route as AuthenticatedProPlanningJourDateRouteImport } from './routes/_authenticated/pro.planning.jour.$date'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -235,12 +236,6 @@ const AuthenticatedProParametresRoute =
     path: '/parametres',
     getParentRoute: () => AuthenticatedProRoute,
   } as any)
-const AuthenticatedProPlanningRoute =
-  AuthenticatedProPlanningRouteImport.update({
-    id: '/planning',
-    path: '/planning',
-    getParentRoute: () => AuthenticatedProRoute,
-  } as any)
 const AuthenticatedProProfilRoute = AuthenticatedProProfilRouteImport.update({
   id: '/profil',
   path: '/profil',
@@ -352,6 +347,18 @@ const AuthenticatedProDossierCompleterRoute =
     path: '/completer',
     getParentRoute: () => AuthenticatedProDossierRoute,
   } as any)
+const AuthenticatedProPlanningIndexRoute =
+  AuthenticatedProPlanningIndexRouteImport.update({
+    id: '/planning/',
+    path: '/planning/',
+    getParentRoute: () => AuthenticatedProRoute,
+  } as any)
+const AuthenticatedProPlanningJourDateRoute =
+  AuthenticatedProPlanningJourDateRouteImport.update({
+    id: '/planning/jour/$date',
+    path: '/planning/jour/$date',
+    getParentRoute: () => AuthenticatedProRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -382,7 +389,6 @@ export interface FileRoutesByFullPath {
   '/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/pro/factures': typeof AuthenticatedProFacturesRoute
   '/pro/parametres': typeof AuthenticatedProParametresRoute
-  '/pro/planning': typeof AuthenticatedProPlanningRoute
   '/pro/profil': typeof AuthenticatedProProfilRoute
   '/pro/qr': typeof AuthenticatedProQrRoute
   '/pro/vehicule': typeof AuthenticatedProVehiculeRoute
@@ -405,6 +411,8 @@ export interface FileRoutesByFullPath {
   '/pro/clients/': typeof AuthenticatedProClientsIndexRoute
   '/pro/courses/': typeof AuthenticatedProCoursesIndexRoute
   '/pro/dossier/': typeof AuthenticatedProDossierIndexRoute
+  '/pro/planning/': typeof AuthenticatedProPlanningIndexRoute
+  '/pro/planning/jour/$date': typeof AuthenticatedProPlanningJourDateRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -430,7 +438,6 @@ export interface FileRoutesByTo {
   '/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/pro/factures': typeof AuthenticatedProFacturesRoute
   '/pro/parametres': typeof AuthenticatedProParametresRoute
-  '/pro/planning': typeof AuthenticatedProPlanningRoute
   '/pro/profil': typeof AuthenticatedProProfilRoute
   '/pro/qr': typeof AuthenticatedProQrRoute
   '/pro/vehicule': typeof AuthenticatedProVehiculeRoute
@@ -453,6 +460,8 @@ export interface FileRoutesByTo {
   '/pro/clients': typeof AuthenticatedProClientsIndexRoute
   '/pro/courses': typeof AuthenticatedProCoursesIndexRoute
   '/pro/dossier': typeof AuthenticatedProDossierIndexRoute
+  '/pro/planning': typeof AuthenticatedProPlanningIndexRoute
+  '/pro/planning/jour/$date': typeof AuthenticatedProPlanningJourDateRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -485,7 +494,6 @@ export interface FileRoutesById {
   '/_authenticated/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/_authenticated/pro/factures': typeof AuthenticatedProFacturesRoute
   '/_authenticated/pro/parametres': typeof AuthenticatedProParametresRoute
-  '/_authenticated/pro/planning': typeof AuthenticatedProPlanningRoute
   '/_authenticated/pro/profil': typeof AuthenticatedProProfilRoute
   '/_authenticated/pro/qr': typeof AuthenticatedProQrRoute
   '/_authenticated/pro/vehicule': typeof AuthenticatedProVehiculeRoute
@@ -508,6 +516,8 @@ export interface FileRoutesById {
   '/_authenticated/pro/clients/': typeof AuthenticatedProClientsIndexRoute
   '/_authenticated/pro/courses/': typeof AuthenticatedProCoursesIndexRoute
   '/_authenticated/pro/dossier/': typeof AuthenticatedProDossierIndexRoute
+  '/_authenticated/pro/planning/': typeof AuthenticatedProPlanningIndexRoute
+  '/_authenticated/pro/planning/jour/$date': typeof AuthenticatedProPlanningJourDateRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -540,7 +550,6 @@ export interface FileRouteTypes {
     | '/pro/entreprise'
     | '/pro/factures'
     | '/pro/parametres'
-    | '/pro/planning'
     | '/pro/profil'
     | '/pro/qr'
     | '/pro/vehicule'
@@ -563,6 +572,8 @@ export interface FileRouteTypes {
     | '/pro/clients/'
     | '/pro/courses/'
     | '/pro/dossier/'
+    | '/pro/planning/'
+    | '/pro/planning/jour/$date'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -588,7 +599,6 @@ export interface FileRouteTypes {
     | '/pro/entreprise'
     | '/pro/factures'
     | '/pro/parametres'
-    | '/pro/planning'
     | '/pro/profil'
     | '/pro/qr'
     | '/pro/vehicule'
@@ -611,6 +621,8 @@ export interface FileRouteTypes {
     | '/pro/clients'
     | '/pro/courses'
     | '/pro/dossier'
+    | '/pro/planning'
+    | '/pro/planning/jour/$date'
   id:
     | '__root__'
     | '/'
@@ -642,7 +654,6 @@ export interface FileRouteTypes {
     | '/_authenticated/pro/entreprise'
     | '/_authenticated/pro/factures'
     | '/_authenticated/pro/parametres'
-    | '/_authenticated/pro/planning'
     | '/_authenticated/pro/profil'
     | '/_authenticated/pro/qr'
     | '/_authenticated/pro/vehicule'
@@ -665,6 +676,8 @@ export interface FileRouteTypes {
     | '/_authenticated/pro/clients/'
     | '/_authenticated/pro/courses/'
     | '/_authenticated/pro/dossier/'
+    | '/_authenticated/pro/planning/'
+    | '/_authenticated/pro/planning/jour/$date'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -908,13 +921,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProParametresRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
-    '/_authenticated/pro/planning': {
-      id: '/_authenticated/pro/planning'
-      path: '/planning'
-      fullPath: '/pro/planning'
-      preLoaderRoute: typeof AuthenticatedProPlanningRouteImport
-      parentRoute: typeof AuthenticatedProRoute
-    }
     '/_authenticated/pro/profil': {
       id: '/_authenticated/pro/profil'
       path: '/profil'
@@ -1048,6 +1054,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProDossierCompleterRouteImport
       parentRoute: typeof AuthenticatedProDossierRoute
     }
+    '/_authenticated/pro/planning/': {
+      id: '/_authenticated/pro/planning/'
+      path: '/planning'
+      fullPath: '/pro/planning/'
+      preLoaderRoute: typeof AuthenticatedProPlanningIndexRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
+    '/_authenticated/pro/planning/jour/$date': {
+      id: '/_authenticated/pro/planning/jour/$date'
+      path: '/planning/jour/$date'
+      fullPath: '/pro/planning/jour/$date'
+      preLoaderRoute: typeof AuthenticatedProPlanningJourDateRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
   }
 }
 
@@ -1149,7 +1169,6 @@ interface AuthenticatedProRouteChildren {
   AuthenticatedProEntrepriseRoute: typeof AuthenticatedProEntrepriseRoute
   AuthenticatedProFacturesRoute: typeof AuthenticatedProFacturesRoute
   AuthenticatedProParametresRoute: typeof AuthenticatedProParametresRoute
-  AuthenticatedProPlanningRoute: typeof AuthenticatedProPlanningRoute
   AuthenticatedProProfilRoute: typeof AuthenticatedProProfilRoute
   AuthenticatedProQrRoute: typeof AuthenticatedProQrRoute
   AuthenticatedProVehiculeRoute: typeof AuthenticatedProVehiculeRoute
@@ -1157,6 +1176,8 @@ interface AuthenticatedProRouteChildren {
   AuthenticatedProIndexRoute: typeof AuthenticatedProIndexRoute
   AuthenticatedProCoursesRideIdRoute: typeof AuthenticatedProCoursesRideIdRoute
   AuthenticatedProCoursesIndexRoute: typeof AuthenticatedProCoursesIndexRoute
+  AuthenticatedProPlanningIndexRoute: typeof AuthenticatedProPlanningIndexRoute
+  AuthenticatedProPlanningJourDateRoute: typeof AuthenticatedProPlanningJourDateRoute
 }
 
 const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
@@ -1169,7 +1190,6 @@ const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
   AuthenticatedProEntrepriseRoute: AuthenticatedProEntrepriseRoute,
   AuthenticatedProFacturesRoute: AuthenticatedProFacturesRoute,
   AuthenticatedProParametresRoute: AuthenticatedProParametresRoute,
-  AuthenticatedProPlanningRoute: AuthenticatedProPlanningRoute,
   AuthenticatedProProfilRoute: AuthenticatedProProfilRoute,
   AuthenticatedProQrRoute: AuthenticatedProQrRoute,
   AuthenticatedProVehiculeRoute: AuthenticatedProVehiculeRoute,
@@ -1177,6 +1197,8 @@ const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
   AuthenticatedProIndexRoute: AuthenticatedProIndexRoute,
   AuthenticatedProCoursesRideIdRoute: AuthenticatedProCoursesRideIdRoute,
   AuthenticatedProCoursesIndexRoute: AuthenticatedProCoursesIndexRoute,
+  AuthenticatedProPlanningIndexRoute: AuthenticatedProPlanningIndexRoute,
+  AuthenticatedProPlanningJourDateRoute: AuthenticatedProPlanningJourDateRoute,
 }
 
 const AuthenticatedProRouteWithChildren =

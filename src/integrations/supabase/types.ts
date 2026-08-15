@@ -289,6 +289,42 @@ export type Database = {
         }
         Relationships: []
       }
+      driver_breaks: {
+        Row: {
+          created_at: string
+          day: string | null
+          driver_id: string
+          end_time: string
+          id: string
+          reason: string | null
+          start_time: string
+          updated_at: string
+          weekday: number | null
+        }
+        Insert: {
+          created_at?: string
+          day?: string | null
+          driver_id: string
+          end_time: string
+          id?: string
+          reason?: string | null
+          start_time: string
+          updated_at?: string
+          weekday?: number | null
+        }
+        Update: {
+          created_at?: string
+          day?: string | null
+          driver_id?: string
+          end_time?: string
+          id?: string
+          reason?: string | null
+          start_time?: string
+          updated_at?: string
+          weekday?: number | null
+        }
+        Relationships: []
+      }
       driver_client_connections: {
         Row: {
           client_id: string
@@ -313,6 +349,39 @@ export type Database = {
           driver_id?: string
           id?: string
           source?: string
+        }
+        Relationships: []
+      }
+      driver_day_overrides: {
+        Row: {
+          available: boolean
+          created_at: string
+          day: string
+          driver_id: string
+          end_time: string
+          id: string
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          available?: boolean
+          created_at?: string
+          day: string
+          driver_id: string
+          end_time?: string
+          id?: string
+          start_time?: string
+          updated_at?: string
+        }
+        Update: {
+          available?: boolean
+          created_at?: string
+          day?: string
+          driver_id?: string
+          end_time?: string
+          id?: string
+          start_time?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -565,6 +634,27 @@ export type Database = {
           vtc_card_number?: string | null
           whatsapp_number?: string | null
           zone?: string | null
+        }
+        Relationships: []
+      }
+      driver_schedule_settings: {
+        Row: {
+          buffer_min: number
+          created_at: string
+          driver_id: string
+          updated_at: string
+        }
+        Insert: {
+          buffer_min?: number
+          created_at?: string
+          driver_id: string
+          updated_at?: string
+        }
+        Update: {
+          buffer_min?: number
+          created_at?: string
+          driver_id?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1682,6 +1772,15 @@ export type Database = {
       driver_available_between: {
         Args: { _driver: string; _end: string; _start: string }
         Returns: boolean
+      }
+      driver_day_window: {
+        Args: { _day: string; _driver: string }
+        Returns: {
+          available: boolean
+          defined: boolean
+          end_time: string
+          start_time: string
+        }[]
       }
       driver_dossier_state: { Args: { _driver: string }; Returns: Json }
       driver_tax_at: {
