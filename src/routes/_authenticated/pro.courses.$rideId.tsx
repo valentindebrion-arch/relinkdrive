@@ -29,6 +29,9 @@ import { getServerNow, startRide } from "@/lib/ride-start.functions";
 import { formatHour, startWindowOpensAt } from "@/lib/ride-start";
 import { decideRideCancellation, driverCancelRide } from "@/lib/ride-cancel.functions";
 import { DRIVER_CANCEL_REASONS, driverCancelDeadline } from "@/lib/ride-cancel";
+import { isImminent, countdownLabel, RIDE_TYPE_LABELS } from "@/lib/driver-board";
+import { DRIVER_BOARD_KEY } from "@/lib/driver-board-query";
+
 
 export const Route = createFileRoute("/_authenticated/pro/courses/$rideId")({
   head: () => ({
@@ -139,7 +142,9 @@ function DriverRideDetail() {
   });
 
   function refresh() {
+    void qc.invalidateQueries({ queryKey: [DRIVER_BOARD_KEY] });
     void qc.invalidateQueries({ queryKey: ["driver-ride", rideId] });
+
     void qc.invalidateQueries({ queryKey: ["driver-active-ride"] });
     void qc.invalidateQueries({ queryKey: ["driver-rides"] });
     void qc.invalidateQueries({ queryKey: ["driver-planning"] });
@@ -177,10 +182,17 @@ function DriverRideDetail() {
   const startAllowed = serverNow >= opensAt;
   const isLate = serverNow > new Date(ride.scheduled_at) && !ride.started_at;
 
+  const isFlash = ride.ride_type === "flash";
+  /** Une course programmée n'ouvre ses étapes opérationnelles qu'à T - 1 h. */
+  const tooEarly =
+    !isFlash && ride.status === "confirmed" && !isImminent(ride.scheduled_at, serverNow);
+  const remaining = countdownLabel(ride.scheduled_at, serverNow);
+
   const preStart = !ride.started_at && !ride.completed_at && ride.status !== "cancelled" && ride.status !== "completed";
   const pendingCancel = ride.cancel_request_status === "pending" && preStart;
   const cancelDeadline = driverCancelDeadline(ride.scheduled_at);
   const canSelfCancel = preStart && serverNow <= cancelDeadline;
+
 
   async function doDecide(value: "accepted" | "refused") {
     if (!ride || deciding) return;
@@ -265,11 +277,24 @@ function DriverRideDetail() {
 
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
         <div className="min-w-0">
-          <h1 className="truncate text-xl font-bold sm:text-2xl">Détail de la course</h1>
-          <p className="truncate text-sm text-muted-foreground">{formatDateTime(ride.scheduled_at)}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="truncate text-xl font-bold sm:text-2xl">Détail de la course</h1>
+            <span
+              className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                isFlash ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {RIDE_TYPE_LABELS[isFlash ? "flash" : "scheduled"]}
+            </span>
+          </div>
+          <p className="truncate text-sm text-muted-foreground">
+            {formatDateTime(ride.scheduled_at)}
+            {remaining && !ride.started_at ? ` · départ dans ${remaining}` : ""}
+          </p>
         </div>
         <StatusBadge status={ride.status} labels={RIDE_STATUS_LABELS} />
       </header>
+
 
       <div className="surface p-4">
         <div className="flex gap-3">
@@ -355,7 +380,18 @@ function DriverRideDetail() {
         </p>
       ) : null}
 
-      {nextStep ? (
+      {tooEarly ? (
+        <div className="surface space-y-2 p-4">
+          <p className="text-sm font-semibold">Course programmée</p>
+          <p className="text-xs text-muted-foreground">
+            Les actions de départ seront disponibles une heure avant la prise en charge
+            {remaining ? ` (dans ${remaining})` : ""}.
+          </p>
+          <Button asChild variant="outline" className="w-full">
+            <Link to="/pro/planning">Voir dans mon planning</Link>
+          </Button>
+        </div>
+      ) : nextStep ? (
         <div className="space-y-1.5">
           {nextStep.status === "in_progress" ? (
             <>
@@ -385,6 +421,7 @@ function DriverRideDetail() {
           )}
         </div>
       ) : null}
+
 
       {ride.status === "driver_enroute" || ride.status === "driver_arrived" ? (
         <NotifyClientSmsButton rideId={ride.id} kind={ride.status === "driver_arrived" ? "arrival" : "departure"} />

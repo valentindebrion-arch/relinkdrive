@@ -22,8 +22,12 @@ import { useDriverProfile, useMyVehicle, useMyDocuments } from "@/lib/driver-que
 import { useDriverData, computeStats, PERIOD_LABELS, type Period } from "@/lib/pro-stats";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ActiveRidePanel } from "@/components/ActiveRidePanel";
+import { UpcomingRides, FollowUpRides } from "@/components/pro/UpcomingRides";
+import { useDriverBoard } from "@/lib/driver-board-query";
+import { RIDE_TYPE_LABELS } from "@/lib/driver-board";
 import { TaxSetupBanner } from "@/components/pro/TaxSetupBanner";
 import { RIDE_STATUS_LABELS, VERIFICATION_LABELS, formatDate, formatEuro } from "@/lib/labels";
+
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/_authenticated/pro/")({
@@ -116,16 +120,13 @@ function ProOverview() {
 
   const stats = computeStats(raw.data, period);
   const rides = raw.data?.rides ?? [];
-  const now = new Date();
-  const upcoming = rides
-    .filter((r) => new Date(r.scheduled_at) >= now && ["confirmed", "driver_enroute"].includes(r.status))
-    .sort((a, b) => +new Date(a.scheduled_at) - +new Date(b.scheduled_at));
-  const next = upcoming[0];
-  const pendingRequests = (raw.data?.requests ?? [])
-    .filter((r) => ["new", "reviewing", "awaiting_client", "proposal_sent"].includes(r.status))
-    .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
+  // Classement officiel (serveur) : une course n'apparaît que dans une seule section.
+  const board = useDriverBoard();
+  const serverNow = board.data ? new Date(board.data.nowIso) : new Date();
+  const pendingRequests = board.data?.pendingRequests ?? [];
   const topRequest = pendingRequests[0];
   const unpaidCount = (raw.data?.invoices ?? []).filter((i) => !["paid", "cancelled", "draft"].includes(i.status)).length;
+
   const drafts = (raw.data?.invoices ?? []).filter((i) => i.status === "draft");
   const clientsCount = new Set(
     rides.filter((r) => r.status === "completed" && r.client_id).map((r) => r.client_id),
@@ -299,11 +300,15 @@ function ProOverview() {
             <h2 className="flex min-w-0 items-center gap-2 text-sm font-semibold">
               <Inbox className="size-4 shrink-0 text-primary" />
               <span className="truncate">Demandes à traiter</span>
+              <span className="shrink-0 rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                {RIDE_TYPE_LABELS[topRequest.ride_type === "flash" ? "flash" : "scheduled"]}
+              </span>
             </h2>
             <span className="shrink-0 rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-primary-foreground">
               {pendingRequests.length}
             </span>
           </div>
+
           <div className="mt-2 space-y-1 text-xs">
             <p className="flex items-center gap-1.5 font-medium">
               <Clock className="size-3.5 shrink-0 text-primary" />
@@ -339,61 +344,14 @@ function ProOverview() {
         </Link>
       )}
 
-      {/* 4. Prochaine course */}
-      {next ? (
-        <section className="surface p-3">
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
-            <h2 className="truncate text-sm font-semibold">Prochaine course</h2>
-            <StatusBadge status={next.status} labels={RIDE_STATUS_LABELS} />
-          </div>
-          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-            <span className="font-medium text-foreground">
-              {formatDate(next.scheduled_at)} · {timeOf(next.scheduled_at)}
-            </span>
-            {countdown(next.scheduled_at) ? <span>{countdown(next.scheduled_at)}</span> : null}
-          </p>
-          <div className="mt-2 space-y-1 text-xs">
-            <p className="flex items-start gap-1.5">
-              <span className="mt-1 size-2 shrink-0 rounded-full bg-primary" />
-              <span className="min-w-0 flex-1 truncate">{next.pickup_address}</span>
-            </p>
-            <p className="flex items-start gap-1.5">
-              <MapPin className="mt-0.5 size-3.5 shrink-0 text-primary" />
-              <span className="min-w-0 flex-1 truncate">{next.dropoff_address}</span>
-            </p>
-            {next.price != null ? <p className="font-semibold">{formatEuro(Number(next.price))}</p> : null}
-          </div>
-          <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-2">
-            <Link
-              to="/pro/courses"
-              className="flex h-10 items-center justify-center rounded-xl bg-primary text-sm font-semibold text-primary-foreground"
-            >
-              Voir la course
-            </Link>
-            <Link
-              to="/pro/planning"
-              className="flex h-10 items-center gap-1.5 rounded-xl border border-border px-3 text-xs font-medium"
-            >
-              <CalendarDays className="size-4 shrink-0" />
-              Voir mon planning
-            </Link>
-          </div>
-        </section>
-      ) : (
-        <div className="surface grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 p-3">
-          <div className="min-w-0">
-            <p className="truncate text-sm font-medium">Aucune course à venir.</p>
-            <p className="truncate text-[11px] text-muted-foreground">Vos prochaines réservations apparaîtront ici.</p>
-          </div>
-          <Link
-            to="/pro/planning"
-            className="flex shrink-0 items-center gap-1.5 rounded-xl border border-border px-3 py-2 text-xs font-medium"
-          >
-            <CalendarDays className="size-4" />
-            Planning
-          </Link>
-        </div>
-      )}
+      {/* 4. Courses programmées à venir */}
+      <FollowUpRides rides={board.data?.toFollow ?? []} now={serverNow} />
+      <UpcomingRides
+        rides={board.data?.upcomingScheduled ?? []}
+        now={serverNow}
+        conflict={!!board.data?.scheduleConflict && !board.data?.toFollow.length}
+      />
+
 
       {/* 5. Sélecteur de période */}
       <div className="grid grid-cols-2 gap-2 rounded-2xl bg-muted/60 p-1 sm:grid-cols-4">

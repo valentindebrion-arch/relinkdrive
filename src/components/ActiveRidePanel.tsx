@@ -22,8 +22,8 @@ import { NotifyClientSmsButton, NotifyClientSmsDialog } from "@/components/Notif
 import type { SmsKind } from "@/lib/ride-sms";
 import { getServerNow, startRide } from "@/lib/ride-start.functions";
 import { formatHour, startWindowOpensAt } from "@/lib/ride-start";
-
-const ACTIVE_STATUSES = ["confirmed", "driver_enroute", "driver_arrived", "client_onboard", "in_progress"] as const;
+import { useDriverBoard, DRIVER_BOARD_KEY } from "@/lib/driver-board-query";
+import { RIDE_TYPE_LABELS, countdownLabel } from "@/lib/driver-board";
 
 const STEPS = [
   { status: "driver_enroute", label: "En route chez le client", action: "Je pars chez le client" },
@@ -32,6 +32,23 @@ const STEPS = [
   { status: "in_progress", label: "Fin de course", action: "Démarrer la course" },
   { status: "completed", label: "Terminé", action: "Terminer la course" },
 ];
+
+/** Titre du grand bloc : il reflète toujours l'état réel de la course. */
+function blockTitle(status: string, isFlash: boolean, scheduledAt: string, now: Date) {
+  switch (status) {
+    case "driver_enroute":
+      return "Chauffeur en route";
+    case "driver_arrived":
+      return "Chauffeur arrivé";
+    case "client_onboard":
+      return "Client à bord";
+    case "in_progress":
+      return "Course en cours";
+    default:
+      if (isFlash) return "Course flash acceptée";
+      return `Prochaine course dans ${countdownLabel(scheduledAt, now) ?? "quelques instants"}`;
+  }
+}
 
 export function ActiveRidePanel({ showEmpty = false, className }: { showEmpty?: boolean; className?: string } = {}) {
   const { user } = useAuth();
@@ -63,25 +80,10 @@ export function ActiveRidePanel({ showEmpty = false, className }: { showEmpty?: 
     return () => clearInterval(id);
   }, []);
 
+  // Le grand bloc n'affiche que la course désignée par le classement serveur.
+  const board = useDriverBoard();
+  const r = board.data?.activeRide ?? null;
 
-  const ride = useQuery({
-    queryKey: ["driver-active-ride", user?.id],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("rides")
-        .select("*")
-        .eq("driver_id", user!.id)
-        .eq("is_block", false)
-        .in("status", ACTIVE_STATUSES)
-        .order("scheduled_at", { ascending: true })
-        .limit(1);
-      if (error) throw error;
-      return data?.[0] ?? null;
-    },
-  });
-
-  const r = ride.data;
   if (!r)
     return showEmpty ? (
       <div className="surface p-6 text-center text-sm text-muted-foreground">Aucune course en cours</div>
@@ -94,6 +96,8 @@ export function ActiveRidePanel({ showEmpty = false, className }: { showEmpty?: 
   const serverNow = new Date(Date.now() + offset);
   const startAllowed = serverNow >= opensAt;
   const isLate = serverNow > new Date(r.scheduled_at) && !r.started_at;
+  const isFlash = r.ride_type === "flash";
+
 
   async function advance(status: string) {
     if (!r || advancing) return;
@@ -107,7 +111,7 @@ export function ActiveRidePanel({ showEmpty = false, className }: { showEmpty?: 
           ...(status === "completed" ? { completed_at: now } : {}),
         })
         .eq("id", r.id)
-        .eq("status", r.status);
+        .eq("status", r.status as never);
       if (error) {
         toast.error(error.message);
         return;
@@ -127,6 +131,7 @@ export function ActiveRidePanel({ showEmpty = false, className }: { showEmpty?: 
   }
 
   function refresh() {
+    void qc.invalidateQueries({ queryKey: [DRIVER_BOARD_KEY] });
     void qc.invalidateQueries({ queryKey: ["driver-active-ride"] });
     void qc.invalidateQueries({ queryKey: ["driver-rides"] });
     void qc.invalidateQueries({ queryKey: ["planning"] });
@@ -152,11 +157,23 @@ export function ActiveRidePanel({ showEmpty = false, className }: { showEmpty?: 
   return (
     <section className={`surface mb-6 overflow-hidden border-2 border-primary/50 p-0 shadow-lg shadow-primary/10 ${className ?? ""}`}>
       <div className="border-b border-border bg-primary/10 px-5 py-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-primary">Course en cours</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-xs font-semibold tracking-wide text-primary uppercase">
+            {blockTitle(r.status, isFlash, r.scheduled_at, serverNow)}
+          </p>
+          <span
+            className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+              isFlash ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+            }`}
+          >
+            {RIDE_TYPE_LABELS[isFlash ? "flash" : "scheduled"]}
+          </span>
+        </div>
         <h2 className="mt-1 text-lg font-semibold">
           {r.client_label ?? "Client"} · {formatDateTime(r.scheduled_at)}
         </h2>
       </div>
+
 
       <div className="space-y-4 p-5">
         <div className="space-y-2 text-sm">

@@ -160,6 +160,7 @@ export function DriverRequests() {
     toast.success("Demande mise à jour");
 
     void qc.invalidateQueries({ queryKey: ["driver-requests"] });
+    void qc.invalidateQueries({ queryKey: ["driver-board"] });
   }
 
   async function confirmRide(r: Req) {
@@ -186,6 +187,7 @@ export function DriverRequests() {
       .eq("client_id", r.client_id);
     void qc.invalidateQueries({ queryKey: ["driver-rides"] });
     void qc.invalidateQueries({ queryKey: ["driver-active-ride"] });
+    void qc.invalidateQueries({ queryKey: ["driver-board"] });
     void qc.invalidateQueries({ queryKey: ["planning"] });
     void qc.invalidateQueries({ queryKey: ["pro-overview"] });
     void qc.invalidateQueries({ queryKey: ["request-feasibility"] });
