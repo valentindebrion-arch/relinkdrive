@@ -1183,8 +1183,13 @@ export type Database = {
       }
       ride_requests: {
         Row: {
+          admin_cancellation_comment: string | null
           amount_ht: number | null
           amount_ttc: number | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          cancelled_by_role: string | null
           client_id: string
           comment: string | null
           created_at: string
@@ -1199,6 +1204,7 @@ export type Database = {
           passengers: number
           pickup_address: string
           preferred_contact: string | null
+          previous_status: string | null
           proposed_price: number | null
           proposed_time: string | null
           response_deadline: string | null
@@ -1218,8 +1224,13 @@ export type Database = {
           vat_amount: number | null
         }
         Insert: {
+          admin_cancellation_comment?: string | null
           amount_ht?: number | null
           amount_ttc?: number | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          cancelled_by_role?: string | null
           client_id: string
           comment?: string | null
           created_at?: string
@@ -1234,6 +1245,7 @@ export type Database = {
           passengers?: number
           pickup_address: string
           preferred_contact?: string | null
+          previous_status?: string | null
           proposed_price?: number | null
           proposed_time?: string | null
           response_deadline?: string | null
@@ -1253,8 +1265,13 @@ export type Database = {
           vat_amount?: number | null
         }
         Update: {
+          admin_cancellation_comment?: string | null
           amount_ht?: number | null
           amount_ttc?: number | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          cancelled_by_role?: string | null
           client_id?: string
           comment?: string | null
           created_at?: string
@@ -1269,6 +1286,7 @@ export type Database = {
           passengers?: number
           pickup_address?: string
           preferred_contact?: string | null
+          previous_status?: string | null
           proposed_price?: number | null
           proposed_time?: string | null
           response_deadline?: string | null
@@ -1389,6 +1407,7 @@ export type Database = {
       }
       rides: {
         Row: {
+          admin_cancellation_comment: string | null
           amount_ht: number | null
           amount_ttc: number | null
           cancel_decided_at: string | null
@@ -1400,6 +1419,7 @@ export type Database = {
           cancellation_reason: string | null
           cancelled_at: string | null
           cancelled_by: string | null
+          cancelled_by_role: string | null
           client_id: string | null
           client_label: string | null
           completed_at: string | null
@@ -1414,6 +1434,7 @@ export type Database = {
           passengers: number
           payment_method: string | null
           pickup_address: string
+          previous_status: string | null
           price: number | null
           request_id: string | null
           scheduled_at: string
@@ -1430,6 +1451,7 @@ export type Database = {
           vat_amount: number | null
         }
         Insert: {
+          admin_cancellation_comment?: string | null
           amount_ht?: number | null
           amount_ttc?: number | null
           cancel_decided_at?: string | null
@@ -1441,6 +1463,7 @@ export type Database = {
           cancellation_reason?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
+          cancelled_by_role?: string | null
           client_id?: string | null
           client_label?: string | null
           completed_at?: string | null
@@ -1455,6 +1478,7 @@ export type Database = {
           passengers?: number
           payment_method?: string | null
           pickup_address: string
+          previous_status?: string | null
           price?: number | null
           request_id?: string | null
           scheduled_at: string
@@ -1471,6 +1495,7 @@ export type Database = {
           vat_amount?: number | null
         }
         Update: {
+          admin_cancellation_comment?: string | null
           amount_ht?: number | null
           amount_ttc?: number | null
           cancel_decided_at?: string | null
@@ -1482,6 +1507,7 @@ export type Database = {
           cancellation_reason?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
+          cancelled_by_role?: string | null
           client_id?: string | null
           client_label?: string | null
           completed_at?: string | null
@@ -1496,6 +1522,7 @@ export type Database = {
           passengers?: number
           payment_method?: string | null
           pickup_address?: string
+          previous_status?: string | null
           price?: number | null
           request_id?: string | null
           scheduled_at?: string
@@ -1688,6 +1715,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_cancel_ride: {
+        Args: { _admin_comment?: string; _reason: string; _ride: string }
+        Returns: Json
+      }
       admin_decide_driver: {
         Args: { _decision: string; _driver: string; _reason?: string }
         Returns: Json
