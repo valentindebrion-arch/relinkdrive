@@ -115,3 +115,19 @@ export const exportDossierArchive = createServerFn({ method: "POST" })
 
     return { url: signed.data.signedUrl, fileName, files: count, expiresIn: mod.EXPORT_URL_TTL };
   });
+
+/** PDF complet du dossier, généré à la demande côté serveur (aucune URL permanente). */
+export const generateDossierPdf = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ driverId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const mod = await import("@/lib/admin-dossier.server");
+    await mod.assertAdmin(context.userId);
+    const { buildDossierPdf } = await import("@/lib/dossier-pdf.server");
+    const { bytes, fileName } = await buildDossierPdf(data.driverId);
+    await mod.logAdminAction(context.userId, "dossier_pdf_generated", "driver_profiles", data.driverId, {
+      file_name: fileName,
+      bytes: bytes.byteLength,
+    });
+    return { fileName, base64: Buffer.from(bytes).toString("base64") };
+  });
