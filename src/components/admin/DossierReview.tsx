@@ -266,9 +266,14 @@ export function DossierReview({ driverId }: { driverId: string }) {
         _reason: reason,
       });
       if (e) throw e;
+      return decision;
     },
-    onSuccess: () => {
-      toast.success("Décision enregistrée");
+    onSuccess: (decision) => {
+      toast.success(
+        decision === "approve"
+          ? "Le compte chauffeur a été validé. Il dispose désormais d'un accès complet à ReLink."
+          : "Décision enregistrée",
+      );
       invalidate();
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erreur"),
