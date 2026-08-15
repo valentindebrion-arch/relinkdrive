@@ -84,7 +84,7 @@ export function CompleteRideDialog({
       amount > 0 ? "Course terminée — facture générée automatiquement" : "Course terminée — facture à compléter",
     );
     onOpenChange(false);
-    ["driver-active-ride", "driver-rides", "pro-overview", "driver-data", "driver-invoices", "driver-clients"].forEach(
+    ["driver-board", "driver-active-ride", "driver-rides", "pro-overview", "driver-data", "driver-invoices", "driver-clients"].forEach(
       (key) => void qc.invalidateQueries({ queryKey: [key] }),
     );
   }
