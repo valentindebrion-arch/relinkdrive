@@ -72,7 +72,12 @@ export function SupportSection() {
 
   return (
     <section className="surface p-5">
-      <h2 className="text-base font-semibold">Aide et assistance</h2>
+      <h2 className="text-base font-semibold">Aide et support technique</h2>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Pour toute question sur une course (horaire, lieu, tarif, annulation), contactez directement
+        votre chauffeur. Le support Relink traite uniquement le fonctionnement de l'application.
+      </p>
+
 
       <ul className="mt-3 divide-y divide-border text-sm">
         <li>
