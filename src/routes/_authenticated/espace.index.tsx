@@ -379,7 +379,7 @@ function ClientHome() {
               onClick={() => startRequest("later")}
               className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-card text-[14px] font-bold text-primary"
             >
-              <CalendarClock className="size-4" /> Planifier un trajet
+              <CalendarClock className="size-4" /> Planifier avec ce chauffeur
             </button>
           ) : null}
         </section>
@@ -422,7 +422,8 @@ function ClientHome() {
             />
           ) : blocking ? (
             <TodayRow
-              title="Demande en attente"
+              title="En attente de la réponse du chauffeur"
+
               detail={`${blocking.driver_first_name ?? "Votre chauffeur"}${
                 blockingCountdown ? ` · réponse sous ${blockingCountdown.label}` : ""
               }`}
@@ -432,7 +433,7 @@ function ClientHome() {
             />
           ) : pendingLocal ? (
             <TodayRow
-              title="Demande en attente"
+              title="En attente de la réponse du chauffeur"
               detail={driverName(pendingLocal.driver_id)}
               action="Suivre ma demande"
               to={pendingLocal.id}
