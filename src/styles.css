@@ -60,6 +60,13 @@
 }
 
 :root {
+  /* Échelle d'empilement globale : contenu < navigation < menus < overlays < modales < notifications */
+  --z-content: 1;
+  --z-nav: 40;
+  --z-menu: 50;
+  --z-overlay: 60;
+  --z-modal: 70;
+  --z-notification: 9999;
   --radius: 0.875rem;
   --background: oklch(0.985 0.004 150);
   --foreground: oklch(0.26 0.015 220);
@@ -618,4 +625,17 @@
     max-height: none;
     overflow-y: auto;
   }
+}
+
+/* Calque global de notifications : toujours au premier plan, jamais rogné. */
+[data-sonner-toaster] {
+  z-index: var(--z-notification) !important;
+  max-width: 100vw;
+}
+
+[data-sonner-toast] {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  pointer-events: auto;
 }

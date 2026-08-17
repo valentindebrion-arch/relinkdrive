@@ -38,6 +38,7 @@ export const Route = createFileRoute("/_authenticated/pro/planning/")({
 
 type Ride = {
   id: string;
+  client_id: string | null;
   client_label: string | null;
   pickup_address: string;
   dropoff_address: string;
@@ -133,7 +134,18 @@ function PlanningPage() {
         .eq("is_block", false)
         .order("scheduled_at");
       if (error) throw error;
-      return (data ?? []) as Ride[];
+      const list = (data ?? []) as Ride[];
+      // Nom réel du client : lisible uniquement par le chauffeur connecté (RLS).
+      const ids = Array.from(new Set(list.map((r) => r.client_id).filter((id): id is string => !!id)));
+      if (ids.length) {
+        const { data: clients } = await supabase.from("profiles").select("id, full_name").in("id", ids);
+        const names = new Map((clients ?? []).map((c) => [c.id, (c.full_name ?? "").trim()]));
+        return list.map((r) => ({
+          ...r,
+          client_label: (r.client_id ? names.get(r.client_id) : "") || r.client_label?.trim() || null,
+        }));
+      }
+      return list;
     },
   });
 
@@ -239,7 +251,7 @@ function PlanningPage() {
                       <StatusDot status={r.status} />
                       <span className="font-medium">{timeOf(r.scheduled_at)}</span>
                       <span className="min-w-0 flex-1 truncate text-muted-foreground">
-                        {r.client_label ?? "Client"}
+                        {r.client_label ?? "Client non renseigné"}
                       </span>
                       <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium">
                         {isFlash(r) ? "Flash" : "Planifiée"}
