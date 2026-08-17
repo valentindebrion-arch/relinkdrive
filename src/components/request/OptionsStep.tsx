@@ -24,6 +24,8 @@ import { Input as TextInput } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { CompatibilityNotice } from "@/components/request/CompatibilityNotice";
 import type { CompatibilityResult } from "@/lib/compatibility";
+import { PaymentMethodSection } from "@/components/request/PaymentMethodSection";
+import type { PaymentMethodOption } from "@/lib/payment-methods";
 
 export type ReturnMode = "immediate" | "scheduled";
 
@@ -227,7 +229,14 @@ export function OptionsStep({
     return item?.key === "autre" && !needs.details[k]?.trim();
   });
   const incompatible = !!compatibility && !compatibility.compatible;
-  const blocked = returnInvalid || returnIncomplete || needsDetailMissing || incompatible;
+  const noPaymentConfigured = !paymentLoading && paymentOptions.length === 0;
+  const blocked =
+    returnInvalid ||
+    returnIncomplete ||
+    needsDetailMissing ||
+    incompatible ||
+    noPaymentConfigured ||
+    !paymentMethod;
 
   const toggleNeed = (key: string) => {
     const on = needs.keys.includes(key);
@@ -640,6 +649,20 @@ export function OptionsStep({
             />
           </section>
 
+          {/* Mode de règlement */}
+          <PaymentMethodSection
+            options={paymentOptions}
+            loading={paymentLoading}
+            value={paymentMethod}
+            onSelect={(k) => {
+              setPaymentError(false);
+              onSelectPayment(k);
+            }}
+            driverName={driverName ?? null}
+            onContactDriver={onContactDriver}
+            showError={paymentError}
+          />
+
           {/* Informations pour le chauffeur */}
           <section aria-labelledby="ic">
             <div className="mb-3 flex items-baseline gap-2">
@@ -682,12 +705,29 @@ export function OptionsStep({
             <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
               Ajustez votre demande ou choisissez un autre de vos chauffeurs pour continuer.
             </p>
+          ) : noPaymentConfigured ? (
+            <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
+              Ce chauffeur n'a pas encore renseigné de mode de règlement.
+            </p>
+          ) : !paymentMethod ? (
+            <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
+              Sélectionnez un mode de règlement avant d'envoyer votre demande.
+            </p>
           ) : null}
           <Button
             size="lg"
             className="h-13 w-full rounded-2xl text-[15px] font-bold transition-transform active:scale-[0.99]"
             disabled={busy || blocked}
-            onClick={onContinue}
+            onClick={() => {
+              if (!paymentMethod) {
+                setPaymentError(true);
+                document
+                  .getElementById("mode-de-reglement")
+                  ?.scrollIntoView({ behavior: "smooth", block: "center" });
+                return;
+              }
+              onContinue();
+            }}
           >
             {busy ? <Loader2 className="size-4 animate-spin" /> : null}
             Continuer
