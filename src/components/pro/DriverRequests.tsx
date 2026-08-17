@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Calendar, MapPin, Navigation, ShieldCheck, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { paymentMethodLabel } from "@/lib/payment-methods";
 import { useAuth } from "@/lib/auth";
 import { EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -71,6 +72,7 @@ type Req = {
   scheduled_at: string;
   created_at: string;
   passengers: number;
+  payment_method: string | null;
   luggage: number;
   round_trip: boolean;
   trip_type: string | null;
@@ -173,6 +175,7 @@ export function DriverRequests() {
       scheduled_at: r.proposed_time ?? r.scheduled_at,
       price: r.proposed_price,
       passengers: r.passengers,
+      payment_method: r.payment_method ?? null,
       status: "confirmed",
     });
     if (error) {
@@ -247,6 +250,7 @@ export function DriverRequests() {
               {estimate ? <span>{estimate}</span> : null}
               <span>
                 {r.passengers} pass. · {r.luggage} bag.
+                {r.payment_method ? ` · Règlement : ${paymentMethodLabel(r.payment_method)}` : ""}
                 {r.round_trip ? " · A/R" : ""}
               </span>
               {r.trip_type ? <span>{r.trip_type}</span> : null}
