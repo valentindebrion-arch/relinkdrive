@@ -101,11 +101,11 @@ const DOCS: Record<string, Doc> = {
   },
   mentions: {
     title: "Mentions légales",
-    description: "Éditeur, hébergement et contact de la plateforme Relink.",
+    description: "Éditeur, hébergement et contact de l'éditeur du logiciel Relink.",
     sections: [
       {
         heading: "Éditeur",
-        body: ["Relink — plateforme en cours de constitution. Contact : contact@relink.app"],
+        body: ["Relink — logiciel de gestion pour chauffeurs indépendants, structure en cours de constitution. Contact : contact@relink.app"],
       },
       {
         heading: "Hébergement",
