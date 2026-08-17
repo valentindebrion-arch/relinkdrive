@@ -1186,6 +1186,7 @@ export type Database = {
           admin_cancellation_comment: string | null
           amount_ht: number | null
           amount_ttc: number | null
+          cabin_luggage: number
           cancellation_reason: string | null
           cancelled_at: string | null
           cancelled_by: string | null
@@ -1196,12 +1197,17 @@ export type Database = {
           driver_id: string
           driver_message: string | null
           dropoff_address: string
+          equipment_needs: string[]
           expired_at: string | null
           id: string
           idempotency_key: string | null
           is_immediate: boolean
+          large_luggage: number
           luggage: number
           passengers: number
+          pet_carrier: boolean
+          pet_type: string | null
+          pets_count: number
           pickup_address: string
           preferred_contact: string | null
           previous_status: string | null
@@ -1228,6 +1234,7 @@ export type Database = {
           admin_cancellation_comment?: string | null
           amount_ht?: number | null
           amount_ttc?: number | null
+          cabin_luggage?: number
           cancellation_reason?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
@@ -1238,12 +1245,17 @@ export type Database = {
           driver_id: string
           driver_message?: string | null
           dropoff_address: string
+          equipment_needs?: string[]
           expired_at?: string | null
           id?: string
           idempotency_key?: string | null
           is_immediate?: boolean
+          large_luggage?: number
           luggage?: number
           passengers?: number
+          pet_carrier?: boolean
+          pet_type?: string | null
+          pets_count?: number
           pickup_address: string
           preferred_contact?: string | null
           previous_status?: string | null
@@ -1270,6 +1282,7 @@ export type Database = {
           admin_cancellation_comment?: string | null
           amount_ht?: number | null
           amount_ttc?: number | null
+          cabin_luggage?: number
           cancellation_reason?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
@@ -1280,12 +1293,17 @@ export type Database = {
           driver_id?: string
           driver_message?: string | null
           dropoff_address?: string
+          equipment_needs?: string[]
           expired_at?: string | null
           id?: string
           idempotency_key?: string | null
           is_immediate?: boolean
+          large_luggage?: number
           luggage?: number
           passengers?: number
+          pet_carrier?: boolean
+          pet_type?: string | null
+          pets_count?: number
           pickup_address?: string
           preferred_contact?: string | null
           previous_status?: string | null
@@ -1579,7 +1597,9 @@ export type Database = {
         Row: {
           accessible: boolean
           air_conditioning: boolean
+          booster_seat: boolean
           brand: string | null
+          cabin_luggage_capacity: number | null
           card_payment: boolean
           category: string | null
           chargers: boolean
@@ -1593,6 +1613,8 @@ export type Database = {
           insurance_expires_at: string | null
           insurance_provider: string | null
           is_primary: boolean
+          large_luggage_capacity: number | null
+          large_trunk: boolean
           luggage_capacity: number
           luggage_help: boolean
           max_passengers: number
@@ -1600,10 +1622,15 @@ export type Database = {
           model: string | null
           next_service_date: string | null
           pets_allowed: boolean
+          pets_carrier_required: boolean
+          pets_conditions: string | null
+          pets_max: number | null
+          pets_policy: string
           photo_interior_url: string | null
           photo_url: string | null
           plate: string | null
           quiet_ride: boolean
+          stroller_space: boolean
           updated_at: string
           water: boolean
           year: number | null
@@ -1611,7 +1638,9 @@ export type Database = {
         Insert: {
           accessible?: boolean
           air_conditioning?: boolean
+          booster_seat?: boolean
           brand?: string | null
+          cabin_luggage_capacity?: number | null
           card_payment?: boolean
           category?: string | null
           chargers?: boolean
@@ -1625,6 +1654,8 @@ export type Database = {
           insurance_expires_at?: string | null
           insurance_provider?: string | null
           is_primary?: boolean
+          large_luggage_capacity?: number | null
+          large_trunk?: boolean
           luggage_capacity?: number
           luggage_help?: boolean
           max_passengers?: number
@@ -1632,10 +1663,15 @@ export type Database = {
           model?: string | null
           next_service_date?: string | null
           pets_allowed?: boolean
+          pets_carrier_required?: boolean
+          pets_conditions?: string | null
+          pets_max?: number | null
+          pets_policy?: string
           photo_interior_url?: string | null
           photo_url?: string | null
           plate?: string | null
           quiet_ride?: boolean
+          stroller_space?: boolean
           updated_at?: string
           water?: boolean
           year?: number | null
@@ -1643,7 +1679,9 @@ export type Database = {
         Update: {
           accessible?: boolean
           air_conditioning?: boolean
+          booster_seat?: boolean
           brand?: string | null
+          cabin_luggage_capacity?: number | null
           card_payment?: boolean
           category?: string | null
           chargers?: boolean
@@ -1657,6 +1695,8 @@ export type Database = {
           insurance_expires_at?: string | null
           insurance_provider?: string | null
           is_primary?: boolean
+          large_luggage_capacity?: number | null
+          large_trunk?: boolean
           luggage_capacity?: number
           luggage_help?: boolean
           max_passengers?: number
@@ -1664,10 +1704,15 @@ export type Database = {
           model?: string | null
           next_service_date?: string | null
           pets_allowed?: boolean
+          pets_carrier_required?: boolean
+          pets_conditions?: string | null
+          pets_max?: number | null
+          pets_policy?: string
           photo_interior_url?: string | null
           photo_url?: string | null
           plate?: string | null
           quiet_ride?: boolean
+          stroller_space?: boolean
           updated_at?: string
           water?: boolean
           year?: number | null
@@ -1754,6 +1799,10 @@ export type Database = {
         Args: { _request: string }
         Returns: Database["public"]["Enums"]["ride_status"]
       }
+      check_ride_compatibility: {
+        Args: { _driver: string; _req: Json }
+        Returns: Json
+      }
       compute_ride_quote: {
         Args: {
           _at?: string
@@ -1821,6 +1870,34 @@ export type Database = {
               _passengers: number
               _pickup: string
               _proposed_price: number
+              _round_trip: boolean
+              _scheduled_at: string
+              _special_needs: string
+              _trip_type: string
+            }
+            Returns: {
+              blocked: boolean
+              blocking_request_id: string
+              request_id: string
+              reused: boolean
+            }[]
+          }
+        | {
+            Args: {
+              _cancellation_version: string
+              _cgu_version: string
+              _cgv_version: string
+              _comment: string
+              _distance_km: number
+              _driver: string
+              _dropoff: string
+              _idempotency_key: string
+              _immediate: boolean
+              _luggage: number
+              _passengers: number
+              _pickup: string
+              _proposed_price: number
+              _requirements: Json
               _round_trip: boolean
               _scheduled_at: string
               _special_needs: string
@@ -1917,6 +1994,27 @@ export type Database = {
           brand_welcome_message: string
           slug: string
           user_id: string
+        }[]
+      }
+      get_driver_vehicle_capacity: {
+        Args: { _driver: string }
+        Returns: {
+          accessible: boolean
+          booster_seat: boolean
+          brand: string
+          cabin_luggage_capacity: number
+          child_seat: boolean
+          large_luggage_capacity: number
+          large_trunk: boolean
+          luggage_capacity: number
+          max_passengers: number
+          model: string
+          pets_carrier_required: boolean
+          pets_conditions: string
+          pets_max: number
+          pets_policy: string
+          stroller_space: boolean
+          vehicle_id: string
         }[]
       }
       get_invoice_issuer: {
