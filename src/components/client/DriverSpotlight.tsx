@@ -142,9 +142,11 @@ export function DriverSpotlight({
             </>
           ) : driver ? (
             <>
-              <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-primary/10 text-[16px] font-extrabold text-primary">
-                {initials(driver.name)}
-              </span>
+              <VehicleThumb
+                url={driver.vehiclePhotoUrl}
+                alt={`Véhicule déclaré par ${driver.name}`}
+              />
+              <span className="sr-only">{initials(driver.name)}</span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[15px] font-extrabold">{driver.name}</p>
                 <p className="mt-0.5 flex items-center gap-1.5 text-[12px] font-semibold">
