@@ -162,15 +162,7 @@ function ClientHome() {
         new Date(r.scheduled_at) >= new Date() && !["cancelled", "completed"].includes(r.status),
     )
     .sort((a, b) => +new Date(a.scheduled_at) - +new Date(b.scheduled_at))[0];
-  const pendingRequest =
-    blocking ??
-    (requests.find(
-      (r) =>
-        ["new", "reviewing", "proposal_sent", "awaiting_client"].includes(r.status) &&
-        !rides.some((ride) => ride.request_id === r.id),
-    )
-      ? null
-      : null);
+  
   const pendingLocal = requests.find(
     (r) =>
       ["new", "reviewing", "proposal_sent", "awaiting_client"].includes(r.status) &&
