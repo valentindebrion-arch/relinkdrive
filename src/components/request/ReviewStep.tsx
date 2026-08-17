@@ -326,9 +326,10 @@ export function ReviewStep(props: ReviewStepProps) {
             <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
             <p className="text-[13px] leading-snug text-muted-foreground">
               {driver
-                ? `En envoyant votre demande, celle-ci sera transmise à ${driver.name}. Elle restera en attente jusqu'à son acceptation.`
-                : "En envoyant votre demande, elle sera proposée aux chauffeurs de votre carnet. Elle restera en attente jusqu'à l'acceptation d'un chauffeur."}
+                ? `En envoyant votre demande, celle-ci est transmise à ${driver.name}, qui l'accepte ou la refuse lui-même. Le tarif et la prestation relèvent de votre chauffeur ; Relink transmet la demande.`
+                : "En envoyant votre demande, celle-ci est transmise au chauffeur choisi, qui l'accepte ou la refuse lui-même. Le tarif et la prestation relèvent de votre chauffeur ; Relink transmet la demande."}
             </p>
+
           </div>
 
           {/* Acceptation CGU / CGV */}
