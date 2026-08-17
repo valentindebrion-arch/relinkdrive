@@ -708,7 +708,7 @@ function EventPanel({ event, onClose }: { event: DayEvent; onClose: () => void }
       <SheetContent side="right" className="w-full space-y-4 sm:max-w-md">
         <SheetHeader>
           <SheetTitle className="text-base">
-            {minutesToTime(event.startMin)} · {event.clientLabel ?? "Client"}
+            {minutesToTime(event.startMin)} · {event.clientLabel ?? "Client non renseigné"}
           </SheetTitle>
         </SheetHeader>
         <div className="space-y-2 text-sm">
