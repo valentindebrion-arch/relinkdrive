@@ -19,7 +19,6 @@ const OPTIONS = [
   ["card_payment", "Paiement par carte"],
   ["quiet_ride", "Trajet silencieux sur demande"],
   ["luggage_help", "Aide aux bagages"],
-  ["pets_allowed", "Animaux acceptés"],
   ["child_seat", "Siège enfant disponible"],
   ["booster_seat", "Rehausseur disponible"],
   ["stroller_space", "Espace pour poussette"],
@@ -251,7 +250,6 @@ export function VehiclePage() {
       pets_policy: form.pets_policy,
       pets_max: petsMax,
       pets_conditions: form.pets_conditions.trim() || null,
-      pets_allowed: form.pets_policy !== "refused",
       mileage: form.mileage ? Number(form.mileage) : null,
       insurance_provider: form.insurance_provider || null,
       insurance_expires_at: form.insurance_expires_at || null,
@@ -259,6 +257,7 @@ export function VehiclePage() {
       next_service_date: form.next_service_date || null,
       category: form.category || null,
       ...flags,
+      pets_allowed: form.pets_policy !== "refused",
     };
     const { error } = vehicle.data
       ? await supabase.from("vehicles").update(payload).eq("id", vehicle.data.id)
