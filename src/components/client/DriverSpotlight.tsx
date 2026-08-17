@@ -180,10 +180,10 @@ export function DriverSpotlight({
             Votre chauffeur sélectionné
           </p>
 
-          <div className="flex h-[5.5rem] items-center gap-3 rounded-2xl border border-border/70 bg-card px-3 shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]">
+          <div className="flex min-h-[var(--home-driver-h)] items-center gap-2.5 rounded-2xl border border-border/70 bg-card px-3 py-2 shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)] sm:gap-3">
             {loading ? (
               <>
-                <span className="size-12 shrink-0 animate-pulse rounded-full bg-muted" />
+                <span className="size-[var(--home-avatar)] shrink-0 animate-pulse rounded-full bg-muted" />
                 <div className="min-w-0 flex-1 space-y-2">
                   <span className="block h-3.5 w-1/2 animate-pulse rounded bg-muted" />
                   <span className="block h-3 w-2/3 animate-pulse rounded bg-muted" />
