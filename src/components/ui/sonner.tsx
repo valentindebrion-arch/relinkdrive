@@ -26,7 +26,6 @@ const Toaster = ({ ...props }: ToasterProps) => {
       // Sous la safe area, avec une marge latérale : jamais de débordement.
       offset={{ top: "calc(env(safe-area-inset-top) + 12px)", left: "12px", right: "12px" }}
       mobileOffset={{ top: "calc(env(safe-area-inset-top) + 12px)", left: "12px", right: "12px" }}
-      style={{ zIndex: "var(--z-notification, 9999)" as unknown as number }}
       toastOptions={{
         classNames: {
           toast:

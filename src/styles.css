@@ -626,3 +626,16 @@
     overflow-y: auto;
   }
 }
+
+/* Calque global de notifications : toujours au premier plan, jamais rogné. */
+[data-sonner-toaster] {
+  z-index: var(--z-notification) !important;
+  max-width: 100vw;
+}
+
+[data-sonner-toast] {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  pointer-events: auto;
+}
