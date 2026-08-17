@@ -24,23 +24,31 @@ export function NotificationBell({ className }: { className?: string }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const seen = useRef<Set<string>>(new Set());
   const primed = useRef(false);
+  const bellRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  useEffect(() => setMounted(true), []);
 
   const q = useQuery({
     queryKey: ["notifications", user?.id],
     enabled: !!user?.id,
     refetchInterval: 30000,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("notifications")
         .select("*")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false })
         .limit(20);
+      if (error) throw error;
       return (data ?? []) as Notif[];
     },
   });
+
 
   const items = q.data ?? [];
   const unread = items.filter((n) => !n.read_at).length;
