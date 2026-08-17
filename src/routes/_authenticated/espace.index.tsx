@@ -5,13 +5,11 @@ import {
   ArrowRight,
   CalendarClock,
   CalendarDays,
-  ChevronLeft,
   ChevronRight,
   Car,
   PhoneCall,
-
   Loader2,
-  QrCode,
+  UserPlus,
   Users,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,51 +20,26 @@ import { RIDE_STATUS_LABELS, formatDateTime } from "@/lib/labels";
 import { useBlockingImmediate } from "@/lib/immediate-request";
 import { useCountdown } from "@/components/ExpiryCountdown";
 import { saveRequestDraft } from "@/lib/request-draft";
+import { ConnectionDecor } from "@/components/client/ConnectionDecor";
+import { DriverSpotlight, type SpotlightDriver } from "@/components/client/DriverSpotlight";
 
 export const Route = createFileRoute("/_authenticated/espace/")({
   component: ClientHome,
 });
 
-type HomeDriver = {
-  id: string;
-  name: string;
-  available: boolean;
-  vehicle: string | null;
-  zone: string | null;
-  slug: string | null;
-  favorite: boolean;
-};
+type HomeDriver = SpotlightDriver & { zone: string | null };
 
-function initials(name: string) {
-  return (
-    name
-      .split(" ")
-      .map((w) => w[0])
-      .filter(Boolean)
-      .slice(0, 2)
-      .join("")
-      .toUpperCase() || "?"
-  );
+/** Léger retour haptique, facultatif et jamais nécessaire à la compréhension. */
+function haptic() {
+  if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+    try {
+      navigator.vibrate(8);
+    } catch {
+      /* non supporté */
+    }
+  }
 }
 
-/** Lignes de connexion décoratives derrière le chauffeur (non cliquables). */
-function ConnectDecor() {
-  return (
-    <svg
-      aria-hidden
-      viewBox="0 0 240 240"
-      className="pointer-events-none absolute inset-0 h-full w-full text-primary/25"
-    >
-      <circle cx="120" cy="120" r="112" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="4 8" />
-      <path d="M8 120 H48" stroke="currentColor" strokeWidth="1" />
-      <path d="M192 120 H232" stroke="currentColor" strokeWidth="1" />
-      <path d="M120 8 V44" stroke="currentColor" strokeWidth="1" />
-      <circle cx="18" cy="120" r="3" fill="currentColor" />
-      <circle cx="222" cy="120" r="3" fill="currentColor" />
-      <circle cx="120" cy="14" r="3" fill="currentColor" />
-    </svg>
-  );
-}
 
 function ClientHome() {
   const { user } = useAuth();
