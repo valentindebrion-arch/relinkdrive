@@ -230,12 +230,14 @@ export function DriverSpotlight({
               </>
             ) : (
               <>
-                <span className="grid size-12 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+                <span className="grid size-[var(--home-avatar)] shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
                   <QrCode className="size-5" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[15px] font-extrabold">Aucun chauffeur</p>
-                  <p className="text-[12px] text-muted-foreground">
+                  <p className="text-[14px] leading-tight font-extrabold sm:text-[15px]">
+                    Aucun chauffeur
+                  </p>
+                  <p className="text-[12px] leading-tight text-muted-foreground">
                     Scannez le QR code de votre chauffeur pour l'ajouter.
                   </p>
                 </div>
@@ -251,7 +253,7 @@ export function DriverSpotlight({
             type="button"
             aria-label="Chauffeur précédent"
             onClick={() => go(-1)}
-            className="absolute bottom-[3.75rem] -left-1 grid size-8 place-items-center rounded-full border border-primary/25 bg-card text-primary shadow-sm transition-transform active:scale-95"
+            className="absolute bottom-[calc(var(--home-driver-h)/2-1rem)] left-0 grid size-8 place-items-center rounded-full border border-primary/25 bg-card text-primary shadow-sm transition-transform active:scale-95"
           >
             <ChevronLeft className="size-4" />
           </button>
@@ -259,11 +261,11 @@ export function DriverSpotlight({
             type="button"
             aria-label="Chauffeur suivant"
             onClick={() => go(1)}
-            className="absolute -right-1 bottom-[3.75rem] grid size-8 place-items-center rounded-full border border-primary/25 bg-card text-primary shadow-sm transition-transform active:scale-95"
+            className="absolute right-0 bottom-[calc(var(--home-driver-h)/2-1rem)] grid size-8 place-items-center rounded-full border border-primary/25 bg-card text-primary shadow-sm transition-transform active:scale-95"
           >
             <ChevronRight className="size-4" />
           </button>
-          <div className="mt-1.5 flex items-center justify-center gap-2">
+          <div className="mt-1 flex items-center justify-center gap-2">
             <span className="flex items-center gap-1">
               {drivers.map((d, i) => (
                 <span
@@ -274,8 +276,10 @@ export function DriverSpotlight({
                 />
               ))}
             </span>
-            <span className="text-[11px] text-muted-foreground">
-              {index + 1} sur {drivers.length} · Balayez pour changer de chauffeur
+            <span className="truncate text-[11px] text-muted-foreground">
+              {index + 1} sur {drivers.length} ·{" "}
+              <span className="home-carousel-long">Balayez pour changer de chauffeur</span>
+              <span className="home-carousel-short">Balayez</span>
             </span>
           </div>
         </>
