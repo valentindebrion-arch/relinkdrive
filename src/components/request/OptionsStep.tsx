@@ -214,7 +214,8 @@ export function OptionsStep({
     const item = SPECIAL_NEEDS.find((n) => n.key === k);
     return item?.key === "autre" && !needs.details[k]?.trim();
   });
-  const blocked = returnInvalid || returnIncomplete || needsDetailMissing;
+  const incompatible = !!compatibility && !compatibility.compatible;
+  const blocked = returnInvalid || returnIncomplete || needsDetailMissing || incompatible;
 
   const toggleNeed = (key: string) => {
     const on = needs.keys.includes(key);
@@ -616,6 +617,17 @@ export function OptionsStep({
             ) : null}
           </section>
 
+          {/* Compatibilité avec le véhicule du chauffeur */}
+          <section aria-live="polite">
+            <CompatibilityNotice
+              result={compatibility}
+              loading={compatibilityLoading}
+              driverName={driverName ?? null}
+              onChangeDriver={onChangeDriver}
+              compact
+            />
+          </section>
+
           {/* Informations pour le chauffeur */}
           <section aria-labelledby="ic">
             <div className="mb-3 flex items-baseline gap-2">
@@ -654,6 +666,11 @@ export function OptionsStep({
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}
       >
         <div className="mx-auto w-full max-w-lg">
+          {incompatible ? (
+            <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
+              Ajustez votre demande ou choisissez un autre de vos chauffeurs pour continuer.
+            </p>
+          ) : null}
           <Button
             size="lg"
             className="h-13 w-full rounded-2xl text-[15px] font-bold transition-transform active:scale-[0.99]"
