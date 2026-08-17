@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { createPortal } from "react-dom";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bell } from "lucide-react";
+import { Bell, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
+
 
 type Notif = {
   id: string;
@@ -22,23 +24,31 @@ export function NotificationBell({ className }: { className?: string }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const seen = useRef<Set<string>>(new Set());
   const primed = useRef(false);
+  const bellRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  useEffect(() => setMounted(true), []);
 
   const q = useQuery({
     queryKey: ["notifications", user?.id],
     enabled: !!user?.id,
     refetchInterval: 30000,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("notifications")
         .select("*")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false })
         .limit(20);
+      if (error) throw error;
       return (data ?? []) as Notif[];
     },
   });
+
 
   const items = q.data ?? [];
   const unread = items.filter((n) => !n.read_at).length;
@@ -89,13 +99,116 @@ export function NotificationBell({ className }: { className?: string }) {
     void qc.invalidateQueries({ queryKey: ["notifications", user.id] });
   }
 
+  // Fermeture : Escape, changement de route ; verrouillage du défilement de fond
+  // et restauration du focus sur la cloche.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    const body = document.body;
+    const previous = body.style.overflow;
+    body.style.overflow = "hidden";
+    panelRef.current?.focus();
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      body.style.overflow = previous;
+      bellRef.current?.focus();
+    };
+  }, [open]);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
   if (!user) return null;
+
+  const panel = (
+    <>
+      <div
+        className="notif-overlay"
+        onClick={() => setOpen(false)}
+        aria-hidden="true"
+      />
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Notifications"
+        tabIndex={-1}
+        className="notif-panel right-0 bottom-0 left-0 flex max-h-[85dvh] flex-col overflow-hidden rounded-t-3xl border border-border bg-card shadow-2xl outline-none sm:top-[max(1rem,env(safe-area-inset-top))] sm:bottom-auto sm:left-auto sm:m-4 sm:max-h-[min(32rem,85dvh)] sm:w-80 sm:rounded-2xl"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
+          <p className="text-sm font-semibold">Notifications</p>
+          <button
+            type="button"
+            aria-label="Fermer les notifications"
+            onClick={() => setOpen(false)}
+            className="grid size-8 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          {q.isPending ? (
+            <div className="space-y-2 px-4 py-4">
+              {[0, 1, 2].map((i) => (
+                <span key={i} className="block h-10 animate-pulse rounded-lg bg-muted" />
+              ))}
+            </div>
+          ) : q.isError ? (
+            <div className="px-4 py-6 text-sm text-muted-foreground">
+              <p>Impossible de récupérer vos notifications.</p>
+              <button
+                type="button"
+                onClick={() => void q.refetch()}
+                className="mt-2 text-sm font-bold text-primary"
+              >
+                Réessayer
+              </button>
+            </div>
+          ) : items.length === 0 ? (
+            <p className="px-4 py-6 text-sm text-muted-foreground">
+              Vous n'avez aucune notification pour le moment.
+            </p>
+          ) : (
+            items.map((n) => (
+              <button
+                key={n.id}
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  if (n.link) navigate({ to: n.link });
+                }}
+                className="block w-full border-b border-border/60 px-4 py-3 text-left last:border-0 hover:bg-muted"
+              >
+                <p className="truncate text-sm font-medium">{n.title}</p>
+                {n.body ? (
+                  <p className="mt-0.5 line-clamp-2 text-xs break-words text-muted-foreground">
+                    {n.body}
+                  </p>
+                ) : null}
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  {new Date(n.created_at).toLocaleString("fr-FR")}
+                </p>
+              </button>
+            ))
+          )}
+        </div>
+      </div>
+    </>
+  );
 
   return (
     <div className={cn("relative", className)}>
       <button
+        ref={bellRef}
         type="button"
         aria-label="Notifications"
+        aria-haspopup="dialog"
+        aria-expanded={open}
         onClick={() => {
           setOpen((v) => !v);
           if (!open) void markAllRead();
@@ -110,39 +223,8 @@ export function NotificationBell({ className }: { className?: string }) {
         ) : null}
       </button>
 
-      {open ? (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="fixed inset-x-3 top-16 z-50 mx-auto w-auto max-w-sm overflow-hidden rounded-2xl border border-border bg-card shadow-lg sm:absolute sm:inset-x-auto sm:top-full sm:right-0 sm:mt-2 sm:w-80 sm:max-w-[calc(100vw-1.5rem)]">
-            <p className="border-b border-border px-4 py-3 text-sm font-semibold">Notifications</p>
-            <div className="max-h-[60vh] overflow-y-auto overscroll-contain sm:max-h-96">
-              {items.length === 0 ? (
-                <p className="px-4 py-6 text-sm text-muted-foreground">Aucune notification pour le moment.</p>
-              ) : (
-                items.map((n) => (
-                  <button
-                    key={n.id}
-                    type="button"
-                    onClick={() => {
-                      setOpen(false);
-                      if (n.link) navigate({ to: n.link });
-                    }}
-                    className="block w-full border-b border-border/60 px-4 py-3 text-left last:border-0 hover:bg-muted"
-                  >
-                    <p className="truncate text-sm font-medium">{n.title}</p>
-                    {n.body ? (
-                      <p className="mt-0.5 line-clamp-2 text-xs break-words text-muted-foreground">{n.body}</p>
-                    ) : null}
-                    <p className="mt-1 text-[11px] text-muted-foreground">
-                      {new Date(n.created_at).toLocaleString("fr-FR")}
-                    </p>
-                  </button>
-                ))
-              )}
-            </div>
-          </div>
-        </>
-      ) : null}
+      {open && mounted ? createPortal(panel, document.body) : null}
     </div>
+
   );
 }
