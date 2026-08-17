@@ -1,14 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import {
   ArrowLeft,
+  BadgeCheck,
+  Car,
   Check,
+  CheckCircle2,
   ChevronRight,
+  CircleSlash,
   Clock,
   Euro,
+  Hourglass,
   Loader2,
   MapPin,
+  Phone,
+  Send,
   Star as StarIcon,
   Users,
   X,
@@ -22,7 +30,6 @@ import {
   useDriverBranding,
 } from "@/components/BookingThemeScope";
 import { EmptyState } from "@/components/Ui";
-import { StatusBadge } from "@/components/StatusBadge";
 import { InvoiceDownloadCard } from "@/components/InvoiceDownloadCard";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,6 +47,23 @@ import { PAYMENT_METHODS, RIDE_STATUS_LABELS, formatDateTime, formatEuro } from 
 import { saveRequestDraft } from "@/lib/request-draft";
 import { BLOCKING_QUERY_KEY } from "@/lib/immediate-request";
 import { ExpiryRing, useCountdown, useExpiryEffect } from "@/components/ExpiryCountdown";
+import { getRideDriverPhone } from "@/lib/ride-cancel.functions";
+import { useSignedUrl } from "@/lib/storage";
+import {
+  CANCELLABLE_STATUSES,
+  TRACKING_STEPS,
+  trackingPresentation,
+  trackingStepIndex,
+  type TrackingStepKey,
+  type TrackingTone,
+} from "@/lib/tracking-status";
+import { TrackingDecor } from "@/components/tracking/TrackingDecor";
+import { StatusHeroCard } from "@/components/tracking/StatusHeroCard";
+import { TrackingProgress } from "@/components/tracking/TrackingProgress";
+import { TrackingRouteCard } from "@/components/tracking/TrackingRouteCard";
+import { TrackingDriverCard } from "@/components/tracking/TrackingDriverCard";
+import { TrackingInfoCard } from "@/components/tracking/TrackingInfoCard";
+import { TrackingPriceCard } from "@/components/tracking/TrackingPriceCard";
 
 export const Route = createFileRoute("/_authenticated/espace/suivi/$id")({
   head: () => ({
@@ -62,56 +86,20 @@ export const Route = createFileRoute("/_authenticated/espace/suivi/$id")({
   component: TrackingPage,
 });
 
-const STEPS: { key: string; title: string; hint: string; match: string[] }[] = [
-  {
-    key: "requested",
-    title: "Demande envoyée",
-    hint: "Votre demande a bien été transmise au chauffeur.",
-    match: ["new"],
-  },
-  {
-    key: "waiting",
-    title: "En attente de la réponse",
-    hint: "Le chauffeur consulte votre demande.",
-    match: ["reviewing", "proposal_sent", "awaiting_client"],
-  },
-  {
-    key: "accepted",
-    title: "Demande acceptée",
-    hint: "Votre course est confirmée.",
-    match: ["confirmed"],
-  },
-  {
-    key: "enroute",
-    title: "Chauffeur en route",
-    hint: "Le chauffeur se dirige vers le point de départ.",
-    match: ["driver_enroute"],
-  },
-  {
-    key: "arrived",
-    title: "Chauffeur arrivé",
-    hint: "Le chauffeur vous attend au point de rendez-vous.",
-    match: ["driver_arrived"],
-  },
-  {
-    key: "onboard",
-    title: "Course en cours",
-    hint: "Vous êtes à bord, bonne route.",
-    match: ["client_onboard", "in_progress"],
-  },
-  {
-    key: "done",
-    title: "Course terminée",
-    hint: "Trajet terminé.",
-    match: ["completed"],
-  },
-];
+// Les étapes et libellés sont centralisés dans src/lib/tracking-status.ts.
+const STEPS = TRACKING_STEPS;
+const CANCELLABLE = CANCELLABLE_STATUSES;
+const stepIndex = trackingStepIndex;
 
-const CANCELLABLE = ["new", "reviewing", "proposal_sent", "awaiting_client"];
-
-function stepIndex(status: string) {
-  return STEPS.findIndex((s) => s.match.includes(status));
-}
+const HERO_ICONS: Record<TrackingStepKey, typeof Send> = {
+  requested: Send,
+  waiting: Hourglass,
+  accepted: BadgeCheck,
+  enroute: Car,
+  arrived: MapPin,
+  onboard: Car,
+  done: CheckCircle2,
+};
 
 function firstName(full?: string | null) {
   const n = (full ?? "").trim().split(" ")[0];
@@ -189,6 +177,7 @@ function TrackingPageInner() {
           { data: review },
           { data: invoice },
           { data: request },
+          { data: history },
         ] = await Promise.all([
           supabase
             .from("profiles")
@@ -197,7 +186,7 @@ function TrackingPageInner() {
             .maybeSingle(),
           supabase
             .from("vehicles")
-            .select("brand, model")
+            .select("brand, model, photo_url")
             .eq("driver_id", ride.driver_id)
             .order("is_primary", { ascending: false })
             .limit(1)
@@ -207,8 +196,22 @@ function TrackingPageInner() {
           ride.request_id
             ? supabase.from("ride_requests").select("*").eq("id", ride.request_id).maybeSingle()
             : Promise.resolve({ data: null }),
+          supabase
+            .from("ride_status_history")
+            .select("status, created_at")
+            .eq("ride_id", ride.id)
+            .order("created_at", { ascending: true }),
         ]);
-        return { kind: "ride" as const, ride, request, driver, vehicle, review, invoice };
+        return {
+          kind: "ride" as const,
+          ride,
+          request,
+          driver,
+          vehicle,
+          review,
+          invoice,
+          history: history ?? [],
+        };
       }
 
       const { data: request } = await supabase
@@ -227,7 +230,7 @@ function TrackingPageInner() {
           .maybeSingle(),
         supabase
           .from("vehicles")
-          .select("brand, model")
+          .select("brand, model, photo_url")
           .eq("driver_id", request.driver_id)
           .order("is_primary", { ascending: false })
           .limit(1)
@@ -242,6 +245,7 @@ function TrackingPageInner() {
         vehicle,
         review: null,
         invoice: null,
+        history: [] as { status: string; created_at: string }[],
       };
     },
   });
@@ -314,6 +318,26 @@ function TrackingPageInner() {
     },
   });
 
+  // Contact direct : le numéro n'est révélé qu'une fois la course acceptée,
+  // et uniquement par le serveur (jamais lu côté client depuis la table).
+  const activeRide = q.data?.ride ?? null;
+  const phoneEligible =
+    !!activeRide &&
+    ["confirmed", "driver_enroute", "driver_arrived", "client_onboard", "in_progress"].includes(
+      activeRide.status,
+    );
+  const fetchPhone = useServerFn(getRideDriverPhone);
+  const phoneQuery = useQuery({
+    queryKey: ["tracking-driver-phone", activeRide?.id],
+    enabled: phoneEligible,
+    staleTime: 5 * 60_000,
+    queryFn: () => fetchPhone({ data: { rideId: activeRide!.id } }),
+  });
+  const vehiclePhoto = useSignedUrl(
+    "vehicles",
+    (q.data?.vehicle as { photo_url?: string | null } | null | undefined)?.photo_url ?? null,
+  );
+
   if (q.isLoading) return <TrackingSkeleton />;
 
   if (!q.data) {
@@ -329,6 +353,7 @@ function TrackingPageInner() {
   }
 
   const { ride, request, driver, vehicle, review, invoice } = q.data;
+  const history = q.data.history ?? [];
   const status = ride?.status ?? request?.status ?? "new";
   const pickup = ride?.pickup_address ?? request!.pickup_address;
   const dropoff = ride?.dropoff_address ?? request!.dropoff_address;
@@ -359,6 +384,33 @@ function TrackingPageInner() {
   const driverFirst = firstName(driver?.full_name);
   const vehicleLabel = vehicle ? [vehicle.brand, vehicle.model].filter(Boolean).join(" ") : null;
   const immediate = (request as { is_immediate?: boolean } | null)?.is_immediate ?? false;
+
+  // Horodatage réel des étapes, issu de l'historique serveur (jamais estimé).
+  const stepTimes: Partial<Record<TrackingStepKey, string | null>> = {};
+  if (request?.created_at) stepTimes.requested = request.created_at;
+  for (const entry of history) {
+    const step = STEPS.find((s) => s.match.includes(entry.status));
+    if (step && !stepTimes[step.key]) stepTimes[step.key] = entry.created_at;
+  }
+  if (ride?.started_at && !stepTimes.onboard) stepTimes.onboard = ride.started_at;
+  if (ride?.completed_at && !stepTimes.done) stepTimes.done = ride.completed_at;
+
+  const presentation = trackingPresentation(status, {
+    driverName: driverFirst,
+    cancelledByDriver: !!ride && ride.cancelled_by_role === "driver",
+  });
+  const heroTone: TrackingTone = presentation.tone;
+  const HeroIcon =
+    presentation.index >= 0 ? HERO_ICONS[STEPS[presentation.index]!.key] : CircleSlash;
+  const updatedAt = ride?.updated_at ?? request?.updated_at ?? null;
+  const updatedLabel = updatedAt
+    ? new Date(updatedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+    : null;
+  const paymentMethodLabel =
+    (ride?.payment_method ?? request?.payment_method)
+      ? (PAYMENT_METHODS[(ride?.payment_method ?? request?.payment_method) as string] ??
+        "Autre moyen")
+      : null;
 
   async function cancelRequest() {
     if (!request) return;
@@ -704,379 +756,181 @@ function TrackingPageInner() {
   }
 
   return (
-    <div className="pb-10">
+    <div className="relative w-full max-w-full overflow-x-hidden pb-10">
+      <TrackingDecor />
       <Header />
 
-      {/* En-tête */}
-      <section className="animate-fade-in rounded-3xl border border-border bg-card p-5 shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="text-xl font-extrabold tracking-tight">
-              {refused
-                ? "Demande refusée"
-                : cancelled
-                  ? "Demande annulée"
-                  : expired
-                    ? "Demande expirée"
-                    : completed
-                      ? "Course terminée"
-                      : waiting
-                        ? "Demande envoyée"
-                        : (STEPS[current]?.title ?? RIDE_STATUS_LABELS[status] ?? status)}
-            </h1>
-            <p className="mt-1 text-sm break-words text-muted-foreground">
-              {refused
-                ? `${driverFirst} n'est pas disponible pour cette demande.`
-                : cancelled
-                  ? "Cette demande a été annulée."
-                  : expired
-                    ? `${driverFirst} n'a pas répondu dans le délai de 10 minutes.`
-                    : waiting
-                      ? `Votre demande a été transmise à ${driverFirst}.`
-                      : (STEPS[current]?.hint ?? "Statut mis à jour.")}
-            </p>
-          </div>
-          <StatusBadge status={status} labels={RIDE_STATUS_LABELS} />
-        </div>
-
-        {driver ? (
-          <div className="mt-4 flex items-center gap-3 rounded-2xl bg-muted/70 p-3">
-            <span className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-full bg-primary/10 text-sm font-bold text-primary">
-              {driver.avatar_url ? (
-                <img src={driver.avatar_url} alt={driverFirst} className="size-full object-cover" />
-              ) : (
-                initials(driver.full_name)
-              )}
-            </span>
-            <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold">{driverFirst}</span>
-              <span className="block truncate text-xs text-muted-foreground">
-                {vehicleLabel ? `Chauffeur · ${vehicleLabel}` : "Votre chauffeur"}
-              </span>
-            </span>
-          </div>
-        ) : null}
-      </section>
-
-      {/* Attente animée */}
-      {waiting ? (
-        <section className="mt-4 flex flex-col items-center gap-4 rounded-3xl border border-warning/30 bg-warning/[0.06] p-6 text-center">
-          {countdown ? (
-            <ExpiryRing msLeft={countdown.msLeft} label={countdown.label} size={104}>
-              <span className="grid size-[72px] place-items-center overflow-hidden rounded-full bg-card text-lg font-bold text-primary shadow-sm">
-                {driver?.avatar_url ? (
-                  <img
-                    src={driver.avatar_url}
-                    alt={driverFirst}
-                    className="size-full object-cover"
-                  />
-                ) : (
-                  initials(driver?.full_name)
-                )}
-              </span>
-            </ExpiryRing>
-          ) : (
-            <span className="relative grid size-24 place-items-center">
-              <span className="absolute size-24 rounded-full border-2 border-primary/30 motion-safe:animate-ping" />
-              <span className="absolute size-20 rounded-full border-2 border-primary/50 motion-safe:animate-pulse" />
-              <span className="relative grid size-16 place-items-center overflow-hidden rounded-full bg-card text-lg font-bold text-primary shadow-sm">
-                {driver?.avatar_url ? (
-                  <img
-                    src={driver.avatar_url}
-                    alt={driverFirst}
-                    className="size-full object-cover"
-                  />
-                ) : (
-                  initials(driver?.full_name)
-                )}
-              </span>
-            </span>
-          )}
-          {countdown ? (
-            <p className="-mt-2 text-xs font-semibold tabular-nums text-muted-foreground">
-              Réponse attendue sous <span className="text-foreground">{countdown.label}</span>
-            </p>
-          ) : null}
-          <div>
-            <p className="flex items-center justify-center gap-1 text-sm font-semibold">
-              En attente de la réponse du chauffeur
-              <span aria-hidden className="inline-flex gap-0.5">
-                {[0, 1, 2].map((i) => (
-                  <span
-                    key={i}
-                    className="size-1 rounded-full bg-primary motion-safe:animate-bounce"
-                    style={{ animationDelay: `${i * 150}ms` }}
-                  />
-                ))}
-              </span>
-            </p>
-            <p className="mt-1.5 text-xs text-muted-foreground">
-              Vous pouvez quitter cette page. Le statut sera actualisé automatiquement.
-            </p>
-          </div>
-        </section>
-      ) : null}
-
-      {/* Expiration après 10 minutes sans réponse */}
-      {expired ? (
-        <section className="animate-fade-in mt-4 rounded-3xl border border-destructive/25 bg-destructive/[0.05] p-5 text-center">
-          <span className="mx-auto grid size-12 place-items-center rounded-full bg-destructive/10 text-destructive">
-            <Clock className="size-5" />
-          </span>
-          <p className="mt-3 text-sm font-semibold">Demande expirée</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {driverFirst} n'a pas répondu dans les 10 minutes. Vous pouvez relancer une demande,
-            avec le même chauffeur ou un autre.
-          </p>
-          <Button
-            className="mt-4 h-11 w-full rounded-2xl font-semibold"
-            onClick={() => navigate({ to: "/espace/demandes" })}
-          >
-            Faire une nouvelle demande
-          </Button>
-          <Link
-            to="/espace/courses"
-            className="mt-2 block text-center text-sm font-medium text-muted-foreground underline underline-offset-4"
-          >
-            Retour à mes courses
-          </Link>
-        </section>
-      ) : null}
-
-      {/* Refus */}
-      {refused ? (
-        <section className="mt-4 rounded-3xl border border-destructive/25 bg-destructive/[0.05] p-5">
-          <p className="text-sm font-semibold">
-            Le chauffeur n'est pas disponible pour cette demande
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Vous pouvez choisir un autre chauffeur et envoyer une nouvelle demande.
-          </p>
-          <Button
-            className="mt-3 h-11 w-full rounded-2xl font-semibold"
-            onClick={() => navigate({ to: "/espace/demandes" })}
-          >
-            Choisir un autre chauffeur
-          </Button>
-          <Link
-            to="/espace/courses"
-            className="mt-2 block text-center text-sm font-medium text-muted-foreground underline underline-offset-4"
-          >
-            Retour à mes courses
-          </Link>
-        </section>
-      ) : null}
-
-      {/* Acceptation */}
-      {ride && !completed && !cancelled ? (
-        <section className="animate-fade-in mt-4 flex items-center gap-3 rounded-3xl border border-primary/30 bg-primary/[0.05] p-4">
-          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
-            <Check className="size-4" />
-          </span>
-          <p className="min-w-0 text-sm font-semibold">Votre chauffeur a accepté la demande</p>
-        </section>
-      ) : null}
-
-      {/* Chronologie */}
-      {!stopped ? (
-        <ol className="mt-4 rounded-3xl border border-border bg-card p-5">
-          {STEPS.map((s, i) => {
-            const done = current > i;
-            const active = current === i;
-            return (
-              <li key={s.key} className="flex gap-3">
-                <div className="flex flex-col items-center">
-                  <span
-                    className={`grid size-7 shrink-0 place-items-center rounded-full border-2 text-[11px] font-bold transition-colors ${
-                      done
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : active
-                          ? "border-primary bg-primary/10 text-primary motion-safe:animate-pulse"
-                          : "border-border text-muted-foreground"
-                    }`}
-                  >
-                    {done ? <Check className="size-4" /> : i + 1}
+      <div className="space-y-4">
+        {/* 1 — Statut : unique bloc prioritaire, jamais dupliqué ailleurs. */}
+        <StatusHeroCard
+          icon={HeroIcon}
+          tone={heroTone}
+          title={presentation.title}
+          description={presentation.description}
+          next={presentation.next}
+          updatedAt={updatedLabel}
+        >
+          {waiting ? (
+            <div className="mt-4 flex flex-col items-center gap-3 text-center">
+              {countdown ? (
+                <ExpiryRing msLeft={countdown.msLeft} label={countdown.label} size={96}>
+                  <span className="grid size-[66px] place-items-center overflow-hidden rounded-full bg-card text-lg font-bold text-primary shadow-sm">
+                    {driver?.avatar_url ? (
+                      <img src={driver.avatar_url} alt="" className="size-full object-cover" />
+                    ) : (
+                      initials(driver?.full_name)
+                    )}
                   </span>
-                  {i < STEPS.length - 1 ? (
-                    <span className={`my-1 w-px flex-1 ${done ? "bg-primary" : "bg-border"}`} />
-                  ) : null}
-                </div>
-                <div className={i === STEPS.length - 1 ? "" : "pb-5"}>
-                  <p
-                    className={`text-sm ${active ? "font-bold" : done ? "font-medium" : "text-muted-foreground"}`}
-                  >
-                    {s.title}
-                  </p>
-                  {active ? <p className="mt-0.5 text-xs text-muted-foreground">{s.hint}</p> : null}
-                </div>
-              </li>
-            );
-          })}
-        </ol>
-      ) : null}
-
-      {/* Résumé de la demande */}
-      <section className="mt-4 rounded-3xl border border-border bg-card p-5">
-        <p className="text-sm font-semibold">Votre demande</p>
-
-        <div className="mt-3 flex items-start gap-3">
-          <span className="mt-1.5 block size-3 shrink-0 rounded-full bg-primary" />
-          <p className="text-sm font-medium break-words">{pickup}</p>
-        </div>
-        <div className="my-1 ml-[6px] h-4 border-l border-dashed border-border" />
-        <div className="flex items-start gap-3">
-          <MapPin className="mt-0.5 size-4 shrink-0 text-primary" />
-          <p className="text-sm font-medium break-words">{dropoff}</p>
-        </div>
-
-        <dl className="mt-4 grid grid-cols-2 gap-y-2 border-t border-border pt-4 text-sm">
-          <dt className="flex items-center gap-2 text-muted-foreground">
-            <Clock className="size-4" /> {immediate ? "Maintenant" : "Planifiée"}
-          </dt>
-          <dd className="text-right font-medium">{formatDateTime(scheduled)}</dd>
-          <dt className="flex items-center gap-2 text-muted-foreground">
-            <Users className="size-4" /> Passagers
-          </dt>
-          <dd className="text-right font-medium">{passengers}</dd>
-          {luggage != null ? (
-            <>
-              <dt className="text-muted-foreground">Bagages</dt>
-              <dd className="text-right font-medium">{luggage}</dd>
-            </>
+                </ExpiryRing>
+              ) : (
+                <span className="relative grid size-20 place-items-center">
+                  <span className="absolute size-20 rounded-full border-2 border-primary/25 motion-safe:animate-ping" />
+                  <span className="relative grid size-14 place-items-center overflow-hidden rounded-full bg-card text-base font-bold text-primary shadow-sm">
+                    {driver?.avatar_url ? (
+                      <img src={driver.avatar_url} alt="" className="size-full object-cover" />
+                    ) : (
+                      initials(driver?.full_name)
+                    )}
+                  </span>
+                </span>
+              )}
+              {countdown ? (
+                <p className="text-xs font-semibold tabular-nums text-muted-foreground">
+                  Réponse attendue sous <span className="text-foreground">{countdown.label}</span>
+                </p>
+              ) : null}
+              <p className="text-xs text-muted-foreground">
+                Vous pouvez quitter cette page : le statut se met à jour automatiquement.
+              </p>
+            </div>
           ) : null}
-          {request ? (
-            <>
-              <dt className="text-muted-foreground">Trajet</dt>
-              <dd className="text-right font-medium">
-                {request.round_trip ? "Aller-retour" : "Aller simple"}
-              </dd>
-            </>
-          ) : null}
-          <dt className="text-muted-foreground">Chauffeur</dt>
-          <dd className="text-right font-medium">{driverFirst}</dd>
-          {vehicleLabel ? (
-            <>
-              <dt className="text-muted-foreground">Véhicule</dt>
-              <dd className="text-right font-medium">{vehicleLabel}</dd>
-            </>
-          ) : null}
-          <dt className="flex items-center gap-2 text-muted-foreground">
-            <Euro className="size-4" /> {taxLiable ? "Prix TTC" : "Total à payer"}
-          </dt>
-          <dd className="text-right font-medium">
-            {price ? formatEuro(Number(price)) : "À confirmer"}
-          </dd>
-          {request?.special_needs ? (
-            <>
-              <dt className="text-muted-foreground">Besoins particuliers</dt>
-              <dd className="text-right font-medium break-words">{request.special_needs}</dd>
-            </>
-          ) : null}
-        </dl>
+        </StatusHeroCard>
 
-        {request?.driver_message ? (
-          <p className="mt-3 rounded-2xl bg-muted p-3 text-sm text-muted-foreground">
-            « {request.driver_message} »
-          </p>
+        {/* 2 — Action utile du moment, unique et pleine largeur. */}
+        {phoneQuery.data?.phone && !completed ? (
+          <Button asChild className="h-12 w-full rounded-2xl font-bold">
+            <a href={`tel:${phoneQuery.data.phone}`}>
+              <Phone className="size-4" />
+              Appeler {driverFirst}
+            </a>
+          </Button>
         ) : null}
 
-        {ride ? (
+        {stopped ? (
+          <div className="space-y-2">
+            {!cancelled || presentation.stopped ? (
+              <Button
+                className="h-12 w-full rounded-2xl font-bold"
+                onClick={() => navigate({ to: "/espace/demandes" })}
+              >
+                Faire une nouvelle demande
+              </Button>
+            ) : null}
+            <Link
+              to="/espace/courses"
+              className="flex min-h-11 w-full items-center justify-center rounded-2xl border border-border text-sm font-semibold hover:bg-muted/50"
+            >
+              Retour à mes courses
+            </Link>
+          </div>
+        ) : null}
+
+        {/* 3 — Progression compacte. */}
+        {!stopped ? <TrackingProgress current={current} times={stepTimes} /> : null}
+
+        {/* 4 — Chauffeur. */}
+        {driver ? (
+          <TrackingDriverCard
+            name={driverFirst}
+            avatarUrl={driver.avatar_url}
+            vehicleLabel={vehicleLabel}
+            vehiclePhotoUrl={vehiclePhoto.data ?? null}
+            note={request?.driver_message ?? null}
+          />
+        ) : null}
+
+        {/* 5 — Trajet. */}
+        <TrackingRouteCard pickup={pickup} dropoff={dropoff} />
+
+        {/* 6 — Informations de réservation. */}
+        <TrackingInfoCard
+          items={[
+            {
+              label: immediate ? "Prise en charge (immédiate)" : "Date et heure prévues",
+              value: formatDateTime(scheduled),
+            },
+            { label: "Passagers", value: String(passengers) },
+            ...(luggage != null ? [{ label: "Bagages", value: String(luggage) }] : []),
+            ...(request
+              ? [
+                  {
+                    label: "Type de trajet",
+                    value: request.round_trip ? "Aller-retour" : "Aller simple",
+                  },
+                ]
+              : []),
+            ...(request?.special_needs
+              ? [{ label: "Besoins particuliers", value: request.special_needs }]
+              : []),
+            ...(request?.comment
+              ? [{ label: "Consignes au chauffeur", value: request.comment }]
+              : []),
+          ]}
+          footer={
+            ride ? (
+              <button
+                type="button"
+                onClick={() =>
+                  navigate({ to: "/espace/courses/$rideId", params: { rideId: ride.id } })
+                }
+                className="mt-3 inline-flex min-h-11 w-full items-center justify-between rounded-2xl border border-border px-4 text-sm font-semibold transition-colors duration-200 hover:bg-muted/50"
+              >
+                Voir tous les détails <ChevronRight className="size-4" />
+              </button>
+            ) : null
+          }
+        />
+
+        {/* 7 — Prix final à régler au chauffeur. */}
+        <TrackingPriceCard
+          amount={price ? formatEuro(Number(price)) : null}
+          paymentLabel={paymentMethodLabel}
+          estimated={!ride && !taxLiable}
+        />
+
+        {ride && invoice ? (
+          <div>
+            <InvoiceDownloadCard
+              invoice={invoice as never}
+              driverId={ride.driver_id}
+              ride={{
+                pickup_address: ride.pickup_address,
+                dropoff_address: ride.dropoff_address,
+                scheduled_at: ride.scheduled_at,
+                completed_at: ride.completed_at,
+                passengers: ride.passengers,
+                mileage_km: ride.mileage_km,
+              }}
+            />
+            <p className="mt-2 px-1 text-[11px] leading-snug text-muted-foreground">
+              Reçu généré avec Relink. La facture est émise par votre chauffeur indépendant, seul
+              responsable de son contenu.
+            </p>
+          </div>
+        ) : null}
+
+        {/* 8 — Annulation : action secondaire, jamais mise en avant. */}
+        {canCancel ? (
           <button
             type="button"
-            onClick={() => navigate({ to: "/espace/courses/$rideId", params: { rideId: ride.id } })}
-            className="mt-4 inline-flex w-full items-center justify-between rounded-2xl border border-border px-4 py-3 text-sm font-semibold hover:bg-muted/50"
+            onClick={() => setAskCancel(true)}
+            disabled={busy}
+            className="block min-h-11 w-full text-center text-sm font-medium text-muted-foreground underline underline-offset-4 hover:text-destructive"
           >
-            Voir tous les détails <ChevronRight className="size-4" />
+            Annuler ma demande
           </button>
         ) : null}
-      </section>
-
-      {/* Évaluation */}
-      {completed && ride ? (
-        <div className="mt-4 rounded-3xl border border-border bg-card p-5">
-          <p className="text-sm font-semibold">
-            {review ? "Votre évaluation" : "Évaluer ce trajet"}
-          </p>
-          <div className="mt-3 flex gap-1">
-            {[1, 2, 3, 4, 5].map((n) => {
-              const value = review?.rating ?? rating;
-              return (
-                <button
-                  key={n}
-                  type="button"
-                  aria-label={`${n} étoile${n > 1 ? "s" : ""}`}
-                  disabled={!!review}
-                  onClick={() => setRating(n)}
-                  className="transition-transform active:scale-90"
-                >
-                  <StarIcon
-                    className={`size-8 ${n <= value ? "fill-warning text-warning" : "text-muted-foreground"}`}
-                  />
-                </button>
-              );
-            })}
-          </div>
-          {review ? (
-            review.comment ? (
-              <p className="mt-3 text-sm text-muted-foreground">« {review.comment} »</p>
-            ) : null
-          ) : (
-            <>
-              <Textarea
-                className="mt-3 rounded-2xl"
-                placeholder="Un mot sur votre trajet (facultatif)"
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-              />
-              <Button
-                className="mt-3 h-12 w-full rounded-2xl font-bold"
-                disabled={rating < 1 || busy}
-                onClick={submitReview}
-              >
-                {busy ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <StarIcon className="size-4" />
-                )}
-                Envoyer mon évaluation
-              </Button>
-            </>
-          )}
-        </div>
-      ) : null}
-
-      {ride && invoice ? (
-        <div className="mt-4">
-          <InvoiceDownloadCard
-            invoice={invoice as never}
-            driverId={ride.driver_id}
-            ride={{
-              pickup_address: ride.pickup_address,
-              dropoff_address: ride.dropoff_address,
-              scheduled_at: ride.scheduled_at,
-              completed_at: ride.completed_at,
-              passengers: ride.passengers,
-              mileage_km: ride.mileage_km,
-            }}
-          />
-          <p className="mt-2 px-1 text-[11px] leading-snug text-muted-foreground">
-            Reçu généré avec Relink. La facture est émise par votre chauffeur indépendant, seul
-            responsable de son contenu.
-          </p>
-        </div>
-      ) : null}
-
-      {/* Annulation : action secondaire discrète */}
-      {canCancel ? (
-        <button
-          type="button"
-          onClick={() => setAskCancel(true)}
-          disabled={busy}
-          className="mt-5 block w-full text-center text-sm font-medium text-muted-foreground underline underline-offset-4 hover:text-destructive"
-        >
-          Annuler ma demande
-        </button>
-      ) : null}
+      </div>
 
       <AlertDialog open={askCancel} onOpenChange={setAskCancel}>
         <AlertDialogContent className="rounded-3xl">
