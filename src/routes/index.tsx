@@ -14,7 +14,7 @@ import {
   Star,
   Check,
 } from "lucide-react";
-import { BRAND } from "@/lib/brand";
+import { BRAND, POSITIONING } from "@/lib/brand";
 import { BrandLogo } from "@/components/BrandLogo";
 import { useAuth, homeForRoles } from "@/lib/auth";
 
@@ -162,12 +162,13 @@ function Landing() {
           <div className="surface min-w-0 p-4 sm:p-6">
             <p className="text-xs font-semibold tracking-wide text-primary uppercase">Pour les chauffeurs</p>
             <h2 className="mt-2 text-xl font-semibold text-balance sm:text-2xl">
-              Transformez une course en client fidèle
+              Votre outil de réservation, pas une plateforme
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Un QR code à la fin de la course, et votre passager peut vous rappeler directement,
-              sans repasser par une application de réservation.
+              Vous partagez votre lien ou votre QR code avec vos clients. Ils réservent auprès de
+              vous, jamais auprès de ReLink : vous restez seul décisionnaire de vos courses.
             </p>
+
             <ul className="mt-5 grid gap-4">
               {driverPoints.map((p) => (
                 <li key={p.title} className="flex min-w-0 gap-3">
@@ -193,12 +194,13 @@ function Landing() {
           <div className="surface min-w-0 p-4 sm:p-6">
             <p className="text-xs font-semibold tracking-wide text-primary uppercase">Pour les passagers</p>
             <h2 className="mt-2 text-xl font-semibold text-balance sm:text-2xl">
-              Votre carnet privé de chauffeurs de confiance
+              L'espace de réservation de vos chauffeurs
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Plus de loterie sur le conducteur : vous réservez celles et ceux que vous connaissez
-              déjà, au tarif qu'ils annoncent.
+              Vous ajoutez les chauffeurs que vous connaissez, consultez leurs disponibilités et
+              leur envoyez vos demandes directement. Aucun chauffeur inconnu ne vous est proposé.
             </p>
+
             <ul className="mt-5 grid gap-4">
               {clientPoints.map((p) => (
                 <li key={p.title} className="flex min-w-0 gap-3">
@@ -226,8 +228,9 @@ function Landing() {
       <section className="mx-auto max-w-6xl px-4 py-10 sm:px-5 sm:py-14">
         <h2 className="text-xl font-semibold sm:text-2xl">Comment ça marche</h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Le parcours est le même des deux côtés : une première course, puis une relation directe.
+          Le chauffeur ouvre son espace à ses clients ; la relation reste directe entre eux.
         </p>
+
         <div className="mt-5 grid gap-3 sm:mt-6 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
           {steps.map((s, i) => (
             <div key={s.title} className="surface min-w-0 p-4 sm:p-5">
@@ -266,8 +269,12 @@ function Landing() {
 
 
       <footer className="border-t border-border px-5 py-8 text-center text-xs text-muted-foreground">
-        {BRAND.name} — aucune commission sur les courses. Nom et identité provisoires.
+        <p className="mx-auto max-w-2xl">{POSITIONING.responsibility}</p>
+        <p className="mt-2">
+          {BRAND.name} — aucune commission sur les courses. Nom et identité provisoires.
+        </p>
       </footer>
+
     </div>
   );
 }
