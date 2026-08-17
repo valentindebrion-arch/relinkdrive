@@ -13,25 +13,55 @@ export type SpotlightDriver = {
   favorite: boolean;
 };
 
-/** Vignette du véhicule : photo extérieure, sinon emplacement neutre (jamais d'image cassée). */
-function VehicleThumb({ url, alt }: { url: string | null | undefined; alt: string }) {
+/**
+ * Bloc média horizontal : photo extérieure du véhicule du chauffeur sélectionné.
+ * Ratio stable (aucun saut), placeholder élégant si aucune photo n'est enregistrée.
+ */
+function VehicleHero({
+  url,
+  alt,
+  loading,
+}: {
+  url: string | null | undefined;
+  alt: string;
+  loading: boolean;
+}) {
   const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [url]);
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    setFailed(false);
+    setReady(false);
+  }, [url]);
+
   const showImage = !!url && !failed;
+
   return (
-    <span className="relative grid size-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-primary/10">
-      {showImage ? (
-        <img
-          src={url!}
-          alt={alt}
-          loading="lazy"
-          className="size-full object-cover"
-          onError={() => setFailed(true)}
-        />
+    <div className="relative aspect-[16/9] max-h-[9.5rem] w-full overflow-hidden rounded-2xl bg-muted shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]">
+      {loading ? (
+        <span className="absolute inset-0 animate-pulse bg-muted" aria-hidden />
+      ) : showImage ? (
+        <>
+          {!ready ? <span className="absolute inset-0 animate-pulse bg-muted" aria-hidden /> : null}
+          <img
+            src={url!}
+            alt={alt}
+            className={`size-full object-cover transition-opacity duration-200 ${
+              ready ? "opacity-100" : "opacity-0"
+            }`}
+            onLoad={() => setReady(true)}
+            onError={() => setFailed(true)}
+          />
+          <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 to-transparent px-3 pt-6 pb-1.5 text-[11px] font-semibold text-white">
+            Véhicule de votre chauffeur
+          </span>
+        </>
       ) : (
-        <Car className="size-6 text-primary" aria-hidden />
+        <div className="flex size-full flex-col items-center justify-center gap-1 text-muted-foreground">
+          <Car className="size-7" aria-hidden />
+          <p className="text-[11px] font-semibold">Photo du véhicule non disponible</p>
+        </div>
       )}
-    </span>
+    </div>
   );
 }
 
@@ -61,7 +91,7 @@ function haptic() {
 }
 
 /**
- * Carte horizontale du chauffeur sélectionné + carrousel (swipe, flèches, indicateur).
+ * Photo du véhicule + carte horizontale du chauffeur sélectionné (un seul élément du carrousel).
  * Hauteur constante : aucun saut de mise en page pendant les transitions.
  */
 export function DriverSpotlight({
@@ -88,6 +118,18 @@ export function DriverSpotlight({
     return () => window.clearTimeout(t);
   }, [dir, index]);
 
+  // Préchargement des photos précédente et suivante pour éviter tout skeleton au swipe.
+  useEffect(() => {
+    if (!multiple || typeof window === "undefined") return;
+    [index - 1, index + 1].forEach((i) => {
+      const url = drivers[(i + drivers.length) % drivers.length]?.vehiclePhotoUrl;
+      if (url) {
+        const img = new Image();
+        img.src = url;
+      }
+    });
+  }, [drivers, index, multiple]);
+
   function go(delta: number) {
     if (!multiple) return;
     setDir(delta > 0 ? "right" : "left");
@@ -100,10 +142,6 @@ export function DriverSpotlight({
 
   return (
     <section className="relative shrink-0">
-      <p className="mb-1.5 text-[11px] font-bold tracking-wide text-muted-foreground uppercase">
-        Votre chauffeur sélectionné
-      </p>
-
       <div
         className="relative overflow-hidden rounded-2xl"
         onTouchStart={(e) => {
@@ -126,69 +164,80 @@ export function DriverSpotlight({
           if (Math.abs(dx) > SWIPE_MIN) go(dx < 0 ? 1 : -1);
         }}
       >
+        {/* Photo + informations glissent ensemble : un seul élément du carrousel. */}
         <div
           key={driver?.id ?? (loading ? "loading" : "empty")}
-          className={`flex h-[5.5rem] items-center gap-3 rounded-2xl border border-border/70 bg-card px-3 shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)] ${anim}`}
+          className={`space-y-2 ${anim}`}
           style={drag ? { transform: `translate3d(${drag * 0.35}px,0,0)` } : undefined}
         >
-          {loading ? (
-            <>
-              <span className="size-14 shrink-0 animate-pulse rounded-2xl bg-muted" />
-              <div className="min-w-0 flex-1 space-y-2">
-                <span className="block h-3.5 w-1/2 animate-pulse rounded bg-muted" />
-                <span className="block h-3 w-2/3 animate-pulse rounded bg-muted" />
-                <span className="block h-3 w-1/3 animate-pulse rounded bg-muted" />
-              </div>
-            </>
-          ) : driver ? (
-            <>
-              <VehicleThumb
-                url={driver.vehiclePhotoUrl}
-                alt={`Véhicule déclaré par ${driver.name}`}
-              />
-              <span className="sr-only">{initials(driver.name)}</span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[15px] font-extrabold">{driver.name}</p>
-                <p className="mt-0.5 flex items-center gap-1.5 text-[12px] font-semibold">
-                  <span
-                    aria-hidden
-                    className={`size-1.5 shrink-0 rounded-full ${
-                      driver.available ? "status-dot-pulse bg-primary" : "bg-muted-foreground/50"
-                    }`}
-                  />
-                  <span className={driver.available ? "text-primary" : "text-muted-foreground"}>
-                    {driver.available ? "Disponible maintenant" : "Indisponible actuellement"}
-                  </span>
-                </p>
-                <p className="truncate text-[12px] text-muted-foreground">
-                  {driver.vehicle ?? "Véhicule non renseigné"}
-                </p>
-              </div>
-              {driver.slug ? (
-                <Link
-                  to="/chauffeur/$slug"
-                  params={{ slug: driver.slug }}
-                  className="shrink-0 self-center text-[12px] font-bold text-primary underline underline-offset-2"
-                >
-                  Voir le profil
-                </Link>
-              ) : (
-                <UserRound className="size-5 shrink-0 text-muted-foreground" />
-              )}
-            </>
-          ) : (
-            <>
-              <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary">
-                <QrCode className="size-6" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-[15px] font-extrabold">Aucun chauffeur</p>
-                <p className="text-[12px] text-muted-foreground">
-                  Scannez le QR code de votre chauffeur pour l'ajouter.
-                </p>
-              </div>
-            </>
-          )}
+          <VehicleHero
+            url={driver?.vehiclePhotoUrl}
+            alt={driver ? `Véhicule de ${driver.name}` : "Véhicule du chauffeur"}
+            loading={loading}
+          />
+
+          <p className="text-[11px] font-bold tracking-wide text-muted-foreground uppercase">
+            Votre chauffeur sélectionné
+          </p>
+
+          <div className="flex h-[5.5rem] items-center gap-3 rounded-2xl border border-border/70 bg-card px-3 shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]">
+            {loading ? (
+              <>
+                <span className="size-12 shrink-0 animate-pulse rounded-full bg-muted" />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <span className="block h-3.5 w-1/2 animate-pulse rounded bg-muted" />
+                  <span className="block h-3 w-2/3 animate-pulse rounded bg-muted" />
+                  <span className="block h-3 w-1/3 animate-pulse rounded bg-muted" />
+                </div>
+              </>
+            ) : driver ? (
+              <>
+                <span className="grid size-12 shrink-0 place-items-center rounded-full bg-primary/10 text-[14px] font-extrabold text-primary">
+                  {initials(driver.name)}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[15px] font-extrabold">{driver.name}</p>
+                  <p className="mt-0.5 flex items-center gap-1.5 text-[12px] font-semibold">
+                    <span
+                      aria-hidden
+                      className={`size-1.5 shrink-0 rounded-full ${
+                        driver.available ? "status-dot-pulse bg-primary" : "bg-muted-foreground/50"
+                      }`}
+                    />
+                    <span className={driver.available ? "text-primary" : "text-muted-foreground"}>
+                      {driver.available ? "Disponible maintenant" : "Indisponible actuellement"}
+                    </span>
+                  </p>
+                  <p className="truncate text-[12px] text-muted-foreground">
+                    {driver.vehicle ?? "Véhicule non renseigné"}
+                  </p>
+                </div>
+                {driver.slug ? (
+                  <Link
+                    to="/chauffeur/$slug"
+                    params={{ slug: driver.slug }}
+                    className="shrink-0 self-center text-[12px] font-bold text-primary underline underline-offset-2"
+                  >
+                    Voir le profil
+                  </Link>
+                ) : (
+                  <UserRound className="size-5 shrink-0 text-muted-foreground" />
+                )}
+              </>
+            ) : (
+              <>
+                <span className="grid size-12 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+                  <QrCode className="size-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[15px] font-extrabold">Aucun chauffeur</p>
+                  <p className="text-[12px] text-muted-foreground">
+                    Scannez le QR code de votre chauffeur pour l'ajouter.
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -198,7 +247,7 @@ export function DriverSpotlight({
             type="button"
             aria-label="Chauffeur précédent"
             onClick={() => go(-1)}
-            className="absolute top-1/2 -left-1 -translate-y-1/2 grid size-8 place-items-center rounded-full border border-primary/25 bg-card text-primary shadow-sm transition-transform active:scale-95"
+            className="absolute bottom-[3.75rem] -left-1 grid size-8 place-items-center rounded-full border border-primary/25 bg-card text-primary shadow-sm transition-transform active:scale-95"
           >
             <ChevronLeft className="size-4" />
           </button>
@@ -206,7 +255,7 @@ export function DriverSpotlight({
             type="button"
             aria-label="Chauffeur suivant"
             onClick={() => go(1)}
-            className="absolute top-1/2 -right-1 -translate-y-1/2 grid size-8 place-items-center rounded-full border border-primary/25 bg-card text-primary shadow-sm transition-transform active:scale-95"
+            className="absolute -right-1 bottom-[3.75rem] grid size-8 place-items-center rounded-full border border-primary/25 bg-card text-primary shadow-sm transition-transform active:scale-95"
           >
             <ChevronRight className="size-4" />
           </button>
