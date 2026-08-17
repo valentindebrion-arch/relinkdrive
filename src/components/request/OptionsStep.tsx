@@ -150,6 +150,11 @@ export function OptionsStep({
   returnDropoff,
   minReturnLocal,
   busy,
+  paymentOptions,
+  paymentLoading,
+  paymentMethod,
+  onSelectPayment,
+  onContactDriver,
   onEditTrip,
   onChange,
   onContinue,
@@ -175,6 +180,11 @@ export function OptionsStep({
   returnDropoff: string;
   minReturnLocal: string;
   busy: boolean;
+  paymentOptions: PaymentMethodOption[];
+  paymentLoading: boolean;
+  paymentMethod: string | null;
+  onSelectPayment: (key: string) => void;
+  onContactDriver: () => void;
   onEditTrip: () => void;
   onChange: (patch: {
     passengers?: number;
@@ -192,6 +202,8 @@ export function OptionsStep({
   onContinue: () => void;
 }) {
   const commentId = useId();
+  const [paymentError, setPaymentError] = useState(false);
+
   const [askDropReturn, setAskDropReturn] = useState(false);
 
   // Préremplissage logique du trajet retour (inversé), modifiable ensuite.
