@@ -364,21 +364,22 @@ function Timeline({ plan, onPick }: { plan: DayPlan; onPick: (e: DayEvent) => vo
               return (
                 <div
                   key={`ret-${i}`}
-                  className="absolute right-0 left-0 overflow-hidden rounded-lg px-3 py-2 text-xs text-white shadow-sm"
+                  className="absolute right-0 left-0 min-w-0 overflow-hidden rounded-lg border-[1.5px] px-3 py-2 text-xs [overflow-wrap:anywhere]"
                   style={{
                     ...style,
-                    backgroundImage:
-                      "linear-gradient(to bottom, #DC2626 0%, #F04E30 55%, #F59E0B 100%)",
+                    background: "#FEF2F2",
+                    borderColor: "#DC2626",
+                    color: "#991B1B",
                   }}
                 >
                   <p className="flex items-center gap-1.5 font-semibold">
-                    <CornerUpLeft className="size-3.5 shrink-0" />
-                    Retour · {minutesToTime(r.startMin)} → {minutesToTime(r.endMin)}
+                    <CornerUpLeft className="size-3.5 shrink-0" aria-hidden />
+                    Retour à vide · {minutesToTime(r.startMin)} → {minutesToTime(r.endMin)}
                   </p>
-                  <p className="truncate text-white/90">
-                    Trajet à vide vers {r.destination} · durée estimée {formatDuration(r.durationMin)}
+                  <p className="truncate">
+                    Retour vers {r.destination} · durée estimée {formatDuration(r.durationMin)}
                   </p>
-                  <p className="truncate font-medium text-white/95">
+                  <p className="truncate font-medium">
                     {inProgress
                       ? `Retour en cours · ${formatDuration(remaining)} restantes · disponibilité estimée à ${minutesToTime(r.endMin)}`
                       : r.interrupted
@@ -387,13 +388,15 @@ function Timeline({ plan, onPick }: { plan: DayPlan; onPick: (e: DayEvent) => vo
                   </p>
                   {inProgress ? (
                     <div
-                      className="mt-1 h-1 rounded-full bg-white/30"
+                      className="mt-1 h-1 rounded-full"
+                      style={{ background: "#FCA5A5" }}
                       role="progressbar"
+                      aria-label="Progression du retour à vide"
                       aria-valuenow={progress}
                       aria-valuemin={0}
                       aria-valuemax={100}
                     >
-                      <div className="h-1 rounded-full bg-white" style={{ width: `${progress}%` }} />
+                      <div className="h-1 rounded-full" style={{ width: `${progress}%`, background: "#DC2626" }} />
                     </div>
                   ) : null}
                 </div>
