@@ -74,7 +74,7 @@ export async function buildDayPlan(
       .eq("driver_id", driverId),
     supabase
       .from("rides")
-      .select("id, client_label, pickup_address, dropoff_address, scheduled_at, created_at, price, status, is_block")
+      .select("id, client_id, client_label, pickup_address, dropoff_address, scheduled_at, created_at, price, status, is_block")
       .eq("driver_id", driverId)
       .in("status", [...ACTIVE_RIDE_STATUSES])
       .gte("scheduled_at", from)
@@ -124,6 +124,29 @@ export async function buildDayPlan(
     return value;
   }
 
+  // Nom réel du client (espace authentifié du chauffeur uniquement, via RLS).
+  const clientIds = Array.from(
+    new Set(
+      [
+        ...((rides ?? []) as any[]).filter((r) => !r.is_block).map((r) => r.client_id),
+        ...((requests ?? []) as any[]).map((r) => r.client_id),
+      ].filter((id): id is string => !!id),
+    ),
+  );
+  const names = new Map<string, string>();
+  if (clientIds.length) {
+    const { data: clients } = await supabase
+      .from("profiles")
+      .select("id, full_name")
+      .in("id", clientIds);
+    ((clients ?? []) as any[]).forEach((c) => {
+      const label = (c.full_name ?? "").trim();
+      if (label) names.set(c.id, label);
+    });
+  }
+  const clientName = (id: string | null, fallback: string | null) =>
+    (id ? names.get(id) : null) ?? (fallback?.trim() || null) ?? "Client non renseigné";
+
   const events: DayEvent[] = [];
 
   for (const r of ((rides ?? []) as any[]).filter((r) => inDay(r.scheduled_at))) {
@@ -133,7 +156,9 @@ export async function buildDayPlan(
       startIso: r.scheduled_at,
       startMin: parisMinutes(r.scheduled_at),
       durationMin: r.is_block ? 60 : await duration(r.pickup_address, r.dropoff_address),
-      clientLabel: r.is_block ? (r.client_label ?? "Indisponibilité") : (r.client_label ?? "Client"),
+      clientLabel: r.is_block
+        ? (r.client_label ?? "Indisponibilité")
+        : clientName(r.client_id, r.client_label),
       pickup: r.pickup_address,
       dropoff: r.dropoff_address,
       status: r.status,
@@ -151,7 +176,7 @@ export async function buildDayPlan(
       startIso: q.scheduled_at,
       startMin: parisMinutes(q.scheduled_at),
       durationMin: await duration(q.pickup_address, q.dropoff_address),
-      clientLabel: "Demande en attente",
+      clientLabel: clientName(q.client_id, null),
       pickup: q.pickup_address,
       dropoff: q.dropoff_address,
       status: q.status,
