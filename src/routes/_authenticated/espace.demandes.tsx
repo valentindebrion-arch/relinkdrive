@@ -625,6 +625,16 @@ function ClientRequests() {
       });
       return;
     }
+    if (!paymentMethod) {
+      setBusy(false);
+      sentRef.current = false;
+      setSubmitError("Sélectionnez un mode de règlement avant d'envoyer votre demande.");
+      setStep(1);
+      toast.error("Mode de règlement manquant", {
+        description: "Choisissez comment vous réglerez la course.",
+      });
+      return;
+    }
     const estimateLine = estimate
       ? `Prix client TTC : ${formatEuro(estimate.price.total)} · ${estimate.distanceKm} km · ~${estimate.durationMin} min`
       : null;
@@ -669,6 +679,15 @@ function ClientRequests() {
         setSubmitError(incompatible.blockingIssues.map((i) => i.message).join(" "));
         toast.error("Cette demande n'est pas réalisable avec ce véhicule", {
           description: incompatible.blockingIssues[0]?.message,
+        });
+        return;
+      }
+      if (/payment_method/i.test(error.message)) {
+        setPaymentMethod(null);
+        setStep(1);
+        setSubmitError("Ce mode de règlement n'est plus accepté par ce chauffeur.");
+        toast.error("Mode de règlement indisponible", {
+          description: "Choisissez un autre mode accepté par le chauffeur.",
         });
         return;
       }
