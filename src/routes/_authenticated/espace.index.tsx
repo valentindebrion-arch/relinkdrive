@@ -342,7 +342,7 @@ function ClientHome() {
             drivers={drivers}
             index={safeIndex}
             onIndexChange={setIndex}
-            loading={data.isLoading}
+            loading={data.isLoading || photosPending}
           />
         </div>
 
