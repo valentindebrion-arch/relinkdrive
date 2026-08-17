@@ -147,10 +147,12 @@ function ClientHome() {
   const driverName = (id: string | null | undefined) =>
     drivers.find((d) => d.id === id)?.name.split(" ")[0] ?? "Votre chauffeur";
 
-  function go(delta: number) {
-    if (drivers.length < 2) return;
-    setIndex((i) => (i + delta + drivers.length) % drivers.length);
-  }
+  const shortName = selectedDriver?.name ?? "";
+  const bookLabel =
+    shortName && shortName.length <= 16
+      ? `Réserver auprès de ${shortName}`
+      : "Réserver auprès de ce chauffeur";
+
 
   function startRequest(mode: "now" | "later") {
     saveRequestDraft({
