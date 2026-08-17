@@ -21,17 +21,16 @@ import { useAuth, homeForRoles } from "@/lib/auth";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: `${BRAND.name} — Votre carnet privé de chauffeurs VTC de confiance` },
+      { title: `${BRAND.name} — Logiciel de réservation des chauffeurs indépendants` },
       {
         name: "description",
         content:
-          "ReLink relie chauffeurs VTC indépendants et passagers après la course : carnet privé, réservation directe, planning et factures. Zéro commission.",
+          "ReLink est le logiciel de planning, de réservation et de relation client des chauffeurs VTC indépendants. Chaque chauffeur partage son espace avec ses propres clients. Zéro commission.",
       },
       { property: "og:title", content: `${BRAND.name} — ${BRAND.tagline}` },
       {
         property: "og:description",
-        content:
-          "Passagers : réservez toujours le même chauffeur de confiance. Chauffeurs : fidélisez vos clients sans commission.",
+        content: BRAND.subline,
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -39,6 +38,7 @@ export const Route = createFileRoute("/")({
   }),
   component: Landing,
 });
+
 
 const steps = [
   { icon: QrCode, title: "Le chauffeur présente son QR code", text: "À la fin de la course, le passager ouvre sa page personnelle." },
