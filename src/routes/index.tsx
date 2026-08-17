@@ -41,25 +41,26 @@ export const Route = createFileRoute("/")({
 
 
 const steps = [
-  { icon: QrCode, title: "Le chauffeur présente son QR code", text: "À la fin de la course, le passager ouvre sa page personnelle." },
-  { icon: Users, title: "Le passager l'ajoute à son carnet", text: "La relation est enregistrée : il réserve directement auprès de lui." },
-  { icon: CalendarClock, title: "Les demandes arrivent en direct", text: "Immédiat ou planifié : horaire et tarif validés en quelques secondes." },
-  { icon: Receipt, title: "Course, suivi et facture", text: "Suivi en temps réel côté passager, facture et statistiques côté chauffeur." },
+  { icon: QrCode, title: "Le chauffeur partage son accès", text: "QR code ou lien personnel remis à ses clients à la fin de la course." },
+  { icon: Users, title: "Le client ajoute son chauffeur", text: "Il accède à l'espace de réservation de ce chauffeur, et de lui seul." },
+  { icon: CalendarClock, title: "Les demandes arrivent au chauffeur", text: "Le client consulte les disponibilités ; le chauffeur accepte ou refuse lui-même." },
+  { icon: Receipt, title: "Course, suivi et facture", text: "Suivi côté client, planning, facturation et statistiques côté chauffeur." },
 ];
 
 const driverPoints = [
   { icon: BadgeEuro, title: "0 % de commission", text: "Vos tarifs, votre TVA, votre chiffre d'affaires. ReLink ne prend rien sur vos courses." },
-  { icon: Users, title: "Vos clients restent vos clients", text: "Aucune mise en concurrence, aucune attribution automatique : un client vous appartient." },
-  { icon: CalendarClock, title: "Planning et disponibilités", text: "Vos horaires, vos absences : les passagers ne réservent que sur vos créneaux libres." },
-  { icon: Receipt, title: "Facturation automatique", text: "Factures PDF conformes (franchise ou TVA), CRM clients et statistiques d'activité." },
+  { icon: Users, title: "Vos clients restent vos clients", text: "Aucune mise en concurrence, aucune attribution : ReLink ne vous envoie jamais de course." },
+  { icon: CalendarClock, title: "Votre planning, vos disponibilités", text: "Vos horaires, vos absences : vos clients ne réservent que sur vos créneaux libres." },
+  { icon: Receipt, title: "Facturation automatique", text: "Factures PDF conformes (franchise ou TVA), suivi clients et statistiques d'activité." },
 ];
 
 const clientPoints = [
-  { icon: Car, title: "Toujours le même chauffeur", text: "Vous ajoutez à votre carnet uniquement des chauffeurs que vous avez déjà testés." },
-  { icon: MapPin, title: "Réserver en 3 étapes", text: "Adresse, options, confirmation. Immédiat ou planifié à la date de votre choix." },
-  { icon: Bell, title: "Suivi en temps réel", text: "Statut de la course, heure d'arrivée, notifications : vous savez toujours où vous en êtes." },
-  { icon: Star, title: "Prix clair, avant de partir", text: "Tarif annoncé à la demande, facture disponible après la course." },
+  { icon: Car, title: "Réserver auprès de son chauffeur", text: "Vous accédez à l'espace de réservation des chauffeurs que vous avez ajoutés." },
+  { icon: MapPin, title: "Une demande en 3 étapes", text: "Adresse, options, confirmation. La demande part directement à votre chauffeur." },
+  { icon: Bell, title: "Réponse et suivi", text: "Vous savez quand votre chauffeur a répondu, et où en est votre trajet." },
+  { icon: Star, title: "Tarif indiqué par le chauffeur", text: "Le prix est celui de votre chauffeur ; la facture est émise par lui." },
 ];
+
 
 function Landing() {
   const { session, roles, loading } = useAuth();
