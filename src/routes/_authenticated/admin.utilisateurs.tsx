@@ -73,7 +73,7 @@ function AdminUsers() {
 
   return (
     <div>
-      <PageHeader title="Utilisateurs" description="Passagers, chauffeurs et administrateurs de la plateforme." />
+      <PageHeader title="Utilisateurs" description="Passagers, chauffeurs et administrateurs utilisant Relink." />
 
       <Input
         placeholder="Rechercher un nom, un e-mail, un téléphone…"

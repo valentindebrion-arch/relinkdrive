@@ -14,24 +14,23 @@ import {
   Star,
   Check,
 } from "lucide-react";
-import { BRAND } from "@/lib/brand";
+import { BRAND, POSITIONING } from "@/lib/brand";
 import { BrandLogo } from "@/components/BrandLogo";
 import { useAuth, homeForRoles } from "@/lib/auth";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: `${BRAND.name} — Votre carnet privé de chauffeurs VTC de confiance` },
+      { title: `${BRAND.name} — Logiciel de réservation des chauffeurs indépendants` },
       {
         name: "description",
         content:
-          "ReLink relie chauffeurs VTC indépendants et passagers après la course : carnet privé, réservation directe, planning et factures. Zéro commission.",
+          "ReLink est le logiciel de planning, de réservation et de relation client des chauffeurs VTC indépendants. Chaque chauffeur partage son espace avec ses propres clients. Zéro commission.",
       },
       { property: "og:title", content: `${BRAND.name} — ${BRAND.tagline}` },
       {
         property: "og:description",
-        content:
-          "Passagers : réservez toujours le même chauffeur de confiance. Chauffeurs : fidélisez vos clients sans commission.",
+        content: BRAND.subline,
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -40,26 +39,28 @@ export const Route = createFileRoute("/")({
   component: Landing,
 });
 
+
 const steps = [
-  { icon: QrCode, title: "Le chauffeur présente son QR code", text: "À la fin de la course, le passager ouvre sa page personnelle." },
-  { icon: Users, title: "Le passager l'ajoute à son carnet", text: "La relation est enregistrée : il réserve directement auprès de lui." },
-  { icon: CalendarClock, title: "Les demandes arrivent en direct", text: "Immédiat ou planifié : horaire et tarif validés en quelques secondes." },
-  { icon: Receipt, title: "Course, suivi et facture", text: "Suivi en temps réel côté passager, facture et statistiques côté chauffeur." },
+  { icon: QrCode, title: "Le chauffeur partage son accès", text: "QR code ou lien personnel remis à ses clients à la fin de la course." },
+  { icon: Users, title: "Le client ajoute son chauffeur", text: "Il accède à l'espace de réservation de ce chauffeur, et de lui seul." },
+  { icon: CalendarClock, title: "Les demandes arrivent au chauffeur", text: "Le client consulte les disponibilités ; le chauffeur accepte ou refuse lui-même." },
+  { icon: Receipt, title: "Course, suivi et facture", text: "Suivi côté client, planning, facturation et statistiques côté chauffeur." },
 ];
 
 const driverPoints = [
   { icon: BadgeEuro, title: "0 % de commission", text: "Vos tarifs, votre TVA, votre chiffre d'affaires. ReLink ne prend rien sur vos courses." },
-  { icon: Users, title: "Vos clients restent vos clients", text: "Aucune mise en concurrence, aucune attribution automatique : un client vous appartient." },
-  { icon: CalendarClock, title: "Planning et disponibilités", text: "Vos horaires, vos absences : les passagers ne réservent que sur vos créneaux libres." },
-  { icon: Receipt, title: "Facturation automatique", text: "Factures PDF conformes (franchise ou TVA), CRM clients et statistiques d'activité." },
+  { icon: Users, title: "Vos clients restent vos clients", text: "Aucune mise en concurrence, aucune attribution : ReLink ne vous envoie jamais de course." },
+  { icon: CalendarClock, title: "Votre planning, vos disponibilités", text: "Vos horaires, vos absences : vos clients ne réservent que sur vos créneaux libres." },
+  { icon: Receipt, title: "Facturation automatique", text: "Factures PDF conformes (franchise ou TVA), suivi clients et statistiques d'activité." },
 ];
 
 const clientPoints = [
-  { icon: Car, title: "Toujours le même chauffeur", text: "Vous ajoutez à votre carnet uniquement des chauffeurs que vous avez déjà testés." },
-  { icon: MapPin, title: "Réserver en 3 étapes", text: "Adresse, options, confirmation. Immédiat ou planifié à la date de votre choix." },
-  { icon: Bell, title: "Suivi en temps réel", text: "Statut de la course, heure d'arrivée, notifications : vous savez toujours où vous en êtes." },
-  { icon: Star, title: "Prix clair, avant de partir", text: "Tarif annoncé à la demande, facture disponible après la course." },
+  { icon: Car, title: "Réserver auprès de son chauffeur", text: "Vous accédez à l'espace de réservation des chauffeurs que vous avez ajoutés." },
+  { icon: MapPin, title: "Une demande en 3 étapes", text: "Adresse, options, confirmation. La demande part directement à votre chauffeur." },
+  { icon: Bell, title: "Réponse et suivi", text: "Vous savez quand votre chauffeur a répondu, et où en est votre trajet." },
+  { icon: Star, title: "Tarif indiqué par le chauffeur", text: "Le prix est celui de votre chauffeur ; la facture est émise par lui." },
 ];
+
 
 function Landing() {
   const { session, roles, loading } = useAuth();
@@ -116,16 +117,16 @@ function Landing() {
       <section className="mx-auto w-full max-w-6xl px-4 pt-6 pb-10 sm:px-5 sm:pt-10 sm:pb-14">
         <p className="inline-flex max-w-full items-center gap-2 rounded-full border border-primary/25 bg-accent px-3 py-1 text-[11px] font-medium text-accent-foreground sm:text-xs">
           <Sparkles className="size-3.5 shrink-0" />
-          <span className="truncate">Outil post-course · sans commission</span>
+          <span className="truncate">Logiciel pour chauffeurs indépendants · sans commission</span>
         </p>
         <h1 className="mt-4 max-w-3xl text-[1.75rem] leading-tight font-semibold text-balance sm:mt-5 sm:text-4xl lg:text-5xl">
           {BRAND.tagline}
         </h1>
         <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:mt-4 sm:text-lg">
-          {BRAND.name} est le lien direct entre un chauffeur VTC indépendant et ses passagers.
-          Le passager garde dans son carnet privé les chauffeurs en qui il a confiance et réserve
-          directement auprès d'eux ; le chauffeur gère ses demandes, son planning et ses factures
-          au même endroit. Pas de plateforme, pas d'enchère, pas de commission.
+          {BRAND.subline} Chaque chauffeur dispose de son propre espace de réservation : il partage
+          son lien ou son QR code avec ses clients, eux consultent ses disponibilités et lui
+          envoient leurs demandes directement. Le chauffeur accepte ou refuse lui-même, fixe ses
+          tarifs et garde la maîtrise de sa clientèle.
         </p>
         <div className="mt-5 grid gap-2 sm:mt-7 sm:flex sm:flex-wrap sm:gap-3">
           <Link
@@ -140,17 +141,18 @@ function Landing() {
             search={{ mode: "signup", role: "client" }}
             className="rounded-xl border border-border bg-card px-5 py-3 text-center text-sm font-medium"
           >
-            Je suis passager
+            Mon chauffeur m'a partagé son lien
           </Link>
         </div>
         <ul className="mt-5 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-muted-foreground sm:mt-6 sm:flex sm:flex-wrap sm:gap-x-6 sm:text-sm">
-          {["Sans commission", "Chauffeurs vérifiés", "Réservation directe", "Factures conformes"].map((t) => (
+          {["Sans commission", "Aucune attribution de course", "Réservation directe", "Factures conformes"].map((t) => (
             <li key={t} className="inline-flex min-w-0 items-center gap-1.5">
               <Check className="size-4 shrink-0 text-primary" />
               <span className="truncate">{t}</span>
             </li>
           ))}
         </ul>
+
       </section>
 
 
@@ -160,12 +162,13 @@ function Landing() {
           <div className="surface min-w-0 p-4 sm:p-6">
             <p className="text-xs font-semibold tracking-wide text-primary uppercase">Pour les chauffeurs</p>
             <h2 className="mt-2 text-xl font-semibold text-balance sm:text-2xl">
-              Transformez une course en client fidèle
+              Votre outil de réservation, pas une plateforme
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Un QR code à la fin de la course, et votre passager peut vous rappeler directement,
-              sans repasser par une application de réservation.
+              Vous partagez votre lien ou votre QR code avec vos clients. Ils réservent auprès de
+              vous, jamais auprès de ReLink : vous restez seul décisionnaire de vos courses.
             </p>
+
             <ul className="mt-5 grid gap-4">
               {driverPoints.map((p) => (
                 <li key={p.title} className="flex min-w-0 gap-3">
@@ -191,12 +194,13 @@ function Landing() {
           <div className="surface min-w-0 p-4 sm:p-6">
             <p className="text-xs font-semibold tracking-wide text-primary uppercase">Pour les passagers</p>
             <h2 className="mt-2 text-xl font-semibold text-balance sm:text-2xl">
-              Votre carnet privé de chauffeurs de confiance
+              L'espace de réservation de vos chauffeurs
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Plus de loterie sur le conducteur : vous réservez celles et ceux que vous connaissez
-              déjà, au tarif qu'ils annoncent.
+              Vous ajoutez les chauffeurs que vous connaissez, consultez leurs disponibilités et
+              leur envoyez vos demandes directement. Aucun chauffeur inconnu ne vous est proposé.
             </p>
+
             <ul className="mt-5 grid gap-4">
               {clientPoints.map((p) => (
                 <li key={p.title} className="flex min-w-0 gap-3">
@@ -224,8 +228,9 @@ function Landing() {
       <section className="mx-auto max-w-6xl px-4 py-10 sm:px-5 sm:py-14">
         <h2 className="text-xl font-semibold sm:text-2xl">Comment ça marche</h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Le parcours est le même des deux côtés : une première course, puis une relation directe.
+          Le chauffeur ouvre son espace à ses clients ; la relation reste directe entre eux.
         </p>
+
         <div className="mt-5 grid gap-3 sm:mt-6 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
           {steps.map((s, i) => (
             <div key={s.title} className="surface min-w-0 p-4 sm:p-5">
@@ -264,8 +269,12 @@ function Landing() {
 
 
       <footer className="border-t border-border px-5 py-8 text-center text-xs text-muted-foreground">
-        {BRAND.name} — aucune commission sur les courses. Nom et identité provisoires.
+        <p className="mx-auto max-w-2xl">{POSITIONING.responsibility}</p>
+        <p className="mt-2">
+          {BRAND.name} — aucune commission sur les courses. Nom et identité provisoires.
+        </p>
       </footer>
+
     </div>
   );
 }

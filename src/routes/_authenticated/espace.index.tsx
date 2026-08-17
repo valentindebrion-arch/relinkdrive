@@ -8,7 +8,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Car,
-  LifeBuoy,
+  PhoneCall,
+
   Loader2,
   QrCode,
   Users,
@@ -216,18 +217,26 @@ function ClientHome() {
                 void navigate({ to: "/espace/suivi/$id", params: { id: nextRide.id } }),
             }
           : selectedDriver?.available
-            ? { label: "Commander une course", onClick: () => startRequest("now") }
-            : { label: "Planifier un trajet", onClick: () => startRequest("later") };
+            ? { label: "Réserver auprès de mon chauffeur", onClick: () => startRequest("now") }
+            : { label: "Planifier avec ce chauffeur", onClick: () => startRequest("later") };
 
-  const showSecondary = primary.label === "Commander une course";
+  const showSecondary = primary.label === "Réserver auprès de mon chauffeur";
   const noDriver = !data.isLoading && drivers.length === 0;
 
   const shortcuts = [
     { label: "Planifier", icon: CalendarClock, onClick: () => startRequest("later") },
     { label: "Mes courses", icon: Car, onClick: () => void navigate({ to: "/espace/courses" }) },
     { label: "Mes chauffeurs", icon: Users, onClick: () => void navigate({ to: "/espace/chauffeurs" }) },
-    { label: "Assistance", icon: LifeBuoy, onClick: () => void navigate({ to: "/aide" }) },
+    {
+      label: "Contacter mon chauffeur",
+      icon: PhoneCall,
+      onClick: () =>
+        void (selectedDriver?.slug
+          ? navigate({ to: "/chauffeur/$slug", params: { slug: selectedDriver.slug } })
+          : navigate({ to: "/espace/chauffeurs" })),
+    },
   ];
+
 
   return (
     <div
@@ -370,7 +379,7 @@ function ClientHome() {
               onClick={() => startRequest("later")}
               className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-card text-[14px] font-bold text-primary"
             >
-              <CalendarClock className="size-4" /> Planifier un trajet
+              <CalendarClock className="size-4" /> Planifier avec ce chauffeur
             </button>
           ) : null}
         </section>
@@ -413,7 +422,8 @@ function ClientHome() {
             />
           ) : blocking ? (
             <TodayRow
-              title="Demande en attente"
+              title="En attente de la réponse du chauffeur"
+
               detail={`${blocking.driver_first_name ?? "Votre chauffeur"}${
                 blockingCountdown ? ` · réponse sous ${blockingCountdown.label}` : ""
               }`}
@@ -423,7 +433,7 @@ function ClientHome() {
             />
           ) : pendingLocal ? (
             <TodayRow
-              title="Demande en attente"
+              title="En attente de la réponse du chauffeur"
               detail={driverName(pendingLocal.driver_id)}
               action="Suivre ma demande"
               to={pendingLocal.id}

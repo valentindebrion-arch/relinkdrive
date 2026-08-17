@@ -31,7 +31,7 @@ function AdminHome() {
 
   return (
     <div>
-      <PageHeader title="Modération" description="Supervision de la plateforme : dossiers chauffeurs, comptes et incidents." />
+      <PageHeader title="Modération" description="Supervision du logiciel : dossiers chauffeurs, comptes et incidents." />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Dossiers à vérifier" value={data?.pending ?? "—"} icon={<ShieldCheck />} />
         <StatCard label="Chauffeurs vérifiés" value={data?.drivers ?? "—"} icon={<Car />} />

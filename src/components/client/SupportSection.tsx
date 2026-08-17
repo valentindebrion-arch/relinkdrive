@@ -72,7 +72,12 @@ export function SupportSection() {
 
   return (
     <section className="surface p-5">
-      <h2 className="text-base font-semibold">Aide et assistance</h2>
+      <h2 className="text-base font-semibold">Aide et support technique</h2>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Pour toute question sur une course (horaire, lieu, tarif, annulation), contactez directement
+        votre chauffeur. Le support Relink traite uniquement le fonctionnement de l'application.
+      </p>
+
 
       <ul className="mt-3 divide-y divide-border text-sm">
         <li>
@@ -92,7 +97,7 @@ export function SupportSection() {
             className="flex min-h-12 items-center justify-between gap-3 font-medium"
           >
             <span className="flex items-center gap-2">
-              <Mail className="size-4 text-primary" /> Nous contacter
+              <Mail className="size-4 text-primary" /> Contacter le support technique
             </span>
             <span className="text-xs text-muted-foreground">support@relink.app</span>
           </a>
@@ -104,12 +109,13 @@ export function SupportSection() {
             className="flex min-h-12 w-full items-center justify-between gap-3 font-medium"
           >
             <span className="flex items-center gap-2">
-              <Flag className="size-4 text-primary" /> Signaler un problème
+              <Flag className="size-4 text-primary" /> Signaler un problème technique
             </span>
             <ChevronRight className="size-4 text-muted-foreground" />
           </button>
         </li>
       </ul>
+
 
       {open ? (
         <div className="mt-3 grid gap-3 rounded-xl border border-border p-3">
