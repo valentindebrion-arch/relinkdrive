@@ -22,15 +22,22 @@ export function useSignedUrl(bucket: string, path?: string | null) {
  * utilisée. Les URL sont valides 1 h et renouvelées au bout de 45 min ; le cache
  * est conservé 24 h pour que la photo reste affichée lors des retours de route.
  */
-export function useSignedUrls(bucket: string, paths: (string | null | undefined)[]) {
+export function useSignedUrls(
+  bucket: string,
+  paths: (string | null | undefined)[],
+  versions: (string | null | undefined)[] = [],
+) {
   const list = Array.from(new Set(paths.filter((p): p is string => !!p))).sort();
+  const versionKey = versions.filter(Boolean).sort().join("|");
   return useQuery({
-    queryKey: ["signed-urls", bucket, list.join("|")],
+    queryKey: ["signed-urls", bucket, list.join("|"), versionKey],
     enabled: list.length > 0,
     staleTime: 1000 * 60 * 45,
     gcTime: 1000 * 60 * 60 * 24,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    // Une URL encore fraîche est rendue depuis le cache. Une URL proche de
+    // l'expiration est renouvelée en arrière-plan au retour sur la route/onglet.
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
     // Une seule requête à la fois pour une même clé, même si plusieurs vues la demandent.
     retry: 1,
     queryFn: async () => {
