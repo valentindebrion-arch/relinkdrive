@@ -314,23 +314,23 @@ function ClientHome() {
 
   return (
     <div
-      className="relative isolate flex h-[100dvh] flex-col overflow-hidden bg-muted/30"
+      className="home-screen relative isolate flex w-full max-w-full flex-col overflow-x-hidden bg-muted/30"
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
       <ConnectionDecor />
 
       {/* 1. En-tête compact */}
-      <header className="home-rise relative shrink-0 px-4 pt-3 pb-1">
+      <header className="home-rise relative shrink-0 px-4 pt-2 pb-0.5">
         <div className="flex items-center justify-center">
           <BrandLogo to="/espace" size="sm" />
-          <NotificationBell className="absolute top-3 right-3" />
+          <NotificationBell className="absolute top-1 right-3" />
         </div>
-        <p className="mt-2 text-center text-[15px] font-semibold">
+        <p className="mt-1 text-center text-[14px] font-semibold sm:text-[15px]">
           {firstName ? `Bonjour ${firstName} 👋` : "Bonjour 👋"}
         </p>
       </header>
 
-      <main className="flex min-h-0 flex-1 flex-col justify-center gap-3 px-4 pb-[calc(4.75rem+env(safe-area-inset-bottom))]">
+      <main className="flex min-h-0 flex-1 flex-col justify-between gap-[var(--home-gap)] px-4 pt-[var(--home-gap)] pb-[calc(var(--home-tabbar-h)+var(--home-gap))]">
         {/* 2 & 3. Carte du chauffeur sélectionné + carrousel */}
         <div className="home-rise" style={{ animationDelay: "40ms" }}>
           <DriverSpotlight
