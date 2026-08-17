@@ -190,34 +190,121 @@ function ClientHome() {
                 void navigate({ to: "/espace/suivi/$id", params: { id: nextRide.id } }),
             }
           : selectedDriver?.available
-            ? { label: "Réserver auprès de mon chauffeur", onClick: () => startRequest("now") }
+            ? { label: bookLabel, onClick: () => startRequest("now") }
             : { label: "Planifier avec ce chauffeur", onClick: () => startRequest("later") };
 
-  const showSecondary = primary.label === "Réserver auprès de mon chauffeur";
+  const showSecondary = primary.label === bookLabel;
   const noDriver = !data.isLoading && drivers.length === 0;
 
   const shortcuts = [
-    { label: "Planifier", icon: CalendarClock, onClick: () => startRequest("later") },
     { label: "Mes courses", icon: Car, onClick: () => void navigate({ to: "/espace/courses" }) },
-    { label: "Mes chauffeurs", icon: Users, onClick: () => void navigate({ to: "/espace/chauffeurs" }) },
     {
-      label: "Contacter mon chauffeur",
+      label: "Mes chauffeurs",
+      icon: Users,
+      onClick: () => void navigate({ to: "/espace/chauffeurs" }),
+    },
+    {
+      label: "Contacter",
       icon: PhoneCall,
       onClick: () =>
         void (selectedDriver?.slug
           ? navigate({ to: "/chauffeur/$slug", params: { slug: selectedDriver.slug } })
           : navigate({ to: "/espace/chauffeurs" })),
     },
+    {
+      label: "Ajouter un chauffeur",
+      icon: UserPlus,
+      onClick: () => void navigate({ to: "/espace/chauffeurs" }),
+    },
   ];
 
+  // Contenu unique de la carte « Aujourd'hui » (hauteur stable, transition en fondu).
+  const today: { key: string; node: React.ReactNode } = data.isLoading
+    ? {
+        key: "loading",
+        node: (
+          <div className="mt-2 space-y-1.5">
+            <span className="block h-3.5 w-2/3 animate-pulse rounded bg-muted" />
+            <span className="block h-3 w-1/3 animate-pulse rounded bg-muted" />
+          </div>
+        ),
+      }
+    : activeRide
+      ? {
+          key: `active-${activeRide.id}`,
+          node: (
+            <TodayRow
+              title={RIDE_STATUS_LABELS[activeRide.status] ?? activeRide.status}
+              detail={`${driverName(activeRide.driver_id)} · ${activeRide.pickup_address}`}
+              action="Suivre ma course"
+              to={activeRide.id}
+              spinning
+            />
+          ),
+        }
+      : blocking
+        ? {
+            key: `blocking-${blocking.request_id}`,
+            node: (
+              <TodayRow
+                title="En attente de la réponse du chauffeur"
+                detail={`${blocking.driver_first_name ?? "Votre chauffeur"}${
+                  blockingCountdown ? ` · réponse sous ${blockingCountdown.label}` : ""
+                }`}
+                action="Suivre ma demande"
+                to={blocking.request_id}
+                spinning
+              />
+            ),
+          }
+        : pendingLocal
+          ? {
+              key: `pending-${pendingLocal.id}`,
+              node: (
+                <TodayRow
+                  title="En attente de la réponse du chauffeur"
+                  detail={driverName(pendingLocal.driver_id)}
+                  action="Suivre ma demande"
+                  to={pendingLocal.id}
+                  spinning
+                />
+              ),
+            }
+          : nextRide
+            ? {
+                key: `next-${nextRide.id}`,
+                node: (
+                  <TodayRow
+                    title={formatDateTime(nextRide.scheduled_at)}
+                    detail={`${driverName(nextRide.driver_id)} · ${nextRide.pickup_address}`}
+                    action="Voir la course"
+                    to={nextRide.id}
+                  />
+                ),
+              }
+            : {
+                key: "empty",
+                node: (
+                  <div className="mt-1 flex items-center justify-between gap-3">
+                    <p className="min-w-0 truncate text-[14px] font-semibold">
+                      Aucune course prévue
+                    </p>
+                    <Link to="/espace/courses" className="shrink-0 text-[13px] font-bold text-primary">
+                      Voir mon activité
+                    </Link>
+                  </div>
+                ),
+              };
 
   return (
     <div
-      className="flex h-[100dvh] flex-col overflow-hidden bg-muted/30"
+      className="relative isolate flex h-[100dvh] flex-col overflow-hidden bg-muted/30"
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
+      <ConnectionDecor />
+
       {/* 1. En-tête compact */}
-      <header className="relative shrink-0 px-4 pt-3 pb-1">
+      <header className="home-rise relative shrink-0 px-4 pt-3 pb-1">
         <div className="flex items-center justify-center">
           <BrandLogo to="/espace" size="sm" />
           <NotificationBell className="absolute top-3 right-3" />
@@ -227,122 +314,40 @@ function ClientHome() {
         </p>
       </header>
 
-      <main className="flex min-h-0 flex-1 flex-col gap-3 px-4 pb-[calc(4.75rem+env(safe-area-inset-bottom))]">
-        {/* 2 & 3. Chauffeur sélectionné */}
-        <section
-          className="relative flex min-h-0 flex-1 flex-col items-center justify-center"
-          onTouchStart={(e) => {
-            touchX.current = e.touches[0]?.clientX ?? null;
-          }}
-          onTouchEnd={(e) => {
-            const start = touchX.current;
-            touchX.current = null;
-            const end = e.changedTouches[0]?.clientX;
-            if (start == null || end == null) return;
-            const dx = end - start;
-            if (Math.abs(dx) > 48) go(dx < 0 ? 1 : -1);
-          }}
-        >
-          <div className="relative flex w-full max-w-xs items-center justify-center">
-            {drivers.length > 1 ? (
-              <button
-                type="button"
-                aria-label="Chauffeur précédent"
-                onClick={() => go(-1)}
-                className="absolute left-0 grid size-9 place-items-center rounded-full border border-primary/25 bg-card text-primary shadow-sm"
-              >
-                <ChevronLeft className="size-5" />
-              </button>
-            ) : null}
-
-            <div className="relative grid size-[clamp(9.5rem,34vw,12rem)] place-items-center rounded-full border border-primary/40 bg-primary/[0.06]">
-              <ConnectDecor />
-              {data.isLoading ? (
-                <span className="size-16 animate-pulse rounded-full bg-primary/15" />
-              ) : selectedDriver ? (
-                <div className="relative flex flex-col items-center px-4 text-center">
-                  <span
-                    className={`grid size-14 place-items-center rounded-full bg-primary/12 text-[17px] font-extrabold text-primary ${
-                      selectedDriver.available ? "animate-pulse" : ""
-                    }`}
-                  >
-                    {initials(selectedDriver.name)}
-                  </span>
-                  <p className="mt-1.5 line-clamp-1 text-[15px] font-extrabold">
-                    {selectedDriver.name}
-                  </p>
-                  <p
-                    className={`text-[12px] font-semibold ${
-                      selectedDriver.available ? "text-primary" : "text-muted-foreground"
-                    }`}
-                  >
-                    {selectedDriver.available ? "Disponible maintenant" : "Indisponible"}
-                  </p>
-                  <p className="line-clamp-1 text-[12px] text-muted-foreground">
-                    {selectedDriver.vehicle ?? "Véhicule non renseigné"}
-                  </p>
-                  {selectedDriver.slug ? (
-                    <Link
-                      to="/chauffeur/$slug"
-                      params={{ slug: selectedDriver.slug }}
-                      className="mt-0.5 text-[12px] font-bold text-primary underline underline-offset-2"
-                    >
-                      Voir le profil
-                    </Link>
-                  ) : null}
-                </div>
-              ) : (
-                <div className="relative px-6 text-center">
-                  <QrCode className="mx-auto size-6 text-primary" />
-                  <p className="mt-1.5 text-[13px] font-bold">Aucun chauffeur</p>
-                  <p className="text-[12px] text-muted-foreground">Scannez un QR code</p>
-                </div>
-              )}
-            </div>
-
-            {drivers.length > 1 ? (
-              <button
-                type="button"
-                aria-label="Chauffeur suivant"
-                onClick={() => go(1)}
-                className="absolute right-0 grid size-9 place-items-center rounded-full border border-primary/25 bg-card text-primary shadow-sm"
-              >
-                <ChevronRight className="size-5" />
-              </button>
-            ) : null}
-          </div>
-
-          {drivers.length > 1 ? (
-            <div className="mt-2.5 flex items-center gap-1.5">
-              {drivers.map((d, i) => (
-                <span
-                  key={d.id}
-                  className={`size-1.5 rounded-full transition-colors ${
-                    i === safeIndex ? "bg-primary" : "bg-primary/25"
-                  }`}
-                />
-              ))}
-            </div>
-          ) : null}
-        </section>
+      <main className="flex min-h-0 flex-1 flex-col justify-center gap-3 px-4 pb-[calc(4.75rem+env(safe-area-inset-bottom))]">
+        {/* 2 & 3. Carte du chauffeur sélectionné + carrousel */}
+        <div className="home-rise" style={{ animationDelay: "40ms" }}>
+          <DriverSpotlight
+            drivers={drivers}
+            index={safeIndex}
+            onIndexChange={setIndex}
+            loading={data.isLoading}
+          />
+        </div>
 
         {/* 4 & 5. Action principale + action secondaire */}
-        <section className="shrink-0 space-y-2">
+        <section className="home-rise shrink-0 space-y-2" style={{ animationDelay: "90ms" }}>
           {noDriver ? (
             <Link
               to="/espace/chauffeurs"
-              className="flex min-h-14 w-full items-center justify-center gap-2 rounded-3xl bg-primary text-[16px] font-extrabold text-primary-foreground shadow-[0_8px_20px_-14px_rgba(0,0,0,0.6)]"
+              className="group flex min-h-14 w-full items-center justify-center gap-2 rounded-3xl bg-primary text-[16px] font-extrabold text-primary-foreground shadow-[0_8px_20px_-14px_rgba(0,0,0,0.6)] transition-transform duration-200 active:scale-[0.985]"
             >
-              Ajouter un chauffeur <ArrowRight className="size-5" />
+              Ajouter un chauffeur
+              <ArrowRight className="size-5 transition-transform duration-200 group-active:translate-x-1" />
             </Link>
           ) : (
             <button
               type="button"
-              onClick={primary.onClick}
+              onClick={() => {
+                haptic();
+                primary.onClick();
+              }}
               disabled={data.isLoading}
-              className="flex min-h-14 w-full items-center justify-center gap-2 rounded-3xl bg-primary text-[16px] font-extrabold text-primary-foreground shadow-[0_8px_20px_-14px_rgba(0,0,0,0.6)] transition-transform active:scale-[0.99] disabled:opacity-70"
+              className="group flex min-h-14 w-full items-center justify-center gap-2 rounded-3xl bg-primary text-[16px] font-extrabold text-primary-foreground shadow-[0_8px_20px_-14px_rgba(0,0,0,0.6)] transition-all duration-200 active:scale-[0.985] active:shadow-none disabled:opacity-70"
             >
-              {primary.label} <ArrowRight className="size-5" />
+              {data.isLoading ? <Loader2 className="size-5 animate-spin" /> : null}
+              {primary.label}
+              <ArrowRight className="size-5 transition-transform duration-200 group-active:translate-x-1" />
             </button>
           )}
 
@@ -350,7 +355,7 @@ function ClientHome() {
             <button
               type="button"
               onClick={() => startRequest("later")}
-              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-card text-[14px] font-bold text-primary"
+              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-card text-[14px] font-bold text-primary transition-transform duration-200 active:scale-[0.985]"
             >
               <CalendarClock className="size-4" /> Planifier avec ce chauffeur
             </button>
@@ -358,83 +363,43 @@ function ClientHome() {
         </section>
 
         {/* 6. Raccourcis fixes */}
-        <section className="grid shrink-0 grid-cols-2 gap-2">
+        <section className="home-rise grid shrink-0 grid-cols-2 gap-2" style={{ animationDelay: "140ms" }}>
           {shortcuts.map((s) => (
             <button
               key={s.label}
               type="button"
-              onClick={s.onClick}
-              className="flex min-h-[3.25rem] items-center gap-2 rounded-2xl border border-primary/20 bg-card px-3 text-left shadow-[0_4px_14px_-12px_rgba(0,0,0,0.5)]"
+              onClick={() => {
+                haptic();
+                s.onClick();
+              }}
+              className="group flex min-h-[3.25rem] items-center gap-2 rounded-2xl border border-primary/20 bg-card px-3 text-left shadow-[0_4px_14px_-12px_rgba(0,0,0,0.5)] transition-colors duration-200 active:bg-primary/5"
             >
-              <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+              <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary transition-transform duration-200 group-active:scale-105">
                 <s.icon className="size-4" />
               </span>
-              <span className="min-w-0 flex-1 truncate text-[13px] font-bold">{s.label}</span>
+              <span className="min-w-0 flex-1 text-[13px] leading-tight font-bold">{s.label}</span>
               <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
             </button>
           ))}
         </section>
 
         {/* 7. Zone contextuelle « Aujourd'hui » */}
-        <section className="flex h-[5.5rem] shrink-0 flex-col justify-center rounded-2xl border border-border/70 bg-card px-4 shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]">
+        <section
+          className="home-rise flex h-[5.5rem] shrink-0 flex-col justify-center rounded-2xl border border-border/70 bg-card px-4 shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]"
+          style={{ animationDelay: "190ms" }}
+        >
           <p className="text-[11px] font-bold tracking-wide text-muted-foreground uppercase">
             Aujourd'hui
           </p>
-          {data.isLoading ? (
-            <div className="mt-2 space-y-1.5">
-              <span className="block h-3.5 w-2/3 animate-pulse rounded bg-muted" />
-              <span className="block h-3 w-1/3 animate-pulse rounded bg-muted" />
-            </div>
-          ) : activeRide ? (
-            <TodayRow
-              title={RIDE_STATUS_LABELS[activeRide.status] ?? activeRide.status}
-              detail={`${driverName(activeRide.driver_id)} · ${activeRide.pickup_address}`}
-              action="Suivre ma course"
-              to={activeRide.id}
-              spinning
-            />
-          ) : blocking ? (
-            <TodayRow
-              title="En attente de la réponse du chauffeur"
-
-              detail={`${blocking.driver_first_name ?? "Votre chauffeur"}${
-                blockingCountdown ? ` · réponse sous ${blockingCountdown.label}` : ""
-              }`}
-              action="Suivre ma demande"
-              to={blocking.request_id}
-              spinning
-            />
-          ) : pendingLocal ? (
-            <TodayRow
-              title="En attente de la réponse du chauffeur"
-              detail={driverName(pendingLocal.driver_id)}
-              action="Suivre ma demande"
-              to={pendingLocal.id}
-              spinning
-            />
-          ) : nextRide ? (
-            <TodayRow
-              title={formatDateTime(nextRide.scheduled_at)}
-              detail={`${driverName(nextRide.driver_id)} · ${nextRide.pickup_address}`}
-              action="Voir la course"
-              to={nextRide.id}
-            />
-          ) : (
-            <div className="mt-1 flex items-center justify-between gap-3">
-              <p className="min-w-0 truncate text-[14px] font-semibold">Aucune course prévue</p>
-              <Link
-                to="/espace/courses"
-                className="shrink-0 text-[13px] font-bold text-primary"
-              >
-                Voir mon activité
-              </Link>
-            </div>
-          )}
+          <div key={today.key} className="today-swap">
+            {today.node}
+          </div>
         </section>
       </main>
     </div>
   );
 }
+
 
 function TodayRow({
   title,
