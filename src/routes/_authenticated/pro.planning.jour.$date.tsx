@@ -436,8 +436,9 @@ function Timeline({ plan, onPick }: { plan: DayPlan; onPick: (e: DayEvent) => vo
               <button
                 key={ev.id}
                 onClick={() => onPick(ev)}
+                title={`${minutesToTime(ev.startMin)} — ${ev.clientLabel ?? "Client non renseigné"}`}
                 className={cn(
-                  "tap-active absolute right-0 left-0 overflow-hidden rounded-lg border px-3 py-2 text-left text-xs transition-colors",
+                  "tap-active absolute right-0 left-0 min-w-0 max-w-full overflow-hidden rounded-lg border px-3 py-2 text-left text-xs transition-colors",
                   ev.kind === "request"
                     ? "border-warning/40 bg-warning/10"
                     : ev.kind === "block"
@@ -449,16 +450,19 @@ function Timeline({ plan, onPick }: { plan: DayPlan; onPick: (e: DayEvent) => vo
                 )}
                 style={style}
               >
-                <p className="truncate font-semibold">
+                {/* Heure puis nom du client : identification immédiate sans ouvrir le détail. */}
+                <p className="min-w-0 font-semibold [overflow-wrap:anywhere]">
                   {minutesToTime(ev.startMin)}
-                  {s.estimated ? " · fin non estimée" : ` – ${minutesToTime(s.endMin)}`} ·{" "}
-                  {ev.clientLabel ?? "Client"}
+                  {s.estimated ? "" : ` – ${minutesToTime(s.endMin)}`}
+                  {" — "}
+                  {ev.clientLabel ?? "Client non renseigné"}
                 </p>
                 <p className="truncate text-muted-foreground">
                   {ev.pickup} → {ev.dropoff}
                 </p>
                 <p className="truncate text-muted-foreground">
                   {ev.kind === "request" ? "Demande en attente" : ev.flash ? "Flash" : "Planifiée"}
+                  {s.estimated ? " · fin non estimée" : ""}
                   {ev.durationMin !== null ? ` · ${formatDuration(ev.durationMin)}` : " · Durée non estimée"}
                   {ev.price !== null ? ` · ${formatEuro(ev.price)}` : ""}
                 </p>
