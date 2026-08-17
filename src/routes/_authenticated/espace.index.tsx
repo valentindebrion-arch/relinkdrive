@@ -1,77 +1,81 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { toast } from "sonner";
-import { useServerFn } from "@tanstack/react-start";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
   CalendarClock,
   CalendarDays,
+  ChevronLeft,
   ChevronRight,
-  Clock3,
+  Car,
+  LifeBuoy,
   Loader2,
-  LocateFixed,
   QrCode,
-  UserRound,
+  Users,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { BrandLogo } from "@/components/BrandLogo";
+import { NotificationBell } from "@/components/NotificationBell";
 import { RIDE_STATUS_LABELS, formatDateTime } from "@/lib/labels";
 import { useBlockingImmediate } from "@/lib/immediate-request";
 import { useCountdown } from "@/components/ExpiryCountdown";
-import { AddressSearchPanel, pushRecentAddress } from "@/components/request/AddressSearchPanel";
-import { DriverPickerSheet } from "@/components/request/DriverPickerSheet";
-import { ScheduleSheet } from "@/components/request/ScheduleSheet";
-import { reverseGeocode } from "@/lib/route-estimate.functions";
 import { saveRequestDraft } from "@/lib/request-draft";
 
 export const Route = createFileRoute("/_authenticated/espace/")({
   component: ClientHome,
 });
 
-/** Décor abstrait de la zone supérieure : formes douces, aucune carte. */
-function HeroDecor() {
+type HomeDriver = {
+  id: string;
+  name: string;
+  available: boolean;
+  vehicle: string | null;
+  zone: string | null;
+  slug: string | null;
+  favorite: boolean;
+};
+
+function initials(name: string) {
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-      <span className="absolute -top-16 -right-10 size-56 rounded-full bg-primary-foreground/10" />
-      <span className="absolute -bottom-24 -left-16 size-64 rounded-full bg-primary-foreground/[0.08]" />
-      <span className="absolute top-10 left-1/2 h-px w-2/3 -translate-x-1/2 rounded-full bg-primary-foreground/20" />
-      <svg
-        viewBox="0 0 400 120"
-        className="absolute inset-x-0 bottom-0 h-24 w-full text-primary-foreground/15"
-        preserveAspectRatio="none"
-      >
-        <path
-          d="M0 90 C 90 40, 150 110, 240 60 S 360 20, 400 45"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeDasharray="10 12"
-        />
-      </svg>
-    </div>
+    name
+      .split(" ")
+      .map((w) => w[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "?"
+  );
+}
+
+/** Lignes de connexion décoratives derrière le chauffeur (non cliquables). */
+function ConnectDecor() {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 240 240"
+      className="pointer-events-none absolute inset-0 h-full w-full text-primary/25"
+    >
+      <circle cx="120" cy="120" r="112" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="4 8" />
+      <path d="M8 120 H48" stroke="currentColor" strokeWidth="1" />
+      <path d="M192 120 H232" stroke="currentColor" strokeWidth="1" />
+      <path d="M120 8 V44" stroke="currentColor" strokeWidth="1" />
+      <circle cx="18" cy="120" r="3" fill="currentColor" />
+      <circle cx="222" cy="120" r="3" fill="currentColor" />
+      <circle cx="120" cy="14" r="3" fill="currentColor" />
+    </svg>
   );
 }
 
 function ClientHome() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const geocodeFn = useServerFn(reverseGeocode);
 
   const blocking = useBlockingImmediate().data ?? null;
   const blockingCountdown = useCountdown(blocking?.response_deadline ?? null);
 
-  const [driverId, setDriverId] = useState("");
-  const [pickup, setPickup] = useState("");
-  const [dropoff, setDropoff] = useState("");
-  const [whenMode, setWhenMode] = useState<"now" | "later">("now");
-  const [scheduledAt, setScheduledAt] = useState("");
-  const [searchField, setSearchField] = useState<"pickup" | "dropoff" | null>(null);
-  const [driverPickerOpen, setDriverPickerOpen] = useState(false);
-  const [scheduleOpen, setScheduleOpen] = useState(false);
-  const [locating, setLocating] = useState(false);
+  const [index, setIndex] = useState(0);
+  const touchX = useRef<number | null>(null);
 
   const data = useQuery({
     queryKey: ["client-home", user?.id],
@@ -96,14 +100,7 @@ function ClientHome() {
           .order("scheduled_at", { ascending: false }),
       ]);
       const ids = (conns ?? []).map((c) => c.driver_id);
-      let drivers: {
-        id: string;
-        name: string;
-        available: boolean;
-        vehicle: string | null;
-        zone: string | null;
-        favorite: boolean;
-      }[] = [];
+      let drivers: HomeDriver[] = [];
       if (ids.length) {
         const [{ data: profiles }, { data: dprofiles }, { data: vehicles }] = await Promise.all([
           supabase.from("profiles").select("id, full_name").in("id", ids),
@@ -127,10 +124,11 @@ function ClientHome() {
             (vehicles ?? []).find((v) => v.driver_id === id);
           return {
             id,
-            name: profile?.full_name || "Chauffeur",
+            name: dp?.business_name || profile?.full_name || "Chauffeur",
             available: dp?.on_duty ?? false,
             vehicle: car ? [car.brand, car.model].filter(Boolean).join(" ") || null : null,
             zone: dp?.zone ?? null,
+            slug: dp?.slug ?? null,
             favorite: id === favoriteId,
           };
         });
@@ -143,8 +141,17 @@ function ClientHome() {
   const rides = data.data?.rides ?? [];
   const requests = data.data?.requests ?? [];
 
-  const selectedDriver =
-    drivers.find((d) => d.id === driverId) ?? drivers.find((d) => d.favorite) ?? drivers[0] ?? null;
+  // Chauffeur favori mis en avant au premier affichage.
+  const primed = useRef(false);
+  useEffect(() => {
+    if (primed.current || !drivers.length) return;
+    primed.current = true;
+    const fav = drivers.findIndex((d) => d.favorite);
+    if (fav > 0) setIndex(fav);
+  }, [drivers]);
+
+  const safeIndex = drivers.length ? Math.min(index, drivers.length - 1) : 0;
+  const selectedDriver = drivers[safeIndex] ?? null;
 
   const activeRide = rides.find((r) =>
     ["driver_enroute", "driver_arrived", "client_onboard", "in_progress"].includes(r.status),
@@ -155,7 +162,8 @@ function ClientHome() {
         new Date(r.scheduled_at) >= new Date() && !["cancelled", "completed"].includes(r.status),
     )
     .sort((a, b) => +new Date(a.scheduled_at) - +new Date(b.scheduled_at))[0];
-  const pendingRequest = requests.find(
+  
+  const pendingLocal = requests.find(
     (r) =>
       ["new", "reviewing", "proposal_sent", "awaiting_client"].includes(r.status) &&
       !rides.some((ride) => ride.request_id === r.id),
@@ -165,379 +173,315 @@ function ClientHome() {
   const driverName = (id: string | null | undefined) =>
     drivers.find((d) => d.id === id)?.name.split(" ")[0] ?? "Votre chauffeur";
 
-  function goToForm() {
+  function go(delta: number) {
+    if (drivers.length < 2) return;
+    setIndex((i) => (i + delta + drivers.length) % drivers.length);
+  }
+
+  function startRequest(mode: "now" | "later") {
     saveRequestDraft({
       driver_id: selectedDriver?.id ?? "",
-      pickup_address: pickup,
-      dropoff_address: dropoff,
-      scheduled_at: scheduledAt,
-      whenMode,
-      pickupOk: !!pickup,
-      dropoffOk: !!dropoff,
+      pickup_address: "",
+      dropoff_address: "",
+      scheduled_at: "",
+      whenMode: mode,
+      pickupOk: false,
+      dropoffOk: false,
     });
     void navigate({ to: "/espace/demandes" });
   }
 
-  function useMyLocation() {
-    if (typeof navigator === "undefined" || !navigator.geolocation) {
-      toast.error("Votre position n'est pas accessible. Saisissez votre lieu de départ manuellement.");
-      return;
-    }
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const res = await geocodeFn({
-            data: { lat: pos.coords.latitude, lng: pos.coords.longitude },
-          });
-          setPickup(res.address);
-          pushRecentAddress(res.address);
-          setSearchField(null);
-        } catch {
-          toast.error("Adresse introuvable à votre position. Saisissez-la manuellement.");
-        } finally {
-          setLocating(false);
+  /** Action principale unique, déduite de la situation courante. */
+  const primary: { label: string; onClick: () => void } = activeRide
+    ? {
+        label: "Suivre ma course",
+        onClick: () => void navigate({ to: "/espace/suivi/$id", params: { id: activeRide.id } }),
+      }
+    : blocking
+      ? {
+          label: "Suivre ma demande",
+          onClick: () =>
+            void navigate({ to: "/espace/suivi/$id", params: { id: blocking.request_id } }),
         }
-      },
-      () => {
-        setLocating(false);
-        toast.error(
-          "Votre position n'est pas accessible. Saisissez votre lieu de départ manuellement.",
-        );
-      },
-      { timeout: 8000 },
-    );
-  }
+      : pendingLocal
+        ? {
+            label: "Suivre ma demande",
+            onClick: () =>
+              void navigate({ to: "/espace/suivi/$id", params: { id: pendingLocal.id } }),
+          }
+        : nextRide
+          ? {
+              label: "Voir ma prochaine course",
+              onClick: () =>
+                void navigate({ to: "/espace/suivi/$id", params: { id: nextRide.id } }),
+            }
+          : selectedDriver?.available
+            ? { label: "Commander une course", onClick: () => startRequest("now") }
+            : { label: "Planifier un trajet", onClick: () => startRequest("later") };
 
+  const showSecondary = primary.label === "Commander une course";
   const noDriver = !data.isLoading && drivers.length === 0;
 
+  const shortcuts = [
+    { label: "Planifier", icon: CalendarClock, onClick: () => startRequest("later") },
+    { label: "Mes courses", icon: Car, onClick: () => void navigate({ to: "/espace/courses" }) },
+    { label: "Mes chauffeurs", icon: Users, onClick: () => void navigate({ to: "/espace/chauffeurs" }) },
+    { label: "Assistance", icon: LifeBuoy, onClick: () => void navigate({ to: "/aide" }) },
+  ];
+
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-muted/40 pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
-      {/* Zone supérieure verte */}
-      <header
-        className="relative shrink-0 overflow-hidden bg-primary px-4 pb-4 text-primary-foreground"
-        style={{ paddingTop: "calc(env(safe-area-inset-top) + 1rem)" }}
-      >
-        <HeroDecor />
-        <div className="relative flex justify-center">
-          <div className="rounded-full bg-card px-3.5 py-1.5 shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
-            <BrandLogo to="/espace" size="sm" />
-          </div>
+    <div
+      className="flex h-[100dvh] flex-col overflow-hidden bg-muted/30"
+      style={{ paddingTop: "env(safe-area-inset-top)" }}
+    >
+      {/* 1. En-tête compact */}
+      <header className="relative shrink-0 px-4 pt-3 pb-1">
+        <div className="flex items-center justify-center">
+          <BrandLogo to="/espace" size="sm" />
+          <NotificationBell className="absolute top-3 right-3" />
         </div>
-        <div className="relative mt-6">
-          <p className="text-[15px] font-semibold text-primary-foreground/80">
-            {firstName ? `Bonjour ${firstName}` : "Bonjour"}
-          </p>
-          <h1 className="mt-1 text-[26px] leading-tight font-extrabold tracking-tight">
-            Où souhaitez-vous aller ?
-          </h1>
-          <p className="mt-1.5 text-[13px] text-primary-foreground/80">
-            Réservez votre chauffeur de confiance en quelques instants.
-          </p>
-        </div>
+        <p className="mt-2 text-center text-[15px] font-semibold">
+          {firstName ? `Bonjour ${firstName} 👋` : "Bonjour 👋"}
+        </p>
       </header>
 
-      {/* Contenu principal : carte de réservation détachée, centrée, flottante */}
-      <main className="flex-1 grid grid-rows-[28px_minmax(0,0fr)_auto_minmax(0,1fr)_32px] place-items-center overflow-y-auto px-4">
-        <div className="col-start-1 row-start-3 w-full max-w-md space-y-3">
-        {/* Course active en priorité */}
-        {activeRide ? (
-          <Link
-            to="/espace/suivi/$id"
-            params={{ id: activeRide.id }}
-            className="block rounded-3xl border border-primary/30 bg-card p-4 shadow-[0_12px_36px_-24px_rgba(0,0,0,0.5)]"
-          >
-            <div className="flex items-center gap-2">
-              <span className="grid size-8 place-items-center rounded-full bg-primary/15">
-                <Loader2 className="size-4 animate-spin text-primary" />
-              </span>
-              <p className="text-[15px] font-extrabold">
-                {RIDE_STATUS_LABELS[activeRide.status] ?? activeRide.status}
-              </p>
-            </div>
-            <p className="mt-2 text-[13px] text-muted-foreground">
-              {driverName(activeRide.driver_id)} · {formatDateTime(activeRide.scheduled_at)}
-            </p>
-            <p className="mt-1 truncate text-[13px] font-semibold">
-              {activeRide.pickup_address} → {activeRide.dropoff_address}
-            </p>
-            <span className="mt-3 flex items-center justify-center gap-1.5 rounded-2xl bg-primary py-2.5 text-[14px] font-bold text-primary-foreground">
-              Voir ma course <ArrowRight className="size-4" />
-            </span>
-          </Link>
-        ) : null}
-
-        {/* Demande « Maintenant » en attente */}
-        {blocking ? (
-          <section className="rounded-3xl border border-border/70 bg-card p-4 shadow-[0_12px_36px_-24px_rgba(0,0,0,0.5)]">
-            <p className="text-[15px] font-extrabold">Votre demande est en attente</p>
-            <p className="mt-1 text-[13px] text-muted-foreground">
-              {blocking.driver_first_name ?? "Votre chauffeur"} n'a pas encore répondu.
-            </p>
-            {blockingCountdown ? (
-              <p className="mt-2 text-[13px] font-bold tabular-nums text-primary">
-                Réponse sous {blockingCountdown.label}
-              </p>
+      <main className="flex min-h-0 flex-1 flex-col gap-3 px-4 pb-[calc(4.75rem+env(safe-area-inset-bottom))]">
+        {/* 2 & 3. Chauffeur sélectionné */}
+        <section
+          className="relative flex min-h-0 flex-1 flex-col items-center justify-center"
+          onTouchStart={(e) => {
+            touchX.current = e.touches[0]?.clientX ?? null;
+          }}
+          onTouchEnd={(e) => {
+            const start = touchX.current;
+            touchX.current = null;
+            const end = e.changedTouches[0]?.clientX;
+            if (start == null || end == null) return;
+            const dx = end - start;
+            if (Math.abs(dx) > 48) go(dx < 0 ? 1 : -1);
+          }}
+        >
+          <div className="relative flex w-full max-w-xs items-center justify-center">
+            {drivers.length > 1 ? (
+              <button
+                type="button"
+                aria-label="Chauffeur précédent"
+                onClick={() => go(-1)}
+                className="absolute left-0 grid size-9 place-items-center rounded-full border border-primary/25 bg-card text-primary shadow-sm"
+              >
+                <ChevronLeft className="size-5" />
+              </button>
             ) : null}
-            <Link
-              to="/espace/suivi/$id"
-              params={{ id: blocking.request_id }}
-              className="mt-3 flex items-center justify-center gap-1.5 rounded-2xl bg-primary py-3 text-[15px] font-bold text-primary-foreground"
-            >
-              Suivre ma demande <ArrowRight className="size-4" />
-            </Link>
-            <p className="mt-2 text-center text-[12px] text-muted-foreground">
-              Une nouvelle course « Maintenant » sera possible après réponse, annulation ou
-              expiration.
-            </p>
-          </section>
-        ) : noDriver ? (
-          /* Aucun chauffeur enregistré */
-          <section className="rounded-3xl border border-border/70 bg-card p-5 shadow-[0_12px_36px_-24px_rgba(0,0,0,0.5)]">
-            <p className="text-[17px] font-extrabold">Ajoutez votre premier chauffeur</p>
-            <p className="mt-1.5 text-[13px] text-muted-foreground">
-              Scannez son QR code ou utilisez son lien pour pouvoir lui demander une course.
-            </p>
-            <div className="mt-4 grid gap-2">
-              <Link
-                to="/espace/chauffeurs"
-                className="flex items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-[15px] font-bold text-primary-foreground"
-              >
-                <QrCode className="size-4" /> Scanner un QR code
-              </Link>
-              <Link
-                to="/espace/chauffeurs"
-                className="flex items-center justify-center gap-2 rounded-2xl border border-border py-3 text-[15px] font-bold"
-              >
-                <UserRound className="size-4" /> Ajouter un chauffeur
-              </Link>
-            </div>
-          </section>
-        ) : (
-          /* Bloc de réservation */
-          <section className="rounded-3xl border border-border/70 bg-card p-4 shadow-[0_14px_40px_-24px_rgba(0,0,0,0.55)]">
-            <button
-              type="button"
-              onClick={() => setDriverPickerOpen(true)}
-              className="flex w-full items-center gap-3 rounded-2xl bg-muted/60 p-3 text-left"
-            >
-              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/12 text-[14px] font-extrabold text-primary">
-                {selectedDriver
-                  ? selectedDriver.name
-                      .split(" ")
-                      .map((w) => w[0])
-                      .slice(0, 2)
-                      .join("")
-                      .toUpperCase()
-                  : "?"}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[15px] font-bold">
-                  {selectedDriver ? selectedDriver.name.split(" ")[0] : "Choisir un chauffeur"}
-                </span>
-                <span className="block truncate text-[12px] text-muted-foreground">
-                  {selectedDriver
-                    ? [
-                        selectedDriver.available ? "Disponible" : "Hors service",
-                        selectedDriver.vehicle,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")
-                    : "Obligatoire pour envoyer une demande"}
-                </span>
-              </span>
-              <span className="shrink-0 text-[13px] font-bold text-primary">
-                {selectedDriver ? "Modifier" : "Choisir"}
-              </span>
-            </button>
 
-            {/* Départ / destination reliés par une ligne verticale */}
-            <div className="relative mt-3 pl-6">
-              <span className="absolute top-5 left-[5px] h-[calc(100%-2.5rem)] w-px bg-primary/30" />
-              <button
-                type="button"
-                onClick={() => setSearchField("pickup")}
-                className="relative block w-full py-2 text-left"
-              >
-                <span className="absolute top-3.5 -left-6 size-2.5 rounded-full bg-primary" />
-                <span className="block text-[11px] font-bold tracking-wide text-muted-foreground uppercase">
-                  Départ
-                </span>
-                <span
-                  className={`block truncate text-[15px] font-semibold ${pickup ? "" : "text-muted-foreground"}`}
-                >
-                  {pickup || "Votre position ou une adresse"}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setSearchField("dropoff")}
-                className="relative block w-full py-2 text-left"
-              >
-                <span className="absolute top-3.5 -left-6 size-2.5 rounded-[3px] bg-foreground" />
-                <span className="block text-[11px] font-bold tracking-wide text-muted-foreground uppercase">
-                  Destination
-                </span>
-                <span
-                  className={`block truncate text-[15px] font-semibold ${dropoff ? "" : "text-muted-foreground"}`}
-                >
-                  {dropoff || "Où souhaitez-vous aller ?"}
-                </span>
-              </button>
-            </div>
-
-            <button
-              type="button"
-              onClick={useMyLocation}
-              className="mt-1 flex items-center gap-1.5 text-[13px] font-bold text-primary"
-            >
-              {locating ? (
-                <Loader2 className="size-3.5 animate-spin" />
+            <div className="relative grid size-[clamp(9.5rem,34vw,12rem)] place-items-center rounded-full border border-primary/40 bg-primary/[0.06]">
+              <ConnectDecor />
+              {data.isLoading ? (
+                <span className="size-16 animate-pulse rounded-full bg-primary/15" />
+              ) : selectedDriver ? (
+                <div className="relative flex flex-col items-center px-4 text-center">
+                  <span
+                    className={`grid size-14 place-items-center rounded-full bg-primary/12 text-[17px] font-extrabold text-primary ${
+                      selectedDriver.available ? "animate-pulse" : ""
+                    }`}
+                  >
+                    {initials(selectedDriver.name)}
+                  </span>
+                  <p className="mt-1.5 line-clamp-1 text-[15px] font-extrabold">
+                    {selectedDriver.name}
+                  </p>
+                  <p
+                    className={`text-[12px] font-semibold ${
+                      selectedDriver.available ? "text-primary" : "text-muted-foreground"
+                    }`}
+                  >
+                    {selectedDriver.available ? "Disponible maintenant" : "Indisponible"}
+                  </p>
+                  <p className="line-clamp-1 text-[12px] text-muted-foreground">
+                    {selectedDriver.vehicle ?? "Véhicule non renseigné"}
+                  </p>
+                  {selectedDriver.slug ? (
+                    <Link
+                      to="/chauffeur/$slug"
+                      params={{ slug: selectedDriver.slug }}
+                      className="mt-0.5 text-[12px] font-bold text-primary underline underline-offset-2"
+                    >
+                      Voir le profil
+                    </Link>
+                  ) : null}
+                </div>
               ) : (
-                <LocateFixed className="size-3.5" />
+                <div className="relative px-6 text-center">
+                  <QrCode className="mx-auto size-6 text-primary" />
+                  <p className="mt-1.5 text-[13px] font-bold">Aucun chauffeur</p>
+                  <p className="text-[12px] text-muted-foreground">Scannez un QR code</p>
+                </div>
               )}
-              Utiliser ma position
-            </button>
+            </div>
 
-            <div className="mt-3 grid grid-cols-2 gap-1 rounded-2xl bg-muted p-1">
-              {(
-                [
-                  { key: "now", label: "Maintenant", icon: Clock3 },
-                  { key: "later", label: "Planifier", icon: CalendarClock },
-                ] as const
-              ).map((opt) => (
-                <button
-                  key={opt.key}
-                  type="button"
-                  onClick={() => {
-                    setWhenMode(opt.key);
-                    if (opt.key === "later" && selectedDriver && pickup && dropoff) {
-                      setScheduleOpen(true);
-                    }
-                  }}
-                  className={`flex h-10 items-center justify-center gap-1.5 rounded-xl text-[14px] font-bold transition-colors ${
-                    whenMode === opt.key
-                      ? "bg-card text-foreground shadow-sm"
-                      : "text-muted-foreground"
+            {drivers.length > 1 ? (
+              <button
+                type="button"
+                aria-label="Chauffeur suivant"
+                onClick={() => go(1)}
+                className="absolute right-0 grid size-9 place-items-center rounded-full border border-primary/25 bg-card text-primary shadow-sm"
+              >
+                <ChevronRight className="size-5" />
+              </button>
+            ) : null}
+          </div>
+
+          {drivers.length > 1 ? (
+            <div className="mt-2.5 flex items-center gap-1.5">
+              {drivers.map((d, i) => (
+                <span
+                  key={d.id}
+                  className={`size-1.5 rounded-full transition-colors ${
+                    i === safeIndex ? "bg-primary" : "bg-primary/25"
                   }`}
-                >
-                  <opt.icon className="size-4" />
-                  {opt.label}
-                </button>
+                />
               ))}
             </div>
-            {whenMode === "later" && scheduledAt ? (
-              <p className="mt-2 text-center text-[13px] font-semibold text-primary">
-                {formatDateTime(new Date(scheduledAt).toISOString())}
-              </p>
-            ) : null}
+          ) : null}
+        </section>
 
+        {/* 4 & 5. Action principale + action secondaire */}
+        <section className="shrink-0 space-y-2">
+          {noDriver ? (
+            <Link
+              to="/espace/chauffeurs"
+              className="flex min-h-14 w-full items-center justify-center gap-2 rounded-3xl bg-primary text-[16px] font-extrabold text-primary-foreground shadow-[0_8px_20px_-14px_rgba(0,0,0,0.6)]"
+            >
+              Ajouter un chauffeur <ArrowRight className="size-5" />
+            </Link>
+          ) : (
             <button
               type="button"
-              onClick={goToForm}
-              className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 text-[15px] font-extrabold text-primary-foreground transition-transform active:scale-[0.99]"
+              onClick={primary.onClick}
+              disabled={data.isLoading}
+              className="flex min-h-14 w-full items-center justify-center gap-2 rounded-3xl bg-primary text-[16px] font-extrabold text-primary-foreground shadow-[0_8px_20px_-14px_rgba(0,0,0,0.6)] transition-transform active:scale-[0.99] disabled:opacity-70"
             >
-              Estimer ma course <ArrowRight className="size-4" />
+              {primary.label} <ArrowRight className="size-5" />
             </button>
-          </section>
-        )}
+          )}
 
-        {/* Prochaine course planifiée */}
-        {!activeRide && nextRide ? (
-          <Link
-            to="/espace/suivi/$id"
-            params={{ id: nextRide.id }}
-            className="block rounded-3xl border border-border/70 bg-card p-4 shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)]"
-          >
-            <p className="text-[13px] font-bold tracking-wide text-muted-foreground uppercase">
-              Votre prochaine course
-            </p>
-            <p className="mt-1.5 flex items-center gap-1.5 text-[15px] font-extrabold">
-              <CalendarDays className="size-4 text-primary" />
-              {formatDateTime(nextRide.scheduled_at)}
-            </p>
-            <p className="mt-1 text-[13px] text-muted-foreground">
-              {driverName(nextRide.driver_id)}
-            </p>
-            <p className="mt-1 truncate text-[13px] font-semibold">
-              {nextRide.pickup_address} → {nextRide.dropoff_address}
-            </p>
-            <span className="mt-2 flex items-center gap-1 text-[13px] font-bold text-primary">
-              Voir la course <ChevronRight className="size-4" />
-            </span>
-          </Link>
-        ) : null}
+          {showSecondary ? (
+            <button
+              type="button"
+              onClick={() => startRequest("later")}
+              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-card text-[14px] font-bold text-primary"
+            >
+              <CalendarClock className="size-4" /> Planifier un trajet
+            </button>
+          ) : null}
+        </section>
 
-        {pendingRequest && !blocking ? (
-          <Link
-            to="/espace/suivi/$id"
-            params={{ id: pendingRequest.id }}
-            className="flex items-center gap-2 rounded-3xl border border-border/70 bg-card p-4 text-[14px] font-semibold shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)]"
-          >
-            <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
-            <span className="min-w-0 flex-1 truncate">Demande envoyée · en attente de réponse</span>
-            <ChevronRight className="size-4 shrink-0 text-primary" />
-          </Link>
-        ) : null}
+        {/* 6. Raccourcis fixes */}
+        <section className="grid shrink-0 grid-cols-2 gap-2">
+          {shortcuts.map((s) => (
+            <button
+              key={s.label}
+              type="button"
+              onClick={s.onClick}
+              className="flex min-h-[3.25rem] items-center gap-2 rounded-2xl border border-primary/20 bg-card px-3 text-left shadow-[0_4px_14px_-12px_rgba(0,0,0,0.5)]"
+            >
+              <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                <s.icon className="size-4" />
+              </span>
+              <span className="min-w-0 flex-1 truncate text-[13px] font-bold">{s.label}</span>
+              <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+            </button>
+          ))}
+        </section>
 
-        </div>
+        {/* 7. Zone contextuelle « Aujourd'hui » */}
+        <section className="flex h-[5.5rem] shrink-0 flex-col justify-center rounded-2xl border border-border/70 bg-card px-4 shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]">
+          <p className="text-[11px] font-bold tracking-wide text-muted-foreground uppercase">
+            Aujourd'hui
+          </p>
+          {data.isLoading ? (
+            <div className="mt-2 space-y-1.5">
+              <span className="block h-3.5 w-2/3 animate-pulse rounded bg-muted" />
+              <span className="block h-3 w-1/3 animate-pulse rounded bg-muted" />
+            </div>
+          ) : activeRide ? (
+            <TodayRow
+              title={RIDE_STATUS_LABELS[activeRide.status] ?? activeRide.status}
+              detail={`${driverName(activeRide.driver_id)} · ${activeRide.pickup_address}`}
+              action="Suivre ma course"
+              to={activeRide.id}
+              spinning
+            />
+          ) : blocking ? (
+            <TodayRow
+              title="Demande en attente"
+              detail={`${blocking.driver_first_name ?? "Votre chauffeur"}${
+                blockingCountdown ? ` · réponse sous ${blockingCountdown.label}` : ""
+              }`}
+              action="Suivre ma demande"
+              to={blocking.request_id}
+              spinning
+            />
+          ) : pendingLocal ? (
+            <TodayRow
+              title="Demande en attente"
+              detail={driverName(pendingLocal.driver_id)}
+              action="Suivre ma demande"
+              to={pendingLocal.id}
+              spinning
+            />
+          ) : nextRide ? (
+            <TodayRow
+              title={formatDateTime(nextRide.scheduled_at)}
+              detail={`${driverName(nextRide.driver_id)} · ${nextRide.pickup_address}`}
+              action="Voir la course"
+              to={nextRide.id}
+            />
+          ) : (
+            <div className="mt-1 flex items-center justify-between gap-3">
+              <p className="min-w-0 truncate text-[14px] font-semibold">Aucune course prévue</p>
+              <Link
+                to="/espace/courses"
+                className="shrink-0 text-[13px] font-bold text-primary"
+              >
+                Voir mon activité
+              </Link>
+            </div>
+          )}
+        </section>
       </main>
+    </div>
+  );
+}
 
-      {searchField ? (
-        <AddressSearchPanel
-          field={searchField}
-          initialValue={searchField === "pickup" ? pickup : dropoff}
-          locating={locating}
-          {...(searchField === "pickup" ? { onUseMyLocation: useMyLocation } : {})}
-          onClose={() => setSearchField(null)}
-          onSelect={(address) => {
-            if (searchField === "pickup") setPickup(address);
-            else setDropoff(address);
-            setSearchField(null);
-          }}
-        />
-      ) : null}
-
-      <DriverPickerSheet
-        open={driverPickerOpen}
-        onOpenChange={setDriverPickerOpen}
-        loading={data.isLoading}
-        selectedId={selectedDriver?.id ?? ""}
-        drivers={drivers}
-        onSelect={(id) => {
-          setDriverId(id);
-          setDriverPickerOpen(false);
-        }}
-        onScanQr={() => {
-          setDriverPickerOpen(false);
-          void navigate({ to: "/espace/chauffeurs" });
-        }}
-        onAddDriver={() => {
-          setDriverPickerOpen(false);
-          void navigate({ to: "/espace/chauffeurs" });
-        }}
-      />
-
-      {scheduleOpen && selectedDriver && pickup && dropoff ? (
-        <ScheduleSheet
-          open
-          driverId={selectedDriver.id}
-          driverName={selectedDriver.name.split(" ")[0] ?? "votre chauffeur"}
-          pickup={pickup}
-          dropoff={dropoff}
-          roundTrip={false}
-          valueIso={scheduledAt || null}
-          onClose={() => setScheduleOpen(false)}
-          onConfirm={(iso) => {
-            setScheduledAt(iso);
-            setScheduleOpen(false);
-          }}
-          onChangeDriver={() => {
-            setScheduleOpen(false);
-            setDriverPickerOpen(true);
-          }}
-        />
-      ) : null}
+function TodayRow({
+  title,
+  detail,
+  action,
+  to,
+  spinning = false,
+}: {
+  title: string;
+  detail: string;
+  action: string;
+  to: string;
+  spinning?: boolean;
+}) {
+  return (
+    <div className="mt-1 flex items-center gap-2">
+      {spinning ? <Loader2 className="size-4 shrink-0 animate-spin text-primary" /> : (
+        <CalendarDays className="size-4 shrink-0 text-primary" />
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[14px] font-extrabold">{title}</p>
+        <p className="truncate text-[12px] text-muted-foreground">{detail}</p>
+      </div>
+      <Link
+        to="/espace/suivi/$id"
+        params={{ id: to }}
+        className="shrink-0 text-[13px] font-bold text-primary"
+      >
+        {action}
+      </Link>
     </div>
   );
 }
