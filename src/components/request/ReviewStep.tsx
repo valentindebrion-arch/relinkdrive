@@ -16,6 +16,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { LEGAL_LINKS } from "@/lib/legal-versions";
 import { formatEuro } from "@/lib/labels";
 import { cn } from "@/lib/utils";
+import { CompatibilityNotice } from "@/components/request/CompatibilityNotice";
+import type { CompatibilityResult } from "@/lib/compatibility";
 
 export type ReviewEstimate = {
   distanceKm: number;
@@ -44,7 +46,12 @@ export type ReviewStepProps = {
   roundTrip: boolean;
   returnLabel: string | null;
   passengers: number;
-  luggage: number;
+  largeLuggage: number;
+  cabinLuggage: number;
+  petsLabel: string | null;
+  vehicleLabel: string | null;
+  compatibility: CompatibilityResult | null;
+  compatibilityLoading: boolean;
   needsLabel: string;
   comment: string;
   driver: { name: string; available: boolean; zone?: string | null } | null;
@@ -106,7 +113,12 @@ export function ReviewStep(props: ReviewStepProps) {
     roundTrip,
     returnLabel,
     passengers,
-    luggage,
+    largeLuggage,
+    cabinLuggage,
+    petsLabel,
+    vehicleLabel,
+    compatibility,
+    compatibilityLoading,
     needsLabel,
     comment,
     driver,
@@ -121,12 +133,21 @@ export function ReviewStep(props: ReviewStepProps) {
   const acceptId = useId();
 
   const hasOptions =
-    passengers > 1 || luggage > 0 || roundTrip || !!needsLabel.trim() || !!comment.trim();
+    passengers > 1 ||
+    largeLuggage > 0 ||
+    cabinLuggage > 0 ||
+    roundTrip ||
+    !!petsLabel ||
+    !!needsLabel.trim() ||
+    !!comment.trim();
 
-  const disabled = busy || !accepted || !estimate || !!blockedReason;
-  const helper = !accepted
-    ? "Acceptez les CGU et les CGV pour envoyer votre demande."
-    : (blockedReason ?? (!estimate ? "Le tarif doit être recalculé avant l'envoi." : null));
+  const incompatible = !!compatibility && !compatibility.compatible;
+  const disabled = busy || !accepted || !estimate || !!blockedReason || incompatible;
+  const helper = incompatible
+    ? "Cette demande n'est pas compatible avec les capacités déclarées par ce chauffeur."
+    : !accepted
+      ? "Acceptez les CGU et les CGV pour envoyer votre demande."
+      : (blockedReason ?? (!estimate ? "Le tarif doit être recalculé avant l'envoi." : null));
 
   return (
     <>
@@ -290,6 +311,9 @@ export function ReviewStep(props: ReviewStepProps) {
                 <p className="truncate text-[15px] font-bold">
                   {driver ? driver.name : "Chauffeur à attribuer"}
                 </p>
+                {vehicleLabel ? (
+                  <p className="text-[12px] text-muted-foreground">Véhicule : {vehicleLabel}</p>
+                ) : null}
                 <p className="text-[13px] text-muted-foreground">
                   {driver
                     ? (driverStatusLabel ??
@@ -308,7 +332,9 @@ export function ReviewStep(props: ReviewStepProps) {
             {hasOptions ? (
               <dl>
                 <Row label="Nombre de passagers" value={passengers} />
-                <Row label="Nombre de bagages" value={luggage} />
+                <Row label="Grands bagages" value={largeLuggage} />
+                <Row label="Bagages cabine" value={cabinLuggage} />
+                <Row label="Animaux" value={petsLabel ?? "Aucun"} />
                 <Row label="Type de trajet" value={roundTrip ? "Aller-retour" : "Aller simple"} />
                 {roundTrip && returnLabel ? <Row label="Retour" value={returnLabel} /> : null}
                 {needsLabel.trim() ? <Row label="Besoins particuliers" value={needsLabel} /> : null}
@@ -320,6 +346,15 @@ export function ReviewStep(props: ReviewStepProps) {
               <p className="text-[13px] text-muted-foreground">Aucune option particulière</p>
             )}
           </Card>
+
+          {/* Compatibilité */}
+          <CompatibilityNotice
+            result={compatibility}
+            loading={compatibilityLoading}
+            driverName={driver?.name ?? null}
+            onChangeDriver={props.onEditDriver}
+            onEditNeeds={props.onEditOptions}
+          />
 
           {/* Information sur l'envoi */}
           <div className="flex items-start gap-2.5 rounded-3xl bg-muted/70 p-4">
