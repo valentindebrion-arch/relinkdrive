@@ -117,16 +117,16 @@ function Landing() {
       <section className="mx-auto w-full max-w-6xl px-4 pt-6 pb-10 sm:px-5 sm:pt-10 sm:pb-14">
         <p className="inline-flex max-w-full items-center gap-2 rounded-full border border-primary/25 bg-accent px-3 py-1 text-[11px] font-medium text-accent-foreground sm:text-xs">
           <Sparkles className="size-3.5 shrink-0" />
-          <span className="truncate">Outil post-course · sans commission</span>
+          <span className="truncate">Logiciel pour chauffeurs indépendants · sans commission</span>
         </p>
         <h1 className="mt-4 max-w-3xl text-[1.75rem] leading-tight font-semibold text-balance sm:mt-5 sm:text-4xl lg:text-5xl">
           {BRAND.tagline}
         </h1>
         <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:mt-4 sm:text-lg">
-          {BRAND.name} est le lien direct entre un chauffeur VTC indépendant et ses passagers.
-          Le passager garde dans son carnet privé les chauffeurs en qui il a confiance et réserve
-          directement auprès d'eux ; le chauffeur gère ses demandes, son planning et ses factures
-          au même endroit. Pas de plateforme, pas d'enchère, pas de commission.
+          {BRAND.subline} Chaque chauffeur dispose de son propre espace de réservation : il partage
+          son lien ou son QR code avec ses clients, eux consultent ses disponibilités et lui
+          envoient leurs demandes directement. Le chauffeur accepte ou refuse lui-même, fixe ses
+          tarifs et garde la maîtrise de sa clientèle.
         </p>
         <div className="mt-5 grid gap-2 sm:mt-7 sm:flex sm:flex-wrap sm:gap-3">
           <Link
@@ -141,17 +141,18 @@ function Landing() {
             search={{ mode: "signup", role: "client" }}
             className="rounded-xl border border-border bg-card px-5 py-3 text-center text-sm font-medium"
           >
-            Je suis passager
+            Mon chauffeur m'a partagé son lien
           </Link>
         </div>
         <ul className="mt-5 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-muted-foreground sm:mt-6 sm:flex sm:flex-wrap sm:gap-x-6 sm:text-sm">
-          {["Sans commission", "Chauffeurs vérifiés", "Réservation directe", "Factures conformes"].map((t) => (
+          {["Sans commission", "Aucune attribution de course", "Réservation directe", "Factures conformes"].map((t) => (
             <li key={t} className="inline-flex min-w-0 items-center gap-1.5">
               <Check className="size-4 shrink-0 text-primary" />
               <span className="truncate">{t}</span>
             </li>
           ))}
         </ul>
+
       </section>
 
 
