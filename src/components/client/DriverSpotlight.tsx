@@ -196,8 +196,10 @@ export function DriverSpotlight({
                   {initials(driver.name)}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[15px] font-extrabold">{driver.name}</p>
-                  <p className="mt-0.5 flex items-center gap-1.5 text-[12px] font-semibold">
+                  <p className="truncate text-[14px] leading-tight font-extrabold sm:text-[15px]">
+                    {driver.name}
+                  </p>
+                  <p className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[12px] leading-tight font-semibold">
                     <span
                       aria-hidden
                       className={`size-1.5 shrink-0 rounded-full ${
