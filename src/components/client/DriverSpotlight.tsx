@@ -172,7 +172,7 @@ export function DriverSpotlight({
             type="button"
             aria-label="Chauffeur précédent"
             onClick={() => go(-1)}
-            className="absolute top-1/2 -left-1 grid size-8 place-items-center rounded-full border border-primary/25 bg-card text-primary shadow-sm transition-transform active:scale-95"
+            className="absolute top-1/2 -left-1 -translate-y-1/2 grid size-8 place-items-center rounded-full border border-primary/25 bg-card text-primary shadow-sm transition-transform active:scale-95"
           >
             <ChevronLeft className="size-4" />
           </button>
@@ -180,7 +180,7 @@ export function DriverSpotlight({
             type="button"
             aria-label="Chauffeur suivant"
             onClick={() => go(1)}
-            className="absolute top-1/2 -right-1 grid size-8 place-items-center rounded-full border border-primary/25 bg-card text-primary shadow-sm transition-transform active:scale-95"
+            className="absolute top-1/2 -right-1 -translate-y-1/2 grid size-8 place-items-center rounded-full border border-primary/25 bg-card text-primary shadow-sm transition-transform active:scale-95"
           >
             <ChevronRight className="size-4" />
           </button>
