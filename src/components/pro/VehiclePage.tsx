@@ -20,6 +20,17 @@ const OPTIONS = [
   ["quiet_ride", "Trajet silencieux sur demande"],
   ["luggage_help", "Aide aux bagages"],
   ["pets_allowed", "Animaux acceptés"],
+  ["child_seat", "Siège enfant disponible"],
+  ["booster_seat", "Rehausseur disponible"],
+  ["stroller_space", "Espace pour poussette"],
+  ["accessible", "Accessible en fauteuil roulant"],
+  ["large_trunk", "Grand coffre (bagages volumineux)"],
+] as const;
+
+const PETS_POLICIES = [
+  ["refused", "Non acceptés"],
+  ["accepted", "Acceptés"],
+  ["conditional", "Acceptés sous conditions"],
 ] as const;
 
 type PhotoField = "photo_url" | "photo_interior_url";
@@ -38,6 +49,11 @@ export function VehiclePage() {
     year: "",
     max_passengers: "4",
     luggage_capacity: "2",
+    large_luggage_capacity: "",
+    cabin_luggage_capacity: "",
+    pets_policy: "refused",
+    pets_max: "",
+    pets_conditions: "",
     mileage: "",
     insurance_provider: "",
     insurance_expires_at: "",
@@ -55,6 +71,12 @@ export function VehiclePage() {
     quiet_ride: true,
     luggage_help: true,
     pets_allowed: false,
+    child_seat: false,
+    booster_seat: false,
+    stroller_space: false,
+    accessible: false,
+    large_trunk: false,
+    pets_carrier_required: false,
   });
 
   useEffect(() => {
@@ -68,6 +90,17 @@ export function VehiclePage() {
       year: v.year ? String(v.year) : "",
       max_passengers: String(v.max_passengers),
       luggage_capacity: String(v.luggage_capacity),
+      large_luggage_capacity:
+        v.large_luggage_capacity === null || v.large_luggage_capacity === undefined
+          ? ""
+          : String(v.large_luggage_capacity),
+      cabin_luggage_capacity:
+        v.cabin_luggage_capacity === null || v.cabin_luggage_capacity === undefined
+          ? ""
+          : String(v.cabin_luggage_capacity),
+      pets_policy: v.pets_policy ?? "refused",
+      pets_max: v.pets_max === null || v.pets_max === undefined ? "" : String(v.pets_max),
+      pets_conditions: v.pets_conditions ?? "",
       mileage: v.mileage ? String(v.mileage) : "",
       insurance_provider: v.insurance_provider ?? "",
       insurance_expires_at: v.insurance_expires_at ?? "",
@@ -85,6 +118,12 @@ export function VehiclePage() {
       quiet_ride: v.quiet_ride,
       luggage_help: v.luggage_help,
       pets_allowed: v.pets_allowed,
+      child_seat: v.child_seat,
+      booster_seat: v.booster_seat ?? false,
+      stroller_space: v.stroller_space ?? false,
+      accessible: v.accessible,
+      large_trunk: v.large_trunk ?? false,
+      pets_carrier_required: v.pets_carrier_required ?? false,
     });
   }, [vehicle.data]);
 
@@ -174,6 +213,30 @@ export function VehiclePage() {
   }
 
   async function save() {
+    const maxPassengers = Number(form.max_passengers);
+    if (!Number.isInteger(maxPassengers) || maxPassengers < 1 || maxPassengers > 8) {
+      toast.error("Indiquez un nombre maximal de passagers compris entre 1 et 8.");
+      return;
+    }
+    const optionalCount = (value: string, label: string) => {
+      if (!value.trim()) return null;
+      const n = Number(value);
+      if (!Number.isInteger(n) || n < 0 || n > 20) {
+        throw new Error(`Valeur invalide pour « ${label} ».`);
+      }
+      return n;
+    };
+    let largeLuggage: number | null;
+    let cabinLuggage: number | null;
+    let petsMax: number | null;
+    try {
+      largeLuggage = optionalCount(form.large_luggage_capacity, "Grands bagages");
+      cabinLuggage = optionalCount(form.cabin_luggage_capacity, "Bagages cabine");
+      petsMax = optionalCount(form.pets_max, "Nombre maximal d'animaux");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Valeur invalide");
+      return;
+    }
     const payload = {
       driver_id: user!.id,
       brand: form.brand || null,
@@ -181,8 +244,14 @@ export function VehiclePage() {
       color: form.color || null,
       plate: form.plate || null,
       year: form.year ? Number(form.year) : null,
-      max_passengers: Number(form.max_passengers) || 4,
-      luggage_capacity: Number(form.luggage_capacity) || 2,
+      max_passengers: maxPassengers,
+      luggage_capacity: Number(form.luggage_capacity) || 0,
+      large_luggage_capacity: largeLuggage,
+      cabin_luggage_capacity: cabinLuggage,
+      pets_policy: form.pets_policy,
+      pets_max: petsMax,
+      pets_conditions: form.pets_conditions.trim() || null,
+      pets_allowed: form.pets_policy !== "refused",
       mileage: form.mileage ? Number(form.mileage) : null,
       insurance_provider: form.insurance_provider || null,
       insurance_expires_at: form.insurance_expires_at || null,
@@ -227,8 +296,10 @@ export function VehiclePage() {
         {text("plate", "Immatriculation")}
         {text("year", "Année", "number")}
         {text("category", "Catégorie (berline, van…)")}
-        {text("max_passengers", "Passagers max", "number")}
-        {text("luggage_capacity", "Bagages", "number")}
+        {text("max_passengers", "Passagers max (obligatoire)", "number")}
+        {text("luggage_capacity", "Bagages (capacité totale)", "number")}
+        {text("large_luggage_capacity", "Grands bagages (valises)", "number")}
+        {text("cabin_luggage_capacity", "Bagages cabine", "number")}
         {text("mileage", "Kilométrage", "number")}
         {text("insurance_provider", "Assureur")}
         {text("insurance_expires_at", "Échéance assurance", "date")}
@@ -255,6 +326,40 @@ export function VehiclePage() {
             onRemove={() => void removePhoto("photo_interior_url")}
           />
         </div>
+
+        <div className="grid gap-4 sm:col-span-2 sm:grid-cols-3">
+          <div>
+            <Label htmlFor="pets_policy">Animaux à bord</Label>
+            <select
+              id="pets_policy"
+              value={form.pets_policy}
+              onChange={(e) => setForm({ ...form, pets_policy: e.target.value })}
+              className="mt-1 h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            >
+              {PETS_POLICIES.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+          {text("pets_max", "Nombre maximal d'animaux", "number")}
+          {text("pets_conditions", "Conditions pour les animaux")}
+          <div className="flex items-center gap-3">
+            <Switch
+              id="pets_carrier_required"
+              checked={flags.pets_carrier_required}
+              onCheckedChange={(v) => setFlags({ ...flags, pets_carrier_required: v })}
+            />
+            <Label htmlFor="pets_carrier_required">Caisse ou sac de transport obligatoire</Label>
+          </div>
+        </div>
+
+        <p className="sm:col-span-2 text-xs text-muted-foreground">
+          Ces capacités sont utilisées pour vérifier automatiquement qu'une demande client est
+          réalisable avec votre véhicule. Laissez un champ vide uniquement si l'information n'est
+          pas encore connue.
+        </p>
 
         <div className="grid gap-3 sm:col-span-2 sm:grid-cols-3">
           {OPTIONS.map(([key, label]) => (
