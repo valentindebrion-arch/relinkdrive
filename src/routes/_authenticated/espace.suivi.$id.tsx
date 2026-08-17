@@ -382,6 +382,9 @@ function TrackingPageInner() {
   const waiting = !ride && !!request && CANCELLABLE.includes(status);
   const canCancel = !!request && !ride && CANCELLABLE.includes(request.status);
   const driverFirst = firstName(driver?.full_name);
+  // Le nom affiché du chauffeur ne doit jamais être la marque ReLink.
+  const driverDisplay = /^relink$/i.test(driverFirst) ? "votre chauffeur" : driverFirst;
+
   const vehicleLabel = vehicle ? [vehicle.brand, vehicle.model].filter(Boolean).join(" ") : null;
   const immediate = (request as { is_immediate?: boolean } | null)?.is_immediate ?? false;
 
