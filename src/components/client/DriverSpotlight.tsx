@@ -36,7 +36,7 @@ function VehicleHero({
   const showImage = !!url && !failed;
 
   return (
-    <div className="relative aspect-[16/9] max-h-[9.5rem] w-full overflow-hidden rounded-2xl bg-muted shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]">
+    <div className="relative h-[var(--home-hero-h)] w-full overflow-hidden rounded-2xl bg-muted shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]">
       {loading ? (
         <span className="absolute inset-0 animate-pulse bg-muted" aria-hidden />
       ) : showImage ? (
