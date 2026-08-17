@@ -32,6 +32,7 @@ export function formatPickupHour(iso: string) {
   });
 }
 
+export type SmsKind = "departure" | "arrival";
 
 /**
  * Message prérempli : aucune adresse, aucun nom complet, aucune donnée de paiement.
