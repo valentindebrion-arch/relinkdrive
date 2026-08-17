@@ -20,9 +20,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Input as TextInput } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { CompatibilityNotice } from "@/components/request/CompatibilityNotice";
+import type { CompatibilityResult } from "@/lib/compatibility";
 
 export type ReturnMode = "immediate" | "scheduled";
+
+export type PetsState = {
+  count: number;
+  type: string;
+  carrier: boolean;
+};
 
 export type SpecialNeedsState = {
   keys: string[];
@@ -32,7 +41,7 @@ export type SpecialNeedsState = {
 export const SPECIAL_NEEDS = [
   { key: "siege_enfant", label: "Siège enfant", icon: Baby, detail: "Âge de l'enfant" },
   { key: "rehausseur", label: "Rehausseur", icon: Baby, detail: null },
-  { key: "animal", label: "Animal", icon: Dog, detail: "Type d'animal" },
+  { key: "poussette", label: "Poussette", icon: PackageOpen, detail: null },
   {
     key: "accessibilite",
     label: "Accessibilité",
@@ -126,7 +135,12 @@ export function OptionsStep({
   whenMode,
   driverName,
   passengers,
-  luggage,
+  largeLuggage,
+  cabinLuggage,
+  pets,
+  compatibility,
+  compatibilityLoading,
+  onChangeDriver,
   roundTrip,
   comment,
   needs,
@@ -146,7 +160,12 @@ export function OptionsStep({
   whenMode: "now" | "later";
   driverName?: string | undefined;
   passengers: number;
-  luggage: number;
+  largeLuggage: number;
+  cabinLuggage: number;
+  pets: PetsState;
+  compatibility: CompatibilityResult | null;
+  compatibilityLoading: boolean;
+  onChangeDriver: () => void;
   roundTrip: boolean;
   comment: string;
   needs: SpecialNeedsState;
@@ -159,7 +178,9 @@ export function OptionsStep({
   onEditTrip: () => void;
   onChange: (patch: {
     passengers?: number;
-    luggage?: number;
+    largeLuggage?: number;
+    cabinLuggage?: number;
+    pets?: PetsState;
     roundTrip?: boolean;
     comment?: string;
     needs?: SpecialNeedsState;
@@ -193,7 +214,8 @@ export function OptionsStep({
     const item = SPECIAL_NEEDS.find((n) => n.key === k);
     return item?.key === "autre" && !needs.details[k]?.trim();
   });
-  const blocked = returnInvalid || returnIncomplete || needsDetailMissing;
+  const incompatible = !!compatibility && !compatibility.compatible;
+  const blocked = returnInvalid || returnIncomplete || needsDetailMissing || incompatible;
 
   const toggleNeed = (key: string) => {
     const on = needs.keys.includes(key);
@@ -261,17 +283,106 @@ export function OptionsStep({
               onChange={(n) => onChange({ passengers: n })}
             />
             <div className="h-px bg-border/70" />
+            <Stepper
+              label="Grands bagages"
+              hint="Valises de soute"
+              icon={Luggage}
+              value={largeLuggage}
+              min={0}
+              max={10}
+              onChange={(n) => onChange({ largeLuggage: n })}
+            />
+            <div className="h-px bg-border/70" />
             <div className="pb-1">
               <Stepper
-                label="Bagages"
-                hint="Valises et sacs"
-                icon={Luggage}
-                value={luggage}
+                label="Bagages cabine"
+                hint="Sacs et petits bagages"
+                icon={PackageOpen}
+                value={cabinLuggage}
                 min={0}
                 max={10}
-                onChange={(n) => onChange({ luggage: n })}
+                onChange={(n) => onChange({ cabinLuggage: n })}
               />
             </div>
+          </section>
+
+          {/* Animaux */}
+          <section
+            aria-labelledby="animaux"
+            className="rounded-3xl bg-card px-4 pb-4 shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)]"
+          >
+            <h3
+              id="animaux"
+              className="pt-4 text-[13px] font-bold tracking-wide text-muted-foreground uppercase"
+            >
+              Animaux
+            </h3>
+            <div className="flex items-center gap-3 py-3.5">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <Dog className="size-5" />
+              </span>
+              <p className="min-w-0 flex-1 text-[15px] font-bold">Je voyage avec un animal</p>
+              <div className="flex gap-2">
+                {([false, true] as const).map((v) => (
+                  <button
+                    key={String(v)}
+                    type="button"
+                    aria-pressed={pets.count > 0 === v}
+                    onClick={() =>
+                      onChange({
+                        pets: v
+                          ? { ...pets, count: Math.max(1, pets.count) }
+                          : { count: 0, type: "", carrier: false },
+                      })
+                    }
+                    className={cn(
+                      "min-h-11 rounded-full px-4 text-[14px] font-bold transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                      pets.count > 0 === v ? "bg-primary/8 ring-2 ring-primary" : "bg-muted",
+                    )}
+                  >
+                    {v ? "Oui" : "Non"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {pets.count > 0 ? (
+              <div className="rise-in space-y-3">
+                <Stepper
+                  label="Nombre d'animaux"
+                  hint="Animaux transportés"
+                  icon={Dog}
+                  value={pets.count}
+                  min={1}
+                  max={4}
+                  onChange={(n) => onChange({ pets: { ...pets, count: n } })}
+                />
+                <div>
+                  <Label htmlFor="pet-type" className="text-[13px] font-bold">
+                    Type d'animal
+                  </Label>
+                  <TextInput
+                    id="pet-type"
+                    placeholder="Chien, chat…"
+                    className="mt-1.5 h-12 rounded-2xl border-0 bg-muted text-[15px]"
+                    value={pets.type}
+                    onChange={(e) => onChange({ pets: { ...pets, type: e.target.value } })}
+                  />
+                </div>
+                <button
+                  type="button"
+                  aria-pressed={pets.carrier}
+                  onClick={() => onChange({ pets: { ...pets, carrier: !pets.carrier } })}
+                  className={cn(
+                    "flex min-h-11 w-full items-center gap-2 rounded-2xl px-3 text-left text-[14px] font-semibold transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                    pets.carrier ? "bg-primary/8 ring-2 ring-primary" : "bg-muted",
+                  )}
+                >
+                  {pets.carrier ? <Check className="size-4 shrink-0 text-primary" /> : null}
+                  Animal transporté dans une caisse ou un sac
+                </button>
+              </div>
+            ) : null}
           </section>
 
           {/* Type de trajet */}
@@ -506,6 +617,17 @@ export function OptionsStep({
             ) : null}
           </section>
 
+          {/* Compatibilité avec le véhicule du chauffeur */}
+          <section aria-live="polite">
+            <CompatibilityNotice
+              result={compatibility}
+              loading={compatibilityLoading}
+              driverName={driverName ?? null}
+              onChangeDriver={onChangeDriver}
+              compact
+            />
+          </section>
+
           {/* Informations pour le chauffeur */}
           <section aria-labelledby="ic">
             <div className="mb-3 flex items-baseline gap-2">
@@ -544,6 +666,11 @@ export function OptionsStep({
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}
       >
         <div className="mx-auto w-full max-w-lg">
+          {incompatible ? (
+            <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
+              Ajustez votre demande ou choisissez un autre de vos chauffeurs pour continuer.
+            </p>
+          ) : null}
           <Button
             size="lg"
             className="h-13 w-full rounded-2xl text-[15px] font-bold transition-transform active:scale-[0.99]"

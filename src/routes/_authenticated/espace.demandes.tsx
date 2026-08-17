@@ -55,6 +55,14 @@ import { estimateRoute, reverseGeocode } from "@/lib/route-estimate.functions";
 import { fetchRideQuote } from "@/lib/tax-queries";
 import type { RideQuote } from "@/lib/tax";
 import { ReviewStep } from "@/components/request/ReviewStep";
+import {
+  evaluateCompatibility,
+  parseServerIncompatibility,
+  requirementsPayload,
+  useDriverVehicleCapacity,
+  type CompatibilityResult,
+  type RideRequirements,
+} from "@/lib/compatibility";
 import { LEGAL_VERSIONS } from "@/lib/legal-versions";
 import { checkDriverAvailability } from "@/lib/availability.functions";
 import { formatSlotFull, parisDay, UNAVAILABLE_TODAY_MSG } from "@/lib/schedule-slots";
@@ -186,6 +194,8 @@ function ClientRequests() {
   } | null>(null);
   const [previewState, setPreviewState] = useState<"idle" | "loading" | "error">("idle");
   const [needs, setNeeds] = useState<SpecialNeedsState>({ keys: [], details: {} });
+  const [pets, setPets] = useState({ count: 0, type: "", carrier: false });
+  const [serverCompatibility, setServerCompatibility] = useState<CompatibilityResult | null>(null);
   const [returnMode, setReturnMode] = useState<ReturnMode>("immediate");
   const [returnTrip, setReturnTrip] = useState({ at: "", pickup: "", dropoff: "" });
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -201,6 +211,8 @@ function ClientRequests() {
 
   const [form, setForm] = useState({
     driver_id: search.driver ?? "",
+    large_luggage: "0",
+    cabin_luggage: "0",
     pickup_address: "",
     dropoff_address: "",
     scheduled_at: "",
@@ -211,6 +223,35 @@ function ClientRequests() {
     round_trip: false,
     trip_type: "",
   });
+
+  // Moteur de compatibilité partagé : mêmes règles que la validation serveur.
+  const vehicleCapacity = useDriverVehicleCapacity(form.driver_id || null);
+  const requirements: RideRequirements = {
+    passengers: Number(form.passengers) || 1,
+    largeLuggage: Number(form.large_luggage) || 0,
+    cabinLuggage: Number(form.cabin_luggage) || 0,
+    petsCount: pets.count,
+    petType: pets.type || null,
+    petCarrier: pets.carrier,
+    equipmentNeeds: needs.keys,
+  };
+  const compatibility: CompatibilityResult | null =
+    !form.driver_id || vehicleCapacity.isLoading
+      ? null
+      : (serverCompatibility ?? evaluateCompatibility(vehicleCapacity.data ?? null, requirements));
+
+  // Toute modification des besoins invalide un refus serveur précédent.
+  useEffect(() => {
+    setServerCompatibility(null);
+  }, [
+    form.driver_id,
+    form.passengers,
+    form.large_luggage,
+    form.cabin_luggage,
+    pets.count,
+    pets.carrier,
+    needs.keys,
+  ]);
 
   // Restaure un brouillon laissé avant un détour « ajouter un chauffeur ».
   useEffect(() => {
@@ -600,7 +641,8 @@ function ClientRequests() {
       _dropoff: form.dropoff_address.trim(),
       _scheduled_at: scheduledIso(),
       _passengers: Number(form.passengers),
-      _luggage: Number(form.luggage),
+      _luggage: requirements.largeLuggage + requirements.cabinLuggage,
+      _requirements: requirementsPayload(requirements),
       _round_trip: form.round_trip,
       _trip_type: form.trip_type.trim() || null,
       _special_needs: form.special_needs.trim() || null,
@@ -618,6 +660,15 @@ function ClientRequests() {
 
     if (error) {
       sentRef.current = false;
+      const incompatible = parseServerIncompatibility(error.message);
+      if (incompatible) {
+        setServerCompatibility(incompatible);
+        setSubmitError(incompatible.blockingIssues.map((i) => i.message).join(" "));
+        toast.error("Cette demande n'est pas réalisable avec ce véhicule", {
+          description: incompatible.blockingIssues[0]?.message,
+        });
+        return;
+      }
       if (/driver_unavailable_today/i.test(error.message)) {
         setSubmitError(UNAVAILABLE_TODAY_MSG);
         setSlotWarning(UNAVAILABLE_TODAY_MSG);
@@ -1211,7 +1262,15 @@ function ClientRequests() {
           whenMode={whenMode}
           driverName={driverName}
           passengers={Number(form.passengers) || 1}
-          luggage={Number(form.luggage) || 0}
+          largeLuggage={requirements.largeLuggage}
+          cabinLuggage={requirements.cabinLuggage}
+          pets={pets}
+          compatibility={compatibility}
+          compatibilityLoading={!!form.driver_id && vehicleCapacity.isLoading}
+          onChangeDriver={() => {
+            setStep(0);
+            setDriverPickerOpen(true);
+          }}
           roundTrip={form.round_trip}
           comment={form.comment}
           needs={needs}
@@ -1228,6 +1287,7 @@ function ClientRequests() {
               setNeeds(patch.needs);
               setForm((f) => ({ ...f, special_needs: serializeNeeds(patch.needs!) }));
             }
+            if (patch.pets) setPets(patch.pets);
             if (patch.returnMode) setReturnMode(patch.returnMode);
             if (
               patch.returnAt !== undefined ||
@@ -1243,7 +1303,12 @@ function ClientRequests() {
             setForm((f) => ({
               ...f,
               ...(patch.passengers !== undefined ? { passengers: String(patch.passengers) } : {}),
-              ...(patch.luggage !== undefined ? { luggage: String(patch.luggage) } : {}),
+              ...(patch.largeLuggage !== undefined
+                ? { large_luggage: String(patch.largeLuggage) }
+                : {}),
+              ...(patch.cabinLuggage !== undefined
+                ? { cabin_luggage: String(patch.cabinLuggage) }
+                : {}),
               ...(patch.roundTrip !== undefined ? { round_trip: patch.roundTrip } : {}),
               ...(patch.comment !== undefined ? { comment: patch.comment } : {}),
             }));
@@ -1265,7 +1330,21 @@ function ClientRequests() {
               : null
           }
           passengers={Number(form.passengers) || 1}
-          luggage={Number(form.luggage) || 0}
+          largeLuggage={requirements.largeLuggage}
+          cabinLuggage={requirements.cabinLuggage}
+          petsLabel={
+            pets.count > 0
+              ? `${pets.count} ${pets.type.trim() || "animal"}${pets.carrier ? " (en caisse de transport)" : ""}`
+              : null
+          }
+          vehicleLabel={
+            vehicleCapacity.data
+              ? [vehicleCapacity.data.brand, vehicleCapacity.data.model].filter(Boolean).join(" ") ||
+                null
+              : null
+          }
+          compatibility={compatibility}
+          compatibilityLoading={!!form.driver_id && vehicleCapacity.isLoading}
           needsLabel={form.special_needs}
           comment={form.comment}
           driver={
