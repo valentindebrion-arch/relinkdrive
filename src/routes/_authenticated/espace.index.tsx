@@ -49,7 +49,6 @@ function ClientHome() {
   const blockingCountdown = useCountdown(blocking?.response_deadline ?? null);
 
   const [index, setIndex] = useState(0);
-  const touchX = useRef<number | null>(null);
 
   const data = useQuery({
     queryKey: ["client-home", user?.id],
