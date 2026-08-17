@@ -167,7 +167,7 @@ export function DriverSpotlight({
         {/* Photo + informations glissent ensemble : un seul élément du carrousel. */}
         <div
           key={driver?.id ?? (loading ? "loading" : "empty")}
-          className={`space-y-2 ${anim}`}
+          className={`space-y-[calc(var(--home-gap)*0.75)] ${anim}`}
           style={drag ? { transform: `translate3d(${drag * 0.35}px,0,0)` } : undefined}
         >
           <VehicleHero
