@@ -253,7 +253,7 @@ export function DriverSpotlight({
             type="button"
             aria-label="Chauffeur précédent"
             onClick={() => go(-1)}
-            className="absolute bottom-[calc(var(--home-driver-h)/2-1rem)] left-0 grid size-8 place-items-center rounded-full border border-primary/25 bg-card text-primary shadow-sm transition-transform active:scale-95"
+            className="absolute top-[calc(var(--home-hero-h)/2-1rem)] left-2 grid size-8 place-items-center rounded-full border border-primary/25 bg-card/90 text-primary shadow-sm backdrop-blur transition-transform active:scale-95"
           >
             <ChevronLeft className="size-4" />
           </button>
@@ -261,7 +261,7 @@ export function DriverSpotlight({
             type="button"
             aria-label="Chauffeur suivant"
             onClick={() => go(1)}
-            className="absolute right-0 bottom-[calc(var(--home-driver-h)/2-1rem)] grid size-8 place-items-center rounded-full border border-primary/25 bg-card text-primary shadow-sm transition-transform active:scale-95"
+            className="absolute top-[calc(var(--home-hero-h)/2-1rem)] right-2 grid size-8 place-items-center rounded-full border border-primary/25 bg-card/90 text-primary shadow-sm backdrop-blur transition-transform active:scale-95"
           >
             <ChevronRight className="size-4" />
           </button>
