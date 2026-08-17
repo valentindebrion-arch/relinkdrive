@@ -22,11 +22,13 @@ const OPTIONS = [
   ["pets_allowed", "Animaux acceptés"],
 ] as const;
 
+type PhotoField = "photo_url" | "photo_interior_url";
+
 export function VehiclePage() {
   const { user } = useAuth();
   const vehicle = useMyVehicle();
   const qc = useQueryClient();
-  const [uploading, setUploading] = useState(false);
+  const [busy, setBusy] = useState<PhotoField | null>(null);
 
   const [form, setForm] = useState({
     brand: "",
@@ -86,17 +88,89 @@ export function VehiclePage() {
     });
   }, [vehicle.data]);
 
-  async function upload(file: File, field: "photo_url" | "photo_interior_url" = "photo_url") {
-    setUploading(true);
-    const path = `${user!.id}/vehicle-${Date.now()}-${file.name}`;
-    const { error } = await supabase.storage.from("vehicles").upload(path, file, { upsert: true });
-    setUploading(false);
+  const MAX_BYTES = 8 * 1024 * 1024;
+  const ACCEPTED = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
+
+  /** Garantit l'existence d'une ligne véhicule avant d'y rattacher une photo. */
+  async function ensureVehicleId(): Promise<string | null> {
+    if (vehicle.data?.id) return vehicle.data.id;
+    const { data, error } = await supabase
+      .from("vehicles")
+      .insert({ driver_id: user!.id })
+      .select("id")
+      .single();
     if (error) {
-      toast.error(error.message);
+      toast.error("La photo n'a pas pu être enregistrée. Votre ancienne photo a été conservée.");
+      return null;
+    }
+    return data.id;
+  }
+
+  /** Envoi puis enregistrement immédiat du chemin permanent (jamais une URL temporaire). */
+  async function upload(file: File, field: PhotoField) {
+    if (!ACCEPTED.includes(file.type)) {
+      toast.error("Format non pris en charge (JPEG, PNG, WebP ou HEIC).");
+      return;
+    }
+    if (file.size > MAX_BYTES) {
+      toast.error("Photo trop lourde (8 Mo maximum).");
+      return;
+    }
+    setBusy(field);
+    const previous = form[field];
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const kind = field === "photo_url" ? "exterior" : "interior";
+    const vehicleId = await ensureVehicleId();
+    if (!vehicleId) {
+      setBusy(null);
+      return;
+    }
+    const path = `${user!.id}/vehicles/${vehicleId}/${kind}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("vehicles").upload(path, file, {
+      upsert: false,
+      contentType: file.type,
+    });
+    if (error) {
+      setBusy(null);
+      toast.error("La photo n'a pas pu être enregistrée. Votre ancienne photo a été conservée.");
+      return;
+    }
+    const { error: dbError } = await supabase
+      .from("vehicles")
+      .update({ [field]: path })
+      .eq("id", vehicleId);
+    setBusy(null);
+    if (dbError) {
+      await supabase.storage.from("vehicles").remove([path]);
+      toast.error("La photo n'a pas pu être enregistrée. Votre ancienne photo a été conservée.");
       return;
     }
     setForm((f) => ({ ...f, [field]: path }));
-    toast.success("Photo ajoutée");
+    void qc.invalidateQueries({ queryKey: ["my-vehicle"] });
+    // L'ancien fichier n'est supprimé qu'une fois la nouvelle référence confirmée.
+    if (previous && previous !== path) await supabase.storage.from("vehicles").remove([previous]);
+    toast.success("Les photos de votre véhicule ont bien été enregistrées.");
+  }
+
+  /** Suppression volontaire d'une seule photo, sans toucher à l'autre. */
+  async function removePhoto(field: PhotoField) {
+    const current = form[field];
+    if (!current || !vehicle.data?.id) return;
+    if (!window.confirm("Supprimer définitivement cette photo ?")) return;
+    setBusy(field);
+    const { error } = await supabase
+      .from("vehicles")
+      .update({ [field]: null })
+      .eq("id", vehicle.data.id);
+    setBusy(null);
+    if (error) {
+      toast.error("La suppression a échoué. Votre photo a été conservée.");
+      return;
+    }
+    setForm((f) => ({ ...f, [field]: "" }));
+    void qc.invalidateQueries({ queryKey: ["my-vehicle"] });
+    await supabase.storage.from("vehicles").remove([current]);
+    toast.success("Photo supprimée.");
   }
 
   async function save() {
@@ -114,8 +188,6 @@ export function VehiclePage() {
       insurance_expires_at: form.insurance_expires_at || null,
       inspection_expires_at: form.inspection_expires_at || null,
       next_service_date: form.next_service_date || null,
-      photo_url: form.photo_url || null,
-      photo_interior_url: form.photo_interior_url || null,
       category: form.category || null,
       ...flags,
     };
@@ -163,38 +235,25 @@ export function VehiclePage() {
         {text("inspection_expires_at", "Échéance contrôle technique", "date")}
         {text("next_service_date", "Prochain entretien", "date")}
 
-        <div className="sm:col-span-2">
-          <Label htmlFor="photo">Photo du véhicule</Label>
-          <Input
+        <div className="grid gap-4 sm:col-span-2 sm:grid-cols-2">
+          <PhotoSlot
             id="photo"
-            type="file"
-            accept="image/*"
-            disabled={uploading}
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) void upload(file);
-            }}
+            label="Photo extérieure du véhicule"
+            url={photo.data ?? null}
+            loading={busy === "photo_url" || photo.isLoading}
+            hasPath={!!form.photo_url}
+            onSelect={(file) => void upload(file, "photo_url")}
+            onRemove={() => void removePhoto("photo_url")}
           />
-          {photo.data ? (
-            <img src={photo.data} alt="Véhicule" className="mt-3 h-40 rounded-lg object-cover" />
-          ) : null}
-        </div>
-
-        <div className="sm:col-span-2">
-          <Label htmlFor="photo-in">Photo intérieure (facultatif)</Label>
-          <Input
+          <PhotoSlot
             id="photo-in"
-            type="file"
-            accept="image/*"
-            disabled={uploading}
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) void upload(file, "photo_interior_url");
-            }}
+            label="Photo intérieure du véhicule"
+            url={interior.data ?? null}
+            loading={busy === "photo_interior_url" || interior.isLoading}
+            hasPath={!!form.photo_interior_url}
+            onSelect={(file) => void upload(file, "photo_interior_url")}
+            onRemove={() => void removePhoto("photo_interior_url")}
           />
-          {interior.data ? (
-            <img src={interior.data} alt="Intérieur du véhicule" className="mt-3 h-40 rounded-lg object-cover" />
-          ) : null}
         </div>
 
         <div className="grid gap-3 sm:col-span-2 sm:grid-cols-3">
@@ -211,5 +270,60 @@ export function VehiclePage() {
         </div>
       </div>
     </>
+  );
+}
+
+/** Emplacement photo autonome : aperçu, ajout/modification, suppression, chargement. */
+function PhotoSlot({
+  id,
+  label,
+  url,
+  loading,
+  hasPath,
+  onSelect,
+  onRemove,
+}: {
+  id: string;
+  label: string;
+  url: string | null;
+  loading: boolean;
+  hasPath: boolean;
+  onSelect: (file: File) => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="rounded-xl border border-border/70 p-3">
+      <Label htmlFor={id}>{label}</Label>
+      <div className="mt-2 aspect-[4/3] w-full overflow-hidden rounded-lg bg-muted">
+        {loading ? (
+          <div className="size-full animate-pulse bg-muted" />
+        ) : url ? (
+          <img src={url} alt={label} className="size-full object-cover" />
+        ) : (
+          <div className="grid size-full place-items-center text-xs text-muted-foreground">
+            Aucune photo
+          </div>
+        )}
+      </div>
+      <div className="mt-2 flex items-center gap-2">
+        <Input
+          id={id}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+          disabled={loading}
+          className="flex-1"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) onSelect(file);
+            e.target.value = "";
+          }}
+        />
+        {hasPath ? (
+          <Button type="button" variant="outline" disabled={loading} onClick={onRemove}>
+            Supprimer
+          </Button>
+        ) : null}
+      </div>
+    </div>
   );
 }
