@@ -299,7 +299,7 @@ function DriverPublicPage() {
     { label: "Paiement par carte", icon: CreditCard, on: !!d.card_payment },
     { label: "Trajet silencieux sur demande", icon: Volume2, on: !!d.quiet_ride },
     { label: "Aide aux bagages", icon: Luggage, on: !!d.luggage_help },
-    { label: "Animaux acceptés", icon: Dog, on: !!d.pets_allowed },
+    { label: "Animaux acceptés", icon: Dog, on: d.pets_policy === "accepted" },
   ].filter((e) => e.on);
 
   const publicPhone: string | null = d.public_phone ?? null;
@@ -643,8 +643,39 @@ function DriverPublicPage() {
             </p>
             <p className="mt-1 text-muted-foreground">
               {d.vehicle_category ? `${d.vehicle_category} · ` : ""}
-              {d.max_passengers ?? 4} passagers · {d.luggage_capacity ?? 2} bagages
+              {d.max_passengers != null
+                ? `Jusqu'à ${d.max_passengers} passagers`
+                : "Capacité en passagers non renseignée"}
             </p>
+
+            {/* Capacités déclarées par le chauffeur */}
+            <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
+              <li>
+                {d.large_luggage_capacity != null
+                  ? `${d.large_luggage_capacity} grands bagages`
+                  : d.luggage_capacity != null
+                    ? `${d.luggage_capacity} bagages au total`
+                    : "Capacité en bagages non renseignée"}
+              </li>
+              {d.cabin_luggage_capacity != null ? (
+                <li>{d.cabin_luggage_capacity} bagages cabine</li>
+              ) : null}
+              <li>
+                {d.pets_policy === "accepted"
+                  ? `Animaux acceptés${d.pets_max ? ` (jusqu'à ${d.pets_max})` : ""}`
+                  : d.pets_policy === "conditional"
+                    ? `Animaux acceptés sous conditions${d.pets_conditions ? ` : ${d.pets_conditions}` : ""}`
+                    : "Animaux non acceptés"}
+              </li>
+              {d.pets_carrier_required && d.pets_policy !== "refused" ? (
+                <li>Animal transporté en caisse ou en sac obligatoire</li>
+              ) : null}
+              {d.child_seat ? <li>Siège enfant disponible</li> : null}
+              {d.booster_seat ? <li>Rehausseur disponible</li> : null}
+              {d.stroller_space ? <li>Espace pour poussette</li> : null}
+              {d.accessible ? <li>Accessible en fauteuil roulant</li> : null}
+              {d.large_trunk ? <li>Grand coffre pour bagages volumineux</li> : null}
+            </ul>
             {equipments.length ? (
               <div className="mt-3 flex flex-wrap gap-2">
                 {equipments.map((e) => (
