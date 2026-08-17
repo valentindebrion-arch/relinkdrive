@@ -192,7 +192,7 @@ export function DriverSpotlight({
               </>
             ) : driver ? (
               <>
-                <span className="grid size-12 shrink-0 place-items-center rounded-full bg-primary/10 text-[14px] font-extrabold text-primary">
+                <span className="grid size-[var(--home-avatar)] shrink-0 place-items-center rounded-full bg-primary/10 text-[14px] font-extrabold text-primary">
                   {initials(driver.name)}
                 </span>
                 <div className="min-w-0 flex-1">
