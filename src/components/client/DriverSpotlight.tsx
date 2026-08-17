@@ -1,15 +1,39 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, QrCode, UserRound } from "lucide-react";
+import { Car, ChevronLeft, ChevronRight, QrCode, UserRound } from "lucide-react";
 
 export type SpotlightDriver = {
   id: string;
   name: string;
   available: boolean;
   vehicle: string | null;
+  /** URL signée de la photo extérieure du véhicule déclaré par le chauffeur. */
+  vehiclePhotoUrl?: string | null;
   slug: string | null;
   favorite: boolean;
 };
+
+/** Vignette du véhicule : photo extérieure, sinon emplacement neutre (jamais d'image cassée). */
+function VehicleThumb({ url, alt }: { url: string | null | undefined; alt: string }) {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [url]);
+  const showImage = !!url && !failed;
+  return (
+    <span className="relative grid size-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-primary/10">
+      {showImage ? (
+        <img
+          src={url!}
+          alt={alt}
+          loading="lazy"
+          className="size-full object-cover"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <Car className="size-6 text-primary" aria-hidden />
+      )}
+    </span>
+  );
+}
 
 const SWIPE_MIN = 48;
 const ANIM_MS = 240;
@@ -118,9 +142,11 @@ export function DriverSpotlight({
             </>
           ) : driver ? (
             <>
-              <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-primary/10 text-[16px] font-extrabold text-primary">
-                {initials(driver.name)}
-              </span>
+              <VehicleThumb
+                url={driver.vehiclePhotoUrl}
+                alt={`Véhicule déclaré par ${driver.name}`}
+              />
+              <span className="sr-only">{initials(driver.name)}</span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[15px] font-extrabold">{driver.name}</p>
                 <p className="mt-0.5 flex items-center gap-1.5 text-[12px] font-semibold">
