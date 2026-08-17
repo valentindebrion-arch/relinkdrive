@@ -206,11 +206,13 @@ export function DriverSpotlight({
                         driver.available ? "status-dot-pulse bg-primary" : "bg-muted-foreground/50"
                       }`}
                     />
-                    <span className={driver.available ? "text-primary" : "text-muted-foreground"}>
+                    <span
+                      className={`truncate ${driver.available ? "text-primary" : "text-muted-foreground"}`}
+                    >
                       {driver.available ? "Disponible maintenant" : "Indisponible actuellement"}
                     </span>
                   </p>
-                  <p className="truncate text-[12px] text-muted-foreground">
+                  <p className="truncate text-[12px] leading-tight text-muted-foreground">
                     {driver.vehicle ?? "Véhicule non renseigné"}
                   </p>
                 </div>
@@ -218,7 +220,7 @@ export function DriverSpotlight({
                   <Link
                     to="/chauffeur/$slug"
                     params={{ slug: driver.slug }}
-                    className="shrink-0 self-center text-[12px] font-bold text-primary underline underline-offset-2"
+                    className="max-w-[5.5rem] shrink-0 self-center text-right text-[12px] leading-tight font-bold text-primary underline underline-offset-2"
                   >
                     Voir le profil
                   </Link>
