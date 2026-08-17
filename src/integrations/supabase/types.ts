@@ -2035,21 +2035,27 @@ export type Database = {
         Args: { _slug: string }
         Returns: {
           accepting_requests: boolean
+          accessible: boolean
           air_conditioning: boolean
           airports: string[]
           availability: string[]
           avatar_url: string
           bio: string
           booking_notice: string
+          booster_seat: boolean
           business_name: string
+          cabin_luggage_capacity: number
           card_payment: boolean
           chargers: boolean
+          child_seat: boolean
           city: string
           company_verified: boolean
           facebook_url: string
           full_name: string
           instagram_url: string
           languages: string[]
+          large_luggage_capacity: number
+          large_trunk: boolean
           linkedin_url: string
           long_distance: boolean
           luggage_capacity: number
@@ -2057,6 +2063,10 @@ export type Database = {
           max_passengers: number
           member_since: string
           pets_allowed: boolean
+          pets_carrier_required: boolean
+          pets_conditions: string
+          pets_max: number
+          pets_policy: string
           public_intro: string
           public_phone: string
           quiet_ride: boolean
@@ -2064,6 +2074,7 @@ export type Database = {
           services: string[]
           slug: string
           stations: string[]
+          stroller_space: boolean
           tiktok_url: string
           user_id: string
           vehicle_brand: string
