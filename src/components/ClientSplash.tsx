@@ -26,33 +26,42 @@ export function ClientSplash({ onDone }: { onDone?: () => void }) {
     } catch {
       played = false;
     }
+
+    const isReduced = prefersReducedMotion();
+    const duration = isReduced ? REDUCED_MS : FULL_MS;
+
     if (played) {
+      // Déjà joué (ou remontage en développement) : on referme immédiatement.
+      setVisible(false);
       onDone?.();
       return;
     }
+
     try {
       window.sessionStorage.setItem(SESSION_KEY, "1");
     } catch {
       /* stockage indisponible */
     }
 
-    const isReduced = prefersReducedMotion();
     setReduced(isReduced);
     setVisible(true);
 
-    const duration = isReduced ? REDUCED_MS : FULL_MS;
     const slowTimer = window.setTimeout(() => setSlow(true), duration + 600);
     const endTimer = window.setTimeout(() => {
       setVisible(false);
       onDone?.();
       window.dispatchEvent(new Event("resize"));
     }, duration);
+    // Filet de sécurité : le splash ne doit jamais rester bloqué à l'écran.
+    const failsafe = window.setTimeout(() => setVisible(false), duration + 2500);
 
     return () => {
       window.clearTimeout(endTimer);
       window.clearTimeout(slowTimer);
+      window.clearTimeout(failsafe);
     };
   }, [onDone]);
+
 
   if (!visible) return null;
 
