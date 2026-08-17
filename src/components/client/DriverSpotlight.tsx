@@ -236,7 +236,7 @@ export function DriverSpotlight({
             url={driver?.vehiclePhotoUrl}
             alt={driver ? `Véhicule de ${driver.name}` : "Véhicule du chauffeur"}
             loading={loading}
-            onRefresh={onPhotoRefresh}
+            {...(onPhotoRefresh ? { onRefresh: onPhotoRefresh } : {})}
           />
 
           <p className="text-[11px] font-bold tracking-wide text-muted-foreground uppercase">
