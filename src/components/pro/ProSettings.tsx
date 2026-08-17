@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { PushSettingsCard } from "@/components/PushSettingsCard";
+import { PAYMENT_METHOD_OPTIONS } from "@/lib/payment-methods";
 
 
 const AVAILABILITY_OPTIONS = [
@@ -60,6 +61,7 @@ export function ProSettings() {
     linkedin_url: "",
   });
   const [availability, setAvailability] = useState<string[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
 
   useEffect(() => {
     if (profile) setAccount({ full_name: profile.full_name ?? "", phone: profile.phone ?? "" });
@@ -96,6 +98,7 @@ export function ProSettings() {
       linkedin_url: d.linkedin_url ?? "",
     });
     setAvailability(d.availability ?? []);
+    setPaymentMethods(d.payment_methods ?? []);
   }, [driver.data]);
 
   async function save() {
@@ -118,6 +121,7 @@ export function ProSettings() {
         services: toList(pro.services),
         long_distance: pro.long_distance,
         availability,
+        payment_methods: paymentMethods,
         accepting_requests: pro.accepting_requests,
         on_duty: pro.on_duty,
         page_published: pro.page_published,
@@ -196,6 +200,43 @@ export function ProSettings() {
           <Label htmlFor="serv">Services (virgules)</Label>
           <Input id="serv" value={pro.services} maxLength={200} onChange={(e) => setPro({ ...pro, services: e.target.value })} />
         </div>
+        <div className="rounded-xl border border-border p-4 sm:col-span-2">
+          <p className="text-sm font-semibold">Modes de règlement acceptés</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Le client doit choisir l'un de ces modes pour envoyer une demande. Sans mode activé,
+            aucune réservation ne peut vous être adressée.
+          </p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {PAYMENT_METHOD_OPTIONS.map((o) => {
+              const on = paymentMethods.includes(o.key);
+              return (
+                <label
+                  key={o.key}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-sm font-medium">{o.label}</span>
+                    <span className="block text-xs text-muted-foreground">{o.description}</span>
+                  </span>
+                  <Switch
+                    checked={on}
+                    onCheckedChange={(v) =>
+                      setPaymentMethods((prev) =>
+                        v ? [...new Set([...prev, o.key])] : prev.filter((k) => k !== o.key),
+                      )
+                    }
+                  />
+                </label>
+              );
+            })}
+          </div>
+          {paymentMethods.length === 0 ? (
+            <p className="mt-2 text-xs font-medium text-destructive">
+              Activez au moins un mode de règlement pour recevoir des demandes.
+            </p>
+          ) : null}
+        </div>
+
         <div className="rounded-xl border border-border p-4 sm:col-span-2">
           <p className="text-sm font-semibold">Coordonnées publiques (facultatives)</p>
           <p className="mt-1 text-xs text-muted-foreground">

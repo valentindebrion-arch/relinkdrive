@@ -10,6 +10,7 @@ import {
   Pencil,
   Send,
   UserRound,
+  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -55,6 +56,8 @@ export type ReviewStepProps = {
   needsLabel: string;
   comment: string;
   driver: { name: string; available: boolean; zone?: string | null } | null;
+  paymentLabel: string | null;
+  onEditPayment: () => void;
   driverStatusLabel: string | null;
   busy: boolean;
   blockedReason: string | null;
@@ -123,6 +126,7 @@ export function ReviewStep(props: ReviewStepProps) {
     comment,
     driver,
     driverStatusLabel,
+    paymentLabel,
     busy,
     blockedReason,
     errorMessage,
@@ -142,8 +146,10 @@ export function ReviewStep(props: ReviewStepProps) {
     !!comment.trim();
 
   const incompatible = !!compatibility && !compatibility.compatible;
-  const disabled = busy || !accepted || !estimate || !!blockedReason || incompatible;
-  const helper = incompatible
+  const disabled = busy || !accepted || !estimate || !!blockedReason || incompatible || !paymentLabel;
+  const helper = !paymentLabel
+    ? "Sélectionnez un mode de règlement avant d'envoyer votre demande."
+    : incompatible
     ? "Cette demande n'est pas compatible avec les capacités déclarées par ce chauffeur."
     : !accepted
       ? "Acceptez les CGU et les CGV pour envoyer votre demande."
@@ -168,7 +174,7 @@ export function ReviewStep(props: ReviewStepProps) {
             className="rounded-3xl border border-primary/35 bg-primary/8 p-4"
           >
             <p id="tarif" className="text-[12px] font-bold tracking-wide text-primary uppercase">
-              {estimate?.quote?.regime === "liable" ? "Prix TTC estimé" : "Total à payer estimé"}
+              Prix final à régler au chauffeur
             </p>
             <div className="mt-1 flex items-end justify-between gap-3">
               <p className="text-[34px] leading-none font-extrabold tabular-nums">
@@ -180,9 +186,10 @@ export function ReviewStep(props: ReviewStepProps) {
               </div>
             </div>
             <p className="mt-2 text-[12.5px] leading-snug text-muted-foreground">
-              Montant calculé sur l'itinéraire estimé. Il peut évoluer si le chauffeur propose un
-              autre horaire ou un autre prix en répondant, ou si le trajet réellement effectué
-              diffère. Il devient ferme à l'acceptation du chauffeur.
+              Le règlement s'effectue directement auprès du chauffeur selon le mode choisi
+              ci-dessous. Le montant affiché correspond au prix final à lui régler, sans aucun
+              supplément. Toute course confirmée et réalisée est due. Aucun paiement n'est collecté
+              par ReLink.
             </p>
 
             <button
@@ -240,7 +247,9 @@ export function ReviewStep(props: ReviewStepProps) {
                 )}
                 <div className="mt-1 flex items-center justify-between gap-4 border-t border-border pt-2">
                   <dt className="text-[14px] font-bold">
-                    {estimate.quote?.regime === "liable" ? "Total TTC" : "Total à payer"}
+                    {estimate.quote?.regime === "liable"
+                      ? "Prix final TTC"
+                      : "Prix final à régler"}
                   </dt>
                   <dd className="text-[16px] font-extrabold tabular-nums">
                     {formatEuro(estimate.price.total)}
@@ -345,6 +354,28 @@ export function ReviewStep(props: ReviewStepProps) {
             ) : (
               <p className="text-[13px] text-muted-foreground">Aucune option particulière</p>
             )}
+          </Card>
+
+          {/* Mode de règlement */}
+          <Card
+            title="Mode de règlement"
+            editLabel="Modifier le mode de règlement"
+            onEdit={props.onEditPayment}
+          >
+            {paymentLabel ? (
+              <p className="flex items-center gap-2 text-[15px] font-bold">
+                <Wallet className="size-4 shrink-0 text-primary" />
+                {paymentLabel}
+              </p>
+            ) : (
+              <p className="text-[13px] font-semibold text-destructive">
+                Sélectionnez un mode de règlement avant d'envoyer votre demande.
+              </p>
+            )}
+            <p className="mt-2 text-[12.5px] leading-snug text-muted-foreground">
+              Vous réglez directement votre chauffeur. Le choix d'un mode de règlement ne constitue
+              pas un paiement : aucun montant n'est encaissé par ReLink.
+            </p>
           </Card>
 
           {/* Compatibilité */}

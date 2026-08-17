@@ -25,6 +25,7 @@ import {
   X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { paymentMethodLabel, useDriverPaymentMethods } from "@/lib/payment-methods";
 import { useAuth } from "@/lib/auth";
 import { formatDateTime, formatEuro } from "@/lib/labels";
 import { ScheduleSheet } from "@/components/request/ScheduleSheet";
@@ -203,6 +204,7 @@ function ClientRequests() {
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [slotWarning, setSlotWarning] = useState<string | null>(null);
   const [scanOpen, setScanOpen] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
   /** Empêche tout double envoi d'une même demande. */
   const sentRef = useRef(false);
   /** Clé d'idempotence : un rejeu réseau ne crée jamais de doublon côté serveur. */
@@ -623,6 +625,16 @@ function ClientRequests() {
       });
       return;
     }
+    if (!paymentMethod) {
+      setBusy(false);
+      sentRef.current = false;
+      setSubmitError("Sélectionnez un mode de règlement avant d'envoyer votre demande.");
+      setStep(1);
+      toast.error("Mode de règlement manquant", {
+        description: "Choisissez comment vous réglerez la course.",
+      });
+      return;
+    }
     const estimateLine = estimate
       ? `Prix client TTC : ${formatEuro(estimate.price.total)} · ${estimate.distanceKm} km · ~${estimate.durationMin} min`
       : null;
@@ -651,6 +663,7 @@ function ClientRequests() {
       _distance_km: estimate ? estimate.oneWayKm : null,
       _immediate: whenMode === "now",
       _idempotency_key: idempotencyRef.current,
+      _payment_method: paymentMethod,
       _cgu_version: LEGAL_VERSIONS.cgu,
       _cgv_version: LEGAL_VERSIONS.cgv,
       _cancellation_version: LEGAL_VERSIONS.cancellation,
@@ -666,6 +679,15 @@ function ClientRequests() {
         setSubmitError(incompatible.blockingIssues.map((i) => i.message).join(" "));
         toast.error("Cette demande n'est pas réalisable avec ce véhicule", {
           description: incompatible.blockingIssues[0]?.message,
+        });
+        return;
+      }
+      if (/payment_method/i.test(error.message)) {
+        setPaymentMethod(null);
+        setStep(1);
+        setSubmitError("Ce mode de règlement n'est plus accepté par ce chauffeur.");
+        toast.error("Mode de règlement indisponible", {
+          description: "Choisissez un autre mode accepté par le chauffeur.",
         });
         return;
       }
@@ -749,6 +771,16 @@ function ClientRequests() {
 
   // Le parcours adopte le thème du chauffeur sélectionné (classique sinon).
   const branding = useDriverBranding({ driverId: form.driver_id || null });
+  const paymentMethods = useDriverPaymentMethods(form.driver_id || null);
+  const paymentOptions = paymentMethods.data ?? [];
+
+  // Le mode de règlement dépend du chauffeur : on réinitialise s'il n'est plus proposé.
+  useEffect(() => {
+    if (!paymentMethod) return;
+    if (paymentMethods.isLoading) return;
+    if (!paymentOptions.some((o) => o.key === paymentMethod)) setPaymentMethod(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.driver_id, paymentMethods.isLoading, paymentMethods.data]);
 
   const selectedDriver = (drivers.data ?? []).find((d) => d.id === form.driver_id);
   const driverName = selectedDriver?.full_name;
@@ -1280,6 +1312,11 @@ function ClientRequests() {
           returnDropoff={returnTrip.dropoff}
           minReturnLocal={toLocalInput(scheduledIso())}
           busy={busy || checking}
+          paymentOptions={paymentOptions}
+          paymentLoading={!!form.driver_id && paymentMethods.isLoading}
+          paymentMethod={paymentMethod}
+          onSelectPayment={setPaymentMethod}
+          onContactDriver={() => void navigate({ to: "/espace/chauffeurs" })}
           onEditTrip={() => setStep(0)}
           onContinue={() => void next()}
           onChange={(patch) => {
@@ -1366,6 +1403,8 @@ function ClientRequests() {
             setDriverPickerOpen(true);
           }}
           onEditOptions={() => setStep(1)}
+          paymentLabel={paymentMethodLabel(paymentMethod)}
+          onEditPayment={() => setStep(1)}
           onSubmit={() => void submit()}
         />
       )}
