@@ -32,11 +32,10 @@ export function formatPickupHour(iso: string) {
   });
 }
 
-export type SmsKind = "departure" | "arrival";
 
 /**
- * Message prérempli : aucune adresse, aucun nom complet, aucune donnée de paiement,
- * et jamais la marque ReLink dans le corps du message.
+ * Message prérempli : aucune adresse, aucun nom complet, aucune donnée de paiement.
+ * ReLink n'apparaît que comme signature technique du message, jamais comme auteur.
  */
 export function buildSmsMessage(opts: {
   kind?: SmsKind;
@@ -50,8 +49,9 @@ export function buildSmsMessage(opts: {
     opts.kind === "arrival"
       ? "est arrivé au lieu de prise en charge."
       : `est en route pour votre prise en charge prévue à ${formatPickupHour(opts.scheduledAt)}.`;
-  return `${prefix}${body} Vous pouvez consulter votre course ici : ${opts.link}`;
+  return `${prefix}${body} Vous pouvez consulter votre course ici : ${opts.link}\n— Message transmis via ReLink, l'outil de réservation utilisé par votre chauffeur.`;
 }
+
 
 
 export function isIosDevice(ua = typeof navigator !== "undefined" ? navigator.userAgent : "") {
