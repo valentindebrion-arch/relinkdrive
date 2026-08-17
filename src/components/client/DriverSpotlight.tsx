@@ -82,9 +82,7 @@ function VehicleHero({
             loading="eager"
             fetchPriority="high"
             decoding="async"
-            className={`size-full object-cover object-center transition-opacity duration-200 ${
-              ready ? "opacity-100" : "opacity-0"
-            }`}
+            className="size-full object-cover object-center opacity-100"
             onLoad={() => setReady(true)}
             onError={() => {
               if (onRefresh && refreshAttempt.current !== imageKey) {
