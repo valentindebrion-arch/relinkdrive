@@ -44,12 +44,24 @@ export function ClientTabBar({ disabled = false }: { disabled?: boolean }) {
                   lastNav.current = now;
                 }}
                 className={cn(
-                  "flex min-h-14 flex-col items-center justify-center gap-1 text-[11px] font-semibold transition-colors",
+                  "relative flex min-h-14 flex-col items-center justify-center gap-1 text-[11px] font-semibold transition-colors duration-200",
                   active ? "text-primary" : "text-muted-foreground",
                 )}
               >
-                <tab.icon className="size-5" />
-                {tab.label}
+                <span
+                  aria-hidden
+                  className={cn(
+                    "absolute top-1.5 h-8 w-14 rounded-full bg-primary/8 transition-opacity duration-200",
+                    active ? "opacity-100" : "opacity-0",
+                  )}
+                />
+                <tab.icon
+                  className={cn(
+                    "relative size-5 transition-transform duration-200",
+                    active ? "-translate-y-0.5" : "translate-y-0",
+                  )}
+                />
+                <span className="relative">{tab.label}</span>
               </Link>
             </li>
           );
