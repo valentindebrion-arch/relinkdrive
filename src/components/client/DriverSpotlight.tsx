@@ -45,7 +45,7 @@ function VehicleHero({
           <img
             src={url!}
             alt={alt}
-            className={`size-full object-cover transition-opacity duration-200 ${
+            className={`size-full object-cover object-center transition-opacity duration-200 ${
               ready ? "opacity-100" : "opacity-0"
             }`}
             onLoad={() => setReady(true)}
