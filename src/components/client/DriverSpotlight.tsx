@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Car, ChevronLeft, ChevronRight, QrCode, UserRound } from "lucide-react";
 
@@ -9,6 +9,9 @@ export type SpotlightDriver = {
   vehicle: string | null;
   /** URL signée de la photo extérieure du véhicule déclaré par le chauffeur. */
   vehiclePhotoUrl?: string | null;
+  activeVehicleId?: string | null;
+  vehiclePhotoPath?: string | null;
+  vehiclePhotoVersion?: string | null;
   slug: string | null;
   favorite: boolean;
 };
@@ -18,38 +21,80 @@ export type SpotlightDriver = {
  * Ratio stable (aucun saut), placeholder élégant si aucune photo n'est enregistrée.
  */
 function VehicleHero({
+  imageKey,
   url,
   alt,
   loading,
+  onRefresh,
 }: {
+  imageKey: string;
   url: string | null | undefined;
   alt: string;
   loading: boolean;
+  onRefresh?: () => Promise<unknown>;
 }) {
   const [failed, setFailed] = useState(false);
   const [ready, setReady] = useState(false);
-  useEffect(() => {
-    setFailed(false);
-    setReady(false);
-  }, [url]);
+  const [refreshing, setRefreshing] = useState(false);
+  const imageRef = useRef<HTMLImageElement | null>(null);
+  const refreshAttempt = useRef<string | null>(null);
 
-  const showImage = !!url && !failed;
+  const syncReadyState = useCallback((image: HTMLImageElement | null) => {
+    imageRef.current = image;
+    if (image?.complete && image.naturalWidth > 0) {
+      setReady(true);
+      setFailed(false);
+    }
+  }, []);
+
+  useLayoutEffect(() => {
+    setFailed(false);
+    setRefreshing(false);
+    setReady(false);
+    syncReadyState(imageRef.current);
+  }, [imageKey, syncReadyState, url]);
+
+  useEffect(() => {
+    const restoreIfCached = () => syncReadyState(imageRef.current);
+    restoreIfCached();
+    document.addEventListener("visibilitychange", restoreIfCached);
+    window.addEventListener("pageshow", restoreIfCached);
+    return () => {
+      document.removeEventListener("visibilitychange", restoreIfCached);
+      window.removeEventListener("pageshow", restoreIfCached);
+    };
+  }, [imageKey, syncReadyState, url]);
+
+  const showImage = !!url && (!failed || refreshing);
 
   return (
     <div className="relative h-[var(--home-hero-h)] w-full overflow-hidden rounded-2xl bg-muted shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]">
-      {loading ? (
+      {loading && !ready ? (
         <span className="absolute inset-0 animate-pulse bg-muted" aria-hidden />
       ) : showImage ? (
         <>
           {!ready ? <span className="absolute inset-0 animate-pulse bg-muted" aria-hidden /> : null}
           <img
-            src={url!}
+            key={imageKey}
+            ref={syncReadyState}
+            src={url}
             alt={alt}
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
             className={`size-full object-cover object-center transition-opacity duration-200 ${
               ready ? "opacity-100" : "opacity-0"
             }`}
             onLoad={() => setReady(true)}
-            onError={() => setFailed(true)}
+            onError={() => {
+              if (onRefresh && refreshAttempt.current !== imageKey) {
+                refreshAttempt.current = imageKey;
+                setRefreshing(true);
+                void onRefresh().finally(() => setRefreshing(false));
+                return;
+              }
+              setFailed(true);
+            }}
           />
           <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 to-transparent px-3 pt-6 pb-1.5 text-[11px] font-semibold text-white">
             Véhicule de votre chauffeur
@@ -99,13 +144,23 @@ export function DriverSpotlight({
   index,
   onIndexChange,
   loading,
+  onPhotoRefresh,
 }: {
   drivers: SpotlightDriver[];
   index: number;
   onIndexChange: (next: number) => void;
   loading: boolean;
+  onPhotoRefresh?: () => Promise<unknown>;
 }) {
   const driver = drivers[index] ?? null;
+  const imageKey = driver
+    ? [
+        driver.id,
+        driver.activeVehicleId ?? "vehicle",
+        driver.vehiclePhotoPath ?? "no-photo",
+        driver.vehiclePhotoVersion ?? "version",
+      ].join(":")
+    : "no-driver";
   const multiple = drivers.length > 1;
 
   const [dir, setDir] = useState<"right" | "left" | null>(null);
@@ -117,6 +172,12 @@ export function DriverSpotlight({
     const t = window.setTimeout(() => setDir(null), ANIM_MS);
     return () => window.clearTimeout(t);
   }, [dir, index]);
+
+  useEffect(() => {
+    setDir(null);
+    setDrag(0);
+    startX.current = null;
+  }, [imageKey]);
 
   // Préchargement des photos précédente et suivante pour éviter tout skeleton au swipe.
   useEffect(() => {
@@ -171,9 +232,11 @@ export function DriverSpotlight({
           style={drag ? { transform: `translate3d(${drag * 0.35}px,0,0)` } : undefined}
         >
           <VehicleHero
+            imageKey={imageKey}
             url={driver?.vehiclePhotoUrl}
             alt={driver ? `Véhicule de ${driver.name}` : "Véhicule du chauffeur"}
             loading={loading}
+            onRefresh={onPhotoRefresh}
           />
 
           <p className="text-[11px] font-bold tracking-wide text-muted-foreground uppercase">

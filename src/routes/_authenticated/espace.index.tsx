@@ -28,7 +28,9 @@ export const Route = createFileRoute("/_authenticated/espace/")({
   component: ClientHome,
 });
 
-type HomeDriver = SpotlightDriver & { zone: string | null; vehiclePhotoPath: string | null };
+type HomeDriver = SpotlightDriver & { zone: string | null };
+
+let selectedDriverMemory: string | null = null;
 
 /** Léger retour haptique, facultatif et jamais nécessaire à la compréhension. */
 function haptic() {
@@ -49,7 +51,7 @@ function ClientHome() {
   const blocking = useBlockingImmediate().data ?? null;
   const blockingCountdown = useCountdown(blocking?.response_deadline ?? null);
 
-  const [index, setIndex] = useState(0);
+  const [selectedDriverId, setSelectedDriverId] = useState<string | null>(selectedDriverMemory);
 
   const data = useQuery({
     queryKey: ["client-home", user?.id],
@@ -81,7 +83,7 @@ function ClientHome() {
           supabase.rpc("get_connected_driver_profiles"),
           supabase
             .from("vehicles")
-            .select("driver_id, brand, model, color, photo_url, is_primary, updated_at")
+            .select("id, driver_id, brand, model, color, photo_url, is_primary, updated_at")
             .in("driver_id", ids),
         ]);
         const counts = new Map<string, number>();
@@ -101,7 +103,9 @@ function ClientHome() {
             name: dp?.business_name || profile?.full_name || "Chauffeur",
             available: dp?.on_duty ?? false,
             vehicle: car ? [car.brand, car.model].filter(Boolean).join(" ") || null : null,
+            activeVehicleId: car?.id ?? null,
             vehiclePhotoPath: car?.photo_url ?? null,
+            vehiclePhotoVersion: car?.updated_at ?? null,
             zone: dp?.zone ?? null,
             slug: dp?.slug ?? null,
             favorite: id === favoriteId,
@@ -118,6 +122,7 @@ function ClientHome() {
   const photos = useSignedUrls(
     "vehicles",
     rawDrivers.map((d) => d.vehiclePhotoPath),
+    rawDrivers.map((d) => d.vehiclePhotoVersion),
   );
   const photoUrls = photos.data;
   const drivers = useMemo(
@@ -134,17 +139,30 @@ function ClientHome() {
   const rides = data.data?.rides ?? [];
   const requests = data.data?.requests ?? [];
 
-  // Chauffeur favori mis en avant au premier affichage.
+  // Le chauffeur sélectionné est restauré par identifiant, jamais par la
+  // position momentanée du carrousel lors d'un retour de route.
   const primed = useRef(false);
   useEffect(() => {
     if (primed.current || !drivers.length) return;
     primed.current = true;
+    if (selectedDriverId && drivers.some((driver) => driver.id === selectedDriverId)) return;
     const fav = drivers.findIndex((d) => d.favorite);
-    if (fav > 0) setIndex(fav);
-  }, [drivers]);
+    const initial = drivers[fav >= 0 ? fav : 0]?.id ?? null;
+    selectedDriverMemory = initial;
+    setSelectedDriverId(initial);
+  }, [drivers, selectedDriverId]);
 
-  const safeIndex = drivers.length ? Math.min(index, drivers.length - 1) : 0;
+  const restoredIndex = selectedDriverId
+    ? drivers.findIndex((driver) => driver.id === selectedDriverId)
+    : -1;
+  const safeIndex = restoredIndex >= 0 ? restoredIndex : 0;
   const selectedDriver = drivers[safeIndex] ?? null;
+
+  function selectDriver(nextIndex: number) {
+    const nextId = drivers[nextIndex]?.id ?? null;
+    selectedDriverMemory = nextId;
+    setSelectedDriverId(nextId);
+  }
 
   const activeRide = rides.find((r) =>
     ["driver_enroute", "driver_arrived", "client_onboard", "in_progress"].includes(r.status),
@@ -341,8 +359,9 @@ function ClientHome() {
           <DriverSpotlight
             drivers={drivers}
             index={safeIndex}
-            onIndexChange={setIndex}
+            onIndexChange={selectDriver}
             loading={data.isLoading || photosPending}
+            onPhotoRefresh={() => photos.refetch()}
           />
         </div>
 
