@@ -399,7 +399,7 @@ function TrackingPageInner() {
   if (ride?.completed_at && !stepTimes.done) stepTimes.done = ride.completed_at;
 
   const presentation = trackingPresentation(status, {
-    driverName: driverFirst,
+    driverName: driverDisplay,
     cancelledByDriver: !!ride && ride.cancelled_by_role === "driver",
   });
   const heroTone: TrackingTone = presentation.tone;
@@ -814,7 +814,7 @@ function TrackingPageInner() {
           <Button asChild className="h-12 w-full rounded-2xl font-bold">
             <a href={`tel:${phoneQuery.data.phone}`}>
               <Phone className="size-4" />
-              Appeler {driverFirst}
+              Appeler {driverDisplay}
             </a>
           </Button>
         ) : null}
@@ -844,7 +844,7 @@ function TrackingPageInner() {
         {/* 4 — Chauffeur. */}
         {driver ? (
           <TrackingDriverCard
-            name={driverFirst}
+            name={driverDisplay}
             avatarUrl={driver.avatar_url}
             vehicleLabel={vehicleLabel}
             vehiclePhotoUrl={vehiclePhoto.data ?? null}
