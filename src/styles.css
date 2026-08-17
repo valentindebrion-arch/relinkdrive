@@ -445,3 +445,132 @@
 @utility splash-logo-reduced {
   animation: splash-logo-reduced 0.42s linear both;
 }
+
+/* Accueil client : entrée progressive, carrousel chauffeur, décor de connexion */
+@keyframes home-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes driver-card-in-right {
+  from {
+    opacity: 0;
+    transform: translate3d(28px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes driver-card-in-left {
+  from {
+    opacity: 0;
+    transform: translate3d(-28px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes status-dot-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.18);
+    opacity: 1;
+  }
+}
+
+@keyframes today-swap {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes badge-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes decor-travel {
+  0% {
+    offset-distance: 0%;
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    offset-distance: 100%;
+    opacity: 0;
+  }
+}
+
+@utility home-rise {
+  animation: home-rise 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+
+@utility driver-card-in-right {
+  animation: driver-card-in-right 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+
+@utility driver-card-in-left {
+  animation: driver-card-in-left 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+
+@utility status-dot-pulse {
+  animation: status-dot-pulse 3s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@utility today-swap {
+  animation: today-swap 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility badge-pop {
+  animation: badge-pop 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility decor-dot {
+  animation: decor-travel linear infinite;
+  will-change: offset-distance, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-dot-pulse,
+  .decor-dot {
+    animation: none !important;
+  }
+}
