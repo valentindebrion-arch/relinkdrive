@@ -574,3 +574,48 @@
     animation: none !important;
   }
 }
+
+/* Accueil client : mise à l'échelle verticale réelle (dvh + safe areas) */
+.home-screen {
+  --home-gap: clamp(0.4rem, 1.5dvh, 0.75rem);
+  --home-hero-h: clamp(78px, 16dvh, 170px);
+  --home-driver-h: clamp(4rem, 10dvh, 5.5rem);
+  --home-avatar: clamp(2.25rem, 6dvh, 3rem);
+  --home-btn-h: clamp(2.75rem, 7dvh, 3.5rem);
+  --home-btn2-h: clamp(2.25rem, 5dvh, 2.75rem);
+  --home-shortcut-h: clamp(2.5rem, 6dvh, 3.25rem);
+  --home-today-h: clamp(3.75rem, 9dvh, 5.5rem);
+  --home-tabbar-h: calc(3.5rem + env(safe-area-inset-bottom));
+  min-height: 100vh;
+  height: 100vh;
+  min-height: 100dvh;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+/* Écrans compacts : réduction des libellés secondaires, jamais des informations. */
+.home-carousel-long {
+  display: inline;
+}
+.home-carousel-short {
+  display: none;
+}
+
+@media (max-height: 700px) {
+  .home-carousel-long {
+    display: none;
+  }
+  .home-carousel-short {
+    display: inline;
+  }
+}
+
+/* Très petites hauteurs (clavier, textes agrandis) : défilement accessible plutôt que du contenu coupé. */
+@media (max-height: 520px) {
+  .home-screen {
+    height: auto;
+    max-height: none;
+    overflow-y: auto;
+  }
+}
