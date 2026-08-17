@@ -342,14 +342,17 @@ function ClientHome() {
         </div>
 
         {/* 4 & 5. Action principale + action secondaire */}
-        <section className="home-rise shrink-0 space-y-2" style={{ animationDelay: "90ms" }}>
+        <section
+          className="home-rise shrink-0 space-y-[calc(var(--home-gap)*0.7)]"
+          style={{ animationDelay: "90ms" }}
+        >
           {noDriver ? (
             <Link
               to="/espace/chauffeurs"
-              className="group flex min-h-14 w-full items-center justify-center gap-2 rounded-3xl bg-primary text-[16px] font-extrabold text-primary-foreground shadow-[0_8px_20px_-14px_rgba(0,0,0,0.6)] transition-transform duration-200 active:scale-[0.985]"
+              className="group flex min-h-[var(--home-btn-h)] w-full items-center justify-center gap-2 rounded-3xl bg-primary px-3 text-center text-[15px] font-extrabold text-primary-foreground shadow-[0_8px_20px_-14px_rgba(0,0,0,0.6)] transition-transform duration-200 active:scale-[0.985] sm:text-[16px]"
             >
               Ajouter un chauffeur
-              <ArrowRight className="size-5 transition-transform duration-200 group-active:translate-x-1" />
+              <ArrowRight className="size-5 shrink-0 transition-transform duration-200 group-active:translate-x-1" />
             </Link>
           ) : (
             <button
@@ -359,11 +362,11 @@ function ClientHome() {
                 primary.onClick();
               }}
               disabled={data.isLoading}
-              className="group flex min-h-14 w-full items-center justify-center gap-2 rounded-3xl bg-primary text-[16px] font-extrabold text-primary-foreground shadow-[0_8px_20px_-14px_rgba(0,0,0,0.6)] transition-all duration-200 active:scale-[0.985] active:shadow-none disabled:opacity-70"
+              className="group flex min-h-[var(--home-btn-h)] w-full items-center justify-center gap-2 rounded-3xl bg-primary px-3 text-center text-[15px] leading-tight font-extrabold text-primary-foreground shadow-[0_8px_20px_-14px_rgba(0,0,0,0.6)] transition-all duration-200 active:scale-[0.985] active:shadow-none disabled:opacity-70 sm:text-[16px]"
             >
-              {data.isLoading ? <Loader2 className="size-5 animate-spin" /> : null}
+              {data.isLoading ? <Loader2 className="size-5 shrink-0 animate-spin" /> : null}
               {primary.label}
-              <ArrowRight className="size-5 transition-transform duration-200 group-active:translate-x-1" />
+              <ArrowRight className="size-5 shrink-0 transition-transform duration-200 group-active:translate-x-1" />
             </button>
           )}
 
@@ -371,15 +374,18 @@ function ClientHome() {
             <button
               type="button"
               onClick={() => startRequest("later")}
-              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-card text-[14px] font-bold text-primary transition-transform duration-200 active:scale-[0.985]"
+              className="flex min-h-[var(--home-btn2-h)] w-full items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-card px-3 text-[13px] leading-tight font-bold text-primary transition-transform duration-200 active:scale-[0.985] sm:text-[14px]"
             >
-              <CalendarClock className="size-4" /> Planifier avec ce chauffeur
+              <CalendarClock className="size-4 shrink-0" /> Planifier avec ce chauffeur
             </button>
           ) : null}
         </section>
 
         {/* 6. Raccourcis fixes */}
-        <section className="home-rise grid shrink-0 grid-cols-2 gap-2" style={{ animationDelay: "140ms" }}>
+        <section
+          className="home-rise grid shrink-0 grid-cols-2 gap-[calc(var(--home-gap)*0.7)]"
+          style={{ animationDelay: "140ms" }}
+        >
           {shortcuts.map((s) => (
             <button
               key={s.label}
@@ -388,20 +394,22 @@ function ClientHome() {
                 haptic();
                 s.onClick();
               }}
-              className="group flex min-h-[3.25rem] items-center gap-2 rounded-2xl border border-primary/20 bg-card px-3 text-left shadow-[0_4px_14px_-12px_rgba(0,0,0,0.5)] transition-colors duration-200 active:bg-primary/5"
+              className="group flex min-h-[var(--home-shortcut-h)] items-center gap-1.5 rounded-2xl border border-primary/20 bg-card px-2 py-1.5 text-left shadow-[0_4px_14px_-12px_rgba(0,0,0,0.5)] transition-colors duration-200 active:bg-primary/5 sm:gap-2 sm:px-3"
             >
-              <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary transition-transform duration-200 group-active:scale-105">
+              <span className="grid size-7 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary transition-transform duration-200 group-active:scale-105 sm:size-8">
                 <s.icon className="size-4" />
               </span>
-              <span className="min-w-0 flex-1 text-[13px] leading-tight font-bold">{s.label}</span>
-              <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+              <span className="min-w-0 flex-1 text-[12.5px] leading-tight font-bold break-words hyphens-auto sm:text-[13px]">
+                {s.label}
+              </span>
+              <ChevronRight className="size-3.5 shrink-0 text-muted-foreground sm:size-4" />
             </button>
           ))}
         </section>
 
         {/* 7. Zone contextuelle « Aujourd'hui » */}
         <section
-          className="home-rise flex h-[5.5rem] shrink-0 flex-col justify-center rounded-2xl border border-border/70 bg-card px-4 shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]"
+          className="home-rise flex min-h-[var(--home-today-h)] shrink-0 flex-col justify-center rounded-2xl border border-border/70 bg-card px-3 py-2 shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)] sm:px-4"
           style={{ animationDelay: "190ms" }}
         >
           <p className="text-[11px] font-bold tracking-wide text-muted-foreground uppercase">
