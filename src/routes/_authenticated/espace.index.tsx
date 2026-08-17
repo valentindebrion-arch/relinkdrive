@@ -113,11 +113,13 @@ function ClientHome() {
   });
 
   const rawDrivers = useMemo(() => data.data?.drivers ?? [], [data.data?.drivers]);
-  // Les photos sont stockées en privé : on régénère des URL signées à chaque lecture.
-  const photoUrls = useSignedUrls(
+  // Les photos sont stockées en privé : le chemin permanent est la source de vérité,
+  // l'URL signée est mise en cache (clé = bucket + chemins) et renouvelée si besoin.
+  const photos = useSignedUrls(
     "vehicles",
     rawDrivers.map((d) => d.vehiclePhotoPath),
-  ).data;
+  );
+  const photoUrls = photos.data;
   const drivers = useMemo(
     () =>
       rawDrivers.map((d) => ({
@@ -126,6 +128,9 @@ function ClientHome() {
       })),
     [rawDrivers, photoUrls],
   );
+  // Tant que les URL signées ne sont pas résolues, on garde le skeleton :
+  // jamais le placeholder « photo indisponible » sur un véhicule qui en a une.
+  const photosPending = photos.isPending && rawDrivers.some((d) => !!d.vehiclePhotoPath);
   const rides = data.data?.rides ?? [];
   const requests = data.data?.requests ?? [];
 
