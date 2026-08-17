@@ -22,12 +22,13 @@ import { useCountdown } from "@/components/ExpiryCountdown";
 import { saveRequestDraft } from "@/lib/request-draft";
 import { ConnectionDecor } from "@/components/client/ConnectionDecor";
 import { DriverSpotlight, type SpotlightDriver } from "@/components/client/DriverSpotlight";
+import { useSignedUrls } from "@/lib/storage";
 
 export const Route = createFileRoute("/_authenticated/espace/")({
   component: ClientHome,
 });
 
-type HomeDriver = SpotlightDriver & { zone: string | null };
+type HomeDriver = SpotlightDriver & { zone: string | null; vehiclePhotoPath: string | null };
 
 /** Léger retour haptique, facultatif et jamais nécessaire à la compréhension. */
 function haptic() {
@@ -80,7 +81,7 @@ function ClientHome() {
           supabase.rpc("get_connected_driver_profiles"),
           supabase
             .from("vehicles")
-            .select("driver_id, brand, model, is_primary")
+            .select("driver_id, brand, model, color, photo_url, is_primary, updated_at")
             .in("driver_id", ids),
         ]);
         const counts = new Map<string, number>();
@@ -100,6 +101,7 @@ function ClientHome() {
             name: dp?.business_name || profile?.full_name || "Chauffeur",
             available: dp?.on_duty ?? false,
             vehicle: car ? [car.brand, car.model].filter(Boolean).join(" ") || null : null,
+            vehiclePhotoPath: car?.photo_url ?? null,
             zone: dp?.zone ?? null,
             slug: dp?.slug ?? null,
             favorite: id === favoriteId,
@@ -110,7 +112,20 @@ function ClientHome() {
     },
   });
 
-  const drivers = useMemo(() => data.data?.drivers ?? [], [data.data?.drivers]);
+  const rawDrivers = useMemo(() => data.data?.drivers ?? [], [data.data?.drivers]);
+  // Les photos sont stockées en privé : on régénère des URL signées à chaque lecture.
+  const photoUrls = useSignedUrls(
+    "vehicles",
+    rawDrivers.map((d) => d.vehiclePhotoPath),
+  ).data;
+  const drivers = useMemo(
+    () =>
+      rawDrivers.map((d) => ({
+        ...d,
+        vehiclePhotoUrl: d.vehiclePhotoPath ? (photoUrls?.[d.vehiclePhotoPath] ?? null) : null,
+      })),
+    [rawDrivers, photoUrls],
+  );
   const rides = data.data?.rides ?? [];
   const requests = data.data?.requests ?? [];
 
