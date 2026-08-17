@@ -529,6 +529,7 @@ export type Database = {
           long_distance: boolean
           on_duty: boolean
           page_published: boolean
+          payment_methods: string[]
           professional_address: string | null
           public_intro: string | null
           public_phone: string | null
@@ -582,6 +583,7 @@ export type Database = {
           long_distance?: boolean
           on_duty?: boolean
           page_published?: boolean
+          payment_methods?: string[]
           professional_address?: string | null
           public_intro?: string | null
           public_phone?: string | null
@@ -635,6 +637,7 @@ export type Database = {
           long_distance?: boolean
           on_duty?: boolean
           page_published?: boolean
+          payment_methods?: string[]
           professional_address?: string | null
           public_intro?: string | null
           public_phone?: string | null
@@ -1205,6 +1208,9 @@ export type Database = {
           large_luggage: number
           luggage: number
           passengers: number
+          payment_method: string | null
+          payment_method_chosen_at: string | null
+          payment_method_label: string | null
           pet_carrier: boolean
           pet_type: string | null
           pets_count: number
@@ -1253,6 +1259,9 @@ export type Database = {
           large_luggage?: number
           luggage?: number
           passengers?: number
+          payment_method?: string | null
+          payment_method_chosen_at?: string | null
+          payment_method_label?: string | null
           pet_carrier?: boolean
           pet_type?: string | null
           pets_count?: number
@@ -1301,6 +1310,9 @@ export type Database = {
           large_luggage?: number
           luggage?: number
           passengers?: number
+          payment_method?: string | null
+          payment_method_chosen_at?: string | null
+          payment_method_label?: string | null
           pet_carrier?: boolean
           pet_type?: string | null
           pets_count?: number
@@ -1454,6 +1466,7 @@ export type Database = {
           notes: string | null
           passengers: number
           payment_method: string | null
+          payment_method_label: string | null
           pickup_address: string
           previous_status: string | null
           price: number | null
@@ -1499,6 +1512,7 @@ export type Database = {
           notes?: string | null
           passengers?: number
           payment_method?: string | null
+          payment_method_label?: string | null
           pickup_address: string
           previous_status?: string | null
           price?: number | null
@@ -1544,6 +1558,7 @@ export type Database = {
           notes?: string | null
           passengers?: number
           payment_method?: string | null
+          payment_method_label?: string | null
           pickup_address?: string
           previous_status?: string | null
           price?: number | null
@@ -1910,6 +1925,35 @@ export type Database = {
               reused: boolean
             }[]
           }
+        | {
+            Args: {
+              _cancellation_version: string
+              _cgu_version: string
+              _cgv_version: string
+              _comment: string
+              _distance_km: number
+              _driver: string
+              _dropoff: string
+              _idempotency_key: string
+              _immediate: boolean
+              _luggage: number
+              _passengers: number
+              _payment_method: string
+              _pickup: string
+              _proposed_price: number
+              _requirements: Json
+              _round_trip: boolean
+              _scheduled_at: string
+              _special_needs: string
+              _trip_type: string
+            }
+            Returns: {
+              blocked: boolean
+              blocking_request_id: string
+              request_id: string
+              reused: boolean
+            }[]
+          }
       driver_available_between: {
         Args: { _driver: string; _end: string; _start: string }
         Returns: boolean
@@ -1924,6 +1968,7 @@ export type Database = {
         }[]
       }
       driver_dossier_state: { Args: { _driver: string }; Returns: Json }
+      driver_payment_methods: { Args: { _driver: string }; Returns: string[] }
       driver_tax_at: {
         Args: { _at?: string; _driver: string }
         Returns: {
@@ -2130,6 +2175,7 @@ export type Database = {
         Args: { _kind: string; _recipient: string }
         Returns: undefined
       }
+      payment_method_label: { Args: { _key: string }; Returns: string }
       process_document_expiry: { Args: never; Returns: number }
       submit_driver_dossier: { Args: never; Returns: Json }
       track_driver_event: {
