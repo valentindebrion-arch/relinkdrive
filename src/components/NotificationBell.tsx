@@ -104,7 +104,7 @@ export function NotificationBell({ className }: { className?: string }) {
       >
         <Bell className="size-5" />
         {unread > 0 ? (
-          <span className="absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+          <span key={unread} className="badge-pop absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
             {unread > 9 ? "9+" : unread}
           </span>
         ) : null}
