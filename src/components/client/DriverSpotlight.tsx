@@ -9,6 +9,8 @@ export type SpotlightDriver = {
   vehicle: string | null;
   /** URL signée de la photo extérieure du véhicule déclaré par le chauffeur. */
   vehiclePhotoUrl?: string | null;
+  /** URL signée de la photo intérieure (préchargée avec l'extérieure). */
+  vehicleInteriorUrl?: string | null;
   activeVehicleId?: string | null;
   vehiclePhotoPath?: string | null;
   vehiclePhotoVersion?: string | null;
@@ -109,7 +111,7 @@ function VehicleHero({
 }
 
 const SWIPE_MIN = 48;
-const ANIM_MS = 240;
+export const ANIM_MS = 260;
 
 function initials(name: string) {
   return (
@@ -140,13 +142,16 @@ function haptic() {
 export function DriverSpotlight({
   drivers,
   index,
-  onIndexChange,
+  onGo,
+  dir,
   loading,
   onPhotoRefresh,
 }: {
   drivers: SpotlightDriver[];
   index: number;
-  onIndexChange: (next: number) => void;
+  /** Le parent pilote le changement : photo, identité et véhicule glissent ensemble. */
+  onGo: (delta: number) => void;
+  dir: "left" | "right" | null;
   loading: boolean;
   onPhotoRefresh?: () => Promise<unknown>;
 }) {
@@ -161,18 +166,10 @@ export function DriverSpotlight({
     : "no-driver";
   const multiple = drivers.length > 1;
 
-  const [dir, setDir] = useState<"right" | "left" | null>(null);
   const [drag, setDrag] = useState(0);
   const startX = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!dir) return;
-    const t = window.setTimeout(() => setDir(null), ANIM_MS);
-    return () => window.clearTimeout(t);
-  }, [dir, index]);
-
-  useEffect(() => {
-    setDir(null);
     setDrag(0);
     startX.current = null;
   }, [imageKey]);
@@ -181,23 +178,24 @@ export function DriverSpotlight({
   useEffect(() => {
     if (!multiple || typeof window === "undefined") return;
     [index - 1, index + 1].forEach((i) => {
-      const url = drivers[(i + drivers.length) % drivers.length]?.vehiclePhotoUrl;
-      if (url) {
+      const neighbour = drivers[(i + drivers.length) % drivers.length];
+      [neighbour?.vehiclePhotoUrl, neighbour?.vehicleInteriorUrl].forEach((url) => {
+        if (!url) return;
         const img = new Image();
         img.src = url;
-      }
+      });
     });
   }, [drivers, index, multiple]);
 
   function go(delta: number) {
     if (!multiple) return;
-    setDir(delta > 0 ? "right" : "left");
     setDrag(0);
     haptic();
-    onIndexChange((index + delta + drivers.length) % drivers.length);
+    onGo(delta);
   }
 
-  const anim = dir === "right" ? "driver-card-in-right" : dir === "left" ? "driver-card-in-left" : "";
+  const anim =
+    dir === "right" ? "driver-card-in-right" : dir === "left" ? "driver-card-in-left" : "";
 
   return (
     <section className="relative shrink-0">

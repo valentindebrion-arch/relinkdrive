@@ -1,17 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  ArrowRight,
-  CalendarClock,
-  CalendarDays,
-  ChevronRight,
-  Car,
-  PhoneCall,
-  Loader2,
-  UserPlus,
-  Users,
-} from "lucide-react";
+import { ArrowRight, CalendarClock, CalendarDays, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -21,14 +11,23 @@ import { useBlockingImmediate } from "@/lib/immediate-request";
 import { useCountdown } from "@/components/ExpiryCountdown";
 import { saveRequestDraft } from "@/lib/request-draft";
 import { ConnectionDecor } from "@/components/client/ConnectionDecor";
-import { DriverSpotlight, type SpotlightDriver } from "@/components/client/DriverSpotlight";
+import {
+  ANIM_MS,
+  DriverSpotlight,
+  type SpotlightDriver,
+} from "@/components/client/DriverSpotlight";
+import {
+  EQUIPMENT_LABELS,
+  VehicleFacts,
+  type VehicleFactsData,
+} from "@/components/client/VehicleFacts";
 import { useSignedUrls } from "@/lib/storage";
 
 export const Route = createFileRoute("/_authenticated/espace/")({
   component: ClientHome,
 });
 
-type HomeDriver = SpotlightDriver & { zone: string | null };
+type HomeDriver = SpotlightDriver & { zone: string | null; facts: VehicleFactsData };
 
 let selectedDriverMemory: string | null = null;
 
@@ -43,7 +42,6 @@ function haptic() {
   }
 }
 
-
 function ClientHome() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -52,6 +50,17 @@ function ClientHome() {
   const blockingCountdown = useCountdown(blocking?.response_deadline ?? null);
 
   const [selectedDriverId, setSelectedDriverId] = useState<string | null>(selectedDriverMemory);
+  const [dir, setDir] = useState<"left" | "right" | null>(null);
+  const [transitioning, setTransitioning] = useState(false);
+
+  useEffect(() => {
+    if (!transitioning) return;
+    const t = window.setTimeout(() => {
+      setTransitioning(false);
+      setDir(null);
+    }, ANIM_MS);
+    return () => window.clearTimeout(t);
+  }, [transitioning, selectedDriverId]);
 
   const data = useQuery({
     queryKey: ["client-home", user?.id],
@@ -81,10 +90,7 @@ function ClientHome() {
         const [{ data: profiles }, { data: dprofiles }, { data: vehicles }] = await Promise.all([
           supabase.from("profiles").select("id, full_name").in("id", ids),
           supabase.rpc("get_connected_driver_profiles"),
-          supabase
-            .from("vehicles")
-            .select("id, driver_id, brand, model, color, photo_url, is_primary, updated_at")
-            .in("driver_id", ids),
+          supabase.from("vehicles").select("*").in("driver_id", ids),
         ]);
         const counts = new Map<string, number>();
         (rides ?? []).forEach((r) => counts.set(r.driver_id, (counts.get(r.driver_id) ?? 0) + 1));
@@ -109,6 +115,22 @@ function ClientHome() {
             zone: dp?.zone ?? null,
             slug: dp?.slug ?? null,
             favorite: id === favoriteId,
+            // Objet de présentation unique, construit avec le véhicule actif :
+            // aucune valeur inventée, `false` et « absent » restent distincts.
+            facts: {
+              vehicleId: car?.id ?? null,
+              interiorPhotoPath: car?.photo_interior_url ?? null,
+              interiorPhotoUrl: null,
+              maxPassengers: car?.max_passengers ?? null,
+              largeLuggage: car?.large_luggage_capacity ?? null,
+              cabinLuggage: car?.cabin_luggage_capacity ?? null,
+              petsPolicy: (car?.pets_policy as VehicleFactsData["petsPolicy"]) ?? null,
+              equipment: car
+                ? EQUIPMENT_LABELS.filter(
+                    (e) => (car as Record<string, unknown>)[e.key] === true,
+                  ).map((e) => e.label)
+                : [],
+            } satisfies VehicleFactsData,
           };
         });
       }
@@ -121,21 +143,29 @@ function ClientHome() {
   // l'URL signée est mise en cache (clé = bucket + chemins) et renouvelée si besoin.
   const photos = useSignedUrls(
     "vehicles",
-    rawDrivers.map((d) => d.vehiclePhotoPath),
+    rawDrivers.flatMap((d) => [d.vehiclePhotoPath, d.facts.interiorPhotoPath]),
     rawDrivers.map((d) => d.vehiclePhotoVersion),
   );
   const photoUrls = photos.data;
   const drivers = useMemo(
     () =>
-      rawDrivers.map((d) => ({
-        ...d,
-        vehiclePhotoUrl: d.vehiclePhotoPath ? (photoUrls?.[d.vehiclePhotoPath] ?? null) : null,
-      })),
+      rawDrivers.map((d) => {
+        const interiorUrl = d.facts.interiorPhotoPath
+          ? (photoUrls?.[d.facts.interiorPhotoPath] ?? null)
+          : null;
+        return {
+          ...d,
+          vehiclePhotoUrl: d.vehiclePhotoPath ? (photoUrls?.[d.vehiclePhotoPath] ?? null) : null,
+          vehicleInteriorUrl: interiorUrl,
+          facts: { ...d.facts, interiorPhotoUrl: interiorUrl },
+        };
+      }),
     [rawDrivers, photoUrls],
   );
   // Tant que les URL signées ne sont pas résolues, on garde le skeleton :
   // jamais le placeholder « photo indisponible » sur un véhicule qui en a une.
-  const photosPending = photos.isPending && rawDrivers.some((d) => !!d.vehiclePhotoPath);
+  const photosPending =
+    photos.isPending && rawDrivers.some((d) => !!d.vehiclePhotoPath || !!d.facts.interiorPhotoPath);
   const rides = data.data?.rides ?? [];
   const requests = data.data?.requests ?? [];
 
@@ -158,8 +188,16 @@ function ClientHome() {
   const safeIndex = restoredIndex >= 0 ? restoredIndex : 0;
   const selectedDriver = drivers[safeIndex] ?? null;
 
-  function selectDriver(nextIndex: number) {
+  /**
+   * Changement de chauffeur atomique : photo extérieure, identité, disponibilité
+   * et caractéristiques du véhicule basculent dans le même rendu.
+   */
+  function goToDriver(delta: number) {
+    if (drivers.length < 2 || transitioning) return;
+    const nextIndex = (safeIndex + delta + drivers.length) % drivers.length;
     const nextId = drivers[nextIndex]?.id ?? null;
+    setDir(delta > 0 ? "right" : "left");
+    setTransitioning(true);
     selectedDriverMemory = nextId;
     setSelectedDriverId(nextId);
   }
@@ -173,7 +211,7 @@ function ClientHome() {
         new Date(r.scheduled_at) >= new Date() && !["cancelled", "completed"].includes(r.status),
     )
     .sort((a, b) => +new Date(a.scheduled_at) - +new Date(b.scheduled_at))[0];
-  
+
   const pendingLocal = requests.find(
     (r) =>
       ["new", "reviewing", "proposal_sent", "awaiting_client"].includes(r.status) &&
@@ -189,7 +227,6 @@ function ClientHome() {
     shortName && shortName.length <= 16
       ? `Réserver auprès de ${shortName}`
       : "Réserver auprès de ce chauffeur";
-
 
   function startRequest(mode: "now" | "later") {
     saveRequestDraft({
@@ -234,28 +271,6 @@ function ClientHome() {
 
   const showSecondary = primary.label === bookLabel;
   const noDriver = !data.isLoading && drivers.length === 0;
-
-  const shortcuts = [
-    { label: "Mes courses", icon: Car, onClick: () => void navigate({ to: "/espace/courses" }) },
-    {
-      label: "Mes chauffeurs",
-      icon: Users,
-      onClick: () => void navigate({ to: "/espace/chauffeurs" }),
-    },
-    {
-      label: "Contacter",
-      icon: PhoneCall,
-      onClick: () =>
-        void (selectedDriver?.slug
-          ? navigate({ to: "/chauffeur/$slug", params: { slug: selectedDriver.slug } })
-          : navigate({ to: "/espace/chauffeurs" })),
-    },
-    {
-      label: "Ajouter un chauffeur",
-      icon: UserPlus,
-      onClick: () => void navigate({ to: "/espace/chauffeurs" }),
-    },
-  ];
 
   // Contenu unique de la carte « Aujourd'hui » (hauteur stable, transition en fondu).
   const today: { key: string; node: React.ReactNode } = data.isLoading
@@ -328,7 +343,10 @@ function ClientHome() {
                     <p className="min-w-0 truncate text-[14px] font-semibold">
                       Aucune course prévue
                     </p>
-                    <Link to="/espace/courses" className="shrink-0 text-[13px] font-bold text-primary">
+                    <Link
+                      to="/espace/courses"
+                      className="shrink-0 text-[13px] font-bold text-primary"
+                    >
                       Voir mon activité
                     </Link>
                   </div>
@@ -359,7 +377,8 @@ function ClientHome() {
           <DriverSpotlight
             drivers={drivers}
             index={safeIndex}
-            onIndexChange={selectDriver}
+            onGo={goToDriver}
+            dir={dir}
             loading={data.isLoading || photosPending}
             onPhotoRefresh={() => photos.refetch()}
           />
@@ -385,7 +404,7 @@ function ClientHome() {
                 haptic();
                 primary.onClick();
               }}
-              disabled={data.isLoading}
+              disabled={data.isLoading || transitioning}
               className="group flex min-h-[var(--home-btn-h)] w-full items-center justify-center gap-2 rounded-3xl bg-primary px-3 text-center text-[15px] leading-tight font-extrabold text-primary-foreground shadow-[0_8px_20px_-14px_rgba(0,0,0,0.6)] transition-all duration-200 active:scale-[0.985] active:shadow-none disabled:opacity-70 sm:text-[16px]"
             >
               {data.isLoading ? <Loader2 className="size-5 shrink-0 animate-spin" /> : null}
@@ -398,38 +417,24 @@ function ClientHome() {
             <button
               type="button"
               onClick={() => startRequest("later")}
-              className="flex min-h-[var(--home-btn2-h)] w-full items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-card px-3 text-[13px] leading-tight font-bold text-primary transition-transform duration-200 active:scale-[0.985] sm:text-[14px]"
+              disabled={transitioning}
+              className="flex min-h-[var(--home-btn2-h)] disabled:opacity-70 w-full items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-card px-3 text-[13px] leading-tight font-bold text-primary transition-transform duration-200 active:scale-[0.985] sm:text-[14px]"
             >
               <CalendarClock className="size-4 shrink-0" /> Planifier avec ce chauffeur
             </button>
           ) : null}
         </section>
 
-        {/* 6. Raccourcis fixes */}
-        <section
-          className="home-rise grid shrink-0 grid-cols-2 gap-[calc(var(--home-gap)*0.7)]"
-          style={{ animationDelay: "140ms" }}
-        >
-          {shortcuts.map((s) => (
-            <button
-              key={s.label}
-              type="button"
-              onClick={() => {
-                haptic();
-                s.onClick();
-              }}
-              className="group flex min-h-[var(--home-shortcut-h)] items-center gap-1.5 rounded-2xl border border-primary/20 bg-card px-2 py-1.5 text-left shadow-[0_4px_14px_-12px_rgba(0,0,0,0.5)] transition-colors duration-200 active:bg-primary/5 sm:gap-2 sm:px-3"
-            >
-              <span className="grid size-7 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary transition-transform duration-200 group-active:scale-105 sm:size-8">
-                <s.icon className="size-4" />
-              </span>
-              <span className="min-w-0 flex-1 text-[12.5px] leading-tight font-bold break-words hyphens-auto sm:text-[13px]">
-                {s.label}
-              </span>
-              <ChevronRight className="size-3.5 shrink-0 text-muted-foreground sm:size-4" />
-            </button>
-          ))}
-        </section>
+        {/* 6. Caractéristiques du véhicule du chauffeur sélectionné */}
+        <VehicleFacts
+          facts={selectedDriver?.facts ?? null}
+          driverSlug={selectedDriver?.slug ?? null}
+          driverKey={selectedDriver?.id ?? (data.isLoading ? "loading" : "empty")}
+          anim={
+            dir === "right" ? "driver-card-in-right" : dir === "left" ? "driver-card-in-left" : ""
+          }
+          loading={data.isLoading || photosPending}
+        />
 
         {/* 7. Zone contextuelle « Aujourd'hui » */}
         <section
@@ -448,7 +453,6 @@ function ClientHome() {
   );
 }
 
-
 function TodayRow({
   title,
   detail,
@@ -464,7 +468,9 @@ function TodayRow({
 }) {
   return (
     <div className="mt-1 flex items-center gap-2">
-      {spinning ? <Loader2 className="size-4 shrink-0 animate-spin text-primary" /> : (
+      {spinning ? (
+        <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
+      ) : (
         <CalendarDays className="size-4 shrink-0 text-primary" />
       )}
       <div className="min-w-0 flex-1">
