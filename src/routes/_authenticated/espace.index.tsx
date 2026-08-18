@@ -303,9 +303,10 @@ function ClientHome() {
 
         {/* 4 & 5. Action principale + action secondaire */}
         <section
-          className="home-rise shrink-0 space-y-[calc(var(--home-gap)*0.7)]"
+          className="home-rise space-y-[calc(var(--home-gap)*0.7)]"
           style={{ animationDelay: "90ms" }}
         >
+
           {noDriver ? (
             <Link
               to="/espace/chauffeurs"
