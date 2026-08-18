@@ -1,12 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import {
-  Armchair,
-  Briefcase,
-  Dog,
-  Luggage,
-  Users,
-} from "lucide-react";
+import { Armchair, Briefcase, Dog, Luggage, Users } from "lucide-react";
 
 /**
  * Caractéristiques du véhicule du chauffeur sélectionné.
@@ -91,15 +85,7 @@ function InteriorPhoto({
   );
 }
 
-function Fact({
-  icon: Icon,
-  main,
-  sub,
-}: {
-  icon: typeof Users;
-  main: string;
-  sub?: string;
-}) {
+function Fact({ icon: Icon, main, sub }: { icon: typeof Users; main: string; sub?: string }) {
   return (
     <div className="flex min-w-0 items-center gap-1.5">
       <Icon className="size-4 shrink-0 text-primary" aria-hidden />

@@ -1,12 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  ArrowRight,
-  CalendarClock,
-  CalendarDays,
-  Loader2,
-} from "lucide-react";
+import { ArrowRight, CalendarClock, CalendarDays, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -16,7 +11,11 @@ import { useBlockingImmediate } from "@/lib/immediate-request";
 import { useCountdown } from "@/components/ExpiryCountdown";
 import { saveRequestDraft } from "@/lib/request-draft";
 import { ConnectionDecor } from "@/components/client/ConnectionDecor";
-import { ANIM_MS, DriverSpotlight, type SpotlightDriver } from "@/components/client/DriverSpotlight";
+import {
+  ANIM_MS,
+  DriverSpotlight,
+  type SpotlightDriver,
+} from "@/components/client/DriverSpotlight";
 import {
   EQUIPMENT_LABELS,
   VehicleFacts,
@@ -42,7 +41,6 @@ function haptic() {
     }
   }
 }
-
 
 function ClientHome() {
   const { user } = useAuth();
@@ -92,10 +90,7 @@ function ClientHome() {
         const [{ data: profiles }, { data: dprofiles }, { data: vehicles }] = await Promise.all([
           supabase.from("profiles").select("id, full_name").in("id", ids),
           supabase.rpc("get_connected_driver_profiles"),
-          supabase
-            .from("vehicles")
-            .select("*")
-            .in("driver_id", ids),
+          supabase.from("vehicles").select("*").in("driver_id", ids),
         ]);
         const counts = new Map<string, number>();
         (rides ?? []).forEach((r) => counts.set(r.driver_id, (counts.get(r.driver_id) ?? 0) + 1));
@@ -170,8 +165,7 @@ function ClientHome() {
   // Tant que les URL signées ne sont pas résolues, on garde le skeleton :
   // jamais le placeholder « photo indisponible » sur un véhicule qui en a une.
   const photosPending =
-    photos.isPending &&
-    rawDrivers.some((d) => !!d.vehiclePhotoPath || !!d.facts.interiorPhotoPath);
+    photos.isPending && rawDrivers.some((d) => !!d.vehiclePhotoPath || !!d.facts.interiorPhotoPath);
   const rides = data.data?.rides ?? [];
   const requests = data.data?.requests ?? [];
 
@@ -217,7 +211,7 @@ function ClientHome() {
         new Date(r.scheduled_at) >= new Date() && !["cancelled", "completed"].includes(r.status),
     )
     .sort((a, b) => +new Date(a.scheduled_at) - +new Date(b.scheduled_at))[0];
-  
+
   const pendingLocal = requests.find(
     (r) =>
       ["new", "reviewing", "proposal_sent", "awaiting_client"].includes(r.status) &&
@@ -233,7 +227,6 @@ function ClientHome() {
     shortName && shortName.length <= 16
       ? `Réserver auprès de ${shortName}`
       : "Réserver auprès de ce chauffeur";
-
 
   function startRequest(mode: "now" | "later") {
     saveRequestDraft({
@@ -350,7 +343,10 @@ function ClientHome() {
                     <p className="min-w-0 truncate text-[14px] font-semibold">
                       Aucune course prévue
                     </p>
-                    <Link to="/espace/courses" className="shrink-0 text-[13px] font-bold text-primary">
+                    <Link
+                      to="/espace/courses"
+                      className="shrink-0 text-[13px] font-bold text-primary"
+                    >
                       Voir mon activité
                     </Link>
                   </div>
@@ -435,11 +431,7 @@ function ClientHome() {
           driverSlug={selectedDriver?.slug ?? null}
           driverKey={selectedDriver?.id ?? (data.isLoading ? "loading" : "empty")}
           anim={
-            dir === "right"
-              ? "driver-card-in-right"
-              : dir === "left"
-                ? "driver-card-in-left"
-                : ""
+            dir === "right" ? "driver-card-in-right" : dir === "left" ? "driver-card-in-left" : ""
           }
           loading={data.isLoading || photosPending}
         />
@@ -461,7 +453,6 @@ function ClientHome() {
   );
 }
 
-
 function TodayRow({
   title,
   detail,
@@ -477,7 +468,9 @@ function TodayRow({
 }) {
   return (
     <div className="mt-1 flex items-center gap-2">
-      {spinning ? <Loader2 className="size-4 shrink-0 animate-spin text-primary" /> : (
+      {spinning ? (
+        <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
+      ) : (
         <CalendarDays className="size-4 shrink-0 text-primary" />
       )}
       <div className="min-w-0 flex-1">

@@ -194,7 +194,8 @@ export function DriverSpotlight({
     onGo(delta);
   }
 
-  const anim = dir === "right" ? "driver-card-in-right" : dir === "left" ? "driver-card-in-left" : "";
+  const anim =
+    dir === "right" ? "driver-card-in-right" : dir === "left" ? "driver-card-in-left" : "";
 
   return (
     <section className="relative shrink-0">
