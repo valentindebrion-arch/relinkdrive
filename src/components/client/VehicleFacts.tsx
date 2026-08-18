@@ -51,7 +51,7 @@ function InteriorPhoto({
   const show = !!url && !failed;
 
   return (
-    <div className="relative h-[var(--home-interior-h)] w-full min-w-0 overflow-hidden rounded-xl bg-muted sm:w-[42%]">
+    <div className="relative h-[var(--home-interior-h)] w-full min-w-0 shrink-0 overflow-hidden rounded-xl bg-muted sm:w-[46%]">
       {loading && !ready ? (
         <span className="absolute inset-0 animate-pulse bg-muted" aria-hidden />
       ) : show ? (
