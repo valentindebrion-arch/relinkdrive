@@ -627,7 +627,7 @@
 }
 
 /* Très petites hauteurs (clavier, textes agrandis) : défilement accessible plutôt que du contenu coupé. */
-@media (max-height: 520px) {
+@media (max-height: 620px) {
   .home-screen {
     height: auto;
     max-height: none;
