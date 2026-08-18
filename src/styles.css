@@ -586,12 +586,12 @@
 /* Accueil client : mise à l'échelle verticale réelle (dvh + safe areas) */
 .home-screen {
   --home-gap: clamp(0.4rem, 1.5dvh, 0.75rem);
-  --home-hero-h: clamp(120px, 26dvh, 260px);
+  --home-hero-h: clamp(112px, 22dvh, 260px);
   --home-driver-h: clamp(4rem, 10dvh, 5.5rem);
   --home-avatar: clamp(2.25rem, 6dvh, 3rem);
-  --home-btn-h: clamp(2.75rem, 7dvh, 3.5rem);
-  --home-btn2-h: clamp(2.25rem, 5dvh, 2.75rem);
-  --home-interior-h: clamp(5.5rem, 16dvh, 11rem);
+  --home-btn-h: clamp(2.6rem, 6.5dvh, 3.5rem);
+  --home-btn2-h: clamp(2.2rem, 5dvh, 2.75rem);
+  --home-interior-h: clamp(4.5rem, 13dvh, 11rem);
   --home-tabbar-h: calc(3.5rem + env(safe-area-inset-bottom));
   min-height: 100vh;
   height: 100vh;
@@ -609,6 +609,14 @@
   display: none;
 }
 
+@media (max-height: 740px) {
+  .home-screen {
+    --home-hero-h: clamp(96px, 17dvh, 150px);
+    --home-interior-h: clamp(3.75rem, 10.5dvh, 5.5rem);
+    --home-gap: clamp(0.3rem, 1dvh, 0.5rem);
+  }
+}
+
 @media (max-height: 700px) {
   .home-carousel-long {
     display: none;
@@ -618,14 +626,17 @@
   }
 }
 
-/* Très petites hauteurs (clavier, textes agrandis) : défilement accessible plutôt que du contenu coupé. */
-@media (max-height: 520px) {
+/* Très petites hauteurs : on compacte progressivement, sans jamais rogner. */
+@media (max-height: 620px) {
   .home-screen {
-    height: auto;
-    max-height: none;
-    overflow-y: auto;
+    --home-hero-h: clamp(80px, 14dvh, 110px);
+    --home-interior-h: clamp(3rem, 8dvh, 4rem);
+    --home-gap: 0.3rem;
+    --home-btn-h: 2.5rem;
+    --home-btn2-h: 2.1rem;
   }
 }
+
 
 /* Calque global de notifications : toujours au premier plan, jamais rogné. */
 [data-sonner-toaster] {
