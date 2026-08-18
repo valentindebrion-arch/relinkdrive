@@ -436,54 +436,8 @@ function ClientHome() {
           loading={data.isLoading || photosPending}
         />
 
-        {/* 7. Zone contextuelle « Aujourd'hui » */}
-        <section
-          className="home-rise flex min-h-[var(--home-today-h)] shrink-0 flex-col justify-center rounded-2xl border border-border/70 bg-card px-3 py-2 shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)] sm:px-4"
-          style={{ animationDelay: "190ms" }}
-        >
-          <p className="text-[11px] font-bold tracking-wide text-muted-foreground uppercase">
-            Aujourd'hui
-          </p>
-          <div key={today.key} className="today-swap">
-            {today.node}
-          </div>
-        </section>
       </main>
     </div>
   );
 }
 
-function TodayRow({
-  title,
-  detail,
-  action,
-  to,
-  spinning = false,
-}: {
-  title: string;
-  detail: string;
-  action: string;
-  to: string;
-  spinning?: boolean;
-}) {
-  return (
-    <div className="mt-1 flex items-center gap-2">
-      {spinning ? (
-        <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
-      ) : (
-        <CalendarDays className="size-4 shrink-0 text-primary" />
-      )}
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-[14px] font-extrabold">{title}</p>
-        <p className="truncate text-[12px] text-muted-foreground">{detail}</p>
-      </div>
-      <Link
-        to="/espace/suivi/$id"
-        params={{ id: to }}
-        className="shrink-0 text-[13px] font-bold text-primary"
-      >
-        {action}
-      </Link>
-    </div>
-  );
-}
