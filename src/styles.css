@@ -612,7 +612,7 @@
 @media (max-height: 740px) {
   .home-screen {
     --home-hero-h: clamp(96px, 17dvh, 150px);
-    --home-interior-h: clamp(4rem, 11.5dvh, 5.5rem);
+    --home-interior-h: clamp(3.75rem, 10.5dvh, 5.5rem);
     --home-gap: clamp(0.3rem, 1dvh, 0.5rem);
   }
 }
