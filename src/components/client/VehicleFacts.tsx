@@ -51,7 +51,7 @@ function InteriorPhoto({
   const show = !!url && !failed;
 
   return (
-    <div className="relative h-[var(--home-interior-h)] w-full min-w-0 shrink-0 overflow-hidden rounded-xl bg-muted sm:w-[46%]">
+    <div className="vehicle-media bg-muted shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]">
       {loading && !ready ? (
         <span className="absolute inset-0 animate-pulse bg-muted" aria-hidden />
       ) : show ? (
@@ -67,23 +67,23 @@ function InteriorPhoto({
             alt={alt}
             loading="lazy"
             decoding="async"
-            className="size-full object-cover object-center"
             onLoad={() => setReady(true)}
             onError={() => setFailed(true)}
           />
-          <span className="pointer-events-none absolute bottom-1 left-1 rounded-md bg-black/55 px-1.5 py-0.5 text-[10px] font-bold text-white">
-            Intérieur
+          <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 to-transparent px-3 pt-6 pb-1.5 text-[11px] font-semibold text-white">
+            Intérieur du véhicule
           </span>
         </>
       ) : (
-        <div className="flex size-full flex-col items-center justify-center gap-1 px-2 text-center text-muted-foreground">
-          <Armchair className="size-5" aria-hidden />
-          <p className="text-[10.5px] leading-tight font-semibold">Intérieur non renseigné</p>
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 px-2 text-center text-muted-foreground">
+          <Armchair className="size-6" aria-hidden />
+          <p className="text-[11px] leading-tight font-semibold">Intérieur non renseigné</p>
         </div>
       )}
     </div>
   );
 }
+
 
 function Fact({ icon: Icon, main, sub }: { icon: typeof Users; main: string; sub?: string }) {
   return (
