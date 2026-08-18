@@ -1,14 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, CalendarClock, CalendarDays, Loader2 } from "lucide-react";
+import { ArrowRight, CalendarClock, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { BrandLogo } from "@/components/BrandLogo";
 import { NotificationBell } from "@/components/NotificationBell";
-import { RIDE_STATUS_LABELS, formatDateTime } from "@/lib/labels";
 import { useBlockingImmediate } from "@/lib/immediate-request";
-import { useCountdown } from "@/components/ExpiryCountdown";
 import { saveRequestDraft } from "@/lib/request-draft";
 import { ConnectionDecor } from "@/components/client/ConnectionDecor";
 import {
@@ -47,7 +45,6 @@ function ClientHome() {
   const navigate = useNavigate();
 
   const blocking = useBlockingImmediate().data ?? null;
-  const blockingCountdown = useCountdown(blocking?.response_deadline ?? null);
 
   const [selectedDriverId, setSelectedDriverId] = useState<string | null>(selectedDriverMemory);
   const [dir, setDir] = useState<"left" | "right" | null>(null);
@@ -219,8 +216,6 @@ function ClientHome() {
   );
 
   const firstName = (user?.user_metadata?.["full_name"] as string | undefined)?.split(" ")[0] ?? "";
-  const driverName = (id: string | null | undefined) =>
-    drivers.find((d) => d.id === id)?.name.split(" ")[0] ?? "Votre chauffeur";
 
   const shortName = selectedDriver?.name ?? "";
   const bookLabel =
