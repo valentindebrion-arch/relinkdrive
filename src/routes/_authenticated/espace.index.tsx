@@ -288,7 +288,7 @@ function ClientHome() {
         </p>
       </header>
 
-      <main className="flex min-h-0 flex-1 flex-col justify-between gap-[var(--home-gap)] px-4 pt-[var(--home-gap)] pb-[calc(var(--home-tabbar-h)+var(--home-gap))]">
+      <main className="flex w-full min-w-0 flex-col gap-[var(--home-gap)] px-4 pt-[var(--home-gap)] pb-[calc(var(--home-tabbar-h)+env(safe-area-inset-bottom)+20px)]">
         {/* 2 & 3. Carte du chauffeur sélectionné + carrousel */}
         <div className="home-rise" style={{ animationDelay: "40ms" }}>
           <DriverSpotlight
