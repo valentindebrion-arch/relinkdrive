@@ -272,86 +272,8 @@ function ClientHome() {
   const showSecondary = primary.label === bookLabel;
   const noDriver = !data.isLoading && drivers.length === 0;
 
-  // Contenu unique de la carte « Aujourd'hui » (hauteur stable, transition en fondu).
-  const today: { key: string; node: React.ReactNode } = data.isLoading
-    ? {
-        key: "loading",
-        node: (
-          <div className="mt-2 space-y-1.5">
-            <span className="block h-3.5 w-2/3 animate-pulse rounded bg-muted" />
-            <span className="block h-3 w-1/3 animate-pulse rounded bg-muted" />
-          </div>
-        ),
-      }
-    : activeRide
-      ? {
-          key: `active-${activeRide.id}`,
-          node: (
-            <TodayRow
-              title={RIDE_STATUS_LABELS[activeRide.status] ?? activeRide.status}
-              detail={`${driverName(activeRide.driver_id)} · ${activeRide.pickup_address}`}
-              action="Suivre ma course"
-              to={activeRide.id}
-              spinning
-            />
-          ),
-        }
-      : blocking
-        ? {
-            key: `blocking-${blocking.request_id}`,
-            node: (
-              <TodayRow
-                title="En attente de la réponse du chauffeur"
-                detail={`${blocking.driver_first_name ?? "Votre chauffeur"}${
-                  blockingCountdown ? ` · réponse sous ${blockingCountdown.label}` : ""
-                }`}
-                action="Suivre ma demande"
-                to={blocking.request_id}
-                spinning
-              />
-            ),
-          }
-        : pendingLocal
-          ? {
-              key: `pending-${pendingLocal.id}`,
-              node: (
-                <TodayRow
-                  title="En attente de la réponse du chauffeur"
-                  detail={driverName(pendingLocal.driver_id)}
-                  action="Suivre ma demande"
-                  to={pendingLocal.id}
-                  spinning
-                />
-              ),
-            }
-          : nextRide
-            ? {
-                key: `next-${nextRide.id}`,
-                node: (
-                  <TodayRow
-                    title={formatDateTime(nextRide.scheduled_at)}
-                    detail={`${driverName(nextRide.driver_id)} · ${nextRide.pickup_address}`}
-                    action="Voir la course"
-                    to={nextRide.id}
-                  />
-                ),
-              }
-            : {
-                key: "empty",
-                node: (
-                  <div className="mt-1 flex items-center justify-between gap-3">
-                    <p className="min-w-0 truncate text-[14px] font-semibold">
-                      Aucune course prévue
-                    </p>
-                    <Link
-                      to="/espace/courses"
-                      className="shrink-0 text-[13px] font-bold text-primary"
-                    >
-                      Voir mon activité
-                    </Link>
-                  </div>
-                ),
-              };
+
+
 
   return (
     <div
