@@ -70,7 +70,7 @@ function VehicleHero({
   const showImage = !!url && (!failed || refreshing);
 
   return (
-    <div className="relative h-[var(--home-hero-h)] w-full overflow-hidden rounded-2xl bg-muted shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]">
+    <div className="vehicle-media bg-muted shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]">
       {loading && !ready ? (
         <span className="absolute inset-0 animate-pulse bg-muted" aria-hidden />
       ) : showImage ? (
@@ -84,7 +84,7 @@ function VehicleHero({
             loading="eager"
             fetchPriority="high"
             decoding="async"
-            className="size-full object-cover object-center opacity-100"
+            className="opacity-100"
             onLoad={() => setReady(true)}
             onError={() => {
               if (onRefresh && refreshAttempt.current !== imageKey) {
@@ -101,7 +101,7 @@ function VehicleHero({
           </span>
         </>
       ) : (
-        <div className="flex size-full flex-col items-center justify-center gap-1 text-muted-foreground">
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-muted-foreground">
           <Car className="size-7" aria-hidden />
           <p className="text-[11px] font-semibold">Photo du véhicule non disponible</p>
         </div>
@@ -109,6 +109,7 @@ function VehicleHero({
     </div>
   );
 }
+
 
 const SWIPE_MIN = 48;
 export const ANIM_MS = 260;
