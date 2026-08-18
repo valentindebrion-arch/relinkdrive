@@ -117,15 +117,15 @@ export function VehicleFacts({
   const extra = badges.length - visible.length;
 
   return (
-    <section className="home-rise min-w-0 shrink-0" style={{ animationDelay: "140ms" }}>
+    <section className="home-rise min-w-0" style={{ animationDelay: "140ms" }}>
       <p className="mb-1 text-[11px] font-bold tracking-wide text-muted-foreground uppercase">
         Le véhicule
       </p>
       <div
         key={driverKey}
-        className={`min-w-0 max-w-full overflow-hidden rounded-2xl border border-primary/25 bg-card p-2 shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)] sm:p-3 ${anim}`}
+        className={`min-w-0 max-w-full rounded-2xl border border-primary/25 bg-card p-2 shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)] sm:p-3 ${anim}`}
       >
-        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
+        <div className="flex min-w-0 flex-col gap-3">
           <InteriorPhoto
             imageKey={`${driverKey}:${facts?.vehicleId ?? "no-vehicle"}:${facts?.interiorPhotoPath ?? "no-photo"}`}
             url={facts?.interiorPhotoUrl ?? null}
@@ -133,8 +133,8 @@ export function VehicleFacts({
             loading={loading}
           />
 
-          <div className="flex min-w-0 flex-1 flex-col justify-between gap-1.5">
-            <div className="grid min-w-0 grid-cols-2 gap-x-2 gap-y-1.5">
+          <div className="flex min-w-0 flex-col gap-2">
+            <div className="grid min-w-0 grid-cols-2 gap-x-3 gap-y-2 [overflow-wrap:anywhere] max-[300px]:grid-cols-1">
               <Fact
                 icon={Users}
                 main={facts?.maxPassengers != null ? `${facts.maxPassengers} places` : UNKNOWN}
@@ -158,13 +158,13 @@ export function VehicleFacts({
                 {visible.map((label) => (
                   <span
                     key={label}
-                    className="rounded-full border border-primary/25 bg-primary/5 px-1.5 py-0.5 text-[10.5px] leading-tight font-semibold text-primary"
+                    className="rounded-full border border-primary/25 bg-primary/5 px-2 py-0.5 text-[11px] leading-tight font-semibold text-primary"
                   >
                     {label}
                   </span>
                 ))}
                 {extra > 0 ? (
-                  <span className="text-[10.5px] font-semibold text-muted-foreground">
+                  <span className="text-[11px] font-semibold text-muted-foreground">
                     + {extra} équipement{extra > 1 ? "s" : ""}
                   </span>
                 ) : null}
@@ -173,7 +173,7 @@ export function VehicleFacts({
 
             <div className="flex min-w-0 flex-wrap items-center justify-between gap-1">
               {facts && facts.maxPassengers == null ? (
-                <p className="min-w-0 text-[10.5px] leading-tight text-muted-foreground">
+                <p className="min-w-0 text-[11px] leading-tight text-muted-foreground">
                   Fiche véhicule à compléter par le chauffeur.
                 </p>
               ) : (
@@ -194,6 +194,7 @@ export function VehicleFacts({
       </div>
     </section>
   );
+
 }
 
 /** Libellés d'équipements réellement renseignés sur le véhicule actif. */
