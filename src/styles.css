@@ -586,14 +586,12 @@
 /* Accueil client : mise à l'échelle verticale réelle (dvh + safe areas) */
 .home-screen {
   --home-gap: clamp(0.4rem, 1.5dvh, 0.75rem);
-  --home-hero-h: clamp(78px, 16dvh, 170px);
+  --home-hero-h: clamp(120px, 26dvh, 260px);
   --home-driver-h: clamp(4rem, 10dvh, 5.5rem);
   --home-avatar: clamp(2.25rem, 6dvh, 3rem);
   --home-btn-h: clamp(2.75rem, 7dvh, 3.5rem);
   --home-btn2-h: clamp(2.25rem, 5dvh, 2.75rem);
-  --home-shortcut-h: clamp(2.5rem, 6dvh, 3.25rem);
-  --home-interior-h: clamp(3.25rem, 9dvh, 6rem);
-  --home-today-h: clamp(3.75rem, 9dvh, 5.5rem);
+  --home-interior-h: clamp(5.5rem, 16dvh, 11rem);
   --home-tabbar-h: calc(3.5rem + env(safe-area-inset-bottom));
   min-height: 100vh;
   height: 100vh;
