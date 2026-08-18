@@ -186,9 +186,9 @@ export function VehicleFacts({
                 </Link>
               ) : null}
             </div>
-          </div>
         </div>
       </div>
+
     </section>
   );
 
