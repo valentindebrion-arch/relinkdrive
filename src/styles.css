@@ -626,14 +626,17 @@
   }
 }
 
-/* Très petites hauteurs (clavier, textes agrandis) : défilement accessible plutôt que du contenu coupé. */
+/* Très petites hauteurs : on compacte progressivement, sans jamais rogner. */
 @media (max-height: 620px) {
   .home-screen {
-    height: auto;
-    max-height: none;
-    overflow-y: auto;
+    --home-hero-h: clamp(84px, 15dvh, 120px);
+    --home-interior-h: clamp(3.25rem, 9dvh, 4.5rem);
+    --home-gap: 0.3rem;
+    --home-btn-h: 2.5rem;
+    --home-btn2-h: 2.1rem;
   }
 }
+
 
 /* Calque global de notifications : toujours au premier plan, jamais rogné. */
 [data-sonner-toaster] {
