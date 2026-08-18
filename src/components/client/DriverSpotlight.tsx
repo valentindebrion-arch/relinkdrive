@@ -70,7 +70,7 @@ function VehicleHero({
   const showImage = !!url && (!failed || refreshing);
 
   return (
-    <div className="relative h-[var(--home-hero-h)] w-full overflow-hidden rounded-2xl bg-muted shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]">
+    <div className="vehicle-media bg-muted shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]">
       {loading && !ready ? (
         <span className="absolute inset-0 animate-pulse bg-muted" aria-hidden />
       ) : showImage ? (
@@ -84,7 +84,7 @@ function VehicleHero({
             loading="eager"
             fetchPriority="high"
             decoding="async"
-            className="size-full object-cover object-center opacity-100"
+            className="opacity-100"
             onLoad={() => setReady(true)}
             onError={() => {
               if (onRefresh && refreshAttempt.current !== imageKey) {
@@ -101,7 +101,7 @@ function VehicleHero({
           </span>
         </>
       ) : (
-        <div className="flex size-full flex-col items-center justify-center gap-1 text-muted-foreground">
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-muted-foreground">
           <Car className="size-7" aria-hidden />
           <p className="text-[11px] font-semibold">Photo du véhicule non disponible</p>
         </div>
@@ -109,6 +109,7 @@ function VehicleHero({
     </div>
   );
 }
+
 
 const SWIPE_MIN = 48;
 export const ANIM_MS = 260;
@@ -227,13 +228,36 @@ export function DriverSpotlight({
           className={`space-y-[calc(var(--home-gap)*0.75)] ${anim}`}
           style={drag ? { transform: `translate3d(${drag * 0.35}px,0,0)` } : undefined}
         >
-          <VehicleHero
-            imageKey={imageKey}
-            url={driver?.vehiclePhotoUrl}
-            alt={driver ? `Véhicule de ${driver.name}` : "Véhicule du chauffeur"}
-            loading={loading}
-            {...(onPhotoRefresh ? { onRefresh: onPhotoRefresh } : {})}
-          />
+          <div className="relative">
+            <VehicleHero
+              imageKey={imageKey}
+              url={driver?.vehiclePhotoUrl}
+              alt={driver ? `Véhicule de ${driver.name}` : "Véhicule du chauffeur"}
+              loading={loading}
+              {...(onPhotoRefresh ? { onRefresh: onPhotoRefresh } : {})}
+            />
+            {multiple ? (
+              <>
+                <button
+                  type="button"
+                  aria-label="Chauffeur précédent"
+                  onClick={() => go(-1)}
+                  className="absolute top-1/2 left-2 grid size-9 -translate-y-1/2 place-items-center rounded-full border border-primary/25 bg-card/90 text-primary shadow-sm backdrop-blur transition-transform active:scale-95"
+                >
+                  <ChevronLeft className="size-4" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Chauffeur suivant"
+                  onClick={() => go(1)}
+                  className="absolute top-1/2 right-2 grid size-9 -translate-y-1/2 place-items-center rounded-full border border-primary/25 bg-card/90 text-primary shadow-sm backdrop-blur transition-transform active:scale-95"
+                >
+                  <ChevronRight className="size-4" />
+                </button>
+              </>
+            ) : null}
+          </div>
+
 
           <p className="text-[11px] font-bold tracking-wide text-muted-foreground uppercase">
             Votre chauffeur sélectionné
@@ -308,23 +332,8 @@ export function DriverSpotlight({
 
       {multiple ? (
         <>
-          <button
-            type="button"
-            aria-label="Chauffeur précédent"
-            onClick={() => go(-1)}
-            className="absolute top-[calc(var(--home-hero-h)/2-1rem)] left-2 grid size-8 place-items-center rounded-full border border-primary/25 bg-card/90 text-primary shadow-sm backdrop-blur transition-transform active:scale-95"
-          >
-            <ChevronLeft className="size-4" />
-          </button>
-          <button
-            type="button"
-            aria-label="Chauffeur suivant"
-            onClick={() => go(1)}
-            className="absolute top-[calc(var(--home-hero-h)/2-1rem)] right-2 grid size-8 place-items-center rounded-full border border-primary/25 bg-card/90 text-primary shadow-sm backdrop-blur transition-transform active:scale-95"
-          >
-            <ChevronRight className="size-4" />
-          </button>
           <div className="mt-1 flex items-center justify-center gap-2">
+
             <span className="flex items-center gap-1">
               {drivers.map((d, i) => (
                 <span
