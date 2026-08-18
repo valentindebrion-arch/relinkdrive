@@ -592,6 +592,7 @@
   --home-btn-h: clamp(2.75rem, 7dvh, 3.5rem);
   --home-btn2-h: clamp(2.25rem, 5dvh, 2.75rem);
   --home-shortcut-h: clamp(2.5rem, 6dvh, 3.25rem);
+  --home-interior-h: clamp(3.25rem, 9dvh, 6rem);
   --home-today-h: clamp(3.75rem, 9dvh, 5.5rem);
   --home-tabbar-h: calc(3.5rem + env(safe-area-inset-bottom));
   min-height: 100vh;
