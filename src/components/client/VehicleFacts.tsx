@@ -1,9 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
-  Accessibility,
   Armchair,
-  Baby,
   Briefcase,
   Dog,
   Luggage,
@@ -226,5 +224,3 @@ export const EQUIPMENT_LABELS: { key: string; label: string }[] = [
   { key: "luggage_help", label: "Aide aux bagages" },
   { key: "large_trunk", label: "Grand coffre" },
 ];
-
-export { Accessibility, Baby };
