@@ -332,23 +332,8 @@ export function DriverSpotlight({
 
       {multiple ? (
         <>
-          <button
-            type="button"
-            aria-label="Chauffeur précédent"
-            onClick={() => go(-1)}
-            className="absolute top-[calc(var(--home-hero-h)/2-1rem)] left-2 grid size-8 place-items-center rounded-full border border-primary/25 bg-card/90 text-primary shadow-sm backdrop-blur transition-transform active:scale-95"
-          >
-            <ChevronLeft className="size-4" />
-          </button>
-          <button
-            type="button"
-            aria-label="Chauffeur suivant"
-            onClick={() => go(1)}
-            className="absolute top-[calc(var(--home-hero-h)/2-1rem)] right-2 grid size-8 place-items-center rounded-full border border-primary/25 bg-card/90 text-primary shadow-sm backdrop-blur transition-transform active:scale-95"
-          >
-            <ChevronRight className="size-4" />
-          </button>
           <div className="mt-1 flex items-center justify-center gap-2">
+
             <span className="flex items-center gap-1">
               {drivers.map((d, i) => (
                 <span
