@@ -1,14 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, CalendarClock, CalendarDays, Loader2 } from "lucide-react";
+import { ArrowRight, CalendarClock, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { BrandLogo } from "@/components/BrandLogo";
 import { NotificationBell } from "@/components/NotificationBell";
-import { RIDE_STATUS_LABELS, formatDateTime } from "@/lib/labels";
 import { useBlockingImmediate } from "@/lib/immediate-request";
-import { useCountdown } from "@/components/ExpiryCountdown";
 import { saveRequestDraft } from "@/lib/request-draft";
 import { ConnectionDecor } from "@/components/client/ConnectionDecor";
 import {
@@ -47,7 +45,6 @@ function ClientHome() {
   const navigate = useNavigate();
 
   const blocking = useBlockingImmediate().data ?? null;
-  const blockingCountdown = useCountdown(blocking?.response_deadline ?? null);
 
   const [selectedDriverId, setSelectedDriverId] = useState<string | null>(selectedDriverMemory);
   const [dir, setDir] = useState<"left" | "right" | null>(null);
@@ -219,8 +216,6 @@ function ClientHome() {
   );
 
   const firstName = (user?.user_metadata?.["full_name"] as string | undefined)?.split(" ")[0] ?? "";
-  const driverName = (id: string | null | undefined) =>
-    drivers.find((d) => d.id === id)?.name.split(" ")[0] ?? "Votre chauffeur";
 
   const shortName = selectedDriver?.name ?? "";
   const bookLabel =
@@ -272,86 +267,8 @@ function ClientHome() {
   const showSecondary = primary.label === bookLabel;
   const noDriver = !data.isLoading && drivers.length === 0;
 
-  // Contenu unique de la carte « Aujourd'hui » (hauteur stable, transition en fondu).
-  const today: { key: string; node: React.ReactNode } = data.isLoading
-    ? {
-        key: "loading",
-        node: (
-          <div className="mt-2 space-y-1.5">
-            <span className="block h-3.5 w-2/3 animate-pulse rounded bg-muted" />
-            <span className="block h-3 w-1/3 animate-pulse rounded bg-muted" />
-          </div>
-        ),
-      }
-    : activeRide
-      ? {
-          key: `active-${activeRide.id}`,
-          node: (
-            <TodayRow
-              title={RIDE_STATUS_LABELS[activeRide.status] ?? activeRide.status}
-              detail={`${driverName(activeRide.driver_id)} · ${activeRide.pickup_address}`}
-              action="Suivre ma course"
-              to={activeRide.id}
-              spinning
-            />
-          ),
-        }
-      : blocking
-        ? {
-            key: `blocking-${blocking.request_id}`,
-            node: (
-              <TodayRow
-                title="En attente de la réponse du chauffeur"
-                detail={`${blocking.driver_first_name ?? "Votre chauffeur"}${
-                  blockingCountdown ? ` · réponse sous ${blockingCountdown.label}` : ""
-                }`}
-                action="Suivre ma demande"
-                to={blocking.request_id}
-                spinning
-              />
-            ),
-          }
-        : pendingLocal
-          ? {
-              key: `pending-${pendingLocal.id}`,
-              node: (
-                <TodayRow
-                  title="En attente de la réponse du chauffeur"
-                  detail={driverName(pendingLocal.driver_id)}
-                  action="Suivre ma demande"
-                  to={pendingLocal.id}
-                  spinning
-                />
-              ),
-            }
-          : nextRide
-            ? {
-                key: `next-${nextRide.id}`,
-                node: (
-                  <TodayRow
-                    title={formatDateTime(nextRide.scheduled_at)}
-                    detail={`${driverName(nextRide.driver_id)} · ${nextRide.pickup_address}`}
-                    action="Voir la course"
-                    to={nextRide.id}
-                  />
-                ),
-              }
-            : {
-                key: "empty",
-                node: (
-                  <div className="mt-1 flex items-center justify-between gap-3">
-                    <p className="min-w-0 truncate text-[14px] font-semibold">
-                      Aucune course prévue
-                    </p>
-                    <Link
-                      to="/espace/courses"
-                      className="shrink-0 text-[13px] font-bold text-primary"
-                    >
-                      Voir mon activité
-                    </Link>
-                  </div>
-                ),
-              };
+
+
 
   return (
     <div
@@ -436,54 +353,8 @@ function ClientHome() {
           loading={data.isLoading || photosPending}
         />
 
-        {/* 7. Zone contextuelle « Aujourd'hui » */}
-        <section
-          className="home-rise flex min-h-[var(--home-today-h)] shrink-0 flex-col justify-center rounded-2xl border border-border/70 bg-card px-3 py-2 shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)] sm:px-4"
-          style={{ animationDelay: "190ms" }}
-        >
-          <p className="text-[11px] font-bold tracking-wide text-muted-foreground uppercase">
-            Aujourd'hui
-          </p>
-          <div key={today.key} className="today-swap">
-            {today.node}
-          </div>
-        </section>
       </main>
     </div>
   );
 }
 
-function TodayRow({
-  title,
-  detail,
-  action,
-  to,
-  spinning = false,
-}: {
-  title: string;
-  detail: string;
-  action: string;
-  to: string;
-  spinning?: boolean;
-}) {
-  return (
-    <div className="mt-1 flex items-center gap-2">
-      {spinning ? (
-        <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
-      ) : (
-        <CalendarDays className="size-4 shrink-0 text-primary" />
-      )}
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-[14px] font-extrabold">{title}</p>
-        <p className="truncate text-[12px] text-muted-foreground">{detail}</p>
-      </div>
-      <Link
-        to="/espace/suivi/$id"
-        params={{ id: to }}
-        className="shrink-0 text-[13px] font-bold text-primary"
-      >
-        {action}
-      </Link>
-    </div>
-  );
-}
