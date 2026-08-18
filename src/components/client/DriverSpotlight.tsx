@@ -228,13 +228,36 @@ export function DriverSpotlight({
           className={`space-y-[calc(var(--home-gap)*0.75)] ${anim}`}
           style={drag ? { transform: `translate3d(${drag * 0.35}px,0,0)` } : undefined}
         >
-          <VehicleHero
-            imageKey={imageKey}
-            url={driver?.vehiclePhotoUrl}
-            alt={driver ? `Véhicule de ${driver.name}` : "Véhicule du chauffeur"}
-            loading={loading}
-            {...(onPhotoRefresh ? { onRefresh: onPhotoRefresh } : {})}
-          />
+          <div className="relative">
+            <VehicleHero
+              imageKey={imageKey}
+              url={driver?.vehiclePhotoUrl}
+              alt={driver ? `Véhicule de ${driver.name}` : "Véhicule du chauffeur"}
+              loading={loading}
+              {...(onPhotoRefresh ? { onRefresh: onPhotoRefresh } : {})}
+            />
+            {multiple ? (
+              <>
+                <button
+                  type="button"
+                  aria-label="Chauffeur précédent"
+                  onClick={() => go(-1)}
+                  className="absolute top-1/2 left-2 grid size-9 -translate-y-1/2 place-items-center rounded-full border border-primary/25 bg-card/90 text-primary shadow-sm backdrop-blur transition-transform active:scale-95"
+                >
+                  <ChevronLeft className="size-4" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Chauffeur suivant"
+                  onClick={() => go(1)}
+                  className="absolute top-1/2 right-2 grid size-9 -translate-y-1/2 place-items-center rounded-full border border-primary/25 bg-card/90 text-primary shadow-sm backdrop-blur transition-transform active:scale-95"
+                >
+                  <ChevronRight className="size-4" />
+                </button>
+              </>
+            ) : null}
+          </div>
+
 
           <p className="text-[11px] font-bold tracking-wide text-muted-foreground uppercase">
             Votre chauffeur sélectionné
