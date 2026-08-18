@@ -121,19 +121,16 @@ export function VehicleFacts({
       <p className="mb-1 text-[11px] font-bold tracking-wide text-muted-foreground uppercase">
         Le véhicule
       </p>
-      <div
-        key={driverKey}
-        className={`min-w-0 max-w-full rounded-2xl border border-primary/25 bg-card p-2 shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)] sm:p-3 ${anim}`}
-      >
-        <div className="flex min-w-0 flex-col gap-3">
-          <InteriorPhoto
-            imageKey={`${driverKey}:${facts?.vehicleId ?? "no-vehicle"}:${facts?.interiorPhotoPath ?? "no-photo"}`}
-            url={facts?.interiorPhotoUrl ?? null}
-            alt="Intérieur du véhicule"
-            loading={loading}
-          />
+      <div key={driverKey} className={`flex min-w-0 max-w-full flex-col gap-2 ${anim}`}>
+        <InteriorPhoto
+          imageKey={`${driverKey}:${facts?.vehicleId ?? "no-vehicle"}:${facts?.interiorPhotoPath ?? "no-photo"}`}
+          url={facts?.interiorPhotoUrl ?? null}
+          alt="Intérieur du véhicule"
+          loading={loading}
+        />
 
-          <div className="flex min-w-0 flex-col gap-2">
+        <div className="flex min-w-0 flex-col gap-2 rounded-2xl border border-primary/25 bg-card p-3 shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]">
+
             <div className="grid min-w-0 grid-cols-2 gap-x-3 gap-y-2 [overflow-wrap:anywhere] max-[300px]:grid-cols-1">
               <Fact
                 icon={Users}
