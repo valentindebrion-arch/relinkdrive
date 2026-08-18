@@ -5,12 +5,7 @@ import {
   ArrowRight,
   CalendarClock,
   CalendarDays,
-  ChevronRight,
-  Car,
-  PhoneCall,
   Loader2,
-  UserPlus,
-  Users,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -21,14 +16,19 @@ import { useBlockingImmediate } from "@/lib/immediate-request";
 import { useCountdown } from "@/components/ExpiryCountdown";
 import { saveRequestDraft } from "@/lib/request-draft";
 import { ConnectionDecor } from "@/components/client/ConnectionDecor";
-import { DriverSpotlight, type SpotlightDriver } from "@/components/client/DriverSpotlight";
+import { ANIM_MS, DriverSpotlight, type SpotlightDriver } from "@/components/client/DriverSpotlight";
+import {
+  EQUIPMENT_LABELS,
+  VehicleFacts,
+  type VehicleFactsData,
+} from "@/components/client/VehicleFacts";
 import { useSignedUrls } from "@/lib/storage";
 
 export const Route = createFileRoute("/_authenticated/espace/")({
   component: ClientHome,
 });
 
-type HomeDriver = SpotlightDriver & { zone: string | null };
+type HomeDriver = SpotlightDriver & { zone: string | null; facts: VehicleFactsData };
 
 let selectedDriverMemory: string | null = null;
 
@@ -83,7 +83,7 @@ function ClientHome() {
           supabase.rpc("get_connected_driver_profiles"),
           supabase
             .from("vehicles")
-            .select("id, driver_id, brand, model, color, photo_url, is_primary, updated_at")
+            .select("*")
             .in("driver_id", ids),
         ]);
         const counts = new Map<string, number>();
@@ -106,9 +106,26 @@ function ClientHome() {
             activeVehicleId: car?.id ?? null,
             vehiclePhotoPath: car?.photo_url ?? null,
             vehiclePhotoVersion: car?.updated_at ?? null,
+            vehicleInteriorPath: car?.photo_interior_url ?? null,
             zone: dp?.zone ?? null,
             slug: dp?.slug ?? null,
             favorite: id === favoriteId,
+            // Objet de présentation unique, construit avec le véhicule actif :
+            // aucune valeur inventée, `false` et « absent » restent distincts.
+            facts: {
+              vehicleId: car?.id ?? null,
+              interiorPhotoPath: car?.photo_interior_url ?? null,
+              interiorPhotoUrl: null,
+              maxPassengers: car?.max_passengers ?? null,
+              largeLuggage: car?.large_luggage_capacity ?? null,
+              cabinLuggage: car?.cabin_luggage_capacity ?? null,
+              petsPolicy: (car?.pets_policy as VehicleFactsData["petsPolicy"]) ?? null,
+              equipment: car
+                ? EQUIPMENT_LABELS.filter(
+                    (e) => (car as Record<string, unknown>)[e.key] === true,
+                  ).map((e) => e.label)
+                : [],
+            } satisfies VehicleFactsData,
           };
         });
       }

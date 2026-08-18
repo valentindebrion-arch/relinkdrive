@@ -9,6 +9,8 @@ export type SpotlightDriver = {
   vehicle: string | null;
   /** URL signée de la photo extérieure du véhicule déclaré par le chauffeur. */
   vehiclePhotoUrl?: string | null;
+  /** URL signée de la photo intérieure (préchargée avec l'extérieure). */
+  vehicleInteriorUrl?: string | null;
   activeVehicleId?: string | null;
   vehiclePhotoPath?: string | null;
   vehiclePhotoVersion?: string | null;
@@ -109,7 +111,7 @@ function VehicleHero({
 }
 
 const SWIPE_MIN = 48;
-const ANIM_MS = 240;
+export const ANIM_MS = 260;
 
 function initials(name: string) {
   return (
@@ -176,11 +178,12 @@ export function DriverSpotlight({
   useEffect(() => {
     if (!multiple || typeof window === "undefined") return;
     [index - 1, index + 1].forEach((i) => {
-      const url = drivers[(i + drivers.length) % drivers.length]?.vehiclePhotoUrl;
-      if (url) {
+      const neighbour = drivers[(i + drivers.length) % drivers.length];
+      [neighbour?.vehiclePhotoUrl, neighbour?.vehicleInteriorUrl].forEach((url) => {
+        if (!url) return;
         const img = new Image();
         img.src = url;
-      }
+      });
     });
   }, [drivers, index, multiple]);
 
