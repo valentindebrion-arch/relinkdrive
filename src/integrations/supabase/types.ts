@@ -2280,6 +2280,70 @@ export type Database = {
               reused: boolean
             }[]
           }
+      create_credit_note: {
+        Args: { _amount_ttc?: number; _invoice_id: string; _reason: string }
+        Returns: {
+          amount_due: number | null
+          amount_ht: number
+          amount_paid: number
+          amount_ttc: number
+          auto_generated: boolean
+          client_id: string | null
+          created_at: string
+          credit_note_of: string | null
+          currency: string
+          customer_id: string | null
+          customer_kind: string
+          customer_snapshot: Json | null
+          description: string | null
+          discount_ht: number
+          document_hash: string | null
+          document_type: string
+          driver_id: string
+          due_on: string | null
+          external_id: string | null
+          id: string
+          issued_at: string | null
+          issued_number_year: number | null
+          issued_on: string
+          issuer_snapshot: Json | null
+          late_penalty_applicable: boolean
+          number: string | null
+          operation_category: string
+          paid_at: string | null
+          passenger_name: string | null
+          payment_method: string | null
+          payment_terms: string
+          payment_terms_days: number | null
+          pdf_path: string | null
+          po_number: string | null
+          quantity: number
+          recovery_fee_applicable: boolean
+          replaced_by: string | null
+          ride_id: string | null
+          routing_channel: string
+          service_date: string | null
+          status: Database["public"]["Enums"]["invoice_status"]
+          structured_format: string | null
+          structured_path: string | null
+          tax_legal_mention: string | null
+          tax_regime: string | null
+          tax_vat_number: string | null
+          transmission_error: string | null
+          transmission_status: string
+          transmitted_at: string | null
+          unit_price_ht: number | null
+          updated_at: string
+          vat_on_debits: boolean
+          vat_rate: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "invoices"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       driver_available_between: {
         Args: { _driver: string; _end: string; _start: string }
         Returns: boolean
@@ -2498,6 +2562,70 @@ export type Database = {
       }
       is_valid_siren: { Args: { _siren: string }; Returns: boolean }
       is_verified_driver: { Args: { _driver: string }; Returns: boolean }
+      issue_invoice: {
+        Args: { _invoice_id: string }
+        Returns: {
+          amount_due: number | null
+          amount_ht: number
+          amount_paid: number
+          amount_ttc: number
+          auto_generated: boolean
+          client_id: string | null
+          created_at: string
+          credit_note_of: string | null
+          currency: string
+          customer_id: string | null
+          customer_kind: string
+          customer_snapshot: Json | null
+          description: string | null
+          discount_ht: number
+          document_hash: string | null
+          document_type: string
+          driver_id: string
+          due_on: string | null
+          external_id: string | null
+          id: string
+          issued_at: string | null
+          issued_number_year: number | null
+          issued_on: string
+          issuer_snapshot: Json | null
+          late_penalty_applicable: boolean
+          number: string | null
+          operation_category: string
+          paid_at: string | null
+          passenger_name: string | null
+          payment_method: string | null
+          payment_terms: string
+          payment_terms_days: number | null
+          pdf_path: string | null
+          po_number: string | null
+          quantity: number
+          recovery_fee_applicable: boolean
+          replaced_by: string | null
+          ride_id: string | null
+          routing_channel: string
+          service_date: string | null
+          status: Database["public"]["Enums"]["invoice_status"]
+          structured_format: string | null
+          structured_path: string | null
+          tax_legal_mention: string | null
+          tax_regime: string | null
+          tax_vat_number: string | null
+          transmission_error: string | null
+          transmission_status: string
+          transmitted_at: string | null
+          unit_price_ht: number | null
+          updated_at: string
+          vat_on_debits: boolean
+          vat_rate: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "invoices"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       next_invoice_number: {
         Args: { _driver: string; _type?: string; _year: number }
         Returns: string
@@ -2508,6 +2636,76 @@ export type Database = {
       }
       payment_method_label: { Args: { _key: string }; Returns: string }
       process_document_expiry: { Args: never; Returns: number }
+      record_invoice_payment: {
+        Args: {
+          _amount: number
+          _invoice_id: string
+          _method: string
+          _note?: string
+          _paid_at?: string
+        }
+        Returns: {
+          amount_due: number | null
+          amount_ht: number
+          amount_paid: number
+          amount_ttc: number
+          auto_generated: boolean
+          client_id: string | null
+          created_at: string
+          credit_note_of: string | null
+          currency: string
+          customer_id: string | null
+          customer_kind: string
+          customer_snapshot: Json | null
+          description: string | null
+          discount_ht: number
+          document_hash: string | null
+          document_type: string
+          driver_id: string
+          due_on: string | null
+          external_id: string | null
+          id: string
+          issued_at: string | null
+          issued_number_year: number | null
+          issued_on: string
+          issuer_snapshot: Json | null
+          late_penalty_applicable: boolean
+          number: string | null
+          operation_category: string
+          paid_at: string | null
+          passenger_name: string | null
+          payment_method: string | null
+          payment_terms: string
+          payment_terms_days: number | null
+          pdf_path: string | null
+          po_number: string | null
+          quantity: number
+          recovery_fee_applicable: boolean
+          replaced_by: string | null
+          ride_id: string | null
+          routing_channel: string
+          service_date: string | null
+          status: Database["public"]["Enums"]["invoice_status"]
+          structured_format: string | null
+          structured_path: string | null
+          tax_legal_mention: string | null
+          tax_regime: string | null
+          tax_vat_number: string | null
+          transmission_error: string | null
+          transmission_status: string
+          transmitted_at: string | null
+          unit_price_ht: number | null
+          updated_at: string
+          vat_on_debits: boolean
+          vat_rate: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "invoices"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       submit_driver_dossier: { Args: never; Returns: Json }
       track_driver_event: {
         Args: { _event: string; _slug: string }
