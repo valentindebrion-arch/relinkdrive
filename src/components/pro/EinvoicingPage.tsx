@@ -351,6 +351,17 @@ export function EinvoicingPage() {
           ))}
         </div>
       )}
+
+      {user ? (
+        <div className="mt-4 space-y-4">
+          <EreportingPanel
+            driverId={user.id}
+            connection={connection.data ?? null}
+            taxRegime={taxProfile.data?.regime ?? null}
+          />
+          <SupplierInvoicesPanel driverId={user.id} connection={connection.data ?? null} />
+        </div>
+      ) : null}
     </>
   );
 }
