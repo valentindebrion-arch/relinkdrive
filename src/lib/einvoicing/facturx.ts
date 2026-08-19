@@ -9,14 +9,33 @@
  * exécutée dans l'environnement de ReLink. Le mode strict est donc désactivé et
  * la conformité est contrôlée par nos règles métier (`validate.ts`).
  */
-import { zugferd } from "node-zugferd";
-import { EN16931 } from "node-zugferd/profile/en16931";
 import type { StructuredInvoice } from "@/lib/einvoicing/model";
 import { FACTURX_PROFILE, FACTURX_SPEC_VERSION } from "@/lib/einvoicing/spec";
 
 const amount = (n: number) => n.toFixed(2);
 
-const invoicer = zugferd({ profile: EN16931, strict: false });
+// `node-zugferd` (et son interop tslib) casse à l'initialisation dans le
+// runtime serveur : on le charge donc uniquement au moment de générer un
+// document, jamais au chargement de l'application.
+type Invoicer = { create: (data: never) => {
+  toXML: () => Promise<string>;
+  embedInPdf: (pdf: Uint8Array, opts: unknown) => Promise<Uint8Array>;
+} };
+
+let invoicerPromise: Promise<Invoicer> | undefined;
+
+async function getInvoicer(): Promise<Invoicer> {
+  if (!invoicerPromise) {
+    invoicerPromise = (async () => {
+      const [{ zugferd }, { EN16931 }] = await Promise.all([
+        import("node-zugferd"),
+        import("node-zugferd/profile/en16931"),
+      ]);
+      return zugferd({ profile: EN16931, strict: false }) as unknown as Invoicer;
+    })();
+  }
+  return invoicerPromise;
+}
 
 function partyAddress(p: StructuredInvoice["seller"] | StructuredInvoice["buyer"]) {
   return {
@@ -118,12 +137,14 @@ export type FacturXResult = {
 
 /** Produit le XML CII seul (source structurée conservée à part). */
 export async function buildFacturXXml(doc: StructuredInvoice): Promise<string> {
+  const invoicer = await getInvoicer();
   const document = invoicer.create(buildDocumentData(doc) as never);
   return await document.toXML();
 }
 
 /** Produit le Factur-X : PDF lisible + XML CII intégré et métadonnées. */
 export async function buildFacturX(doc: StructuredInvoice, readablePdf: Uint8Array): Promise<FacturXResult> {
+  const invoicer = await getInvoicer();
   const document = invoicer.create(buildDocumentData(doc) as never);
   const xml = await document.toXML();
   const pdf = await document.embedInPdf(readablePdf, {
