@@ -170,51 +170,59 @@ function DriverInvoices() {
     void qc.invalidateQueries({ queryKey: ["driver-data"] });
   }
 
-  async function setStatus(inv: Invoice, status: "sent" | "paid" | "cancelled" | "issued") {
-    const { error } = await supabase
-      .from("invoices")
-      .update({ status: status as never, ...(status === "paid" ? { paid_at: new Date().toISOString() } : {}) })
-      .eq("id", inv.id);
+  async function markSent(inv: Invoice) {
+    const { error } = await supabase.from("invoices").update({ status: "sent" as never }).eq("id", inv.id);
     if (error) {
       toast.error(error.message);
       return;
-    }
-    if (status === "paid") {
-      await supabase.from("payments").insert({
-        invoice_id: inv.id,
-        driver_id: user!.id,
-        amount: Number(inv.amount_ttc),
-        method: inv.payment_method ?? "cash",
-      });
     }
     refresh();
   }
 
-  async function finalize(inv: Invoice) {
-    const value = window.prompt("Montant HT définitif (€)", String(inv.amount_ht || ""));
+  async function recordPayment(inv: Invoice) {
+    const due = Number(inv.amount_due ?? inv.amount_ttc);
+    const value = window.prompt("Montant encaisse (EUR)", String(due || ""));
     if (value == null) return;
-    const ht = Number(value);
-    if (!ht) {
+    const amount = Number(value.replace(",", "."));
+    if (!amount || amount <= 0) {
       toast.error("Montant invalide");
       return;
     }
-    const { error } = await supabase
-      .from("invoices")
-      .update({
-        amount_ht: ht,
-        amount_ttc: Math.round(ht * (1 + Number(inv.vat_rate) / 100) * 100) / 100,
-        status: "issued" as never,
-      })
-      .eq("id", inv.id);
+    const { error } = await (
+      supabase as unknown as {
+        rpc: (fn: string, args: Record<string, unknown>) => Promise<{ error: { message: string } | null }>;
+      }
+    ).rpc("record_invoice_payment", {
+      _invoice_id: inv.id,
+      _amount: amount,
+      _method: inv.payment_method ?? "cash",
+    });
     if (error) {
       toast.error(error.message);
       return;
     }
-    toast.success("Facture finalisée");
+    toast.success("Encaissement enregistre");
+    refresh();
+  }
+
+  async function creditNote(inv: Invoice) {
+    const reason = window.prompt("Motif de l'avoir (obligatoire)");
+    if (!reason?.trim()) return;
+    const { error } = await (
+      supabase as unknown as {
+        rpc: (fn: string, args: Record<string, unknown>) => Promise<{ error: { message: string } | null }>;
+      }
+    ).rpc("create_credit_note", { _invoice_id: inv.id, _reason: reason.trim() });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Avoir cree");
     refresh();
   }
 
   async function download(inv: Invoice) {
+    if (inv.pdf_path && (await openArchivedInvoicePdf(inv.pdf_path))) return;
     let ride: { pickup_address?: string | null; dropoff_address?: string | null; scheduled_at?: string | null; completed_at?: string | null; passengers?: number | null; mileage_km?: number | string | null } | null = null;
     let client: { full_name?: string | null; email?: string | null; phone?: string | null } | null = null;
     if (inv.ride_id) {
