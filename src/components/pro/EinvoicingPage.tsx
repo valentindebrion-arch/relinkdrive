@@ -15,10 +15,14 @@ import {
   ENTITY_CATEGORY_LABELS,
   FACTURX_PROFILE,
   FACTURX_SPEC_VERSION,
-  formatObligationDate,
   obligationState,
   type EntityCategory,
 } from "@/lib/einvoicing/spec";
+
+function obligationText(date: string | null, due: boolean) {
+  if (!date) return "à préciser (catégorie d'entreprise non renseignée)";
+  return `${formatDate(date)}${due ? " — en vigueur" : ""}`;
+}
 import {
   useCompanyEinvoicing,
   useEinvoices,
