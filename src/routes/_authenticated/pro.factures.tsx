@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, Download, Search, BarChart3 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Search, BarChart3, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useDriverProfile } from "@/lib/driver-queries";
@@ -10,6 +10,8 @@ import { PageHeader, EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { INVOICE_LABELS, formatDate, formatEuro } from "@/lib/labels";
 import { downloadInvoicePdf } from "@/lib/invoice-pdf";
+import { openArchivedInvoicePdf } from "@/lib/invoice-archive";
+import { InvoiceIssueDialog, type DraftInvoice } from "@/components/pro/InvoiceIssueDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -19,7 +21,17 @@ export const Route = createFileRoute("/_authenticated/pro/factures")({
 
 type Invoice = {
   id: string;
-  number: string;
+  number: string | null;
+  document_type?: string | null;
+  pdf_path?: string | null;
+  amount_paid?: number | null;
+  amount_due?: number | null;
+  customer_id?: string | null;
+  passenger_name?: string | null;
+  service_date?: string | null;
+  quantity?: number | null;
+  unit_price_ht?: number | null;
+  tax_regime?: string | null;
   status: string;
   amount_ht: number;
   amount_ttc: number;
@@ -116,6 +128,7 @@ function DriverInvoices() {
   const [period, setPeriod] = useState<Period>("month");
   const [offset, setOffset] = useState(0);
   const [search, setSearch] = useState("");
+  const [issuing, setIssuing] = useState<DraftInvoice | null>(null);
 
   const invoices = useQuery({
     queryKey: ["driver-invoices", user?.id],
@@ -157,51 +170,59 @@ function DriverInvoices() {
     void qc.invalidateQueries({ queryKey: ["driver-data"] });
   }
 
-  async function setStatus(inv: Invoice, status: "sent" | "paid" | "cancelled" | "issued") {
-    const { error } = await supabase
-      .from("invoices")
-      .update({ status: status as never, ...(status === "paid" ? { paid_at: new Date().toISOString() } : {}) })
-      .eq("id", inv.id);
+  async function markSent(inv: Invoice) {
+    const { error } = await supabase.from("invoices").update({ status: "sent" as never }).eq("id", inv.id);
     if (error) {
       toast.error(error.message);
       return;
-    }
-    if (status === "paid") {
-      await supabase.from("payments").insert({
-        invoice_id: inv.id,
-        driver_id: user!.id,
-        amount: Number(inv.amount_ttc),
-        method: inv.payment_method ?? "cash",
-      });
     }
     refresh();
   }
 
-  async function finalize(inv: Invoice) {
-    const value = window.prompt("Montant HT définitif (€)", String(inv.amount_ht || ""));
+  async function recordPayment(inv: Invoice) {
+    const due = Number(inv.amount_due ?? inv.amount_ttc);
+    const value = window.prompt("Montant encaisse (EUR)", String(due || ""));
     if (value == null) return;
-    const ht = Number(value);
-    if (!ht) {
+    const amount = Number(value.replace(",", "."));
+    if (!amount || amount <= 0) {
       toast.error("Montant invalide");
       return;
     }
-    const { error } = await supabase
-      .from("invoices")
-      .update({
-        amount_ht: ht,
-        amount_ttc: Math.round(ht * (1 + Number(inv.vat_rate) / 100) * 100) / 100,
-        status: "issued" as never,
-      })
-      .eq("id", inv.id);
+    const { error } = await (
+      supabase as unknown as {
+        rpc: (fn: string, args: Record<string, unknown>) => Promise<{ error: { message: string } | null }>;
+      }
+    ).rpc("record_invoice_payment", {
+      _invoice_id: inv.id,
+      _amount: amount,
+      _method: inv.payment_method ?? "cash",
+    });
     if (error) {
       toast.error(error.message);
       return;
     }
-    toast.success("Facture finalisée");
+    toast.success("Encaissement enregistre");
+    refresh();
+  }
+
+  async function creditNote(inv: Invoice) {
+    const reason = window.prompt("Motif de l'avoir (obligatoire)");
+    if (!reason?.trim()) return;
+    const { error } = await (
+      supabase as unknown as {
+        rpc: (fn: string, args: Record<string, unknown>) => Promise<{ error: { message: string } | null }>;
+      }
+    ).rpc("create_credit_note", { _invoice_id: inv.id, _reason: reason.trim() });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Avoir cree");
     refresh();
   }
 
   async function download(inv: Invoice) {
+    if (inv.pdf_path && (await openArchivedInvoicePdf(inv.pdf_path))) return;
     let ride: { pickup_address?: string | null; dropoff_address?: string | null; scheduled_at?: string | null; completed_at?: string | null; passengers?: number | null; mileage_km?: number | string | null } | null = null;
     let client: { full_name?: string | null; email?: string | null; phone?: string | null } | null = null;
     if (inv.ride_id) {
@@ -244,7 +265,7 @@ function DriverInvoices() {
     const rows = [
       ["Numero", "Date", "Client", "Description", "Regime", "HT", "Taux TVA", "TVA", "TTC", "Statut"],
       ...rowsList.map((i) => [
-        i.number,
+        i.number ?? "",
         i.issued_on,
         clientName(i).replace(/;/g, ","),
         (i.description ?? "").replace(/;/g, ","),
@@ -289,7 +310,7 @@ function DriverInvoices() {
   const q = search.trim().toLowerCase();
   const shown = q
     ? inPeriod.filter((i) =>
-        [i.number, clientName(i), formatDate(i.issued_on), i.issued_on, i.description ?? ""]
+        [i.number ?? "", clientName(i), formatDate(i.issued_on), i.issued_on, i.description ?? ""]
           .join(" ")
           .toLowerCase()
           .includes(q),
@@ -318,7 +339,7 @@ function DriverInvoices() {
             {drafts.length} brouillon(s) à compléter — ces documents ne sont pas des factures définitives.
           </p>
           <p className="mt-1 text-muted-foreground">
-            Renseignez le montant final pour les finaliser et les envoyer au client.
+            Sélectionnez le client facturé et le montant, puis émettez-les pour obtenir un numéro définitif.
           </p>
         </div>
       ) : null}
@@ -329,6 +350,11 @@ function DriverInvoices() {
           <Button asChild size="sm" variant="ghost" aria-label="Statistiques">
             <Link to="/pro/activite">
               <BarChart3 className="size-4" />
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant="ghost" aria-label="Clients facturés">
+            <Link to="/pro/clients-factures">
+              <Users className="size-4" />
             </Link>
           </Button>
           <Button size="sm" variant="outline" onClick={() => exportCsv(shown)}>
@@ -401,28 +427,37 @@ function DriverInvoices() {
                 <div className="min-w-0">
                   <p className="truncate font-semibold">{clientName(inv) || inv.description || "Client"}</p>
                   <p className="truncate text-xs text-muted-foreground">{formatDate(inv.issued_on)}</p>
-                  <p className="truncate text-xs text-muted-foreground">Facture n° {inv.number}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {inv.number
+                      ? `${inv.document_type === "credit_note" ? "Avoir" : "Facture"} n° ${inv.number}`
+                      : "Brouillon — non numéroté"}
+                  </p>
                   <p className="mt-1 text-sm font-semibold text-primary">{formatEuro(Number(inv.amount_ttc))}</p>
                 </div>
                 <StatusBadge status={inv.status} labels={INVOICE_LABELS} />
               </div>
               <div className="mt-3 flex items-center gap-2 overflow-x-auto">
                 {inv.status === "draft" ? (
-                  <Button size="sm" className="shrink-0" onClick={() => finalize(inv)}>
-                    Compléter
+                  <Button size="sm" className="shrink-0" onClick={() => setIssuing(inv as DraftInvoice)}>
+                    Émettre
                   </Button>
                 ) : null}
                 {inv.status === "issued" ? (
-                  <Button size="sm" variant="outline" className="shrink-0" onClick={() => setStatus(inv, "sent")}>
+                  <Button size="sm" variant="outline" className="shrink-0" onClick={() => void markSent(inv)}>
                     Envoyée
                   </Button>
                 ) : null}
-                {!["paid", "cancelled", "draft"].includes(inv.status) ? (
-                  <Button size="sm" className="shrink-0" onClick={() => setStatus(inv, "paid")}>
-                    Payée
+                {!["paid", "cancelled", "draft", "credited"].includes(inv.status) ? (
+                  <Button size="sm" className="shrink-0" onClick={() => void recordPayment(inv)}>
+                    Encaissement
                   </Button>
                 ) : null}
-                <Button size="sm" variant="outline" className="shrink-0" onClick={() => download(inv)}>
+                {inv.number && inv.document_type !== "credit_note" && inv.status !== "credited" ? (
+                  <Button size="sm" variant="outline" className="shrink-0" onClick={() => void creditNote(inv)}>
+                    Avoir
+                  </Button>
+                ) : null}
+                <Button size="sm" variant="outline" className="shrink-0" onClick={() => void download(inv)}>
                   <Download className="mr-1 size-4" /> Télécharger
                 </Button>
               </div>
@@ -430,6 +465,14 @@ function DriverInvoices() {
           ))}
         </div>
       )}
+
+      <InvoiceIssueDialog
+        invoice={issuing}
+        open={!!issuing}
+        onOpenChange={(v) => {
+          if (!v) setIssuing(null);
+        }}
+      />
     </>
   );
 }

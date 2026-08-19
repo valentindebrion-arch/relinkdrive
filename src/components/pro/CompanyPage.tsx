@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TaxSection } from "@/components/pro/TaxSection";
 import { TariffSection } from "@/components/pro/TariffSection";
+import { isValidSiren } from "@/lib/billing-customers";
 
 
 export function CompanyPage() {
@@ -27,6 +28,7 @@ export function CompanyPage() {
   const [form, setForm] = useState({
     legal_name: "",
     legal_form: "",
+    siren: "",
     siret: "",
     vat_number: "",
     address: "",
@@ -39,6 +41,7 @@ export function CompanyPage() {
       setForm({
         legal_name: company.data.legal_name ?? "",
         legal_form: company.data.legal_form ?? "",
+        siren: company.data.siren ?? (company.data.siret ?? "").slice(0, 9),
         siret: company.data.siret ?? "",
         vat_number: company.data.vat_number ?? "",
         address: company.data.address ?? "",
@@ -49,9 +52,15 @@ export function CompanyPage() {
   }, [company.data]);
 
   async function save() {
+    const siren = form.siren.replace(/\s/g, "");
+    if (siren && !isValidSiren(siren)) {
+      toast.error("SIREN invalide (9 chiffres)");
+      return;
+    }
+    const payload = { ...form, siren: siren || null };
     const { error } = company.data
-      ? await supabase.from("companies").update(form).eq("id", company.data.id)
-      : await supabase.from("companies").insert({ driver_id: user!.id, ...form });
+      ? await supabase.from("companies").update(payload).eq("id", company.data.id)
+      : await supabase.from("companies").insert({ driver_id: user!.id, ...payload });
     const { error: e2 } = await supabase
       .from("driver_profiles")
       .update({ siret: form.siret || null })
@@ -78,6 +87,7 @@ export function CompanyPage() {
       <div className="surface grid gap-4 p-5 sm:grid-cols-2">
         {field("legal_name", "Raison sociale")}
         {field("legal_form", "Forme juridique")}
+        {field("siren", "SIREN (9 chiffres)")}
         {field("siret", "SIRET")}
         {field("address", "Adresse")}
         {field("postal_code", "Code postal")}
@@ -86,6 +96,10 @@ export function CompanyPage() {
           <Button onClick={save}>Enregistrer</Button>
         </div>
       </div>
+
+      <p className="mt-2 text-xs text-muted-foreground">
+        Le SIREN, la raison sociale et l'adresse sont obligatoires pour émettre une facture conforme.
+      </p>
 
       <div className="mt-4 space-y-4">
         <TaxSection />
