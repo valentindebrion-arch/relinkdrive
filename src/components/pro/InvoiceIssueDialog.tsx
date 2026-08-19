@@ -24,7 +24,9 @@ import {
 } from "@/components/ui/select";
 import { formatEuro } from "@/lib/labels";
 import { useBillingCustomers } from "@/lib/billing-customers";
-import { archiveInvoicePdf, fetchInvoiceIssuer } from "@/lib/invoice-archive";
+import { fetchInvoiceIssuer } from "@/lib/invoice-archive";
+import { generateAndArchiveInvoiceDocuments } from "@/lib/einvoicing/documents";
+import type { InvoiceRow } from "@/lib/einvoicing/model";
 
 export type DraftInvoice = {
   id: string;
