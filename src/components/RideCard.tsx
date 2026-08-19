@@ -11,7 +11,7 @@ export type RideRow = {
   status: string;
 };
 
-export type InvoiceRow = { ride_id: string | null; number: string; status: string };
+export type InvoiceRow = { ride_id: string | null; number: string | null; status: string };
 
 export function RideCard({ ride, invoice }: { ride: RideRow; invoice?: InvoiceRow | undefined }) {
   return (
@@ -30,7 +30,8 @@ export function RideCard({ ride, invoice }: { ride: RideRow; invoice?: InvoiceRo
         </p>
         {invoice ? (
           <p className="mt-1 text-sm text-muted-foreground">
-            Facture {invoice.number} — <StatusBadge status={invoice.status} labels={INVOICE_LABELS} />
+            {invoice.number ? `Facture ${invoice.number}` : "Facture en préparation"} —{" "}
+            <StatusBadge status={invoice.status} labels={INVOICE_LABELS} />
           </p>
         ) : null}
       </div>

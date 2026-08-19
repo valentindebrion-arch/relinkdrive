@@ -55,7 +55,7 @@ type RideRow = {
   cancellation_reason?: string | null;
   is_block?: boolean | null;
 };
-type InvoiceRow = { ride_id: string | null; number: string; status: string };
+type InvoiceRow = { ride_id: string | null; number: string | null; status: string };
 
 const ACTIVE_STATUSES = ["driver_enroute", "driver_arrived", "client_onboard", "in_progress"];
 const PROGRESS_STEPS: { key: string; label: string }[] = [

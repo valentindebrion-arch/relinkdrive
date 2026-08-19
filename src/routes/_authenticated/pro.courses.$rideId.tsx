@@ -454,7 +454,7 @@ function DriverRideDetail() {
         <Button asChild variant="outline" className="w-full gap-2">
           <Link to="/pro/factures">
             <Receipt className="size-4" />
-            Voir la facture {invoice.number}
+            {invoice.number ? `Voir la facture ${invoice.number}` : "Voir le brouillon de facture"}
           </Link>
         </Button>
       ) : null}
