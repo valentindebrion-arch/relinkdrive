@@ -103,6 +103,7 @@ export type Database = {
       }
       billing_customers: {
         Row: {
+          accounting_email: string | null
           address: string | null
           address_opt_out: boolean
           archived_at: string | null
@@ -124,15 +125,22 @@ export type Database = {
           internal_ref: string | null
           kind: string
           legal_name: string | null
+          legal_name_match: string
           payment_terms: string
           payment_terms_days: number | null
           po_number: string | null
           postal_code: string | null
+          recipient_platform: string | null
+          routing_id: string | null
+          routing_scheme: string | null
           siren: string | null
+          siren_check_status: string
+          siren_checked_at: string | null
           updated_at: string
           vat_number: string | null
         }
         Insert: {
+          accounting_email?: string | null
           address?: string | null
           address_opt_out?: boolean
           archived_at?: string | null
@@ -154,15 +162,22 @@ export type Database = {
           internal_ref?: string | null
           kind?: string
           legal_name?: string | null
+          legal_name_match?: string
           payment_terms?: string
           payment_terms_days?: number | null
           po_number?: string | null
           postal_code?: string | null
+          recipient_platform?: string | null
+          routing_id?: string | null
+          routing_scheme?: string | null
           siren?: string | null
+          siren_check_status?: string
+          siren_checked_at?: string | null
           updated_at?: string
           vat_number?: string | null
         }
         Update: {
+          accounting_email?: string | null
           address?: string | null
           address_opt_out?: boolean
           archived_at?: string | null
@@ -184,11 +199,17 @@ export type Database = {
           internal_ref?: string | null
           kind?: string
           legal_name?: string | null
+          legal_name_match?: string
           payment_terms?: string
           payment_terms_days?: number | null
           po_number?: string | null
           postal_code?: string | null
+          recipient_platform?: string | null
+          routing_id?: string | null
+          routing_scheme?: string | null
           siren?: string | null
+          siren_check_status?: string
+          siren_checked_at?: string | null
           updated_at?: string
           vat_number?: string | null
         }
@@ -221,6 +242,7 @@ export type Database = {
       companies: {
         Row: {
           address: string | null
+          anticipation_opt_in: boolean
           billing_address: string | null
           billing_city: string | null
           billing_postal_code: string | null
@@ -233,15 +255,21 @@ export type Database = {
           einvoicing_address: string | null
           einvoicing_opt_in: boolean
           entity_category: string
+          entity_category_source: string
+          ereporting_enabled: boolean
           id: string
+          issue_enabled: boolean
           legal_form: string | null
           legal_name: string | null
           legal_verified_at: string | null
+          obligation_start_on: string | null
           pa_account_id: string | null
+          pa_environment: string
           pa_last_sync_at: string | null
           pa_provider: string | null
           pa_status: string
           postal_code: string | null
+          receive_enabled: boolean
           siren: string | null
           siret: string | null
           updated_at: string
@@ -251,6 +279,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          anticipation_opt_in?: boolean
           billing_address?: string | null
           billing_city?: string | null
           billing_postal_code?: string | null
@@ -263,15 +292,21 @@ export type Database = {
           einvoicing_address?: string | null
           einvoicing_opt_in?: boolean
           entity_category?: string
+          entity_category_source?: string
+          ereporting_enabled?: boolean
           id?: string
+          issue_enabled?: boolean
           legal_form?: string | null
           legal_name?: string | null
           legal_verified_at?: string | null
+          obligation_start_on?: string | null
           pa_account_id?: string | null
+          pa_environment?: string
           pa_last_sync_at?: string | null
           pa_provider?: string | null
           pa_status?: string
           postal_code?: string | null
+          receive_enabled?: boolean
           siren?: string | null
           siret?: string | null
           updated_at?: string
@@ -281,6 +316,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          anticipation_opt_in?: boolean
           billing_address?: string | null
           billing_city?: string | null
           billing_postal_code?: string | null
@@ -293,15 +329,21 @@ export type Database = {
           einvoicing_address?: string | null
           einvoicing_opt_in?: boolean
           entity_category?: string
+          entity_category_source?: string
+          ereporting_enabled?: boolean
           id?: string
+          issue_enabled?: boolean
           legal_form?: string | null
           legal_name?: string | null
           legal_verified_at?: string | null
+          obligation_start_on?: string | null
           pa_account_id?: string | null
+          pa_environment?: string
           pa_last_sync_at?: string | null
           pa_provider?: string | null
           pa_status?: string
           postal_code?: string | null
+          receive_enabled?: boolean
           siren?: string | null
           siret?: string | null
           updated_at?: string
@@ -970,6 +1012,77 @@ export type Database = {
         }
         Relationships: []
       }
+      ereporting_submissions: {
+        Row: {
+          ack_code: string | null
+          ack_message: string | null
+          created_at: string
+          currency: string
+          driver_id: string
+          external_id: string | null
+          id: string
+          invoice_id: string | null
+          kind: string
+          pa_provider: string | null
+          payload: Json | null
+          period_end: string | null
+          period_start: string | null
+          status: string
+          total_ht: number
+          total_ttc: number
+          total_vat: number
+          updated_at: string
+        }
+        Insert: {
+          ack_code?: string | null
+          ack_message?: string | null
+          created_at?: string
+          currency?: string
+          driver_id: string
+          external_id?: string | null
+          id?: string
+          invoice_id?: string | null
+          kind: string
+          pa_provider?: string | null
+          payload?: Json | null
+          period_end?: string | null
+          period_start?: string | null
+          status?: string
+          total_ht?: number
+          total_ttc?: number
+          total_vat?: number
+          updated_at?: string
+        }
+        Update: {
+          ack_code?: string | null
+          ack_message?: string | null
+          created_at?: string
+          currency?: string
+          driver_id?: string
+          external_id?: string | null
+          id?: string
+          invoice_id?: string | null
+          kind?: string
+          pa_provider?: string | null
+          payload?: Json | null
+          period_end?: string | null
+          period_start?: string | null
+          status?: string
+          total_ht?: number
+          total_ttc?: number
+          total_vat?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ereporting_submissions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_counters: {
         Row: {
           document_type: string
@@ -993,6 +1106,56 @@ export type Database = {
           year?: number
         }
         Relationships: []
+      }
+      invoice_documents: {
+        Row: {
+          byte_size: number | null
+          content_type: string | null
+          driver_id: string
+          generated_at: string
+          id: string
+          invoice_id: string
+          kind: string
+          path: string
+          profile: string | null
+          sha256: string
+          spec_version: string | null
+        }
+        Insert: {
+          byte_size?: number | null
+          content_type?: string | null
+          driver_id: string
+          generated_at?: string
+          id?: string
+          invoice_id: string
+          kind: string
+          path: string
+          profile?: string | null
+          sha256: string
+          spec_version?: string | null
+        }
+        Update: {
+          byte_size?: number | null
+          content_type?: string | null
+          driver_id?: string
+          generated_at?: string
+          id?: string
+          invoice_id?: string
+          kind?: string
+          path?: string
+          profile?: string | null
+          sha256?: string
+          spec_version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_documents_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invoice_events: {
         Row: {
@@ -1032,6 +1195,59 @@ export type Database = {
           },
         ]
       }
+      invoice_transmissions: {
+        Row: {
+          ack_code: string | null
+          ack_message: string | null
+          channel: string
+          detail: Json | null
+          direction: string
+          driver_id: string
+          external_id: string | null
+          id: string
+          invoice_id: string
+          occurred_at: string
+          pa_provider: string | null
+          status: string
+        }
+        Insert: {
+          ack_code?: string | null
+          ack_message?: string | null
+          channel: string
+          detail?: Json | null
+          direction?: string
+          driver_id: string
+          external_id?: string | null
+          id?: string
+          invoice_id: string
+          occurred_at?: string
+          pa_provider?: string | null
+          status?: string
+        }
+        Update: {
+          ack_code?: string | null
+          ack_message?: string | null
+          channel?: string
+          detail?: Json | null
+          direction?: string
+          driver_id?: string
+          external_id?: string | null
+          id?: string
+          invoice_id?: string
+          occurred_at?: string
+          pa_provider?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_transmissions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           amount_due: number | null
@@ -1050,15 +1266,19 @@ export type Database = {
           discount_ht: number
           document_hash: string | null
           document_type: string
+          documents_generated_at: string | null
           driver_id: string
           due_on: string | null
           external_id: string | null
+          facturx_profile: string | null
+          facturx_spec_version: string | null
           id: string
           issued_at: string | null
           issued_number_year: number | null
           issued_on: string
           issuer_snapshot: Json | null
           late_penalty_applicable: boolean
+          legacy_pre_reform: boolean
           number: string | null
           operation_category: string
           paid_at: string | null
@@ -1066,6 +1286,7 @@ export type Database = {
           payment_method: string | null
           payment_terms: string
           payment_terms_days: number | null
+          pdf_hash: string | null
           pdf_path: string | null
           po_number: string | null
           quantity: number
@@ -1076,6 +1297,7 @@ export type Database = {
           service_date: string | null
           status: Database["public"]["Enums"]["invoice_status"]
           structured_format: string | null
+          structured_hash: string | null
           structured_path: string | null
           tax_legal_mention: string | null
           tax_regime: string | null
@@ -1105,15 +1327,19 @@ export type Database = {
           discount_ht?: number
           document_hash?: string | null
           document_type?: string
+          documents_generated_at?: string | null
           driver_id: string
           due_on?: string | null
           external_id?: string | null
+          facturx_profile?: string | null
+          facturx_spec_version?: string | null
           id?: string
           issued_at?: string | null
           issued_number_year?: number | null
           issued_on?: string
           issuer_snapshot?: Json | null
           late_penalty_applicable?: boolean
+          legacy_pre_reform?: boolean
           number?: string | null
           operation_category?: string
           paid_at?: string | null
@@ -1121,6 +1347,7 @@ export type Database = {
           payment_method?: string | null
           payment_terms?: string
           payment_terms_days?: number | null
+          pdf_hash?: string | null
           pdf_path?: string | null
           po_number?: string | null
           quantity?: number
@@ -1131,6 +1358,7 @@ export type Database = {
           service_date?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
           structured_format?: string | null
+          structured_hash?: string | null
           structured_path?: string | null
           tax_legal_mention?: string | null
           tax_regime?: string | null
@@ -1160,15 +1388,19 @@ export type Database = {
           discount_ht?: number
           document_hash?: string | null
           document_type?: string
+          documents_generated_at?: string | null
           driver_id?: string
           due_on?: string | null
           external_id?: string | null
+          facturx_profile?: string | null
+          facturx_spec_version?: string | null
           id?: string
           issued_at?: string | null
           issued_number_year?: number | null
           issued_on?: string
           issuer_snapshot?: Json | null
           late_penalty_applicable?: boolean
+          legacy_pre_reform?: boolean
           number?: string | null
           operation_category?: string
           paid_at?: string | null
@@ -1176,6 +1408,7 @@ export type Database = {
           payment_method?: string | null
           payment_terms?: string
           payment_terms_days?: number | null
+          pdf_hash?: string | null
           pdf_path?: string | null
           po_number?: string | null
           quantity?: number
@@ -1186,6 +1419,7 @@ export type Database = {
           service_date?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
           structured_format?: string | null
+          structured_hash?: string | null
           structured_path?: string | null
           tax_legal_mention?: string | null
           tax_regime?: string | null
@@ -2299,15 +2533,19 @@ export type Database = {
           discount_ht: number
           document_hash: string | null
           document_type: string
+          documents_generated_at: string | null
           driver_id: string
           due_on: string | null
           external_id: string | null
+          facturx_profile: string | null
+          facturx_spec_version: string | null
           id: string
           issued_at: string | null
           issued_number_year: number | null
           issued_on: string
           issuer_snapshot: Json | null
           late_penalty_applicable: boolean
+          legacy_pre_reform: boolean
           number: string | null
           operation_category: string
           paid_at: string | null
@@ -2315,6 +2553,7 @@ export type Database = {
           payment_method: string | null
           payment_terms: string
           payment_terms_days: number | null
+          pdf_hash: string | null
           pdf_path: string | null
           po_number: string | null
           quantity: number
@@ -2325,6 +2564,7 @@ export type Database = {
           service_date: string | null
           status: Database["public"]["Enums"]["invoice_status"]
           structured_format: string | null
+          structured_hash: string | null
           structured_path: string | null
           tax_legal_mention: string | null
           tax_regime: string | null
@@ -2581,15 +2821,19 @@ export type Database = {
           discount_ht: number
           document_hash: string | null
           document_type: string
+          documents_generated_at: string | null
           driver_id: string
           due_on: string | null
           external_id: string | null
+          facturx_profile: string | null
+          facturx_spec_version: string | null
           id: string
           issued_at: string | null
           issued_number_year: number | null
           issued_on: string
           issuer_snapshot: Json | null
           late_penalty_applicable: boolean
+          legacy_pre_reform: boolean
           number: string | null
           operation_category: string
           paid_at: string | null
@@ -2597,6 +2841,7 @@ export type Database = {
           payment_method: string | null
           payment_terms: string
           payment_terms_days: number | null
+          pdf_hash: string | null
           pdf_path: string | null
           po_number: string | null
           quantity: number
@@ -2607,6 +2852,7 @@ export type Database = {
           service_date: string | null
           status: Database["public"]["Enums"]["invoice_status"]
           structured_format: string | null
+          structured_hash: string | null
           structured_path: string | null
           tax_legal_mention: string | null
           tax_regime: string | null
@@ -2636,6 +2882,57 @@ export type Database = {
       }
       payment_method_label: { Args: { _key: string }; Returns: string }
       process_document_expiry: { Args: never; Returns: number }
+      queue_ereporting: {
+        Args: { _invoice_id: string; _kind: string; _payload?: Json }
+        Returns: {
+          ack_code: string | null
+          ack_message: string | null
+          created_at: string
+          currency: string
+          driver_id: string
+          external_id: string | null
+          id: string
+          invoice_id: string | null
+          kind: string
+          pa_provider: string | null
+          payload: Json | null
+          period_end: string | null
+          period_start: string | null
+          status: string
+          total_ht: number
+          total_ttc: number
+          total_vat: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "ereporting_submissions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      record_invoice_documents: {
+        Args: { _docs: Json; _invoice_id: string }
+        Returns: {
+          byte_size: number | null
+          content_type: string | null
+          driver_id: string
+          generated_at: string
+          id: string
+          invoice_id: string
+          kind: string
+          path: string
+          profile: string | null
+          sha256: string
+          spec_version: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "invoice_documents"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       record_invoice_payment: {
         Args: {
           _amount: number
@@ -2661,15 +2958,19 @@ export type Database = {
           discount_ht: number
           document_hash: string | null
           document_type: string
+          documents_generated_at: string | null
           driver_id: string
           due_on: string | null
           external_id: string | null
+          facturx_profile: string | null
+          facturx_spec_version: string | null
           id: string
           issued_at: string | null
           issued_number_year: number | null
           issued_on: string
           issuer_snapshot: Json | null
           late_penalty_applicable: boolean
+          legacy_pre_reform: boolean
           number: string | null
           operation_category: string
           paid_at: string | null
@@ -2677,6 +2978,7 @@ export type Database = {
           payment_method: string | null
           payment_terms: string
           payment_terms_days: number | null
+          pdf_hash: string | null
           pdf_path: string | null
           po_number: string | null
           quantity: number
@@ -2687,6 +2989,7 @@ export type Database = {
           service_date: string | null
           status: Database["public"]["Enums"]["invoice_status"]
           structured_format: string | null
+          structured_hash: string | null
           structured_path: string | null
           tax_legal_mention: string | null
           tax_regime: string | null
@@ -2702,6 +3005,38 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "invoices"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      record_invoice_transmission: {
+        Args: {
+          _ack_code?: string
+          _ack_message?: string
+          _channel: string
+          _detail?: Json
+          _external_id?: string
+          _invoice_id: string
+          _pa_provider?: string
+          _status: string
+        }
+        Returns: {
+          ack_code: string | null
+          ack_message: string | null
+          channel: string
+          detail: Json | null
+          direction: string
+          driver_id: string
+          external_id: string | null
+          id: string
+          invoice_id: string
+          occurred_at: string
+          pa_provider: string | null
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "invoice_transmissions"
           isOneToOne: true
           isSetofReturn: false
         }

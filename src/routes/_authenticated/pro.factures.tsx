@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, Download, Search, BarChart3, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Search, BarChart3, Users, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useDriverProfile } from "@/lib/driver-queries";
@@ -355,6 +355,11 @@ function DriverInvoices() {
           <Button asChild size="sm" variant="ghost" aria-label="Clients facturés">
             <Link to="/pro/clients-factures">
               <Users className="size-4" />
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant="ghost" aria-label="Facturation électronique">
+            <Link to="/pro/einvoicing">
+              <ShieldCheck className="size-4" />
             </Link>
           </Button>
           <Button size="sm" variant="outline" onClick={() => exportCsv(shown)}>

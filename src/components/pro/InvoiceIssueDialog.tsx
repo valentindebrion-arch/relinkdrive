@@ -24,7 +24,9 @@ import {
 } from "@/components/ui/select";
 import { formatEuro } from "@/lib/labels";
 import { useBillingCustomers } from "@/lib/billing-customers";
-import { archiveInvoicePdf, fetchInvoiceIssuer } from "@/lib/invoice-archive";
+import { fetchInvoiceIssuer } from "@/lib/invoice-archive";
+import { generateAndArchiveInvoiceDocuments } from "@/lib/einvoicing/documents";
+import type { InvoiceRow } from "@/lib/einvoicing/model";
 
 export type DraftInvoice = {
   id: string;
@@ -69,6 +71,7 @@ export function InvoiceIssueDialog({
   const [unitPrice, setUnitPrice] = useState("");
   const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
+  const [issues, setIssues] = useState<string[]>([]);
 
   useEffect(() => {
     if (!invoice) return;
@@ -143,7 +146,7 @@ export function InvoiceIssueDialog({
         customer_snapshot: Record<string, string | null> | null;
       };
 
-      // Archivage du PDF réellement émis (conservation légale).
+      // Conservation légale : PDF lisible, Factur-X et XML issus de la même source.
       const issuer = await fetchInvoiceIssuer(user!.id);
       let ride = null as
         | null
@@ -164,24 +167,31 @@ export function InvoiceIssueDialog({
         ride = r ?? null;
       }
       const snap = issued.customer_snapshot ?? {};
-      await archiveInvoicePdf(
-        {
-          invoice: issued as never,
-          issuer,
-          client: {
-            full_name: snap["display_name"] ?? snap["legal_name"] ?? passenger ?? null,
-            email: snap["billing_email"] ?? null,
-            phone: snap["contact_phone"] ?? null,
-          },
-          ride,
-        },
-        user!.id,
-        invoice.id,
-      );
+      const client = {
+        full_name: snap["display_name"] ?? snap["legal_name"] ?? passenger ?? null,
+        email: snap["billing_email"] ?? null,
+        phone: snap["contact_phone"] ?? null,
+      };
 
-      toast.success(`Facture ${issued.number ?? ""} émise`);
-      onOpenChange(false);
+      const result = await generateAndArchiveInvoiceDocuments({
+        invoice: { ...(issued as never as InvoiceRow), id: invoice.id },
+        issuer,
+        client,
+        ride,
+        driverId: user!.id,
+      });
+
+      if (!result.validation.valid) {
+        // La facture reste émise (numérotation irréversible) : on signale les
+        // anomalies bloquant la production du format structuré.
+        setIssues(result.validation.errors.map((e) => e.message));
+        toast.warning("Facture émise, mais le format Factur-X n'a pas pu être généré");
+      } else {
+        toast.success(`Facture ${issued.number ?? ""} émise au format Factur-X`);
+        onOpenChange(false);
+      }
       void qc.invalidateQueries({ queryKey: ["driver-invoices"] });
+      void qc.invalidateQueries({ queryKey: ["einvoices"] });
     } catch (e) {
       toast.error((e as { message?: string }).message ?? "Émission impossible");
     } finally {
@@ -276,6 +286,20 @@ export function InvoiceIssueDialog({
               <span className="font-semibold tabular-nums">{formatEuro(amountTtc)}</span>
             </div>
           </div>
+
+          {issues.length ? (
+            <div className="surface border-warning/40 bg-warning/10 p-3 text-sm">
+              <p className="font-medium">Le format Factur-X n'a pas pu être produit :</p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-4 text-muted-foreground">
+                {issues.map((m) => (
+                  <li key={m}>{m}</li>
+                ))}
+              </ul>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Corrigez ces informations puis relancez la génération depuis « Facturation électronique ».
+              </p>
+            </div>
+          ) : null}
         </div>
 
         <DialogFooter>
