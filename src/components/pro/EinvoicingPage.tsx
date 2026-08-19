@@ -323,6 +323,14 @@ export function EinvoicingPage() {
         </p>
       </div>
 
+      {user ? (
+        <div className="mb-4">
+          <PlatformConnectionPanel driverId={user.id} connection={connection.data ?? null} />
+        </div>
+      ) : null}
+
+
+
       {missingStructured.length ? (
         <div className="surface mb-4 flex items-start gap-3 border-warning/40 bg-warning/10 p-4 text-sm">
           <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" />
