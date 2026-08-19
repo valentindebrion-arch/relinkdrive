@@ -71,6 +71,7 @@ export function InvoiceIssueDialog({
   const [unitPrice, setUnitPrice] = useState("");
   const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
+  const [issues, setIssues] = useState<string[]>([]);
 
   useEffect(() => {
     if (!invoice) return;
