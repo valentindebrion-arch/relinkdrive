@@ -156,8 +156,11 @@ function InvoiceRowCard({ invoice }: { invoice: EinvoiceRow }) {
           )}
 
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" onClick={() => void transmit()} disabled={!facturx}>
-              <Send className="mr-1 size-4" /> {connector.label}
+            <Button size="sm" onClick={() => setSubmitOpen(true)} disabled={!facturx}>
+              <Send className="mr-1 size-4" /> Vérifier et transmettre
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => void transmit()} disabled={!facturx}>
+              {connector.label}
             </Button>
             <Button size="sm" variant="outline" onClick={() => void setStatus("accepted")}>
               Marquer acceptée
