@@ -56,7 +56,9 @@ export function InvoiceDownloadCard({
           {busy ? <Loader2 className="size-5 animate-spin" /> : <FileText className="size-5" />}
         </span>
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold">Facture {invoice.number}</p>
+          <p className="truncate text-sm font-semibold">
+            {invoice.number ? `Facture ${invoice.number}` : "Facture en préparation"}
+          </p>
           <p className="truncate text-xs text-muted-foreground">
             {formatEuro(Number(invoice.amount_ttc))} TTC · {formatDate(invoice.issued_on)} · Télécharger en PDF
           </p>
