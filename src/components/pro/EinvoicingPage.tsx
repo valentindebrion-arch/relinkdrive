@@ -215,6 +215,9 @@ export function EinvoicingPage() {
   const qc = useQueryClient();
   const company = useCompanyEinvoicing(user?.id);
   const invoices = useEinvoices(user?.id);
+  const connection = useEinvoicingConnection(user?.id);
+  const taxPeriods = useMyTaxPeriods();
+  const taxProfile = { data: taxPeriods.data?.[0] ?? null };
   const [address, setAddress] = useState<string | null>(null);
 
   const state = useMemo(
