@@ -1012,6 +1012,246 @@ export type Database = {
         }
         Relationships: []
       }
+      e_invoicing_connections: {
+        Row: {
+          auto_reporting_enabled: boolean
+          company_id: string | null
+          connected_at: string | null
+          connection_status: string
+          created_at: string
+          credentials_reference: string | null
+          driver_id: string
+          electronic_billing_address: string | null
+          emission_enabled: boolean
+          environment: string
+          external_account_id: string | null
+          id: string
+          last_error_message: string | null
+          last_sync_at: string | null
+          last_verified_at: string | null
+          payment_reporting_enabled: boolean
+          provider_key: string
+          reception_enabled: boolean
+          transaction_reporting_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          auto_reporting_enabled?: boolean
+          company_id?: string | null
+          connected_at?: string | null
+          connection_status?: string
+          created_at?: string
+          credentials_reference?: string | null
+          driver_id: string
+          electronic_billing_address?: string | null
+          emission_enabled?: boolean
+          environment?: string
+          external_account_id?: string | null
+          id?: string
+          last_error_message?: string | null
+          last_sync_at?: string | null
+          last_verified_at?: string | null
+          payment_reporting_enabled?: boolean
+          provider_key: string
+          reception_enabled?: boolean
+          transaction_reporting_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          auto_reporting_enabled?: boolean
+          company_id?: string | null
+          connected_at?: string | null
+          connection_status?: string
+          created_at?: string
+          credentials_reference?: string | null
+          driver_id?: string
+          electronic_billing_address?: string | null
+          emission_enabled?: boolean
+          environment?: string
+          external_account_id?: string | null
+          id?: string
+          last_error_message?: string | null
+          last_sync_at?: string | null
+          last_verified_at?: string | null
+          payment_reporting_enabled?: boolean
+          provider_key?: string
+          reception_enabled?: boolean
+          transaction_reporting_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "e_invoicing_connections_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ereporting_payment_entries: {
+        Row: {
+          amount: number
+          confirmed_by: string | null
+          created_at: string
+          currency: string
+          driver_id: string
+          id: string
+          invoice_id: string | null
+          is_partial: boolean
+          method: string | null
+          paid_on: string
+          payment_id: string | null
+          period_id: string | null
+          remaining_amount: number | null
+          updated_at: string
+          vat_amount: number | null
+          vat_rate: number | null
+        }
+        Insert: {
+          amount?: number
+          confirmed_by?: string | null
+          created_at?: string
+          currency?: string
+          driver_id: string
+          id?: string
+          invoice_id?: string | null
+          is_partial?: boolean
+          method?: string | null
+          paid_on: string
+          payment_id?: string | null
+          period_id?: string | null
+          remaining_amount?: number | null
+          updated_at?: string
+          vat_amount?: number | null
+          vat_rate?: number | null
+        }
+        Update: {
+          amount?: number
+          confirmed_by?: string | null
+          created_at?: string
+          currency?: string
+          driver_id?: string
+          id?: string
+          invoice_id?: string | null
+          is_partial?: boolean
+          method?: string | null
+          paid_on?: string
+          payment_id?: string | null
+          period_id?: string | null
+          remaining_amount?: number | null
+          updated_at?: string
+          vat_amount?: number | null
+          vat_rate?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ereporting_payment_entries_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ereporting_payment_entries_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ereporting_payment_entries_period_id_fkey"
+            columns: ["period_id"]
+            isOneToOne: false
+            referencedRelation: "ereporting_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ereporting_periods: {
+        Row: {
+          acknowledged_at: string | null
+          aggregates: Json | null
+          auto_submitted: boolean
+          created_at: string
+          currency: string
+          driver_id: string
+          due_on: string | null
+          environment: string | null
+          external_submission_id: string | null
+          frequency: string
+          id: string
+          kind: string
+          last_error_message: string | null
+          period_end: string
+          period_start: string
+          provider_key: string | null
+          receipt_storage_path: string | null
+          rejected_at: string | null
+          status: string
+          submitted_at: string | null
+          total_ht: number
+          total_ttc: number
+          total_vat: number
+          transaction_count: number
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          aggregates?: Json | null
+          auto_submitted?: boolean
+          created_at?: string
+          currency?: string
+          driver_id: string
+          due_on?: string | null
+          environment?: string | null
+          external_submission_id?: string | null
+          frequency: string
+          id?: string
+          kind: string
+          last_error_message?: string | null
+          period_end: string
+          period_start: string
+          provider_key?: string | null
+          receipt_storage_path?: string | null
+          rejected_at?: string | null
+          status?: string
+          submitted_at?: string | null
+          total_ht?: number
+          total_ttc?: number
+          total_vat?: number
+          transaction_count?: number
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          aggregates?: Json | null
+          auto_submitted?: boolean
+          created_at?: string
+          currency?: string
+          driver_id?: string
+          due_on?: string | null
+          environment?: string | null
+          external_submission_id?: string | null
+          frequency?: string
+          id?: string
+          kind?: string
+          last_error_message?: string | null
+          period_end?: string
+          period_start?: string
+          provider_key?: string | null
+          receipt_storage_path?: string | null
+          rejected_at?: string | null
+          status?: string
+          submitted_at?: string | null
+          total_ht?: number
+          total_ttc?: number
+          total_vat?: number
+          transaction_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ereporting_submissions: {
         Row: {
           ack_code: string | null
@@ -1079,6 +1319,87 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ereporting_transactions: {
+        Row: {
+          amount_ht: number
+          amount_ttc: number
+          counterparty_kind: string
+          country_code: string
+          created_at: string
+          currency: string
+          driver_id: string
+          eligibility: string
+          exemption_reason: string | null
+          id: string
+          invoice_id: string | null
+          operation_category: string
+          period_id: string | null
+          service_date: string | null
+          tax_regime: string | null
+          transaction_date: string
+          updated_at: string
+          vat_amount: number
+          vat_rate: number
+        }
+        Insert: {
+          amount_ht?: number
+          amount_ttc?: number
+          counterparty_kind?: string
+          country_code?: string
+          created_at?: string
+          currency?: string
+          driver_id: string
+          eligibility?: string
+          exemption_reason?: string | null
+          id?: string
+          invoice_id?: string | null
+          operation_category?: string
+          period_id?: string | null
+          service_date?: string | null
+          tax_regime?: string | null
+          transaction_date: string
+          updated_at?: string
+          vat_amount?: number
+          vat_rate?: number
+        }
+        Update: {
+          amount_ht?: number
+          amount_ttc?: number
+          counterparty_kind?: string
+          country_code?: string
+          created_at?: string
+          currency?: string
+          driver_id?: string
+          eligibility?: string
+          exemption_reason?: string | null
+          id?: string
+          invoice_id?: string | null
+          operation_category?: string
+          period_id?: string | null
+          service_date?: string | null
+          tax_regime?: string | null
+          transaction_date?: string
+          updated_at?: string
+          vat_amount?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ereporting_transactions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ereporting_transactions_period_id_fkey"
+            columns: ["period_id"]
+            isOneToOne: false
+            referencedRelation: "ereporting_periods"
             referencedColumns: ["id"]
           },
         ]
@@ -1188,6 +1509,133 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "invoice_events_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_submission_events: {
+        Row: {
+          created_at: string
+          detail: Json | null
+          driver_id: string
+          event_date: string
+          event_type: string
+          external_event_id: string | null
+          id: string
+          payload_hash: string | null
+          payload_storage_path: string | null
+          submission_id: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: Json | null
+          driver_id: string
+          event_date?: string
+          event_type: string
+          external_event_id?: string | null
+          id?: string
+          payload_hash?: string | null
+          payload_storage_path?: string | null
+          submission_id: string
+        }
+        Update: {
+          created_at?: string
+          detail?: Json | null
+          driver_id?: string
+          event_date?: string
+          event_type?: string
+          external_event_id?: string | null
+          id?: string
+          payload_hash?: string | null
+          payload_storage_path?: string | null
+          submission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_submission_events_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "invoice_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_submissions: {
+        Row: {
+          acknowledged_at: string | null
+          attempt_number: number
+          created_at: string
+          created_by: string | null
+          delivered_at: string | null
+          driver_id: string
+          environment: string
+          external_submission_id: string | null
+          id: string
+          idempotency_key: string
+          invoice_id: string
+          last_error_code: string | null
+          last_error_message: string | null
+          provider_key: string
+          receipt_storage_path: string | null
+          recipient_routing_id: string | null
+          rejected_at: string | null
+          status: string
+          submitted_at: string | null
+          submitted_format: string
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          attempt_number?: number
+          created_at?: string
+          created_by?: string | null
+          delivered_at?: string | null
+          driver_id: string
+          environment?: string
+          external_submission_id?: string | null
+          id?: string
+          idempotency_key: string
+          invoice_id: string
+          last_error_code?: string | null
+          last_error_message?: string | null
+          provider_key: string
+          receipt_storage_path?: string | null
+          recipient_routing_id?: string | null
+          rejected_at?: string | null
+          status?: string
+          submitted_at?: string | null
+          submitted_format?: string
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          attempt_number?: number
+          created_at?: string
+          created_by?: string | null
+          delivered_at?: string | null
+          driver_id?: string
+          environment?: string
+          external_submission_id?: string | null
+          id?: string
+          idempotency_key?: string
+          invoice_id?: string
+          last_error_code?: string | null
+          last_error_message?: string | null
+          provider_key?: string
+          receipt_storage_path?: string | null
+          recipient_routing_id?: string | null
+          rejected_at?: string | null
+          status?: string
+          submitted_at?: string | null
+          submitted_format?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_submissions_invoice_id_fkey"
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "invoices"
@@ -2147,6 +2595,131 @@ export type Database = {
           },
         ]
       }
+      siren_verifications: {
+        Row: {
+          checked_at: string
+          confirmed_by_driver: boolean
+          created_at: string
+          customer_id: string | null
+          driver_id: string
+          id: string
+          name_match: string | null
+          registry_legal_name: string | null
+          result: string
+          siren: string
+          source: string
+          submitted_legal_name: string | null
+        }
+        Insert: {
+          checked_at?: string
+          confirmed_by_driver?: boolean
+          created_at?: string
+          customer_id?: string | null
+          driver_id: string
+          id?: string
+          name_match?: string | null
+          registry_legal_name?: string | null
+          result: string
+          siren: string
+          source: string
+          submitted_legal_name?: string | null
+        }
+        Update: {
+          checked_at?: string
+          confirmed_by_driver?: boolean
+          created_at?: string
+          customer_id?: string | null
+          driver_id?: string
+          id?: string
+          name_match?: string | null
+          registry_legal_name?: string | null
+          result?: string
+          siren?: string
+          source?: string
+          submitted_legal_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "siren_verifications_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "billing_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplier_invoices: {
+        Row: {
+          amount_ht: number | null
+          amount_ttc: number | null
+          amount_vat: number | null
+          created_at: string
+          currency: string
+          driver_id: string
+          due_on: string | null
+          environment: string | null
+          external_id: string | null
+          id: string
+          invoice_number: string | null
+          issued_on: string | null
+          pdf_path: string | null
+          provider_key: string | null
+          received_at: string
+          reception_status: string
+          structured_format: string | null
+          structured_path: string | null
+          supplier_name: string
+          supplier_siren: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_ht?: number | null
+          amount_ttc?: number | null
+          amount_vat?: number | null
+          created_at?: string
+          currency?: string
+          driver_id: string
+          due_on?: string | null
+          environment?: string | null
+          external_id?: string | null
+          id?: string
+          invoice_number?: string | null
+          issued_on?: string | null
+          pdf_path?: string | null
+          provider_key?: string | null
+          received_at?: string
+          reception_status?: string
+          structured_format?: string | null
+          structured_path?: string | null
+          supplier_name: string
+          supplier_siren?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_ht?: number | null
+          amount_ttc?: number | null
+          amount_vat?: number | null
+          created_at?: string
+          currency?: string
+          driver_id?: string
+          due_on?: string | null
+          environment?: string | null
+          external_id?: string | null
+          id?: string
+          invoice_number?: string | null
+          issued_on?: string | null
+          pdf_path?: string | null
+          provider_key?: string | null
+          received_at?: string
+          reception_status?: string
+          structured_format?: string | null
+          structured_path?: string | null
+          supplier_name?: string
+          supplier_siren?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -3037,6 +3610,45 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "invoice_transmissions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      start_invoice_submission: {
+        Args: {
+          _environment: string
+          _format: string
+          _idempotency_key: string
+          _invoice_id: string
+          _provider_key: string
+          _routing_id: string
+        }
+        Returns: {
+          acknowledged_at: string | null
+          attempt_number: number
+          created_at: string
+          created_by: string | null
+          delivered_at: string | null
+          driver_id: string
+          environment: string
+          external_submission_id: string | null
+          id: string
+          idempotency_key: string
+          invoice_id: string
+          last_error_code: string | null
+          last_error_message: string | null
+          provider_key: string
+          receipt_storage_path: string | null
+          recipient_routing_id: string | null
+          rejected_at: string | null
+          status: string
+          submitted_at: string | null
+          submitted_format: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "invoice_submissions"
           isOneToOne: true
           isSetofReturn: false
         }

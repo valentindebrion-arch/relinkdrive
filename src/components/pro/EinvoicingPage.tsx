@@ -31,6 +31,12 @@ import {
   type EinvoiceRow,
 } from "@/lib/einvoicing/queries";
 import { openStoredDocument } from "@/lib/einvoicing/documents";
+import { useMyTaxPeriods } from "@/lib/tax-queries";
+import { useEinvoicingConnection } from "@/lib/einvoicing/connections";
+import { PlatformConnectionPanel } from "@/components/pro/PlatformConnectionPanel";
+import { SubmitInvoiceDialog } from "@/components/pro/SubmitInvoiceDialog";
+import { EreportingPanel } from "@/components/pro/EreportingPanel";
+import { SupplierInvoicesPanel } from "@/components/pro/SupplierInvoicesPanel";
 import {
   LIFECYCLE_ORDER,
   TRANSMISSION_STATUS_LABELS,
@@ -65,10 +71,13 @@ function Lifecycle({ status }: { status: string }) {
 
 function InvoiceRowCard({ invoice }: { invoice: EinvoiceRow }) {
   const [open, setOpen] = useState(false);
+  const [submitOpen, setSubmitOpen] = useState(false);
   const qc = useQueryClient();
+  const { user } = useAuth();
   const docs = useInvoiceDocuments(open ? invoice.id : null);
   const events = useInvoiceTransmissions(open ? invoice.id : null);
-  const company = useCompanyEinvoicing(useAuth().user?.id);
+  const company = useCompanyEinvoicing(user?.id);
+  const connection = useEinvoicingConnection(user?.id);
   const connector = resolveConnector(company.data);
   const facturx = (docs.data ?? []).find((d) => d.kind === "facturx");
   const xml = (docs.data ?? []).find((d) => d.kind === "xml");
@@ -148,8 +157,11 @@ function InvoiceRowCard({ invoice }: { invoice: EinvoiceRow }) {
           )}
 
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" onClick={() => void transmit()} disabled={!facturx}>
-              <Send className="mr-1 size-4" /> {connector.label}
+            <Button size="sm" onClick={() => setSubmitOpen(true)} disabled={!facturx}>
+              <Send className="mr-1 size-4" /> Vérifier et transmettre
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => void transmit()} disabled={!facturx}>
+              {connector.label}
             </Button>
             <Button size="sm" variant="outline" onClick={() => void setStatus("accepted")}>
               Marquer acceptée
@@ -178,6 +190,21 @@ function InvoiceRowCard({ invoice }: { invoice: EinvoiceRow }) {
               {(events.data ?? []).length === 0 ? <li>Aucun échange enregistré.</li> : null}
             </ul>
           </div>
+
+          {user ? (
+            <SubmitInvoiceDialog
+              open={submitOpen}
+              onOpenChange={setSubmitOpen}
+              invoice={invoice as unknown as Record<string, unknown> & { id: string; number: string | null }}
+              driverId={user.id}
+              connection={connection.data ?? null}
+              facturxPath={facturx?.path ?? null}
+              onDone={() => {
+                void qc.invalidateQueries({ queryKey: ["einvoices"] });
+                void qc.invalidateQueries({ queryKey: ["invoice-submissions", invoice.id] });
+              }}
+            />
+          ) : null}
         </div>
       ) : null}
     </div>
@@ -189,6 +216,9 @@ export function EinvoicingPage() {
   const qc = useQueryClient();
   const company = useCompanyEinvoicing(user?.id);
   const invoices = useEinvoices(user?.id);
+  const connection = useEinvoicingConnection(user?.id);
+  const taxPeriods = useMyTaxPeriods();
+  const taxProfile = { data: taxPeriods.data?.[0] ?? null };
   const [address, setAddress] = useState<string | null>(null);
 
   const state = useMemo(
@@ -293,6 +323,14 @@ export function EinvoicingPage() {
         </p>
       </div>
 
+      {user ? (
+        <div className="mb-4">
+          <PlatformConnectionPanel driverId={user.id} connection={connection.data ?? null} />
+        </div>
+      ) : null}
+
+
+
       {missingStructured.length ? (
         <div className="surface mb-4 flex items-start gap-3 border-warning/40 bg-warning/10 p-4 text-sm">
           <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" />
@@ -325,6 +363,17 @@ export function EinvoicingPage() {
           ))}
         </div>
       )}
+
+      {user ? (
+        <div className="mt-4 space-y-4">
+          <EreportingPanel
+            driverId={user.id}
+            connection={connection.data ?? null}
+            taxRegime={taxProfile.data?.regime ?? null}
+          />
+          <SupplierInvoicesPanel driverId={user.id} connection={connection.data ?? null} />
+        </div>
+      ) : null}
     </>
   );
 }
