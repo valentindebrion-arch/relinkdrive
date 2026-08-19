@@ -51,9 +51,15 @@ export function CompanyPage() {
   }, [company.data]);
 
   async function save() {
+    const siren = form.siren.replace(/\s/g, "");
+    if (siren && !isValidSiren(siren)) {
+      toast.error("SIREN invalide (9 chiffres)");
+      return;
+    }
+    const payload = { ...form, siren: siren || null };
     const { error } = company.data
-      ? await supabase.from("companies").update(form).eq("id", company.data.id)
-      : await supabase.from("companies").insert({ driver_id: user!.id, ...form });
+      ? await supabase.from("companies").update(payload).eq("id", company.data.id)
+      : await supabase.from("companies").insert({ driver_id: user!.id, ...payload });
     const { error: e2 } = await supabase
       .from("driver_profiles")
       .update({ siret: form.siret || null })
