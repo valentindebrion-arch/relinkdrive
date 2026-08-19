@@ -63,10 +63,17 @@ export const CRM_LABELS: Record<string, string> = {
 
 export const INVOICE_LABELS: Record<string, string> = {
   draft: "Brouillon à compléter",
+  to_review: "À vérifier",
+  ready: "Prête à émettre",
   issued: "Émise",
   sent: "Envoyée",
+  transmitted: "Transmise",
+  received: "Reçue",
+  rejected: "Rejetée",
+  partially_paid: "Partiellement réglée",
   paid: "Payée",
   overdue: "En retard",
+  credited: "Corrigée par avoir",
   cancelled: "Annulée",
 };
 
