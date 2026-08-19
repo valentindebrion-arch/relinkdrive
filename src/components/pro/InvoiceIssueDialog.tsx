@@ -286,6 +286,20 @@ export function InvoiceIssueDialog({
               <span className="font-semibold tabular-nums">{formatEuro(amountTtc)}</span>
             </div>
           </div>
+
+          {issues.length ? (
+            <div className="surface border-warning/40 bg-warning/10 p-3 text-sm">
+              <p className="font-medium">Le format Factur-X n'a pas pu être produit :</p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-4 text-muted-foreground">
+                {issues.map((m) => (
+                  <li key={m}>{m}</li>
+                ))}
+              </ul>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Corrigez ces informations puis relancez la génération depuis « Facturation électronique ».
+              </p>
+            </div>
+          ) : null}
         </div>
 
         <DialogFooter>
