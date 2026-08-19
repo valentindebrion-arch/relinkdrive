@@ -11,7 +11,7 @@ export type RideRow = {
   status: string;
 };
 
-export type InvoiceRow = { ride_id: string | null; number: string; status: string };
+export type InvoiceRow = { ride_id: string | null; number: string | null; status: string };
 
 export function RideCard({ ride, invoice }: { ride: RideRow; invoice?: InvoiceRow | undefined }) {
   return (
