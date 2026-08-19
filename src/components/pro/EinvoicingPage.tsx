@@ -70,10 +70,13 @@ function Lifecycle({ status }: { status: string }) {
 
 function InvoiceRowCard({ invoice }: { invoice: EinvoiceRow }) {
   const [open, setOpen] = useState(false);
+  const [submitOpen, setSubmitOpen] = useState(false);
   const qc = useQueryClient();
+  const { user } = useAuth();
   const docs = useInvoiceDocuments(open ? invoice.id : null);
   const events = useInvoiceTransmissions(open ? invoice.id : null);
-  const company = useCompanyEinvoicing(useAuth().user?.id);
+  const company = useCompanyEinvoicing(user?.id);
+  const connection = useEinvoicingConnection(user?.id);
   const connector = resolveConnector(company.data);
   const facturx = (docs.data ?? []).find((d) => d.kind === "facturx");
   const xml = (docs.data ?? []).find((d) => d.kind === "xml");
