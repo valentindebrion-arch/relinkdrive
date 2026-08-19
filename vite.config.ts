@@ -6,10 +6,26 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+// `node-zugferd` (et ses dépendances tslib/pdf-lib) plante à l'initialisation
+// dans le runtime serveur. Il est chargé dynamiquement par le module Factur-X,
+// mais il doit aussi être isolé dans son propre fichier : autrement il se
+// retrouve empaqueté avec zod, chargé au démarrage, et fait tomber toute l'app.
+const isolateFacturX = (id: string) => {
+  if (/node_modules\/(node-zugferd|pdf-lib|tslib)\//.test(id)) return "facturx-vendor";
+  return undefined;
+};
+
 export default defineConfig({
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+  },
+  vite: {
+    build: {
+      rollupOptions: {
+        output: { manualChunks: isolateFacturX },
+      },
+    },
   },
 });
