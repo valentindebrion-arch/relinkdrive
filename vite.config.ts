@@ -22,6 +22,13 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
+    resolve: {
+      alias: {
+        // tslib expose un CJS dont l'interop casse au bundling serveur
+        // (`Cannot destructure property '__extends'`) : on force la version ESM.
+        tslib: "tslib/tslib.es6.js",
+      },
+    },
     build: {
       rollupOptions: {
         output: { manualChunks: isolateFacturX },
