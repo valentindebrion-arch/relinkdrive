@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, Download, Search, BarChart3 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Search, BarChart3, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useDriverProfile } from "@/lib/driver-queries";
@@ -10,6 +10,8 @@ import { PageHeader, EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { INVOICE_LABELS, formatDate, formatEuro } from "@/lib/labels";
 import { downloadInvoicePdf } from "@/lib/invoice-pdf";
+import { openArchivedInvoicePdf } from "@/lib/invoice-archive";
+import { InvoiceIssueDialog, type DraftInvoice } from "@/components/pro/InvoiceIssueDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -19,7 +21,17 @@ export const Route = createFileRoute("/_authenticated/pro/factures")({
 
 type Invoice = {
   id: string;
-  number: string;
+  number: string | null;
+  document_type?: string | null;
+  pdf_path?: string | null;
+  amount_paid?: number | null;
+  amount_due?: number | null;
+  customer_id?: string | null;
+  passenger_name?: string | null;
+  service_date?: string | null;
+  quantity?: number | null;
+  unit_price_ht?: number | null;
+  tax_regime?: string | null;
   status: string;
   amount_ht: number;
   amount_ttc: number;
@@ -116,6 +128,7 @@ function DriverInvoices() {
   const [period, setPeriod] = useState<Period>("month");
   const [offset, setOffset] = useState(0);
   const [search, setSearch] = useState("");
+  const [issuing, setIssuing] = useState<DraftInvoice | null>(null);
 
   const invoices = useQuery({
     queryKey: ["driver-invoices", user?.id],
