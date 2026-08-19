@@ -27,6 +27,7 @@ export function CompanyPage() {
   const [form, setForm] = useState({
     legal_name: "",
     legal_form: "",
+    siren: "",
     siret: "",
     vat_number: "",
     address: "",
@@ -39,6 +40,7 @@ export function CompanyPage() {
       setForm({
         legal_name: company.data.legal_name ?? "",
         legal_form: company.data.legal_form ?? "",
+        siren: company.data.siren ?? (company.data.siret ?? "").slice(0, 9),
         siret: company.data.siret ?? "",
         vat_number: company.data.vat_number ?? "",
         address: company.data.address ?? "",
