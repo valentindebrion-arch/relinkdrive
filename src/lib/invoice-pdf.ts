@@ -258,7 +258,8 @@ export function buildInvoicePdf(opts: {
   return doc;
 }
 
-export function invoiceFileName(number: string) {
+export function invoiceFileName(number: string | null | undefined) {
+  if (!number) return "Facture-brouillon.pdf";
   return `Facture-${number.replace(/[^\w-]/g, "")}.pdf`;
 }
 
