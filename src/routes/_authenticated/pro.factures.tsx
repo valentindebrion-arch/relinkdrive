@@ -357,6 +357,11 @@ function DriverInvoices() {
               <Users className="size-4" />
             </Link>
           </Button>
+          <Button asChild size="sm" variant="ghost" aria-label="Facturation électronique">
+            <Link to="/pro/einvoicing">
+              <ShieldCheck className="size-4" />
+            </Link>
+          </Button>
           <Button size="sm" variant="outline" onClick={() => exportCsv(shown)}>
             <Download className="mr-1 size-4" /> Export
           </Button>
