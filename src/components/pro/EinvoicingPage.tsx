@@ -225,9 +225,10 @@ export function EinvoicingPage() {
       <div className="surface mb-4 p-5">
         <h2 className="text-sm font-semibold">Mes obligations</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Réception des factures électroniques : <strong>{formatObligationDate(state.receptionDue)}</strong> ·
-          Émission et e-reporting : <strong>{formatObligationDate(state.issuanceDue)}</strong>
-          {state.anticipated ? " (anticipation activée)" : ""}
+          Réception des factures électroniques :{" "}
+          <strong>{obligationText(state.receptionDate, state.receptionDue)}</strong> · Émission et e-reporting :{" "}
+          <strong>{obligationText(state.issuanceDate, state.issuanceDue)}</strong>
+          {state.anticipation ? " · anticipation volontaire activée" : ""}
         </p>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
