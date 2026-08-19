@@ -31,6 +31,7 @@ import {
   type EinvoiceRow,
 } from "@/lib/einvoicing/queries";
 import { openStoredDocument } from "@/lib/einvoicing/documents";
+import { useMyTaxPeriods } from "@/lib/tax-queries";
 import { useEinvoicingConnection } from "@/lib/einvoicing/connections";
 import { PlatformConnectionPanel } from "@/components/pro/PlatformConnectionPanel";
 import { SubmitInvoiceDialog } from "@/components/pro/SubmitInvoiceDialog";
