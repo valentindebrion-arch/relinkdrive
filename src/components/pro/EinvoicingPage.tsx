@@ -189,6 +189,21 @@ function InvoiceRowCard({ invoice }: { invoice: EinvoiceRow }) {
               {(events.data ?? []).length === 0 ? <li>Aucun échange enregistré.</li> : null}
             </ul>
           </div>
+
+          {user ? (
+            <SubmitInvoiceDialog
+              open={submitOpen}
+              onOpenChange={setSubmitOpen}
+              invoice={invoice as unknown as Record<string, unknown> & { id: string; number: string | null }}
+              driverId={user.id}
+              connection={connection.data ?? null}
+              facturxPath={facturx?.path ?? null}
+              onDone={() => {
+                void qc.invalidateQueries({ queryKey: ["einvoices"] });
+                void qc.invalidateQueries({ queryKey: ["invoice-submissions", invoice.id] });
+              }}
+            />
+          ) : null}
         </div>
       ) : null}
     </div>
