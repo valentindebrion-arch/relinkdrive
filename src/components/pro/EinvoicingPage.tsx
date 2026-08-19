@@ -31,6 +31,11 @@ import {
   type EinvoiceRow,
 } from "@/lib/einvoicing/queries";
 import { openStoredDocument } from "@/lib/einvoicing/documents";
+import { useEinvoicingConnection } from "@/lib/einvoicing/connections";
+import { PlatformConnectionPanel } from "@/components/pro/PlatformConnectionPanel";
+import { SubmitInvoiceDialog } from "@/components/pro/SubmitInvoiceDialog";
+import { EreportingPanel } from "@/components/pro/EreportingPanel";
+import { SupplierInvoicesPanel } from "@/components/pro/SupplierInvoicesPanel";
 import {
   LIFECYCLE_ORDER,
   TRANSMISSION_STATUS_LABELS,
