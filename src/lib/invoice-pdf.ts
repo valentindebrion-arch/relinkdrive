@@ -14,7 +14,8 @@ export type InvoiceIssuer = {
 };
 
 export type InvoiceData = {
-  number: string;
+  number: string | null;
+  document_type?: string | null;
   issued_on: string;
   due_on?: string | null;
   description?: string | null;
