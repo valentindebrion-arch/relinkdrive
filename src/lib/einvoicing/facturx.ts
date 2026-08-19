@@ -137,12 +137,14 @@ export type FacturXResult = {
 
 /** Produit le XML CII seul (source structurée conservée à part). */
 export async function buildFacturXXml(doc: StructuredInvoice): Promise<string> {
+  const invoicer = await getInvoicer();
   const document = invoicer.create(buildDocumentData(doc) as never);
   return await document.toXML();
 }
 
 /** Produit le Factur-X : PDF lisible + XML CII intégré et métadonnées. */
 export async function buildFacturX(doc: StructuredInvoice, readablePdf: Uint8Array): Promise<FacturXResult> {
+  const invoicer = await getInvoicer();
   const document = invoicer.create(buildDocumentData(doc) as never);
   const xml = await document.toXML();
   const pdf = await document.embedInPdf(readablePdf, {
