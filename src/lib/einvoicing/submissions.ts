@@ -129,8 +129,8 @@ export type PreparedSubmission = {
   routing: RecipientResolution;
   validation: ValidationResult;
   canSubmit: boolean;
-  blockingReason?: string;
-  existing?: InvoiceSubmission | null;
+  blockingReason?: string | undefined;
+  existing?: InvoiceSubmission | null | undefined;
 };
 
 /** Contrôles complets avant l'écran de confirmation. */
