@@ -265,7 +265,7 @@ function DriverInvoices() {
     const rows = [
       ["Numero", "Date", "Client", "Description", "Regime", "HT", "Taux TVA", "TVA", "TTC", "Statut"],
       ...rowsList.map((i) => [
-        i.number,
+        i.number ?? "",
         i.issued_on,
         clientName(i).replace(/;/g, ","),
         (i.description ?? "").replace(/;/g, ","),
@@ -310,7 +310,7 @@ function DriverInvoices() {
   const q = search.trim().toLowerCase();
   const shown = q
     ? inPeriod.filter((i) =>
-        [i.number, clientName(i), formatDate(i.issued_on), i.issued_on, i.description ?? ""]
+        [i.number ?? "", clientName(i), formatDate(i.issued_on), i.issued_on, i.description ?? ""]
           .join(" ")
           .toLowerCase()
           .includes(q),
@@ -339,7 +339,7 @@ function DriverInvoices() {
             {drafts.length} brouillon(s) à compléter — ces documents ne sont pas des factures définitives.
           </p>
           <p className="mt-1 text-muted-foreground">
-            Renseignez le montant final pour les finaliser et les envoyer au client.
+            Sélectionnez le client facturé et le montant, puis émettez-les pour obtenir un numéro définitif.
           </p>
         </div>
       ) : null}
@@ -350,6 +350,11 @@ function DriverInvoices() {
           <Button asChild size="sm" variant="ghost" aria-label="Statistiques">
             <Link to="/pro/activite">
               <BarChart3 className="size-4" />
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant="ghost" aria-label="Clients facturés">
+            <Link to="/pro/clients-factures">
+              <Users className="size-4" />
             </Link>
           </Button>
           <Button size="sm" variant="outline" onClick={() => exportCsv(shown)}>
