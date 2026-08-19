@@ -101,6 +101,99 @@ export type Database = {
         }
         Relationships: []
       }
+      billing_customers: {
+        Row: {
+          address: string | null
+          address_opt_out: boolean
+          archived_at: string | null
+          billing_address: string | null
+          billing_city: string | null
+          billing_email: string | null
+          billing_postal_code: string | null
+          city: string | null
+          client_id: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          country_code: string
+          created_at: string
+          display_name: string
+          driver_id: string
+          einvoicing_address: string | null
+          foreign_tax_id: string | null
+          id: string
+          internal_ref: string | null
+          kind: string
+          legal_name: string | null
+          payment_terms: string
+          payment_terms_days: number | null
+          po_number: string | null
+          postal_code: string | null
+          siren: string | null
+          updated_at: string
+          vat_number: string | null
+        }
+        Insert: {
+          address?: string | null
+          address_opt_out?: boolean
+          archived_at?: string | null
+          billing_address?: string | null
+          billing_city?: string | null
+          billing_email?: string | null
+          billing_postal_code?: string | null
+          city?: string | null
+          client_id?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          country_code?: string
+          created_at?: string
+          display_name: string
+          driver_id: string
+          einvoicing_address?: string | null
+          foreign_tax_id?: string | null
+          id?: string
+          internal_ref?: string | null
+          kind?: string
+          legal_name?: string | null
+          payment_terms?: string
+          payment_terms_days?: number | null
+          po_number?: string | null
+          postal_code?: string | null
+          siren?: string | null
+          updated_at?: string
+          vat_number?: string | null
+        }
+        Update: {
+          address?: string | null
+          address_opt_out?: boolean
+          archived_at?: string | null
+          billing_address?: string | null
+          billing_city?: string | null
+          billing_email?: string | null
+          billing_postal_code?: string | null
+          city?: string | null
+          client_id?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          country_code?: string
+          created_at?: string
+          display_name?: string
+          driver_id?: string
+          einvoicing_address?: string | null
+          foreign_tax_id?: string | null
+          id?: string
+          internal_ref?: string | null
+          kind?: string
+          legal_name?: string | null
+          payment_terms?: string
+          payment_terms_days?: number | null
+          po_number?: string | null
+          postal_code?: string | null
+          siren?: string | null
+          updated_at?: string
+          vat_number?: string | null
+        }
+        Relationships: []
+      }
       client_addresses: {
         Row: {
           address: string
@@ -128,42 +221,93 @@ export type Database = {
       companies: {
         Row: {
           address: string | null
+          billing_address: string | null
+          billing_city: string | null
+          billing_postal_code: string | null
           city: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          country_code: string
           created_at: string
           driver_id: string
+          einvoicing_address: string | null
+          einvoicing_opt_in: boolean
+          entity_category: string
           id: string
           legal_form: string | null
           legal_name: string | null
+          legal_verified_at: string | null
+          pa_account_id: string | null
+          pa_last_sync_at: string | null
+          pa_provider: string | null
+          pa_status: string
           postal_code: string | null
+          siren: string | null
           siret: string | null
           updated_at: string
+          vat_franchise: boolean | null
           vat_number: string | null
+          vat_on_debits: boolean
         }
         Insert: {
           address?: string | null
+          billing_address?: string | null
+          billing_city?: string | null
+          billing_postal_code?: string | null
           city?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          country_code?: string
           created_at?: string
           driver_id: string
+          einvoicing_address?: string | null
+          einvoicing_opt_in?: boolean
+          entity_category?: string
           id?: string
           legal_form?: string | null
           legal_name?: string | null
+          legal_verified_at?: string | null
+          pa_account_id?: string | null
+          pa_last_sync_at?: string | null
+          pa_provider?: string | null
+          pa_status?: string
           postal_code?: string | null
+          siren?: string | null
           siret?: string | null
           updated_at?: string
+          vat_franchise?: boolean | null
           vat_number?: string | null
+          vat_on_debits?: boolean
         }
         Update: {
           address?: string | null
+          billing_address?: string | null
+          billing_city?: string | null
+          billing_postal_code?: string | null
           city?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          country_code?: string
           created_at?: string
           driver_id?: string
+          einvoicing_address?: string | null
+          einvoicing_opt_in?: boolean
+          entity_category?: string
           id?: string
           legal_form?: string | null
           legal_name?: string | null
+          legal_verified_at?: string | null
+          pa_account_id?: string | null
+          pa_last_sync_at?: string | null
+          pa_provider?: string | null
+          pa_status?: string
           postal_code?: string | null
+          siren?: string | null
           siret?: string | null
           updated_at?: string
+          vat_franchise?: boolean | null
           vat_number?: string | null
+          vat_on_debits?: boolean
         }
         Relationships: []
       }
@@ -826,74 +970,256 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_counters: {
+        Row: {
+          document_type: string
+          driver_id: string
+          last_number: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          document_type?: string
+          driver_id: string
+          last_number?: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          document_type?: string
+          driver_id?: string
+          last_number?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      invoice_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          detail: Json | null
+          driver_id: string
+          event: string
+          id: string
+          invoice_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          detail?: Json | null
+          driver_id: string
+          event: string
+          id?: string
+          invoice_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          detail?: Json | null
+          driver_id?: string
+          event?: string
+          id?: string
+          invoice_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_events_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
+          amount_due: number | null
           amount_ht: number
+          amount_paid: number
           amount_ttc: number
           auto_generated: boolean
           client_id: string | null
           created_at: string
+          credit_note_of: string | null
+          currency: string
+          customer_id: string | null
+          customer_kind: string
+          customer_snapshot: Json | null
           description: string | null
+          discount_ht: number
+          document_hash: string | null
+          document_type: string
           driver_id: string
           due_on: string | null
+          external_id: string | null
           id: string
+          issued_at: string | null
+          issued_number_year: number | null
           issued_on: string
-          number: string
+          issuer_snapshot: Json | null
+          late_penalty_applicable: boolean
+          number: string | null
+          operation_category: string
           paid_at: string | null
+          passenger_name: string | null
           payment_method: string | null
+          payment_terms: string
+          payment_terms_days: number | null
+          pdf_path: string | null
+          po_number: string | null
+          quantity: number
+          recovery_fee_applicable: boolean
+          replaced_by: string | null
           ride_id: string | null
+          routing_channel: string
+          service_date: string | null
           status: Database["public"]["Enums"]["invoice_status"]
+          structured_format: string | null
+          structured_path: string | null
           tax_legal_mention: string | null
           tax_regime: string | null
           tax_vat_number: string | null
+          transmission_error: string | null
+          transmission_status: string
+          transmitted_at: string | null
+          unit_price_ht: number | null
           updated_at: string
+          vat_on_debits: boolean
           vat_rate: number
         }
         Insert: {
+          amount_due?: number | null
           amount_ht?: number
+          amount_paid?: number
           amount_ttc?: number
           auto_generated?: boolean
           client_id?: string | null
           created_at?: string
+          credit_note_of?: string | null
+          currency?: string
+          customer_id?: string | null
+          customer_kind?: string
+          customer_snapshot?: Json | null
           description?: string | null
+          discount_ht?: number
+          document_hash?: string | null
+          document_type?: string
           driver_id: string
           due_on?: string | null
+          external_id?: string | null
           id?: string
+          issued_at?: string | null
+          issued_number_year?: number | null
           issued_on?: string
-          number: string
+          issuer_snapshot?: Json | null
+          late_penalty_applicable?: boolean
+          number?: string | null
+          operation_category?: string
           paid_at?: string | null
+          passenger_name?: string | null
           payment_method?: string | null
+          payment_terms?: string
+          payment_terms_days?: number | null
+          pdf_path?: string | null
+          po_number?: string | null
+          quantity?: number
+          recovery_fee_applicable?: boolean
+          replaced_by?: string | null
           ride_id?: string | null
+          routing_channel?: string
+          service_date?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
+          structured_format?: string | null
+          structured_path?: string | null
           tax_legal_mention?: string | null
           tax_regime?: string | null
           tax_vat_number?: string | null
+          transmission_error?: string | null
+          transmission_status?: string
+          transmitted_at?: string | null
+          unit_price_ht?: number | null
           updated_at?: string
+          vat_on_debits?: boolean
           vat_rate?: number
         }
         Update: {
+          amount_due?: number | null
           amount_ht?: number
+          amount_paid?: number
           amount_ttc?: number
           auto_generated?: boolean
           client_id?: string | null
           created_at?: string
+          credit_note_of?: string | null
+          currency?: string
+          customer_id?: string | null
+          customer_kind?: string
+          customer_snapshot?: Json | null
           description?: string | null
+          discount_ht?: number
+          document_hash?: string | null
+          document_type?: string
           driver_id?: string
           due_on?: string | null
+          external_id?: string | null
           id?: string
+          issued_at?: string | null
+          issued_number_year?: number | null
           issued_on?: string
-          number?: string
+          issuer_snapshot?: Json | null
+          late_penalty_applicable?: boolean
+          number?: string | null
+          operation_category?: string
           paid_at?: string | null
+          passenger_name?: string | null
           payment_method?: string | null
+          payment_terms?: string
+          payment_terms_days?: number | null
+          pdf_path?: string | null
+          po_number?: string | null
+          quantity?: number
+          recovery_fee_applicable?: boolean
+          replaced_by?: string | null
           ride_id?: string | null
+          routing_channel?: string
+          service_date?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
+          structured_format?: string | null
+          structured_path?: string | null
           tax_legal_mention?: string | null
           tax_regime?: string | null
           tax_vat_number?: string | null
+          transmission_error?: string | null
+          transmission_status?: string
+          transmitted_at?: string | null
+          unit_price_ht?: number | null
           updated_at?: string
+          vat_on_debits?: boolean
           vat_rate?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "invoices_credit_note_of_fkey"
+            columns: ["credit_note_of"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "billing_customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_replaced_by_fkey"
+            columns: ["replaced_by"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "invoices_ride_id_fkey"
             columns: ["ride_id"]
@@ -2170,7 +2496,12 @@ export type Database = {
         Args: { _client: string; _driver: string }
         Returns: boolean
       }
+      is_valid_siren: { Args: { _siren: string }; Returns: boolean }
       is_verified_driver: { Args: { _driver: string }; Returns: boolean }
+      next_invoice_number: {
+        Args: { _driver: string; _type?: string; _year: number }
+        Returns: string
+      }
       notify_counterparty: {
         Args: { _kind: string; _recipient: string }
         Returns: undefined
@@ -2202,6 +2533,13 @@ export type Database = {
         | "cancelled"
         | "issued"
         | "overdue"
+        | "to_review"
+        | "ready"
+        | "transmitted"
+        | "received"
+        | "rejected"
+        | "partially_paid"
+        | "credited"
       report_status: "new" | "in_progress" | "waiting" | "resolved" | "closed"
       ride_status:
         | "new"
@@ -2371,6 +2709,13 @@ export const Constants = {
         "cancelled",
         "issued",
         "overdue",
+        "to_review",
+        "ready",
+        "transmitted",
+        "received",
+        "rejected",
+        "partially_paid",
+        "credited",
       ],
       report_status: ["new", "in_progress", "waiting", "resolved", "closed"],
       ride_status: [
