@@ -79,8 +79,9 @@ export function buildInvoicePdf(opts: {
   doc.setFillColor(GREEN[0], GREEN[1], GREEN[2]);
   doc.rect(0, 0, W, 6, "F");
 
-  text("FACTURE", M, y, 20, true);
-  text(`N° ${invoice.number}`, M, y + 7, 11, false, GREY);
+  const isCredit = invoice.document_type === "credit_note";
+  text(isCredit ? "AVOIR" : "FACTURE", M, y, 20, true);
+  text(invoice.number ? `N° ${invoice.number}` : "BROUILLON — non émis", M, y + 7, 11, false, GREY);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(GREY[0], GREY[1], GREY[2]);
