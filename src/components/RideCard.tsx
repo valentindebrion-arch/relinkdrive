@@ -30,7 +30,8 @@ export function RideCard({ ride, invoice }: { ride: RideRow; invoice?: InvoiceRo
         </p>
         {invoice ? (
           <p className="mt-1 text-sm text-muted-foreground">
-            Facture {invoice.number} — <StatusBadge status={invoice.status} labels={INVOICE_LABELS} />
+            {invoice.number ? `Facture ${invoice.number}` : "Facture en préparation"} —{" "}
+            <StatusBadge status={invoice.status} labels={INVOICE_LABELS} />
           </p>
         ) : null}
       </div>
