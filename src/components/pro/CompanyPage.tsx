@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TaxSection } from "@/components/pro/TaxSection";
 import { TariffSection } from "@/components/pro/TariffSection";
+import { isValidSiren } from "@/lib/billing-customers";
 
 
 export function CompanyPage() {
@@ -86,6 +87,7 @@ export function CompanyPage() {
       <div className="surface grid gap-4 p-5 sm:grid-cols-2">
         {field("legal_name", "Raison sociale")}
         {field("legal_form", "Forme juridique")}
+        {field("siren", "SIREN (9 chiffres)")}
         {field("siret", "SIRET")}
         {field("address", "Adresse")}
         {field("postal_code", "Code postal")}
@@ -94,6 +96,10 @@ export function CompanyPage() {
           <Button onClick={save}>Enregistrer</Button>
         </div>
       </div>
+
+      <p className="mt-2 text-xs text-muted-foreground">
+        Le SIREN, la raison sociale et l'adresse sont obligatoires pour émettre une facture conforme.
+      </p>
 
       <div className="mt-4 space-y-4">
         <TaxSection />
