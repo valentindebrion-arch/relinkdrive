@@ -422,28 +422,37 @@ function DriverInvoices() {
                 <div className="min-w-0">
                   <p className="truncate font-semibold">{clientName(inv) || inv.description || "Client"}</p>
                   <p className="truncate text-xs text-muted-foreground">{formatDate(inv.issued_on)}</p>
-                  <p className="truncate text-xs text-muted-foreground">Facture n° {inv.number}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {inv.number
+                      ? `${inv.document_type === "credit_note" ? "Avoir" : "Facture"} n° ${inv.number}`
+                      : "Brouillon — non numéroté"}
+                  </p>
                   <p className="mt-1 text-sm font-semibold text-primary">{formatEuro(Number(inv.amount_ttc))}</p>
                 </div>
                 <StatusBadge status={inv.status} labels={INVOICE_LABELS} />
               </div>
               <div className="mt-3 flex items-center gap-2 overflow-x-auto">
                 {inv.status === "draft" ? (
-                  <Button size="sm" className="shrink-0" onClick={() => finalize(inv)}>
-                    Compléter
+                  <Button size="sm" className="shrink-0" onClick={() => setIssuing(inv as DraftInvoice)}>
+                    Émettre
                   </Button>
                 ) : null}
                 {inv.status === "issued" ? (
-                  <Button size="sm" variant="outline" className="shrink-0" onClick={() => setStatus(inv, "sent")}>
+                  <Button size="sm" variant="outline" className="shrink-0" onClick={() => void markSent(inv)}>
                     Envoyée
                   </Button>
                 ) : null}
-                {!["paid", "cancelled", "draft"].includes(inv.status) ? (
-                  <Button size="sm" className="shrink-0" onClick={() => setStatus(inv, "paid")}>
-                    Payée
+                {!["paid", "cancelled", "draft", "credited"].includes(inv.status) ? (
+                  <Button size="sm" className="shrink-0" onClick={() => void recordPayment(inv)}>
+                    Encaissement
                   </Button>
                 ) : null}
-                <Button size="sm" variant="outline" className="shrink-0" onClick={() => download(inv)}>
+                {inv.number && inv.document_type !== "credit_note" && inv.status !== "credited" ? (
+                  <Button size="sm" variant="outline" className="shrink-0" onClick={() => void creditNote(inv)}>
+                    Avoir
+                  </Button>
+                ) : null}
+                <Button size="sm" variant="outline" className="shrink-0" onClick={() => void download(inv)}>
                   <Download className="mr-1 size-4" /> Télécharger
                 </Button>
               </div>
@@ -451,6 +460,14 @@ function DriverInvoices() {
           ))}
         </div>
       )}
+
+      <InvoiceIssueDialog
+        invoice={issuing}
+        open={!!issuing}
+        onOpenChange={(v) => {
+          if (!v) setIssuing(null);
+        }}
+      />
     </>
   );
 }
