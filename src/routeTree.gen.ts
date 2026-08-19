@@ -38,6 +38,7 @@ import { Route as AuthenticatedProClientsFacturesRouteImport } from './routes/_a
 import { Route as AuthenticatedProDemandesRouteImport } from './routes/_authenticated/pro.demandes'
 import { Route as AuthenticatedProDisponibilitesRouteImport } from './routes/_authenticated/pro.disponibilites'
 import { Route as AuthenticatedProDossierRouteImport } from './routes/_authenticated/pro.dossier'
+import { Route as AuthenticatedProEinvoicingRouteImport } from './routes/_authenticated/pro.einvoicing'
 import { Route as AuthenticatedProEntrepriseRouteImport } from './routes/_authenticated/pro.entreprise'
 import { Route as AuthenticatedProFacturesRouteImport } from './routes/_authenticated/pro.factures'
 import { Route as AuthenticatedProParametresRouteImport } from './routes/_authenticated/pro.parametres'
@@ -221,6 +222,12 @@ const AuthenticatedProDossierRoute = AuthenticatedProDossierRouteImport.update({
   path: '/dossier',
   getParentRoute: () => AuthenticatedProRoute,
 } as any)
+const AuthenticatedProEinvoicingRoute =
+  AuthenticatedProEinvoicingRouteImport.update({
+    id: '/einvoicing',
+    path: '/einvoicing',
+    getParentRoute: () => AuthenticatedProRoute,
+  } as any)
 const AuthenticatedProEntrepriseRoute =
   AuthenticatedProEntrepriseRouteImport.update({
     id: '/entreprise',
@@ -407,6 +414,7 @@ export interface FileRoutesByFullPath {
   '/pro/demandes': typeof AuthenticatedProDemandesRoute
   '/pro/disponibilites': typeof AuthenticatedProDisponibilitesRoute
   '/pro/dossier': typeof AuthenticatedProDossierRouteWithChildren
+  '/pro/einvoicing': typeof AuthenticatedProEinvoicingRoute
   '/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/pro/factures': typeof AuthenticatedProFacturesRoute
   '/pro/parametres': typeof AuthenticatedProParametresRoute
@@ -459,6 +467,7 @@ export interface FileRoutesByTo {
   '/pro/clients-factures': typeof AuthenticatedProClientsFacturesRoute
   '/pro/demandes': typeof AuthenticatedProDemandesRoute
   '/pro/disponibilites': typeof AuthenticatedProDisponibilitesRoute
+  '/pro/einvoicing': typeof AuthenticatedProEinvoicingRoute
   '/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/pro/factures': typeof AuthenticatedProFacturesRoute
   '/pro/parametres': typeof AuthenticatedProParametresRoute
@@ -518,6 +527,7 @@ export interface FileRoutesById {
   '/_authenticated/pro/demandes': typeof AuthenticatedProDemandesRoute
   '/_authenticated/pro/disponibilites': typeof AuthenticatedProDisponibilitesRoute
   '/_authenticated/pro/dossier': typeof AuthenticatedProDossierRouteWithChildren
+  '/_authenticated/pro/einvoicing': typeof AuthenticatedProEinvoicingRoute
   '/_authenticated/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/_authenticated/pro/factures': typeof AuthenticatedProFacturesRoute
   '/_authenticated/pro/parametres': typeof AuthenticatedProParametresRoute
@@ -577,6 +587,7 @@ export interface FileRouteTypes {
     | '/pro/demandes'
     | '/pro/disponibilites'
     | '/pro/dossier'
+    | '/pro/einvoicing'
     | '/pro/entreprise'
     | '/pro/factures'
     | '/pro/parametres'
@@ -629,6 +640,7 @@ export interface FileRouteTypes {
     | '/pro/clients-factures'
     | '/pro/demandes'
     | '/pro/disponibilites'
+    | '/pro/einvoicing'
     | '/pro/entreprise'
     | '/pro/factures'
     | '/pro/parametres'
@@ -687,6 +699,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pro/demandes'
     | '/_authenticated/pro/disponibilites'
     | '/_authenticated/pro/dossier'
+    | '/_authenticated/pro/einvoicing'
     | '/_authenticated/pro/entreprise'
     | '/_authenticated/pro/factures'
     | '/_authenticated/pro/parametres'
@@ -937,6 +950,13 @@ declare module '@tanstack/react-router' {
       path: '/dossier'
       fullPath: '/pro/dossier'
       preLoaderRoute: typeof AuthenticatedProDossierRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
+    '/_authenticated/pro/einvoicing': {
+      id: '/_authenticated/pro/einvoicing'
+      path: '/einvoicing'
+      fullPath: '/pro/einvoicing'
+      preLoaderRoute: typeof AuthenticatedProEinvoicingRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
     '/_authenticated/pro/entreprise': {
@@ -1229,6 +1249,7 @@ interface AuthenticatedProRouteChildren {
   AuthenticatedProDemandesRoute: typeof AuthenticatedProDemandesRoute
   AuthenticatedProDisponibilitesRoute: typeof AuthenticatedProDisponibilitesRoute
   AuthenticatedProDossierRoute: typeof AuthenticatedProDossierRouteWithChildren
+  AuthenticatedProEinvoicingRoute: typeof AuthenticatedProEinvoicingRoute
   AuthenticatedProEntrepriseRoute: typeof AuthenticatedProEntrepriseRoute
   AuthenticatedProFacturesRoute: typeof AuthenticatedProFacturesRoute
   AuthenticatedProParametresRoute: typeof AuthenticatedProParametresRoute
@@ -1252,6 +1273,7 @@ const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
   AuthenticatedProDemandesRoute: AuthenticatedProDemandesRoute,
   AuthenticatedProDisponibilitesRoute: AuthenticatedProDisponibilitesRoute,
   AuthenticatedProDossierRoute: AuthenticatedProDossierRouteWithChildren,
+  AuthenticatedProEinvoicingRoute: AuthenticatedProEinvoicingRoute,
   AuthenticatedProEntrepriseRoute: AuthenticatedProEntrepriseRoute,
   AuthenticatedProFacturesRoute: AuthenticatedProFacturesRoute,
   AuthenticatedProParametresRoute: AuthenticatedProParametresRoute,
