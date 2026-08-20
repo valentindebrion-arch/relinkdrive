@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { DossierReview } from "@/components/admin/DossierReview";
 import { SubscriptionAdminCard } from "@/components/admin/SubscriptionAdminCard";
 import { DriverActivityCard } from "@/components/admin/DriverActivityCard";
+import { VehiclePhotosAdminCard } from "@/components/admin/VehiclePhotosAdminCard";
 
 export const Route = createFileRoute("/_authenticated/admin/chauffeurs/$driverId")({
   head: () => ({
