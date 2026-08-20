@@ -41,7 +41,7 @@ export async function notifyEinvoicing(userId: string, key: EinvoiceNotification
     title: base.title,
     body: extra ? `${base.body} ${extra}` : base.body,
     kind: "invoice",
-    link: "/pro/einvoicing",
+    link: "/pro/factures",
   });
   if (error) console.warn("notification e-invoicing ignorée:", error.message);
 }
