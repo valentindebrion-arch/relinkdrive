@@ -800,7 +800,7 @@ function ClientRequests() {
   }, [form.driver_id, paymentMethods.isLoading, paymentMethods.data]);
 
   const selectedDriver = (drivers.data ?? []).find((d) => d.id === form.driver_id);
-  const driverName = selectedDriver?.full_name;
+  const driverName = selectedDriver?.full_name ?? undefined;
   const driverAvailable = !!selectedDriver?.on_duty;
 
   const scheduleValid =
