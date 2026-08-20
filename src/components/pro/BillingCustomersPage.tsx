@@ -16,16 +16,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  CUSTOMER_KIND_LABELS,
-  PAYMENT_TERMS_LABELS,
-  isValidSiren,
   useBillingCustomers,
   type BillingCustomer,
   type BillingCustomerKind,
@@ -111,21 +101,15 @@ export function BillingCustomersPage() {
       toast.error("Indiquez le nom affiché du client");
       return;
     }
-    if (form.kind === "company_fr" && !isValidSiren(form.siren)) {
-      toast.error("SIREN invalide (9 chiffres)");
-      return;
-    }
-    if (form.payment_terms === "net_days" && !Number(form.payment_terms_days)) {
-      toast.error("Indiquez le nombre de jours de règlement");
-      return;
-    }
     setBusy(true);
     const payload = {
       driver_id: user!.id,
+      // Version B2C : les champs professionnels existants sont conservés tels
+      // quels en base (évolution future), mais ne sont plus saisis ici.
       kind: form.kind,
       display_name: form.display_name.trim(),
       legal_name: form.legal_name.trim() || null,
-      siren: form.kind === "company_fr" ? form.siren.replace(/\s/g, "") : null,
+      siren: form.siren.replace(/\s/g, "") || null,
       vat_number: form.vat_number.trim() || null,
       billing_address: form.billing_address.trim() || null,
       billing_postal_code: form.billing_postal_code.trim() || null,
@@ -184,13 +168,7 @@ export function BillingCustomersPage() {
       <div className="min-w-0">
         <p className="truncate font-semibold">{c.display_name}</p>
         <p className="truncate text-xs text-muted-foreground">
-          {CUSTOMER_KIND_LABELS[c.kind]}
-          {c.siren ? ` · SIREN ${c.siren}` : ""}
-        </p>
-        <p className="truncate text-xs text-muted-foreground">
-          {PAYMENT_TERMS_LABELS[c.payment_terms]}
-          {c.payment_terms === "net_days" && c.payment_terms_days ? ` (${c.payment_terms_days} j)` : ""}
-          {c.billing_email ? ` · ${c.billing_email}` : ""}
+          {[c.billing_email, c.contact_phone].filter(Boolean).join(" · ") || "Client particulier"}
         </p>
       </div>
       <div className="flex shrink-0 gap-1">
@@ -213,7 +191,7 @@ export function BillingCustomersPage() {
     <>
       <PageHeader
         title="Clients facturés"
-        description="Le client facturé peut être différent du passager : particulier, société française ou étrangère."
+        description="Les personnes à qui vous adressez vos factures. Le client facturé peut être différent du passager."
       />
 
       <Button className="mb-4" onClick={openNew}>
@@ -223,7 +201,7 @@ export function BillingCustomersPage() {
       {active.length === 0 ? (
         <EmptyState
           title="Aucun client facturé"
-          description="Créez une fiche pour facturer une entreprise (SIREN obligatoire en France)."
+          description="Les clients de vos courses sont ajoutés automatiquement ici lors de la clôture d'une course."
         />
       ) : (
         <div className="space-y-3">{active.map(row)}</div>
@@ -244,57 +222,12 @@ export function BillingCustomersPage() {
             <DialogTitle>{editing ? "Modifier le client facturé" : "Nouveau client facturé"}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <Label>Type de client</Label>
-              <Select
-                value={form.kind}
-                onValueChange={(v) => setForm({ ...form, kind: v as BillingCustomerKind })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(CUSTOMER_KIND_LABELS).map(([k, l]) => (
-                    <SelectItem key={k} value={k}>
-                      {l}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
             <div className="sm:col-span-2">{field("display_name", "Nom affiché")}</div>
-            {form.kind !== "individual" ? (
-              <>
-                {field("legal_name", "Raison sociale")}
-                {form.kind === "company_fr" ? field("siren", "SIREN (9 chiffres)") : null}
-                {field("vat_number", "N° TVA intracommunautaire")}
-                {field("po_number", "Référence / bon de commande")}
-              </>
-            ) : null}
             <div className="sm:col-span-2">{field("billing_address", "Adresse de facturation")}</div>
             {field("billing_postal_code", "Code postal")}
             {field("billing_city", "Ville")}
             {field("billing_email", "E-mail de facturation", "email")}
             {field("contact_phone", "Téléphone", "tel")}
-            <div>
-              <Label>Conditions de règlement</Label>
-              <Select
-                value={form.payment_terms}
-                onValueChange={(v) => setForm({ ...form, payment_terms: v as PaymentTerms })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(PAYMENT_TERMS_LABELS).map(([k, l]) => (
-                    <SelectItem key={k} value={k}>
-                      {l}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {form.payment_terms === "net_days" ? field("payment_terms_days", "Jours", "number") : null}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
