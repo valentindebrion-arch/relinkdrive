@@ -4,9 +4,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -15,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { PAYMENT_METHODS, formatDateTime, formatEuro } from "@/lib/labels";
+import { formatDateTime, formatEuro } from "@/lib/labels";
 
 export type CompletableRide = {
   id: string;
@@ -28,6 +25,11 @@ export type CompletableRide = {
   price: number | null;
 };
 
+/**
+ * Clôture en une seule action : aucune saisie manuelle (kilométrage, mode de
+ * règlement). Les données déjà enregistrées sur la course sont utilisées telles
+ * quelles, et la facture est émise automatiquement.
+ */
 export function CompleteRideDialog({
   ride,
   open,
@@ -39,9 +41,6 @@ export function CompleteRideDialog({
 }) {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const [method, setMethod] = useState("card");
-  const [mileage, setMileage] = useState("");
-  const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
 
   if (!ride) return null;
@@ -60,9 +59,6 @@ export function CompleteRideDialog({
         status: "completed" as never,
         completed_at: now,
         started_at: ride.started_at ?? now,
-        payment_method: method,
-        ...(mileage ? { mileage_km: Number(mileage) } : {}),
-        ...(note ? { completion_note: note } : {}),
       })
       .eq("id", ride.id)
       .neq("status", "completed")
@@ -80,9 +76,7 @@ export function CompleteRideDialog({
     await supabase
       .from("ride_status_history")
       .insert({ ride_id: ride.id, status: "completed" as never, changed_by: user!.id });
-    toast.success(
-      amount > 0 ? "Course terminée — facture générée automatiquement" : "Course terminée — facture à compléter",
-    );
+    toast.success(amount > 0 ? "Course terminée — facture émise" : "Course terminée — facture à compléter");
     onOpenChange(false);
     ["driver-board", "driver-active-ride", "driver-rides", "pro-overview", "driver-data", "driver-invoices", "driver-clients"].forEach(
       (key) => void qc.invalidateQueries({ queryKey: [key] }),
@@ -91,10 +85,12 @@ export function CompleteRideDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Terminer la course</DialogTitle>
-          <DialogDescription>Vérifiez le récapitulatif, Relink s'occupe du reste.</DialogDescription>
+          <DialogTitle>Terminer cette course ?</DialogTitle>
+          <DialogDescription>
+            La course sera clôturée et la facture définitive sera automatiquement émise.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-1 rounded-xl bg-muted/60 p-3 text-sm">
@@ -102,48 +98,15 @@ export function CompleteRideDialog({
           <p className="text-muted-foreground">Départ : {ride.pickup_address}</p>
           <p className="text-muted-foreground">Destination : {ride.dropoff_address}</p>
           <p className="text-muted-foreground">Début : {formatDateTime(ride.started_at ?? ride.scheduled_at)}</p>
-          <p className="text-muted-foreground">Fin : {formatDateTime(new Date().toISOString())}</p>
+          <p className="mt-2 text-base font-semibold text-foreground">{formatEuro(amount)}</p>
         </div>
 
-        <div className="grid gap-3">
-          <div className="rounded-xl border border-border p-3">
-            <p className="text-sm text-muted-foreground">Montant de la course</p>
-            <p className="text-2xl font-bold">{formatEuro(amount)}</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {amount > 0
-                ? "Prix final fixé lors de la demande — facture générée automatiquement."
-                : "Aucun montant enregistré : la facture sera créée en « Brouillon à compléter »."}
-            </p>
-          </div>
-
-          <div>
-            <Label htmlFor="method">Moyen de paiement</Label>
-            <select
-              id="method"
-              value={method}
-              onChange={(e) => setMethod(e.target.value)}
-              className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-            >
-              {Object.entries(PAYMENT_METHODS).map(([k, v]) => (
-                <option key={k} value={k}>
-                  {v}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <Label htmlFor="km">Kilométrage (facultatif)</Label>
-            <Input id="km" type="number" min="0" value={mileage} onChange={(e) => setMileage(e.target.value)} />
-          </div>
-          <div>
-            <Label htmlFor="note">Remarque (facultatif)</Label>
-            <Textarea id="note" maxLength={300} value={note} onChange={(e) => setNote(e.target.value)} />
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button className="w-full" size="lg" disabled={saving} onClick={confirm}>
-            {saving ? "Enregistrement…" : "Confirmer la fin de la course"}
+        <DialogFooter className="gap-2 sm:justify-between">
+          <Button variant="outline" disabled={saving} onClick={() => onOpenChange(false)}>
+            Annuler
+          </Button>
+          <Button size="lg" disabled={saving} onClick={confirm}>
+            {saving ? "Clôture…" : "Confirmer la fin de course"}
           </Button>
         </DialogFooter>
       </DialogContent>
