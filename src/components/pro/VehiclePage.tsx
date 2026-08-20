@@ -183,7 +183,7 @@ export function VehiclePage() {
     }
     const { error: dbError } = await supabase
       .from("vehicles")
-      .update({ [field]: path })
+      .update({ [field]: path } as Record<PhotoField, string>)
       .eq("id", vehicleId);
     if (dbError) {
       setBusy(null);
@@ -224,7 +224,7 @@ export function VehiclePage() {
     setBusy(field);
     const { error } = await supabase
       .from("vehicles")
-      .update({ [field]: null })
+      .update({ [field]: null } as Record<PhotoField, null>)
       .eq("id", vehicle.data.id);
     setBusy(null);
     if (error) {

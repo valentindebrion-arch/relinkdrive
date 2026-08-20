@@ -218,7 +218,7 @@ export function VehiclePhotosAdminCard({ driverId }: { driverId: string }) {
 
     const { error: dbError } = await supabase
       .from("vehicles")
-      .update({ [field]: path })
+      .update({ [field]: path } as Record<PhotoField, string>)
       .eq("id", vehicleId);
     if (dbError) {
       await supabase.storage.from("vehicles").remove([path]);
@@ -265,7 +265,7 @@ export function VehiclePhotosAdminCard({ driverId }: { driverId: string }) {
     setBusy(field);
     const { error } = await supabase
       .from("vehicles")
-      .update({ [field]: null })
+      .update({ [field]: null } as Record<PhotoField, null>)
       .eq("id", vehicleId);
     if (error) {
       setBusy(null);
