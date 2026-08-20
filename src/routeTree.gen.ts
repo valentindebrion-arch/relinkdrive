@@ -46,6 +46,7 @@ import { Route as AuthenticatedProParametresRouteImport } from './routes/_authen
 import { Route as AuthenticatedProPersonnalisationRouteImport } from './routes/_authenticated/pro.personnalisation'
 import { Route as AuthenticatedProProfilRouteImport } from './routes/_authenticated/pro.profil'
 import { Route as AuthenticatedProQrRouteImport } from './routes/_authenticated/pro.qr'
+import { Route as AuthenticatedProTarificationRouteImport } from './routes/_authenticated/pro.tarification'
 import { Route as AuthenticatedProVehiculeRouteImport } from './routes/_authenticated/pro.vehicule'
 import { Route as AuthenticatedProVerificationRouteImport } from './routes/_authenticated/pro.verification'
 import { Route as ApiPublicPushRouteImport } from './routes/api/public/push'
@@ -269,6 +270,12 @@ const AuthenticatedProQrRoute = AuthenticatedProQrRouteImport.update({
   path: '/qr',
   getParentRoute: () => AuthenticatedProRoute,
 } as any)
+const AuthenticatedProTarificationRoute =
+  AuthenticatedProTarificationRouteImport.update({
+    id: '/tarification',
+    path: '/tarification',
+    getParentRoute: () => AuthenticatedProRoute,
+  } as any)
 const AuthenticatedProVehiculeRoute =
   AuthenticatedProVehiculeRouteImport.update({
     id: '/vehicule',
@@ -429,6 +436,7 @@ export interface FileRoutesByFullPath {
   '/pro/personnalisation': typeof AuthenticatedProPersonnalisationRoute
   '/pro/profil': typeof AuthenticatedProProfilRoute
   '/pro/qr': typeof AuthenticatedProQrRoute
+  '/pro/tarification': typeof AuthenticatedProTarificationRoute
   '/pro/vehicule': typeof AuthenticatedProVehiculeRoute
   '/pro/verification': typeof AuthenticatedProVerificationRoute
   '/api/public/push': typeof ApiPublicPushRoute
@@ -483,6 +491,7 @@ export interface FileRoutesByTo {
   '/pro/personnalisation': typeof AuthenticatedProPersonnalisationRoute
   '/pro/profil': typeof AuthenticatedProProfilRoute
   '/pro/qr': typeof AuthenticatedProQrRoute
+  '/pro/tarification': typeof AuthenticatedProTarificationRoute
   '/pro/vehicule': typeof AuthenticatedProVehiculeRoute
   '/pro/verification': typeof AuthenticatedProVerificationRoute
   '/api/public/push': typeof ApiPublicPushRoute
@@ -544,6 +553,7 @@ export interface FileRoutesById {
   '/_authenticated/pro/personnalisation': typeof AuthenticatedProPersonnalisationRoute
   '/_authenticated/pro/profil': typeof AuthenticatedProProfilRoute
   '/_authenticated/pro/qr': typeof AuthenticatedProQrRoute
+  '/_authenticated/pro/tarification': typeof AuthenticatedProTarificationRoute
   '/_authenticated/pro/vehicule': typeof AuthenticatedProVehiculeRoute
   '/_authenticated/pro/verification': typeof AuthenticatedProVerificationRoute
   '/api/public/push': typeof ApiPublicPushRoute
@@ -605,6 +615,7 @@ export interface FileRouteTypes {
     | '/pro/personnalisation'
     | '/pro/profil'
     | '/pro/qr'
+    | '/pro/tarification'
     | '/pro/vehicule'
     | '/pro/verification'
     | '/api/public/push'
@@ -659,6 +670,7 @@ export interface FileRouteTypes {
     | '/pro/personnalisation'
     | '/pro/profil'
     | '/pro/qr'
+    | '/pro/tarification'
     | '/pro/vehicule'
     | '/pro/verification'
     | '/api/public/push'
@@ -719,6 +731,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pro/personnalisation'
     | '/_authenticated/pro/profil'
     | '/_authenticated/pro/qr'
+    | '/_authenticated/pro/tarification'
     | '/_authenticated/pro/vehicule'
     | '/_authenticated/pro/verification'
     | '/api/public/push'
@@ -1021,6 +1034,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProQrRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
+    '/_authenticated/pro/tarification': {
+      id: '/_authenticated/pro/tarification'
+      path: '/tarification'
+      fullPath: '/pro/tarification'
+      preLoaderRoute: typeof AuthenticatedProTarificationRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
     '/_authenticated/pro/vehicule': {
       id: '/_authenticated/pro/vehicule'
       path: '/vehicule'
@@ -1278,6 +1298,7 @@ interface AuthenticatedProRouteChildren {
   AuthenticatedProPersonnalisationRoute: typeof AuthenticatedProPersonnalisationRoute
   AuthenticatedProProfilRoute: typeof AuthenticatedProProfilRoute
   AuthenticatedProQrRoute: typeof AuthenticatedProQrRoute
+  AuthenticatedProTarificationRoute: typeof AuthenticatedProTarificationRoute
   AuthenticatedProVehiculeRoute: typeof AuthenticatedProVehiculeRoute
   AuthenticatedProVerificationRoute: typeof AuthenticatedProVerificationRoute
   AuthenticatedProIndexRoute: typeof AuthenticatedProIndexRoute
@@ -1302,6 +1323,7 @@ const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
   AuthenticatedProPersonnalisationRoute: AuthenticatedProPersonnalisationRoute,
   AuthenticatedProProfilRoute: AuthenticatedProProfilRoute,
   AuthenticatedProQrRoute: AuthenticatedProQrRoute,
+  AuthenticatedProTarificationRoute: AuthenticatedProTarificationRoute,
   AuthenticatedProVehiculeRoute: AuthenticatedProVehiculeRoute,
   AuthenticatedProVerificationRoute: AuthenticatedProVerificationRoute,
   AuthenticatedProIndexRoute: AuthenticatedProIndexRoute,
