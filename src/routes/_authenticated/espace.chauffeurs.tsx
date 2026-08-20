@@ -92,7 +92,7 @@ function ClientDrivers() {
             avatarUrl: profile?.avatar_url ?? null,
             available: !!dp?.on_duty && dp?.accepting_requests !== false,
             vehicle: car ? [car.brand, car.model].filter(Boolean).join(" ") || null : null,
-            photoPath: car?.photo_url ?? null,
+            photoPath: car?.photo_side_url ?? car?.photo_url ?? null,
             zone: dp?.city || dp?.zone || null,
             slug: dp?.slug ?? null,
             trips: (rides ?? []).filter((r) => r.driver_id === c.driver_id).length,

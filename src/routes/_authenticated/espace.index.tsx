@@ -23,6 +23,8 @@ export const Route = createFileRoute("/_authenticated/espace/")({
 
 type HomeDriver = HomeCardDriver & {
   vehiclePhotoPath: string | null;
+  frontPhotoPath: string | null;
+  exteriorPhotoPath: string | null;
   vehiclePhotoVersion: string | null;
   facts: VehicleFactsData;
 };
@@ -128,10 +130,14 @@ function ClientHome() {
             ratingCount: rating?.count ?? 0,
             trips: counts.get(id) ?? 0,
             slug: dp?.slug ?? null,
-            vehiclePhotoPath: car?.photo_url ?? null,
+            vehiclePhotoPath: car?.photo_front_url ?? car?.photo_url ?? null,
+            frontPhotoPath: car?.photo_front_url ?? null,
+            exteriorPhotoPath: car?.photo_url ?? null,
             vehiclePhotoVersion: car?.updated_at ?? null,
             facts: {
               vehicleId: car?.id ?? null,
+              exteriorPhotoPath: car?.photo_url ?? null,
+              exteriorPhotoUrl: null,
               interiorPhotoPath: car?.photo_interior_url ?? null,
               interiorPhotoUrl: null,
               maxPassengers: car?.max_passengers ?? null,
@@ -188,7 +194,12 @@ function ClientHome() {
   const rawDrivers = useMemo(() => data.data?.drivers ?? [], [data.data?.drivers]);
   const photos = useSignedUrls(
     "vehicles",
-    rawDrivers.flatMap((d) => [d.vehiclePhotoPath, d.facts.interiorPhotoPath]),
+    rawDrivers.flatMap((d) => [
+      d.vehiclePhotoPath,
+      d.frontPhotoPath,
+      d.exteriorPhotoPath,
+      d.facts.interiorPhotoPath,
+    ]),
     rawDrivers.map((d) => d.vehiclePhotoVersion),
   );
   const photoUrls = photos.data;
@@ -198,10 +209,15 @@ function ClientHome() {
         const interiorUrl = d.facts.interiorPhotoPath
           ? (photoUrls?.[d.facts.interiorPhotoPath] ?? null)
           : null;
+        const exteriorUrl = d.exteriorPhotoPath
+          ? (photoUrls?.[d.exteriorPhotoPath] ?? null)
+          : null;
         return {
           ...d,
           vehiclePhotoUrl: d.vehiclePhotoPath ? (photoUrls?.[d.vehiclePhotoPath] ?? null) : null,
-          facts: { ...d.facts, interiorPhotoUrl: interiorUrl },
+          frontPhotoUrl: d.frontPhotoPath ? (photoUrls?.[d.frontPhotoPath] ?? null) : null,
+          exteriorPhotoUrl: exteriorUrl,
+          facts: { ...d.facts, interiorPhotoUrl: interiorUrl, exteriorPhotoUrl: exteriorUrl },
         };
       }),
     [rawDrivers, photoUrls],

@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Armchair, Briefcase, Dog, Luggage, Users } from "lucide-react";
+import { Armchair, Briefcase, Car, Dog, Luggage, Users } from "lucide-react";
 
 /**
  * Caractéristiques du véhicule du chauffeur sélectionné.
@@ -10,6 +10,8 @@ import { Armchair, Briefcase, Dog, Luggage, Users } from "lucide-react";
  */
 export type VehicleFactsData = {
   vehicleId: string | null;
+  exteriorPhotoPath: string | null;
+  exteriorPhotoUrl: string | null;
   interiorPhotoPath: string | null;
   interiorPhotoUrl: string | null;
   maxPassengers: number | null;
@@ -26,6 +28,62 @@ function petsLabel(policy: VehicleFactsData["petsPolicy"]) {
   if (policy === "conditional") return "Animaux sous conditions";
   if (policy === "refused") return "Animaux non acceptés";
   return `Animaux : ${UNKNOWN.toLowerCase()}`;
+}
+
+function ExteriorPhoto({
+  imageKey,
+  url,
+  alt,
+  loading,
+}: {
+  imageKey: string;
+  url: string | null;
+  alt: string;
+  loading: boolean;
+}) {
+  const [ready, setReady] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const ref = useRef<HTMLImageElement | null>(null);
+
+  useEffect(() => {
+    setReady(!!(ref.current?.complete && ref.current.naturalWidth > 0));
+    setFailed(false);
+  }, [imageKey, url]);
+
+  const show = !!url && !failed;
+
+  return (
+    <div className="vehicle-media bg-muted shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]">
+      {loading && !ready ? (
+        <span className="absolute inset-0 animate-pulse bg-muted" aria-hidden />
+      ) : show ? (
+        <>
+          {!ready ? <span className="absolute inset-0 animate-pulse bg-muted" aria-hidden /> : null}
+          <img
+            key={imageKey}
+            ref={(el) => {
+              ref.current = el;
+              if (el?.complete && el.naturalWidth > 0) setReady(true);
+            }}
+            src={url}
+            alt={alt}
+            loading="lazy"
+            decoding="async"
+            onLoad={() => setReady(true)}
+            onError={() => setFailed(true)}
+          />
+          <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 to-transparent px-3 pt-6 pb-1.5 text-[11px] font-semibold text-white">
+            Extérieur du véhicule
+          </span>
+        </>
+      ) : (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 px-2 text-center text-muted-foreground">
+          <Car className="size-6" aria-hidden />
+          <p className="text-[11px] leading-tight font-semibold">Extérieur non renseigné</p>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function InteriorPhoto({
@@ -122,6 +180,12 @@ export function VehicleFacts({
         Le véhicule
       </p>
       <div key={driverKey} className={`flex min-w-0 max-w-full flex-col gap-2 ${anim}`}>
+        <ExteriorPhoto
+          imageKey={`${driverKey}:${facts?.vehicleId ?? "no-vehicle"}:${facts?.exteriorPhotoPath ?? "no-photo"}`}
+          url={facts?.exteriorPhotoUrl ?? null}
+          alt="Extérieur du véhicule"
+          loading={loading}
+        />
         <InteriorPhoto
           imageKey={`${driverKey}:${facts?.vehicleId ?? "no-vehicle"}:${facts?.interiorPhotoPath ?? "no-photo"}`}
           url={facts?.interiorPhotoUrl ?? null}
