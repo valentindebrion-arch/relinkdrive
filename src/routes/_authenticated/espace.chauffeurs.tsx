@@ -209,8 +209,9 @@ function ClientDrivers() {
                     <img
                       src={photoUrl}
                       alt={`Véhicule de ${d.name}`}
-                      className="size-full object-cover transition duration-300 group-hover:scale-[1.02]"
+                      className="size-full cursor-default object-cover"
                       loading="lazy"
+                      draggable={false}
                     />
                   ) : (
                     <span className="grid size-full place-items-center text-muted-foreground">
