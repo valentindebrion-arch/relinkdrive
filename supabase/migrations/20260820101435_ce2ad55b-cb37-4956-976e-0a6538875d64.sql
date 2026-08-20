@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.guard_connection_insert_defaults() FROM PUBLIC, anon, authenticated;
