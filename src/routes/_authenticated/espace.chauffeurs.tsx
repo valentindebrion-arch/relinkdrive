@@ -190,7 +190,12 @@ function ClientDrivers() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     {d.avatarUrl ? (
-                      <img src={d.avatarUrl} alt="" className="size-7 rounded-full object-cover" />
+                      <img
+                        src={d.avatarUrl}
+                        alt=""
+                        onError={(e) => (e.currentTarget.style.display = "none")}
+                        className="size-7 rounded-full object-cover"
+                      />
                     ) : (
                       <span className="grid size-7 shrink-0 place-items-center rounded-full bg-primary/10 text-[11px] font-extrabold text-primary">
                         {initials(d.name)}

@@ -215,6 +215,7 @@ function DiscoverPage() {
                   <img
                     src={driver.avatar_url}
                     alt=""
+                    onError={(e) => (e.currentTarget.style.display = "none")}
                     className="size-14 shrink-0 rounded-full object-cover"
                   />
                 ) : (

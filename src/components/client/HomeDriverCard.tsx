@@ -175,6 +175,7 @@ export function HomeDriverCard({
                   <img
                     src={driver.avatarUrl}
                     alt=""
+                    onError={(e) => (e.currentTarget.style.display = "none")}
                     className="size-12 shrink-0 rounded-full object-cover"
                   />
                 ) : (
