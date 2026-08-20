@@ -89,7 +89,8 @@ export function CompleteRideDialog({
         <DialogHeader>
           <DialogTitle>Terminer cette course ?</DialogTitle>
           <DialogDescription>
-            La course sera clôturée et la facture définitive sera automatiquement émise.
+            La course sera clôturée : le reçu est immédiatement disponible pour le client et une facture en brouillon
+            est créée dans votre espace Facturation.
           </DialogDescription>
         </DialogHeader>
 
