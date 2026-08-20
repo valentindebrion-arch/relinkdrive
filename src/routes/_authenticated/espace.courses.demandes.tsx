@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchConnectedProfile, fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { useAuth } from "@/lib/auth";
 import { PageHeader, EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -41,7 +42,7 @@ function ClientRequests() {
       const driverIds = [...new Set((requests ?? []).map((r) => r.driver_id))];
       const names: Record<string, string> = {};
       if (driverIds.length) {
-        const { data: profiles } = await supabase.from("profiles").select("id, full_name").in("id", driverIds);
+        const profiles = await fetchConnectedProfiles(driverIds);
         (profiles ?? []).forEach((p) => {
           names[p.id] = p.full_name || "Chauffeur";
         });

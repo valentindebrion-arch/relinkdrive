@@ -3370,6 +3370,16 @@ export type Database = {
           zone: string
         }[]
       }
+      get_connected_profiles: {
+        Args: { _ids: string[] }
+        Returns: {
+          avatar_url: string
+          email: string
+          full_name: string
+          id: string
+          phone: string
+        }[]
+      }
       get_discover_drivers: {
         Args: { _limit?: number }
         Returns: {

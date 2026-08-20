@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { ArrowLeft, MapPin, Clock, Users, Euro, User, Phone, XCircle, CircleAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchConnectedProfile, fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { useAuth } from "@/lib/auth";
 import { PageHeader, EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -69,7 +70,7 @@ function RideDetail() {
 
       const [{ data: invoice }, { data: driver }, { data: history }] = await Promise.all([
         supabase.from("invoices").select("*").eq("ride_id", ride.id).maybeSingle(),
-        supabase.from("profiles").select("full_name, avatar_url").eq("id", ride.driver_id).maybeSingle(),
+        fetchConnectedProfile(ride.driver_id).then((data) => ({ data })),
         supabase
           .from("ride_status_history")
           .select("status, created_at")
