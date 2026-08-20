@@ -5,7 +5,7 @@ import {
   Car,
   Users,
   Receipt,
-  Bot,
+  SlidersHorizontal,
   UserRound,
   CalendarDays,
   ShieldCheck,
@@ -65,7 +65,7 @@ function ProLayout() {
     { to: "/pro/planning", label: "Planning", icon: <CalendarDays />, locked: lock },
     { to: "/pro/clients", label: "Mes clients", icon: <Users />, locked: lock },
     { to: "/pro/factures", label: "Facturation", icon: <Receipt /> },
-    { to: "/pro/assistant", label: "Assistant", icon: <Bot />, locked: lock },
+    { to: "/pro/tarification", label: "Tarification", icon: <SlidersHorizontal />, locked: lock },
     { to: "/pro/profil", label: "Mon profil", icon: <UserRound /> },
   ];
 

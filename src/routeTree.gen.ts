@@ -33,7 +33,6 @@ import { Route as AuthenticatedEspaceDemandesRouteImport } from './routes/_authe
 import { Route as AuthenticatedEspaceParametresRouteImport } from './routes/_authenticated/espace.parametres'
 import { Route as AuthenticatedProIndexRouteImport } from './routes/_authenticated/pro.index'
 import { Route as AuthenticatedProActiviteRouteImport } from './routes/_authenticated/pro.activite'
-import { Route as AuthenticatedProAssistantRouteImport } from './routes/_authenticated/pro.assistant'
 import { Route as AuthenticatedProClientsRouteImport } from './routes/_authenticated/pro.clients'
 import { Route as AuthenticatedProClientsFacturesRouteImport } from './routes/_authenticated/pro.clients-factures'
 import { Route as AuthenticatedProDemandesRouteImport } from './routes/_authenticated/pro.demandes'
@@ -46,6 +45,7 @@ import { Route as AuthenticatedProParametresRouteImport } from './routes/_authen
 import { Route as AuthenticatedProPersonnalisationRouteImport } from './routes/_authenticated/pro.personnalisation'
 import { Route as AuthenticatedProProfilRouteImport } from './routes/_authenticated/pro.profil'
 import { Route as AuthenticatedProQrRouteImport } from './routes/_authenticated/pro.qr'
+import { Route as AuthenticatedProTarificationRouteImport } from './routes/_authenticated/pro.tarification'
 import { Route as AuthenticatedProVehiculeRouteImport } from './routes/_authenticated/pro.vehicule'
 import { Route as AuthenticatedProVerificationRouteImport } from './routes/_authenticated/pro.verification'
 import { Route as ApiPublicPushRouteImport } from './routes/api/public/push'
@@ -195,12 +195,6 @@ const AuthenticatedProActiviteRoute =
     path: '/activite',
     getParentRoute: () => AuthenticatedProRoute,
   } as any)
-const AuthenticatedProAssistantRoute =
-  AuthenticatedProAssistantRouteImport.update({
-    id: '/assistant',
-    path: '/assistant',
-    getParentRoute: () => AuthenticatedProRoute,
-  } as any)
 const AuthenticatedProClientsRoute = AuthenticatedProClientsRouteImport.update({
   id: '/clients',
   path: '/clients',
@@ -269,6 +263,12 @@ const AuthenticatedProQrRoute = AuthenticatedProQrRouteImport.update({
   path: '/qr',
   getParentRoute: () => AuthenticatedProRoute,
 } as any)
+const AuthenticatedProTarificationRoute =
+  AuthenticatedProTarificationRouteImport.update({
+    id: '/tarification',
+    path: '/tarification',
+    getParentRoute: () => AuthenticatedProRoute,
+  } as any)
 const AuthenticatedProVehiculeRoute =
   AuthenticatedProVehiculeRouteImport.update({
     id: '/vehicule',
@@ -416,7 +416,6 @@ export interface FileRoutesByFullPath {
   '/espace/demandes': typeof AuthenticatedEspaceDemandesRoute
   '/espace/parametres': typeof AuthenticatedEspaceParametresRoute
   '/pro/activite': typeof AuthenticatedProActiviteRoute
-  '/pro/assistant': typeof AuthenticatedProAssistantRoute
   '/pro/clients': typeof AuthenticatedProClientsRouteWithChildren
   '/pro/clients-factures': typeof AuthenticatedProClientsFacturesRoute
   '/pro/demandes': typeof AuthenticatedProDemandesRoute
@@ -429,6 +428,7 @@ export interface FileRoutesByFullPath {
   '/pro/personnalisation': typeof AuthenticatedProPersonnalisationRoute
   '/pro/profil': typeof AuthenticatedProProfilRoute
   '/pro/qr': typeof AuthenticatedProQrRoute
+  '/pro/tarification': typeof AuthenticatedProTarificationRoute
   '/pro/vehicule': typeof AuthenticatedProVehiculeRoute
   '/pro/verification': typeof AuthenticatedProVerificationRoute
   '/api/public/push': typeof ApiPublicPushRoute
@@ -472,7 +472,6 @@ export interface FileRoutesByTo {
   '/espace/demandes': typeof AuthenticatedEspaceDemandesRoute
   '/espace/parametres': typeof AuthenticatedEspaceParametresRoute
   '/pro/activite': typeof AuthenticatedProActiviteRoute
-  '/pro/assistant': typeof AuthenticatedProAssistantRoute
   '/pro/clients-factures': typeof AuthenticatedProClientsFacturesRoute
   '/pro/demandes': typeof AuthenticatedProDemandesRoute
   '/pro/disponibilites': typeof AuthenticatedProDisponibilitesRoute
@@ -483,6 +482,7 @@ export interface FileRoutesByTo {
   '/pro/personnalisation': typeof AuthenticatedProPersonnalisationRoute
   '/pro/profil': typeof AuthenticatedProProfilRoute
   '/pro/qr': typeof AuthenticatedProQrRoute
+  '/pro/tarification': typeof AuthenticatedProTarificationRoute
   '/pro/vehicule': typeof AuthenticatedProVehiculeRoute
   '/pro/verification': typeof AuthenticatedProVerificationRoute
   '/api/public/push': typeof ApiPublicPushRoute
@@ -531,7 +531,6 @@ export interface FileRoutesById {
   '/_authenticated/espace/demandes': typeof AuthenticatedEspaceDemandesRoute
   '/_authenticated/espace/parametres': typeof AuthenticatedEspaceParametresRoute
   '/_authenticated/pro/activite': typeof AuthenticatedProActiviteRoute
-  '/_authenticated/pro/assistant': typeof AuthenticatedProAssistantRoute
   '/_authenticated/pro/clients': typeof AuthenticatedProClientsRouteWithChildren
   '/_authenticated/pro/clients-factures': typeof AuthenticatedProClientsFacturesRoute
   '/_authenticated/pro/demandes': typeof AuthenticatedProDemandesRoute
@@ -544,6 +543,7 @@ export interface FileRoutesById {
   '/_authenticated/pro/personnalisation': typeof AuthenticatedProPersonnalisationRoute
   '/_authenticated/pro/profil': typeof AuthenticatedProProfilRoute
   '/_authenticated/pro/qr': typeof AuthenticatedProQrRoute
+  '/_authenticated/pro/tarification': typeof AuthenticatedProTarificationRoute
   '/_authenticated/pro/vehicule': typeof AuthenticatedProVehiculeRoute
   '/_authenticated/pro/verification': typeof AuthenticatedProVerificationRoute
   '/api/public/push': typeof ApiPublicPushRoute
@@ -592,7 +592,6 @@ export interface FileRouteTypes {
     | '/espace/demandes'
     | '/espace/parametres'
     | '/pro/activite'
-    | '/pro/assistant'
     | '/pro/clients'
     | '/pro/clients-factures'
     | '/pro/demandes'
@@ -605,6 +604,7 @@ export interface FileRouteTypes {
     | '/pro/personnalisation'
     | '/pro/profil'
     | '/pro/qr'
+    | '/pro/tarification'
     | '/pro/vehicule'
     | '/pro/verification'
     | '/api/public/push'
@@ -648,7 +648,6 @@ export interface FileRouteTypes {
     | '/espace/demandes'
     | '/espace/parametres'
     | '/pro/activite'
-    | '/pro/assistant'
     | '/pro/clients-factures'
     | '/pro/demandes'
     | '/pro/disponibilites'
@@ -659,6 +658,7 @@ export interface FileRouteTypes {
     | '/pro/personnalisation'
     | '/pro/profil'
     | '/pro/qr'
+    | '/pro/tarification'
     | '/pro/vehicule'
     | '/pro/verification'
     | '/api/public/push'
@@ -706,7 +706,6 @@ export interface FileRouteTypes {
     | '/_authenticated/espace/demandes'
     | '/_authenticated/espace/parametres'
     | '/_authenticated/pro/activite'
-    | '/_authenticated/pro/assistant'
     | '/_authenticated/pro/clients'
     | '/_authenticated/pro/clients-factures'
     | '/_authenticated/pro/demandes'
@@ -719,6 +718,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pro/personnalisation'
     | '/_authenticated/pro/profil'
     | '/_authenticated/pro/qr'
+    | '/_authenticated/pro/tarification'
     | '/_authenticated/pro/vehicule'
     | '/_authenticated/pro/verification'
     | '/api/public/push'
@@ -930,13 +930,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProActiviteRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
-    '/_authenticated/pro/assistant': {
-      id: '/_authenticated/pro/assistant'
-      path: '/assistant'
-      fullPath: '/pro/assistant'
-      preLoaderRoute: typeof AuthenticatedProAssistantRouteImport
-      parentRoute: typeof AuthenticatedProRoute
-    }
     '/_authenticated/pro/clients': {
       id: '/_authenticated/pro/clients'
       path: '/clients'
@@ -1019,6 +1012,13 @@ declare module '@tanstack/react-router' {
       path: '/qr'
       fullPath: '/pro/qr'
       preLoaderRoute: typeof AuthenticatedProQrRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
+    '/_authenticated/pro/tarification': {
+      id: '/_authenticated/pro/tarification'
+      path: '/tarification'
+      fullPath: '/pro/tarification'
+      preLoaderRoute: typeof AuthenticatedProTarificationRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
     '/_authenticated/pro/vehicule': {
@@ -1265,7 +1265,6 @@ const AuthenticatedProDossierRouteWithChildren =
 
 interface AuthenticatedProRouteChildren {
   AuthenticatedProActiviteRoute: typeof AuthenticatedProActiviteRoute
-  AuthenticatedProAssistantRoute: typeof AuthenticatedProAssistantRoute
   AuthenticatedProClientsRoute: typeof AuthenticatedProClientsRouteWithChildren
   AuthenticatedProClientsFacturesRoute: typeof AuthenticatedProClientsFacturesRoute
   AuthenticatedProDemandesRoute: typeof AuthenticatedProDemandesRoute
@@ -1278,6 +1277,7 @@ interface AuthenticatedProRouteChildren {
   AuthenticatedProPersonnalisationRoute: typeof AuthenticatedProPersonnalisationRoute
   AuthenticatedProProfilRoute: typeof AuthenticatedProProfilRoute
   AuthenticatedProQrRoute: typeof AuthenticatedProQrRoute
+  AuthenticatedProTarificationRoute: typeof AuthenticatedProTarificationRoute
   AuthenticatedProVehiculeRoute: typeof AuthenticatedProVehiculeRoute
   AuthenticatedProVerificationRoute: typeof AuthenticatedProVerificationRoute
   AuthenticatedProIndexRoute: typeof AuthenticatedProIndexRoute
@@ -1289,7 +1289,6 @@ interface AuthenticatedProRouteChildren {
 
 const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
   AuthenticatedProActiviteRoute: AuthenticatedProActiviteRoute,
-  AuthenticatedProAssistantRoute: AuthenticatedProAssistantRoute,
   AuthenticatedProClientsRoute: AuthenticatedProClientsRouteWithChildren,
   AuthenticatedProClientsFacturesRoute: AuthenticatedProClientsFacturesRoute,
   AuthenticatedProDemandesRoute: AuthenticatedProDemandesRoute,
@@ -1302,6 +1301,7 @@ const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
   AuthenticatedProPersonnalisationRoute: AuthenticatedProPersonnalisationRoute,
   AuthenticatedProProfilRoute: AuthenticatedProProfilRoute,
   AuthenticatedProQrRoute: AuthenticatedProQrRoute,
+  AuthenticatedProTarificationRoute: AuthenticatedProTarificationRoute,
   AuthenticatedProVehiculeRoute: AuthenticatedProVehiculeRoute,
   AuthenticatedProVerificationRoute: AuthenticatedProVerificationRoute,
   AuthenticatedProIndexRoute: AuthenticatedProIndexRoute,
