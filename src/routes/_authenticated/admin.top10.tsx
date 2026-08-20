@@ -268,7 +268,7 @@ function AdminTop10() {
       <PageHeader
         title="Top 10"
         description="Sélection éditoriale des chauffeurs mis en avant sur la page Trouver de l'espace client."
-        actions={
+        action={
           <Button onClick={() => setPickerOpen(true)} disabled={full}>
             <Plus className="size-4" /> Ajouter un chauffeur
           </Button>
