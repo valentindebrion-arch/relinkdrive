@@ -76,7 +76,7 @@ export function CompleteRideDialog({
     await supabase
       .from("ride_status_history")
       .insert({ ride_id: ride.id, status: "completed" as never, changed_by: user!.id });
-    toast.success(amount > 0 ? "Course terminée — facture émise" : "Course terminée — facture à compléter");
+    toast.success("Course terminée — reçu envoyé au client, facture en brouillon");
     onOpenChange(false);
     ["driver-board", "driver-active-ride", "driver-rides", "pro-overview", "driver-data", "driver-invoices", "driver-clients"].forEach(
       (key) => void qc.invalidateQueries({ queryKey: [key] }),
