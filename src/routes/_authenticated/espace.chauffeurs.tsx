@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import { CalendarClock, Car, Compass, MapPin, Plus, Search, Star, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -29,6 +29,25 @@ function ClientDrivers() {
   const navigate = useNavigate();
   const [addOpen, setAddOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const queryClient = useQueryClient();
+
+  // Temps réel : le statut Disponible / Indisponible se met à jour sans rechargement.
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel("client-drivers-availability")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "driver_profiles" },
+        () => {
+          void queryClient.invalidateQueries({ queryKey: ["client-drivers", user.id] });
+        },
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   const drivers = useQuery({
     queryKey: ["client-drivers", user?.id],
@@ -220,8 +239,18 @@ function ClientDrivers() {
                       </span>
                     ) : null}
                     <span
-                      className={d.available ? "text-primary" : "text-muted-foreground"}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11.5px] font-bold ${
+                        d.available
+                          ? "bg-primary/10 text-primary"
+                          : "bg-muted text-muted-foreground"
+                      }`}
                     >
+                      <span
+                        className={`size-1.5 rounded-full ${
+                          d.available ? "status-dot-pulse bg-primary" : "bg-muted-foreground/60"
+                        }`}
+                        aria-hidden
+                      />
                       {d.available ? "Disponible" : "Indisponible"}
                     </span>
                   </div>
