@@ -1,7 +1,6 @@
 import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
 import { ClientPageTransition } from "@/components/ClientPageTransition";
-import { ClientSplash } from "@/components/ClientSplash";
 import { ClientTabBar } from "@/components/ClientTabBar";
 import { requireRoles } from "@/lib/role-guard";
 
