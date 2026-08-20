@@ -361,6 +361,7 @@ function ClientHome() {
           )}
         </section>
 
+        {noneAvailable ? null : (
         <VehicleFacts
           facts={selectedDriver?.facts ?? null}
           driverSlug={selectedDriver?.slug ?? null}
@@ -370,6 +371,7 @@ function ClientHome() {
           }
           loading={data.isLoading || photosPending}
         />
+        )}
       </main>
     </div>
   );
