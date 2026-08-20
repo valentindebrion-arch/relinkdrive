@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useMyVehicle } from "@/lib/driver-queries";
+import { ensureVehicleRowId } from "@/lib/vehicle-row";
 import { useSignedUrl } from "@/lib/storage";
 import { PageHeader } from "@/components/Ui";
 import { evaluateCompatibility, type VehicleCapacity } from "@/lib/compatibility";
@@ -273,9 +274,14 @@ export function VehiclePage() {
       ...flags,
       pets_allowed: form.pets_policy !== "refused",
     };
-    const { error } = vehicle.data
-      ? await supabase.from("vehicles").update(payload).eq("id", vehicle.data.id)
-      : await supabase.from("vehicles").insert(payload);
+    // On met toujours à jour la ligne existante : un INSERT créerait un doublon
+    // et masquerait les photos déjà enregistrées sur le véhicule.
+    const vehicleId = await ensureVehicleId();
+    if (!vehicleId) {
+      toast.error("Enregistrement impossible. Réessayez.");
+      return;
+    }
+    const { error } = await supabase.from("vehicles").update(payload).eq("id", vehicleId);
     if (error) {
       toast.error(error.message);
       return;
