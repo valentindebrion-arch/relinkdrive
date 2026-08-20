@@ -1,90 +1,163 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+/**
+ * Centre de contrôle des chauffeurs ReLink : liste administrative complète
+ * (identité, contact, zone, inscription, statut de compte, abonnement,
+ * validation) avec recherche, filtres et accès à la fiche de gestion.
+ */
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { Search, UserCog } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
-import { VERIFICATION_LABELS, DOCUMENT_LABELS, DOC_STATUS_LABELS, formatDate } from "@/lib/labels";
-import { fetchDossierState, SECTION_STATE_LABELS, type DossierState } from "@/lib/driver-dossier";
-import { DocumentViewer, type ReviewDocument } from "@/components/admin/DocumentViewer";
-import { getDocumentUrl } from "@/lib/admin-dossier.functions";
-import { useServerFn } from "@tanstack/react-start";
-import { Download, Eye } from "lucide-react";
+import { VERIFICATION_LABELS, formatDate } from "@/lib/labels";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { PlanBadge } from "@/components/admin/SubscriptionAdminCard";
 import {
-  PLAN_FILTER_LABELS,
-  matchesPlanFilter,
+  BILLING_STATUS_LABELS,
   normalizeBillingStatus,
-  type PlanFilter,
+  type BillingStatus,
 } from "@/lib/subscription";
 
-
 export const Route = createFileRoute("/_authenticated/admin/chauffeurs/")({
+  head: () => ({
+    meta: [
+      { title: "Chauffeurs — Administration ReLink" },
+      {
+        name: "description",
+        content:
+          "Centre de contrôle des chauffeurs ReLink : comptes, validation, abonnements Gratuit ou Pro et actions administratives.",
+      },
+      { property: "og:title", content: "Chauffeurs — Administration ReLink" },
+      {
+        property: "og:description",
+        content: "Gestion complète des comptes chauffeurs ReLink depuis une seule page.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: AdminDrivers,
 });
 
-const FILTERS = ["pending", "under_review", "changes_requested", "expired_documents", "verified", "all"];
+const ACCOUNT_STATUS_LABELS: Record<string, string> = {
+  active: "Actif",
+  email_unverified: "E-mail non vérifié",
+  phone_unverified: "Téléphone non vérifié",
+  restricted: "Restreint",
+  suspended: "Suspendu",
+  deleted: "Supprimé",
+};
+
+type DriverFilter =
+  | "all"
+  | "free"
+  | "pro"
+  | "pending"
+  | "active"
+  | "suspended"
+  | "complimentary"
+  | "trial"
+  | "past_due";
+
+const FILTERS: { key: DriverFilter; label: string }[] = [
+  { key: "all", label: "Tous les chauffeurs" },
+  { key: "free", label: "Gratuit" },
+  { key: "pro", label: "Pro" },
+  { key: "pending", label: "En attente de validation" },
+  { key: "active", label: "Actifs" },
+  { key: "suspended", label: "Suspendus" },
+  { key: "complimentary", label: "Pro offert" },
+  { key: "trial", label: "Période d'essai" },
+  { key: "past_due", label: "Paiement en anomalie" },
+];
+
+type DriverRow = {
+  user_id: string;
+  slug: string;
+  city: string | null;
+  zone: string | null;
+  created_at: string;
+  plan: "free" | "pro";
+  billing_status: BillingStatus;
+  verification_status: string;
+  business_name: string | null;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+  account_status: string;
+};
+
+function Avatar({ name, url }: { name: string; url: string | null }) {
+  if (url) {
+    return (
+      <img
+        src={url}
+        alt={`Photo de ${name}`}
+        loading="lazy"
+        className="size-10 shrink-0 rounded-full object-cover"
+      />
+    );
+  }
+  const initials = name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("");
+  return (
+    <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground">
+      {initials || "?"}
+    </span>
+  );
+}
 
 function AdminDrivers() {
   const qc = useQueryClient();
-  const [filter, setFilter] = useState<string>("pending");
-  const [planFilter, setPlanFilter] = useState<PlanFilter>("all");
-  const [note, setNote] = useState<Record<string, string>>({});
-  const [viewer, setViewer] = useState<ReviewDocument | null>(null);
-  const [approveId, setApproveId] = useState<string | null>(null);
-  const fetchDocUrl = useServerFn(getDocumentUrl);
+  const navigate = useNavigate();
+  const [filter, setFilter] = useState<DriverFilter>("all");
+  const [search, setSearch] = useState("");
 
-  const downloadDoc = async (documentId: string) => {
-    try {
-      const r = await fetchDocUrl({ data: { documentId, download: true } });
-      window.open(r.url, "_blank", "noopener,noreferrer");
-    } catch {
-      toast.error("Le fichier est introuvable dans le stockage.");
-    }
-  };
-
-
-  const { data: drivers, isLoading } = useQuery({
-    queryKey: ["admin", "drivers", filter],
-    queryFn: async () => {
-      let q = supabase.from("driver_profiles").select("*").order("updated_at", { ascending: false });
-      if (filter !== "all") q = q.eq("verification_status", filter as never);
-      const { data, error } = await q;
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin", "drivers", "directory"],
+    queryFn: async (): Promise<DriverRow[]> => {
+      const { data: drivers, error } = await supabase
+        .from("driver_profiles")
+        .select(
+          "user_id, slug, city, zone, created_at, plan, billing_status, verification_status, business_name",
+        )
+        .order("created_at", { ascending: false });
       if (error) throw error;
-      const ids = (data ?? []).map((d) => d.user_id);
-      const [{ data: profiles }, { data: docs }] = await Promise.all([
-        ids.length ? supabase.from("profiles").select("id, full_name, email, phone, status").in("id", ids) : { data: [] },
-        ids.length ? supabase.from("verification_documents").select("*").in("driver_id", ids) : { data: [] },
-      ]);
-      const states = await Promise.all(
-        ids.map(async (id) => {
-          try {
-            return [id, await fetchDossierState(id)] as const;
-          } catch {
-            return [id, null] as const;
-          }
-        }),
-      );
-      const stateMap = new Map<string, DossierState | null>(states);
-      return (data ?? []).map((d) => ({
-        ...d,
-        profile: (profiles ?? []).find((p) => p.id === d.user_id) ?? null,
-        docs: (docs ?? []).filter((doc) => doc.driver_id === d.user_id),
-        dossier: stateMap.get(d.user_id) ?? null,
-      }));
+      const ids = (drivers ?? []).map((d) => d.user_id);
+      const { data: profiles } = ids.length
+        ? await supabase
+            .from("profiles")
+            .select("id, full_name, email, phone, avatar_url, status")
+            .in("id", ids)
+        : { data: [] };
+      return (drivers ?? []).map((d) => {
+        const p = (profiles ?? []).find((x) => x.id === d.user_id);
+        return {
+          user_id: d.user_id,
+          slug: d.slug,
+          city: d.city,
+          zone: d.zone,
+          created_at: d.created_at,
+          plan: d.plan === "pro" ? "pro" : "free",
+          billing_status: normalizeBillingStatus(d.billing_status),
+          verification_status: d.verification_status,
+          business_name: d.business_name,
+          full_name: p?.full_name || d.business_name || "Chauffeur",
+          email: p?.email ?? null,
+          phone: p?.phone ?? null,
+          avatar_url: p?.avatar_url ?? null,
+          account_status: p?.status ?? "active",
+        };
+      });
     },
   });
 
@@ -92,278 +165,243 @@ function AdminDrivers() {
     mutationFn: async ({
       userId,
       decision,
-      reason,
     }: {
       userId: string;
-      decision: "approve" | "changes" | "reject" | "suspend" | "reinstate";
-      reason?: string | undefined;
+      decision: "suspend" | "reinstate";
     }) => {
       const { error } = await supabase.rpc("admin_decide_driver", {
         _driver: userId,
         _decision: decision,
-        _reason: reason ?? "",
+        _reason: "",
       });
       if (error) throw error;
     },
     onSuccess: (_r, v) => {
-      setApproveId(null);
-      toast.success(
-        v.decision === "approve"
-          ? "Le compte chauffeur a été validé. Il dispose désormais d'un accès complet à ReLink."
-          : "Décision enregistrée",
-      );
+      toast.success(v.decision === "suspend" ? "Compte suspendu." : "Compte réactivé.");
       void qc.invalidateQueries({ queryKey: ["admin"] });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erreur"),
   });
 
-  const reviewDoc = useMutation({
-    mutationFn: async ({
-      id,
-      status,
-      note: reviewNote,
-    }: {
-      id: string;
-      status: "approved" | "rejected";
-      note?: string | undefined;
-    }) => {
-      const { error } = await supabase.rpc("admin_review_document", {
-        _document: id,
-        _decision: status,
-        _note: reviewNote ?? "",
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["admin", "drivers"] }),
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Erreur"),
-  });
-
-  const visibleDrivers = (drivers ?? []).filter((d) =>
-    matchesPlanFilter(planFilter, {
-      plan: d.plan === "pro" ? "pro" : "free",
-      billing_status: normalizeBillingStatus(d.billing_status),
-    }),
-  );
+  const rows = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return (data ?? []).filter((d) => {
+      if (
+        q &&
+        ![d.full_name, d.business_name, d.email, d.phone].some((v) =>
+          (v ?? "").toLowerCase().includes(q),
+        )
+      )
+        return false;
+      switch (filter) {
+        case "all":
+          return true;
+        case "free":
+          return d.plan === "free";
+        case "pro":
+          return d.plan === "pro";
+        case "pending":
+          return ["pending", "under_review", "incomplete", "changes_requested"].includes(
+            d.verification_status,
+          );
+        case "active":
+          return d.verification_status === "verified" && d.account_status === "active";
+        case "suspended":
+          return d.verification_status === "suspended" || d.account_status === "suspended";
+        default:
+          return d.billing_status === filter;
+      }
+    });
+  }, [data, search, filter]);
 
   return (
     <div>
       <PageHeader
-        title="Vérification des chauffeurs"
-        description="Contrôlez les dossiers pièce par pièce et autorisez l'activation des comptes professionnels."
+        title="Chauffeurs"
+        description="Centre de contrôle des comptes chauffeurs : validation, abonnement Gratuit ou Pro, documents et activité."
       />
+
+      <div className="relative mb-3 max-w-sm">
+        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Rechercher un nom, un e-mail, un téléphone…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
 
       <div className="mb-4 flex flex-wrap gap-2">
         {FILTERS.map((f) => (
           <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`rounded-full border px-3 py-1.5 text-sm ${filter === f ? "border-primary bg-accent" : "border-border text-muted-foreground"}`}
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={`rounded-full border px-3 py-1.5 text-xs ${filter === f.key ? "border-primary bg-accent" : "border-border text-muted-foreground"}`}
           >
-            {f === "all" ? "Tous" : (VERIFICATION_LABELS[f] ?? f)}
-          </button>
-        ))}
-      </div>
-
-      <div className="mb-4 flex flex-wrap gap-2">
-        {(Object.keys(PLAN_FILTER_LABELS) as PlanFilter[]).map((f) => (
-          <button
-            key={f}
-            onClick={() => setPlanFilter(f)}
-            className={`rounded-full border px-3 py-1.5 text-xs ${planFilter === f ? "border-primary bg-accent" : "border-border text-muted-foreground"}`}
-          >
-            {PLAN_FILTER_LABELS[f]}
+            {f.label}
           </button>
         ))}
       </div>
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Chargement…</p>
-      ) : !visibleDrivers.length ? (
-        <EmptyState title="Aucun dossier" description="Aucun chauffeur ne correspond à ce filtre." />
+      ) : !rows.length ? (
+        <EmptyState
+          title="Aucun chauffeur"
+          description="Aucun chauffeur ne correspond à cette recherche."
+        />
       ) : (
-        <div className="space-y-4">
-          {visibleDrivers.map((d) => (
-            <div key={d.user_id} className="surface p-5">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="font-medium">{d.profile?.full_name || d.business_name || "Chauffeur"}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {d.profile?.email ?? "—"} · {d.profile?.phone ?? "—"} · {d.city ?? "Ville non renseignée"}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    SIRET {d.siret || "—"} · Carte VTC {d.vtc_card_number || "—"} · /chauffeur/{d.slug}
-                  </p>
-                </div>
-                <div className="flex flex-col items-end gap-2">
-                  <div className="flex items-center gap-2">
-                    <PlanBadge plan={d.plan === "pro" ? "pro" : "free"} />
-                    <StatusBadge status={d.verification_status} labels={VERIFICATION_LABELS} />
+        <>
+          {/* Tableau (écrans larges) */}
+          <div className="surface hidden overflow-x-auto lg:block">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-xs text-muted-foreground">
+                  <th className="px-4 py-3 font-medium">Chauffeur</th>
+                  <th className="px-4 py-3 font-medium">Contact</th>
+                  <th className="px-4 py-3 font-medium">Zone</th>
+                  <th className="px-4 py-3 font-medium">Inscription</th>
+                  <th className="px-4 py-3 font-medium">Compte</th>
+                  <th className="px-4 py-3 font-medium">Abonnement</th>
+                  <th className="px-4 py-3 font-medium">Validation</th>
+                  <th className="px-4 py-3 text-right font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((d) => (
+                  <tr
+                    key={d.user_id}
+                    className="border-b border-border/60 last:border-0 hover:bg-accent/30"
+                  >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar name={d.full_name} url={d.avatar_url} />
+                        <div className="min-w-0">
+                          <p className="font-medium">{d.full_name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {d.business_name || `/chauffeur/${d.slug}`}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <p className="text-xs">{d.email ?? "—"}</p>
+                      <p className="text-xs text-muted-foreground">{d.phone ?? "—"}</p>
+                    </td>
+                    <td className="px-4 py-3 text-xs">{d.city || d.zone || "—"}</td>
+                    <td className="px-4 py-3 text-xs">{formatDate(d.created_at)}</td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={d.account_status} labels={ACCOUNT_STATUS_LABELS} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col items-start gap-1">
+                        <PlanBadge plan={d.plan} />
+                        <span className="text-[11px] text-muted-foreground">
+                          {BILLING_STATUS_LABELS[d.billing_status]}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <StatusBadge
+                        status={d.verification_status}
+                        labels={VERIFICATION_LABELS}
+                      />
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <Button asChild size="sm">
+                          <Link to="/admin/chauffeurs/$driverId" params={{ driverId: d.user_id }}>
+                            <UserCog className="size-4" /> Voir / Gérer
+                          </Link>
+                        </Button>
+                        {d.verification_status === "suspended" ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={decide.isPending}
+                            onClick={() =>
+                              decide.mutate({ userId: d.user_id, decision: "reinstate" })
+                            }
+                          >
+                            Réactiver
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            disabled={decide.isPending}
+                            onClick={() =>
+                              decide.mutate({ userId: d.user_id, decision: "suspend" })
+                            }
+                          >
+                            Suspendre
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Liste (mobile / tablette) */}
+          <div className="space-y-3 lg:hidden">
+            {rows.map((d) => (
+              <div key={d.user_id} className="surface p-4">
+                <div className="flex items-start gap-3">
+                  <Avatar name={d.full_name} url={d.avatar_url} />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium">{d.full_name}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {d.email ?? "—"} · {d.phone ?? "—"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {d.city || d.zone || "Zone non renseignée"} · inscrit le{" "}
+                      {formatDate(d.created_at)}
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <PlanBadge plan={d.plan} />
+                      <StatusBadge status={d.verification_status} labels={VERIFICATION_LABELS} />
+                      <StatusBadge status={d.account_status} labels={ACCOUNT_STATUS_LABELS} />
+                    </div>
                   </div>
-                  <Button asChild size="sm" variant="outline">
-                    <Link to="/admin/chauffeurs/$driverId" params={{ driverId: d.user_id }}>
-                      Consulter le dossier
-                    </Link>
-                  </Button>
                 </div>
-              </div>
-
-
-              {d.dossier ? (
-                <div className="mt-4 grid gap-1.5 sm:grid-cols-2">
-                  <p className="text-xs text-muted-foreground sm:col-span-2">
-                    Dossier complété à {d.dossier.percent} %
-                  </p>
-                  {d.dossier.sections.map((s) => (
-                    <div key={s.key} className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-1.5 text-xs">
-                      <span>{s.label}</span>
-                      <span
-                        className={
-                          s.state === "approved"
-                            ? "text-primary"
-                            : s.state === "todo"
-                              ? "text-muted-foreground"
-                              : "text-destructive"
-                        }
-                      >
-                        {SECTION_STATE_LABELS[s.state]}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-
-              <div className="mt-4 grid gap-2">
-                {d.docs.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Aucun document déposé.</p>
-                ) : (
-                  d.docs.map((doc) => (
-                    <div key={doc.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border px-3 py-2">
-                      <div className="text-sm">
-                        <span className="font-medium">{DOCUMENT_LABELS[doc.doc_type] ?? doc.doc_type}</span>
-                        <span className="text-muted-foreground"> · expire le {formatDate(doc.expires_at)}</span>
-                        {!doc.file_path ? (
-                          <span className="block text-xs text-destructive">Document non transmis</span>
-                        ) : null}
-                      </div>
-                      <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-                        <StatusBadge status={doc.status} labels={DOC_STATUS_LABELS} />
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-primary text-primary hover:bg-accent"
-                          disabled={!doc.file_path}
-                          onClick={() => setViewer({ ...doc, driverName: d.profile?.full_name ?? d.business_name ?? null })}
-                        >
-                          <Eye className="size-4" /> Voir
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={!doc.file_path}
-                          aria-label="Télécharger"
-                          onClick={() => void downloadDoc(doc.id)}
-                        >
-                          <Download className="size-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={!doc.file_path}
-                          onClick={() => reviewDoc.mutate({ id: doc.id, status: "approved" })}
-                        >
-                          Valider
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => reviewDoc.mutate({ id: doc.id, status: "rejected", note: note[d.user_id] })}
-                        >
-                          Refuser
-                        </Button>
-                      </div>
-                    </div>
-                  ))
-
-                )}
-              </div>
-
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <Input
-                  placeholder="Motif communiqué au chauffeur"
-                  value={note[d.user_id] ?? ""}
-                  onChange={(e) => setNote((n) => ({ ...n, [d.user_id]: e.target.value }))}
-                  className="max-w-xs"
-                />
-                {d.verification_status === "verified" ? (
-                  <span className="rounded-lg bg-primary/10 px-3 py-2 text-sm font-medium text-primary">
-                    Chauffeur vérifié{d.approved_at ? ` · ${formatDate(d.approved_at)}` : ""}
-                  </span>
-                ) : (
+                <div className="mt-3 flex flex-wrap gap-2">
                   <Button
                     size="sm"
-                    disabled={!d.dossier?.all_approved || decide.isPending}
-                    title={d.dossier?.all_approved ? undefined : "Toutes les pièces obligatoires doivent être validées"}
-                    onClick={() => setApproveId(d.user_id)}
+                    onClick={() =>
+                      void navigate({
+                        to: "/admin/chauffeurs/$driverId",
+                        params: { driverId: d.user_id },
+                      })
+                    }
                   >
-                    {decide.isPending && approveId === d.user_id ? "Validation en cours…" : "Valider le compte"}
+                    <UserCog className="size-4" /> Voir / Gérer
                   </Button>
-                )}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => decide.mutate({ userId: d.user_id, decision: "changes", reason: note[d.user_id] })}
-                >
-                  Demander une correction
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => decide.mutate({ userId: d.user_id, decision: "reject", reason: note[d.user_id] })}
-                >
-                  Refuser
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => decide.mutate({ userId: d.user_id, decision: "suspend", reason: note[d.user_id] })}
-                >
-                  Suspendre
-                </Button>
-                {d.verification_status === "suspended" ? (
-                  <Button size="sm" variant="outline" onClick={() => decide.mutate({ userId: d.user_id, decision: "reinstate" })}>
-                    Réactiver
-                  </Button>
-                ) : null}
+                  {d.verification_status === "suspended" ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => decide.mutate({ userId: d.user_id, decision: "reinstate" })}
+                    >
+                      Réactiver
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => decide.mutate({ userId: d.user_id, decision: "suspend" })}
+                    >
+                      Suspendre
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </>
       )}
-
-      <AlertDialog open={!!approveId} onOpenChange={(v) => !v && setApproveId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Valider définitivement ce chauffeur ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Le chauffeur aura immédiatement accès à l'ensemble des fonctionnalités professionnelles de ReLink.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={decide.isPending}
-              onClick={(e) => {
-                e.preventDefault();
-                if (approveId) decide.mutate({ userId: approveId, decision: "approve" });
-              }}
-            >
-              Confirmer la validation
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <DocumentViewer document={viewer} open={!!viewer} onOpenChange={(v) => !v && setViewer(null)} />
     </div>
   );
 }

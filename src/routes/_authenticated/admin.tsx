@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { LayoutDashboard, ShieldCheck, Users, Car, Flag } from "lucide-react";
+import { LayoutDashboard, IdCard, Users, Car, Flag } from "lucide-react";
 import { DashboardShell, type NavItem } from "@/components/DashboardShell";
 import { requireRoles } from "@/lib/role-guard";
 
@@ -10,8 +10,8 @@ export const Route = createFileRoute("/_authenticated/admin")({
 
 const items: NavItem[] = [
   { to: "/admin", label: "Vue d'ensemble", icon: <LayoutDashboard /> },
-  { to: "/admin/chauffeurs", label: "Vérification chauffeurs", icon: <ShieldCheck /> },
   { to: "/admin/utilisateurs", label: "Utilisateurs", icon: <Users /> },
+  { to: "/admin/chauffeurs", label: "Chauffeurs", icon: <IdCard /> },
   { to: "/admin/courses", label: "Courses", icon: <Car /> },
   { to: "/admin/signalements", label: "Signalements", icon: <Flag /> },
 ];

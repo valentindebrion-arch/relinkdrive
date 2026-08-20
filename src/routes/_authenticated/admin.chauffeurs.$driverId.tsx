@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { Switch } from "@/components/ui/switch";
 import { DossierReview } from "@/components/admin/DossierReview";
 import { SubscriptionAdminCard } from "@/components/admin/SubscriptionAdminCard";
+import { DriverActivityCard } from "@/components/admin/DriverActivityCard";
 
 export const Route = createFileRoute("/_authenticated/admin/chauffeurs/$driverId")({
   head: () => ({
@@ -105,6 +106,7 @@ function DossierDetailPage() {
   return (
     <>
       <SubscriptionAdminCard driverId={driverId} />
+      <DriverActivityCard driverId={driverId} />
       <WomenProgramCard driverId={driverId} />
       <DossierReview driverId={driverId} />
     </>
