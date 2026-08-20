@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, CalendarClock, Loader2, QrCode } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,6 +42,7 @@ function haptic() {
 function ClientHome() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const blocking = useBlockingImmediate().data ?? null;
 
@@ -119,7 +120,7 @@ function ClientHome() {
             id,
             name: dp?.business_name || profile?.full_name || "Chauffeur",
             avatarUrl: profile?.avatar_url ?? null,
-            available: dp?.on_duty ?? false,
+            available: !!dp?.on_duty && dp?.accepting_requests !== false,
             vehicle: car ? [car.brand, car.model].filter(Boolean).join(" ") || null : null,
             vehiclePhotoUrl: null,
             ratingAvg: rating?.avg ?? null,
@@ -145,7 +146,9 @@ function ClientHome() {
             favoriteId,
           } as HomeDriver & { favoriteId: string | null };
         });
-        drivers = drivers.map((d) => ({ ...d }));
+        // L'accueil ne présente que les chauffeurs du carnet actuellement disponibles.
+        // La relation client / chauffeur reste intacte : « Mes chauffeurs » affiche tout le carnet.
+        drivers = drivers.filter((d) => d.available);
         // Le chauffeur le plus sollicité est présenté en premier.
         const favIndex = drivers.findIndex((d) => d.id === favoriteId);
         if (favIndex > 0) {
@@ -153,9 +156,33 @@ function ClientHome() {
           if (fav) drivers.unshift(fav);
         }
       }
-      return { requests: requests ?? [], rides: rides ?? [], drivers };
+      return {
+        requests: requests ?? [],
+        rides: rides ?? [],
+        drivers,
+        connectionsCount: ids.length,
+      };
     },
   });
+
+  // Temps réel : le passage En service / Hors service d'un chauffeur met à jour l'accueil.
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel("client-home-availability")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "driver_profiles" },
+        () => {
+          void queryClient.invalidateQueries({ queryKey: ["client-home", user.id] });
+          void queryClient.invalidateQueries({ queryKey: ["client-drivers", user.id] });
+        },
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   const rawDrivers = useMemo(() => data.data?.drivers ?? [], [data.data?.drivers]);
   const photos = useSignedUrls(
@@ -221,7 +248,10 @@ function ClientHome() {
   const ongoingLabel = activeRide ? "Suivre ma course en cours" : "Suivre ma demande en cours";
 
   const firstName = (user?.user_metadata?.["full_name"] as string | undefined)?.split(" ")[0] ?? "";
-  const noDriver = !data.isLoading && drivers.length === 0;
+  const connectionsCount = data.data?.connectionsCount ?? 0;
+  // Carnet vide : aucun chauffeur enregistré. Aucun disponible : carnet rempli mais tous hors service.
+  const noDriver = !data.isLoading && drivers.length === 0 && connectionsCount === 0;
+  const noneAvailable = !data.isLoading && drivers.length === 0 && connectionsCount > 0;
 
   function startRequest(mode: "now" | "later") {
     haptic();
@@ -264,18 +294,43 @@ function ClientHome() {
           </Link>
         ) : null}
 
-        <div className="home-rise" style={{ animationDelay: "40ms" }}>
-          <HomeDriverCard
-            drivers={drivers}
-            index={safeIndex}
-            onGo={goToDriver}
-            dir={dir}
-            loading={data.isLoading || photosPending}
-          />
-        </div>
+        {noneAvailable ? null : (
+          <div className="home-rise" style={{ animationDelay: "40ms" }}>
+            <HomeDriverCard
+              drivers={drivers}
+              index={safeIndex}
+              onGo={goToDriver}
+              dir={dir}
+              loading={data.isLoading || photosPending}
+            />
+          </div>
+        )}
 
         <section className="home-rise space-y-2" style={{ animationDelay: "90ms" }}>
-          {noDriver ? (
+          {noneAvailable ? (
+            <div className="rounded-[1.5rem] border border-border/70 bg-card p-5 text-center">
+              <p className="text-sm font-bold">
+                Aucun de vos chauffeurs n’est disponible pour le moment.
+              </p>
+              <p className="mt-1 text-[13px] text-muted-foreground">
+                Ils restent dans votre carnet : vous les retrouverez dès leur retour en service.
+              </p>
+              <div className="mt-4 flex flex-col gap-2">
+                <Link
+                  to="/espace/chauffeurs"
+                  className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-3 text-[14px] font-extrabold text-primary-foreground transition active:scale-[0.985]"
+                >
+                  Voir mes chauffeurs
+                </Link>
+                <Link
+                  to="/espace/decouvrir"
+                  className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-primary/35 px-3 text-[14px] font-bold text-primary transition active:scale-[0.985]"
+                >
+                  Trouver un chauffeur
+                </Link>
+              </div>
+            </div>
+          ) : noDriver ? (
             <Link
               to="/espace/chauffeurs"
               className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-3 text-[15px] font-extrabold text-primary-foreground transition active:scale-[0.985]"
@@ -306,6 +361,7 @@ function ClientHome() {
           )}
         </section>
 
+        {noneAvailable ? null : (
         <VehicleFacts
           facts={selectedDriver?.facts ?? null}
           driverSlug={selectedDriver?.slug ?? null}
@@ -315,6 +371,7 @@ function ClientHome() {
           }
           loading={data.isLoading || photosPending}
         />
+        )}
       </main>
     </div>
   );
