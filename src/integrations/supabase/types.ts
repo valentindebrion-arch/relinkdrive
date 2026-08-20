@@ -3032,6 +3032,10 @@ export type Database = {
         Args: { _driver: string; _note?: string; _section: string }
         Returns: Json
       }
+      can_read_driver_media: {
+        Args: { _folder: string; _viewer: string }
+        Returns: boolean
+      }
       cancel_client_ride_request: {
         Args: { _request: string }
         Returns: Database["public"]["Enums"]["ride_status"]
