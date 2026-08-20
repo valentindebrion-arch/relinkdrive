@@ -346,7 +346,7 @@ function AdminTop10() {
                     <PlanBadge plan={d.plan} />
                     <StatusBadge
                       status={d.verification_status}
-                      label={VERIFICATION_LABELS[d.verification_status] ?? d.verification_status}
+                      labels={VERIFICATION_LABELS}
                     />
                   </div>
                   <div className="flex items-center gap-1">
@@ -464,9 +464,7 @@ function AdminTop10() {
                             <PlanBadge plan={d.plan} />
                             <StatusBadge
                               status={d.verification_status}
-                              label={
-                                VERIFICATION_LABELS[d.verification_status] ?? d.verification_status
-                              }
+                              labels={VERIFICATION_LABELS}
                             />
                           </div>
                         </div>
