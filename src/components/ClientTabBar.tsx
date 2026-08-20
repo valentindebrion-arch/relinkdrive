@@ -1,16 +1,16 @@
 import { useRef } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Car, Users, UserRound } from "lucide-react";
+import { Compass, Home, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+/** Trois univers : Mes chauffeurs ← Accueil → Trouver un chauffeur. */
 const TABS = [
+  { to: "/espace/chauffeurs", label: "Mes chauffeurs", icon: Users },
   { to: "/espace", label: "Accueil", icon: Home },
-  { to: "/espace/courses", label: "Courses", icon: Car },
-  { to: "/espace/chauffeurs", label: "Chauffeurs", icon: Users },
-  { to: "/espace/parametres", label: "Profil", icon: UserRound },
+  { to: "/espace/decouvrir", label: "Trouver", icon: Compass },
 ] as const;
 
-/** Navigation principale fixe de l'espace client (4 onglets). */
+/** Navigation principale fixe de l'espace client. */
 export function ClientTabBar({ disabled = false }: { disabled?: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const lastNav = useRef(0);
@@ -25,7 +25,9 @@ export function ClientTabBar({ disabled = false }: { disabled?: boolean }) {
       <ul className="mx-auto flex max-w-lg items-stretch">
         {TABS.map((tab) => {
           const active =
-            pathname === tab.to || (tab.to !== "/espace" && pathname.startsWith(tab.to));
+            tab.to === "/espace"
+              ? pathname === "/espace" || pathname === "/espace/"
+              : pathname.startsWith(tab.to);
           return (
             <li key={tab.to} className="flex-1">
               <Link
@@ -51,7 +53,7 @@ export function ClientTabBar({ disabled = false }: { disabled?: boolean }) {
                 <span
                   aria-hidden
                   className={cn(
-                    "absolute top-1.5 h-8 w-14 rounded-full bg-primary/8 transition-opacity duration-200",
+                    "absolute top-1.5 h-8 w-16 rounded-full bg-primary/8 transition-opacity duration-200",
                     active ? "opacity-100" : "opacity-0",
                   )}
                 />

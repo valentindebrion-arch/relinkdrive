@@ -28,6 +28,7 @@ import { Route as AuthenticatedAdminSignalementsRouteImport } from './routes/_au
 import { Route as AuthenticatedAdminUtilisateursRouteImport } from './routes/_authenticated/admin.utilisateurs'
 import { Route as AuthenticatedEspaceIndexRouteImport } from './routes/_authenticated/espace.index'
 import { Route as AuthenticatedEspaceChauffeursRouteImport } from './routes/_authenticated/espace.chauffeurs'
+import { Route as AuthenticatedEspaceDecouvrirRouteImport } from './routes/_authenticated/espace.decouvrir'
 import { Route as AuthenticatedEspaceDemandesRouteImport } from './routes/_authenticated/espace.demandes'
 import { Route as AuthenticatedEspaceParametresRouteImport } from './routes/_authenticated/espace.parametres'
 import { Route as AuthenticatedProIndexRouteImport } from './routes/_authenticated/pro.index'
@@ -163,6 +164,12 @@ const AuthenticatedEspaceChauffeursRoute =
   AuthenticatedEspaceChauffeursRouteImport.update({
     id: '/chauffeurs',
     path: '/chauffeurs',
+    getParentRoute: () => AuthenticatedEspaceRoute,
+  } as any)
+const AuthenticatedEspaceDecouvrirRoute =
+  AuthenticatedEspaceDecouvrirRouteImport.update({
+    id: '/decouvrir',
+    path: '/decouvrir',
     getParentRoute: () => AuthenticatedEspaceRoute,
   } as any)
 const AuthenticatedEspaceDemandesRoute =
@@ -405,6 +412,7 @@ export interface FileRoutesByFullPath {
   '/admin/signalements': typeof AuthenticatedAdminSignalementsRoute
   '/admin/utilisateurs': typeof AuthenticatedAdminUtilisateursRoute
   '/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
+  '/espace/decouvrir': typeof AuthenticatedEspaceDecouvrirRoute
   '/espace/demandes': typeof AuthenticatedEspaceDemandesRoute
   '/espace/parametres': typeof AuthenticatedEspaceParametresRoute
   '/pro/activite': typeof AuthenticatedProActiviteRoute
@@ -460,6 +468,7 @@ export interface FileRoutesByTo {
   '/admin/signalements': typeof AuthenticatedAdminSignalementsRoute
   '/admin/utilisateurs': typeof AuthenticatedAdminUtilisateursRoute
   '/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
+  '/espace/decouvrir': typeof AuthenticatedEspaceDecouvrirRoute
   '/espace/demandes': typeof AuthenticatedEspaceDemandesRoute
   '/espace/parametres': typeof AuthenticatedEspaceParametresRoute
   '/pro/activite': typeof AuthenticatedProActiviteRoute
@@ -518,6 +527,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/signalements': typeof AuthenticatedAdminSignalementsRoute
   '/_authenticated/admin/utilisateurs': typeof AuthenticatedAdminUtilisateursRoute
   '/_authenticated/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
+  '/_authenticated/espace/decouvrir': typeof AuthenticatedEspaceDecouvrirRoute
   '/_authenticated/espace/demandes': typeof AuthenticatedEspaceDemandesRoute
   '/_authenticated/espace/parametres': typeof AuthenticatedEspaceParametresRoute
   '/_authenticated/pro/activite': typeof AuthenticatedProActiviteRoute
@@ -578,6 +588,7 @@ export interface FileRouteTypes {
     | '/admin/signalements'
     | '/admin/utilisateurs'
     | '/espace/chauffeurs'
+    | '/espace/decouvrir'
     | '/espace/demandes'
     | '/espace/parametres'
     | '/pro/activite'
@@ -633,6 +644,7 @@ export interface FileRouteTypes {
     | '/admin/signalements'
     | '/admin/utilisateurs'
     | '/espace/chauffeurs'
+    | '/espace/decouvrir'
     | '/espace/demandes'
     | '/espace/parametres'
     | '/pro/activite'
@@ -690,6 +702,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/signalements'
     | '/_authenticated/admin/utilisateurs'
     | '/_authenticated/espace/chauffeurs'
+    | '/_authenticated/espace/decouvrir'
     | '/_authenticated/espace/demandes'
     | '/_authenticated/espace/parametres'
     | '/_authenticated/pro/activite'
@@ -880,6 +893,13 @@ declare module '@tanstack/react-router' {
       path: '/chauffeurs'
       fullPath: '/espace/chauffeurs'
       preLoaderRoute: typeof AuthenticatedEspaceChauffeursRouteImport
+      parentRoute: typeof AuthenticatedEspaceRoute
+    }
+    '/_authenticated/espace/decouvrir': {
+      id: '/_authenticated/espace/decouvrir'
+      path: '/decouvrir'
+      fullPath: '/espace/decouvrir'
+      preLoaderRoute: typeof AuthenticatedEspaceDecouvrirRouteImport
       parentRoute: typeof AuthenticatedEspaceRoute
     }
     '/_authenticated/espace/demandes': {
@@ -1178,6 +1198,7 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedEspaceRouteChildren {
   AuthenticatedEspaceChauffeursRoute: typeof AuthenticatedEspaceChauffeursRoute
+  AuthenticatedEspaceDecouvrirRoute: typeof AuthenticatedEspaceDecouvrirRoute
   AuthenticatedEspaceDemandesRoute: typeof AuthenticatedEspaceDemandesRoute
   AuthenticatedEspaceParametresRoute: typeof AuthenticatedEspaceParametresRoute
   AuthenticatedEspaceIndexRoute: typeof AuthenticatedEspaceIndexRoute
@@ -1191,6 +1212,7 @@ interface AuthenticatedEspaceRouteChildren {
 
 const AuthenticatedEspaceRouteChildren: AuthenticatedEspaceRouteChildren = {
   AuthenticatedEspaceChauffeursRoute: AuthenticatedEspaceChauffeursRoute,
+  AuthenticatedEspaceDecouvrirRoute: AuthenticatedEspaceDecouvrirRoute,
   AuthenticatedEspaceDemandesRoute: AuthenticatedEspaceDemandesRoute,
   AuthenticatedEspaceParametresRoute: AuthenticatedEspaceParametresRoute,
   AuthenticatedEspaceIndexRoute: AuthenticatedEspaceIndexRoute,

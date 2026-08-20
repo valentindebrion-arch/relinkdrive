@@ -3232,6 +3232,35 @@ export type Database = {
           zone: string
         }[]
       }
+      get_discover_drivers: {
+        Args: { _limit?: number }
+        Returns: {
+          accepting_requests: boolean
+          airports: string[]
+          avatar_url: string
+          bio: string
+          city: string
+          display_name: string
+          full_name: string
+          languages: string[]
+          long_distance: boolean
+          max_passengers: number
+          member_since: string
+          on_duty: boolean
+          public_intro: string
+          rating_avg: number
+          rating_count: number
+          services: string[]
+          slug: string
+          user_id: string
+          vehicle_brand: string
+          vehicle_category: string
+          vehicle_interior_photo_url: string
+          vehicle_model: string
+          vehicle_photo_url: string
+          zone: string
+        }[]
+      }
       get_driver_booking_theme: {
         Args: { _driver?: string; _slug?: string }
         Returns: {
