@@ -37,6 +37,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useSignedUrl } from "@/lib/storage";
+import { VehicleGallery } from "@/components/VehicleGallery";
+
 import { BRAND } from "@/lib/brand";
 import {
   BookingThemeScope,
@@ -261,8 +263,12 @@ function DriverPublicPage() {
     void connect();
   }, [user?.id, driverId, connQuery.isLoading, connQuery.data, slug, connect]);
 
-  const vehiclePhoto = useSignedUrl("vehicles", d?.vehicle_photo_url).data;
-  const interiorPhoto = useSignedUrl("vehicles", d?.vehicle_interior_photo_url).data;
+  const exteriorQuery = useSignedUrl("vehicles", d?.vehicle_photo_url);
+  const interiorQuery = useSignedUrl("vehicles", d?.vehicle_interior_photo_url);
+  const vehiclePhoto = exteriorQuery.data ?? null;
+  const interiorPhoto = interiorQuery.data ?? null;
+  const vehiclePhotos = { isLoading: exteriorQuery.isLoading || interiorQuery.isLoading };
+
 
   if (driverQuery.isLoading) {
     return <div className="p-10 text-center text-sm text-muted-foreground">Chargement…</div>;
@@ -609,33 +615,27 @@ function DriverPublicPage() {
 
 
 
-        {/* 3. Véhicule */}
+        {/* 3. Photos du véhicule — section critique, toujours affichée */}
+        <VehicleGallery
+          loading={vehiclePhotos.isLoading}
+          photos={[
+            {
+              key: d.vehicle_photo_url ?? "exterior",
+              url: vehiclePhoto,
+              label: "Extérieur du véhicule",
+            },
+            {
+              key: d.vehicle_interior_photo_url ?? "interior",
+              url: interiorPhoto,
+              label: "Intérieur du véhicule",
+            },
+          ]}
+        />
+
+        {/* 4. Véhicule */}
         {d.vehicle_brand || d.max_passengers ? (
           <Section title="Le véhicule">
-            {vehiclePhoto || interiorPhoto ? (
-              <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {[
-                  { src: vehiclePhoto, label: "Extérieur du véhicule" },
-                  { src: interiorPhoto, label: "Intérieur du véhicule" },
-                ]
-                  .filter((p) => p.src)
-                  .map((p) => (
-                    <figure key={p.label} className="overflow-hidden rounded-xl border bg-muted/30">
-                      <a href={p.src!} target="_blank" rel="noopener noreferrer">
-                        <img
-                          src={p.src!}
-                          alt={p.label}
-                          loading="lazy"
-                          className="aspect-[4/3] w-full object-cover"
-                        />
-                      </a>
-                      <figcaption className="px-3 py-2 text-xs text-muted-foreground">{p.label}</figcaption>
-                    </figure>
-                  ))}
-              </div>
-            ) : (
-              <p className="mb-3 text-xs text-muted-foreground">Photos du véhicule non disponibles</p>
-            )}
+
 
             <p className="font-medium">
               {[d.vehicle_brand, d.vehicle_model, d.vehicle_color].filter(Boolean).join(" · ")}
