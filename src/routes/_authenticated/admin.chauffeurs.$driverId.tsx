@@ -108,6 +108,7 @@ function DossierDetailPage() {
     <>
       <SubscriptionAdminCard driverId={driverId} />
       <DriverActivityCard driverId={driverId} />
+      <VehiclePhotosAdminCard driverId={driverId} />
       <WomenProgramCard driverId={driverId} />
       <DossierReview driverId={driverId} />
     </>
