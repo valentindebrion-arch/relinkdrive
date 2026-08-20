@@ -130,19 +130,13 @@ export function VehiclePage() {
   const MAX_BYTES = 8 * 1024 * 1024;
   const ACCEPTED = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
 
-  /** Garantit l'existence d'une ligne véhicule avant d'y rattacher une photo. */
+  /** Garantit l'existence d'une ligne véhicule (jamais de doublon) avant toute écriture. */
   async function ensureVehicleId(): Promise<string | null> {
-    if (vehicle.data?.id) return vehicle.data.id;
-    const { data, error } = await supabase
-      .from("vehicles")
-      .insert({ driver_id: user!.id })
-      .select("id")
-      .single();
-    if (error) {
-      toast.error("La photo n'a pas pu être enregistrée. Votre ancienne photo a été conservée.");
+    try {
+      return await ensureVehicleRowId(user!.id);
+    } catch {
       return null;
     }
-    return data.id;
   }
 
   /** Envoi puis enregistrement immédiat du chemin permanent (jamais une URL temporaire). */
@@ -162,6 +156,7 @@ export function VehiclePage() {
     const vehicleId = await ensureVehicleId();
     if (!vehicleId) {
       setBusy(null);
+      toast.error("La photo n'a pas pu être enregistrée. Votre ancienne photo a été conservée.");
       return;
     }
     const path = `${user!.id}/vehicles/${vehicleId}/${kind}/${crypto.randomUUID()}.${ext}`;
@@ -178,18 +173,36 @@ export function VehiclePage() {
       .from("vehicles")
       .update(field === "photo_url" ? { photo_url: path } : { photo_interior_url: path })
       .eq("id", vehicleId);
-    setBusy(null);
     if (dbError) {
+      setBusy(null);
       await supabase.storage.from("vehicles").remove([path]);
       toast.error("La photo n'a pas pu être enregistrée. Votre ancienne photo a été conservée.");
       return;
     }
+    // Contrôle après upload : la référence est relue depuis le serveur et le
+    // fichier doit exister réellement dans le stockage permanent.
+    const { data: saved } = await supabase
+      .from("vehicles")
+      .select("photo_url, photo_interior_url")
+      .eq("id", vehicleId)
+      .maybeSingle();
+    const storedPath = saved?.[field] ?? null;
+    const { data: check } = await supabase.storage
+      .from("vehicles")
+      .createSignedUrl(path, 60 * 60);
+    setBusy(null);
+    if (storedPath !== path || !check?.signedUrl) {
+      toast.error("La photo n'a pas pu être vérifiée. Votre ancienne photo a été conservée.");
+      return;
+    }
     setForm((f) => ({ ...f, [field]: path }));
     void qc.invalidateQueries({ queryKey: ["my-vehicle"] });
+    void qc.invalidateQueries({ queryKey: ["signed-url", "vehicles"] });
     // L'ancien fichier n'est supprimé qu'une fois la nouvelle référence confirmée.
     if (previous && previous !== path) await supabase.storage.from("vehicles").remove([previous]);
-    toast.success("Les photos de votre véhicule ont bien été enregistrées.");
+    toast.success("Photo enregistrée");
   }
+
 
   /** Suppression volontaire d'une seule photo, sans toucher à l'autre. */
   async function removePhoto(field: PhotoField) {
