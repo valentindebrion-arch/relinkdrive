@@ -164,6 +164,25 @@ function ClientHome() {
     },
   });
 
+  // Temps réel : le passage En service / Hors service d'un chauffeur met à jour l'accueil.
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel("client-home-availability")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "driver_profiles" },
+        () => {
+          void queryClient.invalidateQueries({ queryKey: ["client-home", user.id] });
+          void queryClient.invalidateQueries({ queryKey: ["client-drivers", user.id] });
+        },
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
+
   const rawDrivers = useMemo(() => data.data?.drivers ?? [], [data.data?.drivers]);
   const photos = useSignedUrls(
     "vehicles",
