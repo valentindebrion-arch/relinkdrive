@@ -33,7 +33,6 @@ import { Route as AuthenticatedEspaceDemandesRouteImport } from './routes/_authe
 import { Route as AuthenticatedEspaceParametresRouteImport } from './routes/_authenticated/espace.parametres'
 import { Route as AuthenticatedProIndexRouteImport } from './routes/_authenticated/pro.index'
 import { Route as AuthenticatedProActiviteRouteImport } from './routes/_authenticated/pro.activite'
-import { Route as AuthenticatedProAssistantRouteImport } from './routes/_authenticated/pro.assistant'
 import { Route as AuthenticatedProClientsRouteImport } from './routes/_authenticated/pro.clients'
 import { Route as AuthenticatedProClientsFacturesRouteImport } from './routes/_authenticated/pro.clients-factures'
 import { Route as AuthenticatedProDemandesRouteImport } from './routes/_authenticated/pro.demandes'
@@ -194,12 +193,6 @@ const AuthenticatedProActiviteRoute =
   AuthenticatedProActiviteRouteImport.update({
     id: '/activite',
     path: '/activite',
-    getParentRoute: () => AuthenticatedProRoute,
-  } as any)
-const AuthenticatedProAssistantRoute =
-  AuthenticatedProAssistantRouteImport.update({
-    id: '/assistant',
-    path: '/assistant',
     getParentRoute: () => AuthenticatedProRoute,
   } as any)
 const AuthenticatedProClientsRoute = AuthenticatedProClientsRouteImport.update({
@@ -423,7 +416,6 @@ export interface FileRoutesByFullPath {
   '/espace/demandes': typeof AuthenticatedEspaceDemandesRoute
   '/espace/parametres': typeof AuthenticatedEspaceParametresRoute
   '/pro/activite': typeof AuthenticatedProActiviteRoute
-  '/pro/assistant': typeof AuthenticatedProAssistantRoute
   '/pro/clients': typeof AuthenticatedProClientsRouteWithChildren
   '/pro/clients-factures': typeof AuthenticatedProClientsFacturesRoute
   '/pro/demandes': typeof AuthenticatedProDemandesRoute
@@ -480,7 +472,6 @@ export interface FileRoutesByTo {
   '/espace/demandes': typeof AuthenticatedEspaceDemandesRoute
   '/espace/parametres': typeof AuthenticatedEspaceParametresRoute
   '/pro/activite': typeof AuthenticatedProActiviteRoute
-  '/pro/assistant': typeof AuthenticatedProAssistantRoute
   '/pro/clients-factures': typeof AuthenticatedProClientsFacturesRoute
   '/pro/demandes': typeof AuthenticatedProDemandesRoute
   '/pro/disponibilites': typeof AuthenticatedProDisponibilitesRoute
@@ -540,7 +531,6 @@ export interface FileRoutesById {
   '/_authenticated/espace/demandes': typeof AuthenticatedEspaceDemandesRoute
   '/_authenticated/espace/parametres': typeof AuthenticatedEspaceParametresRoute
   '/_authenticated/pro/activite': typeof AuthenticatedProActiviteRoute
-  '/_authenticated/pro/assistant': typeof AuthenticatedProAssistantRoute
   '/_authenticated/pro/clients': typeof AuthenticatedProClientsRouteWithChildren
   '/_authenticated/pro/clients-factures': typeof AuthenticatedProClientsFacturesRoute
   '/_authenticated/pro/demandes': typeof AuthenticatedProDemandesRoute
@@ -602,7 +592,6 @@ export interface FileRouteTypes {
     | '/espace/demandes'
     | '/espace/parametres'
     | '/pro/activite'
-    | '/pro/assistant'
     | '/pro/clients'
     | '/pro/clients-factures'
     | '/pro/demandes'
@@ -659,7 +648,6 @@ export interface FileRouteTypes {
     | '/espace/demandes'
     | '/espace/parametres'
     | '/pro/activite'
-    | '/pro/assistant'
     | '/pro/clients-factures'
     | '/pro/demandes'
     | '/pro/disponibilites'
@@ -718,7 +706,6 @@ export interface FileRouteTypes {
     | '/_authenticated/espace/demandes'
     | '/_authenticated/espace/parametres'
     | '/_authenticated/pro/activite'
-    | '/_authenticated/pro/assistant'
     | '/_authenticated/pro/clients'
     | '/_authenticated/pro/clients-factures'
     | '/_authenticated/pro/demandes'
@@ -941,13 +928,6 @@ declare module '@tanstack/react-router' {
       path: '/activite'
       fullPath: '/pro/activite'
       preLoaderRoute: typeof AuthenticatedProActiviteRouteImport
-      parentRoute: typeof AuthenticatedProRoute
-    }
-    '/_authenticated/pro/assistant': {
-      id: '/_authenticated/pro/assistant'
-      path: '/assistant'
-      fullPath: '/pro/assistant'
-      preLoaderRoute: typeof AuthenticatedProAssistantRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
     '/_authenticated/pro/clients': {
@@ -1285,7 +1265,6 @@ const AuthenticatedProDossierRouteWithChildren =
 
 interface AuthenticatedProRouteChildren {
   AuthenticatedProActiviteRoute: typeof AuthenticatedProActiviteRoute
-  AuthenticatedProAssistantRoute: typeof AuthenticatedProAssistantRoute
   AuthenticatedProClientsRoute: typeof AuthenticatedProClientsRouteWithChildren
   AuthenticatedProClientsFacturesRoute: typeof AuthenticatedProClientsFacturesRoute
   AuthenticatedProDemandesRoute: typeof AuthenticatedProDemandesRoute
@@ -1310,7 +1289,6 @@ interface AuthenticatedProRouteChildren {
 
 const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
   AuthenticatedProActiviteRoute: AuthenticatedProActiviteRoute,
-  AuthenticatedProAssistantRoute: AuthenticatedProAssistantRoute,
   AuthenticatedProClientsRoute: AuthenticatedProClientsRouteWithChildren,
   AuthenticatedProClientsFacturesRoute: AuthenticatedProClientsFacturesRoute,
   AuthenticatedProDemandesRoute: AuthenticatedProDemandesRoute,

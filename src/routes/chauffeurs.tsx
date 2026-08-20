@@ -6,7 +6,7 @@ import {
   Receipt,
   CalendarClock,
   Car,
-  Bot,
+  SlidersHorizontal,
   BadgeEuro,
 } from "lucide-react";
 import { BRAND } from "@/lib/brand";
@@ -61,7 +61,7 @@ const features = [
     text: "Assurance, contrôle technique et carte VTC suivis avec alertes d'expiration.",
   },
   {
-    icon: Bot,
+    icon: SlidersHorizontal,
     title: "Tarification",
     text: "Réglez votre prix au kilomètre, la prise en charge et le tarif de nuit en quelques secondes.",
   },
