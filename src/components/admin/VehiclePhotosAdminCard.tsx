@@ -235,7 +235,7 @@ export function VehiclePhotosAdminCard({ driverId }: { driverId: string }) {
       _driver_id: driverId,
       _field: field,
       _action: "replace",
-      _old_path: previous,
+      _old_path: previous ?? "",
       _new_path: path,
     });
     // L'ancien fichier n'est retiré qu'après confirmation complète du nouveau.
@@ -268,7 +268,7 @@ export function VehiclePhotosAdminCard({ driverId }: { driverId: string }) {
       _field: field,
       _action: "delete",
       _old_path: previous,
-      _new_path: null,
+      _new_path: "",
     });
     await supabase.storage.from("vehicles").remove([previous]);
     setBusy(null);
