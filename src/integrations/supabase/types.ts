@@ -3024,6 +3024,16 @@ export type Database = {
         Args: { _decision: string; _driver: string; _reason?: string }
         Returns: Json
       }
+      admin_log_vehicle_photo: {
+        Args: {
+          _action: string
+          _driver_id: string
+          _field: string
+          _new_path: string
+          _old_path: string
+        }
+        Returns: undefined
+      }
       admin_review_document: {
         Args: {
           _decision: Database["public"]["Enums"]["document_status"]
