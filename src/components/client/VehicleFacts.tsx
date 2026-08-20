@@ -10,6 +10,8 @@ import { Armchair, Briefcase, Dog, Luggage, Users } from "lucide-react";
  */
 export type VehicleFactsData = {
   vehicleId: string | null;
+  exteriorPhotoPath: string | null;
+  exteriorPhotoUrl: string | null;
   interiorPhotoPath: string | null;
   interiorPhotoUrl: string | null;
   maxPassengers: number | null;
