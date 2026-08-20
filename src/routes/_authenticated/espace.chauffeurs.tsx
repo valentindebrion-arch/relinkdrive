@@ -199,16 +199,10 @@ function ClientDrivers() {
         ) : (
           filtered.map((d) => {
             const photoUrl = d.photoPath ? (photos.data?.[d.photoPath] ?? null) : null;
-            const Card = d.slug ? Link : "div";
-            const cardProps = d.slug
-              ? { to: "/chauffeur/$slug", params: { slug: d.slug } }
-              : ({} as Record<string, unknown>);
-            return (
-              <Card
-                key={d.id}
-                {...cardProps}
-                className="group block overflow-hidden rounded-[1.25rem] border border-border bg-card shadow-card transition active:scale-[0.985]"
-              >
+            const cardClassName =
+              "group block overflow-hidden rounded-[1.25rem] border border-border bg-card shadow-card transition active:scale-[0.985]";
+            const cardBody = (
+              <>
                 {/* Photo véhicule — pleine largeur, format identique aux cartes Top 10 */}
                 <div className="relative aspect-video w-full bg-muted">
                   {photoUrl ? (
@@ -287,7 +281,22 @@ function ClientDrivers() {
                       : "Aucun trajet ensemble"}
                   </p>
                 </div>
-              </Card>
+              </>
+            );
+
+            return d.slug ? (
+              <Link
+                key={d.id}
+                to="/chauffeur/$slug"
+                params={{ slug: d.slug }}
+                className={cardClassName}
+              >
+                {cardBody}
+              </Link>
+            ) : (
+              <div key={d.id} className={cardClassName}>
+                {cardBody}
+              </div>
             );
           })
         )}
