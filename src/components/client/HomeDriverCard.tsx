@@ -115,7 +115,8 @@ export function HomeDriverCard({
                   alt={`Véhicule de ${driver.name}`}
                   loading="eager"
                   decoding="async"
-                  className="size-full object-cover"
+                  draggable={false}
+                  className="size-full cursor-default object-cover"
                   onLoad={() => setPhotoReady(true)}
                 />
               </>

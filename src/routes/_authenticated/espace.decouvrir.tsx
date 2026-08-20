@@ -126,8 +126,9 @@ function DiscoverPage() {
                         <img
                           src={photoUrl}
                           alt={`Véhicule de ${driver.display_name}`}
-                          className="size-full object-cover transition duration-300 group-hover:scale-[1.02]"
+                          className="size-full cursor-default object-cover"
                           loading="lazy"
+                          draggable={false}
                         />
                       ) : null}
                       <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-primary/92 px-2.5 py-1 text-[11px] font-extrabold text-primary-foreground shadow-sm backdrop-blur-sm">

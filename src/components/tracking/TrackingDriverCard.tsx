@@ -43,7 +43,8 @@ export function TrackingDriverCard({
             src={vehiclePhotoUrl}
             alt={vehicleLabel ? `Véhicule ${vehicleLabel}` : "Véhicule du chauffeur"}
             loading="lazy"
-            className="h-14 w-20 shrink-0 rounded-xl object-cover"
+            draggable={false}
+            className="h-14 w-20 shrink-0 cursor-default rounded-xl object-cover"
           />
         ) : null}
       </div>

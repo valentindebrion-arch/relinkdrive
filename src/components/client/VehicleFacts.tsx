@@ -69,6 +69,8 @@ function ExteriorPhoto({
             alt={alt}
             loading="lazy"
             decoding="async"
+            draggable={false}
+            className="cursor-default"
             onLoad={() => setReady(true)}
             onError={() => setFailed(true)}
           />
@@ -125,6 +127,8 @@ function InteriorPhoto({
             alt={alt}
             loading="lazy"
             decoding="async"
+            draggable={false}
+            className="cursor-default"
             onLoad={() => setReady(true)}
             onError={() => setFailed(true)}
           />

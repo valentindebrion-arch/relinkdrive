@@ -84,7 +84,8 @@ function VehicleHero({
             loading="eager"
             fetchPriority="high"
             decoding="async"
-            className="opacity-100"
+            draggable={false}
+            className="cursor-default opacity-100"
             onLoad={() => setReady(true)}
             onError={() => {
               if (onRefresh && refreshAttempt.current !== imageKey) {

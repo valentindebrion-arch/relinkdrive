@@ -25,16 +25,15 @@ function Slide({ photo, loading }: { photo: VehiclePhoto; loading: boolean }) {
     <figure className="w-[78%] shrink-0 snap-start overflow-hidden rounded-2xl border border-border bg-muted/30 sm:w-[calc(50%-0.375rem)]">
       <div className="relative aspect-[4/3] w-full bg-muted">
         {show ? (
-          <a href={photo.url!} target="_blank" rel="noopener noreferrer">
-            <img
-              src={photo.url!}
-              alt={photo.label}
-              loading="lazy"
-              decoding="async"
-              onError={() => setFailed(true)}
-              className="size-full object-cover"
-            />
-          </a>
+          <img
+            src={photo.url!}
+            alt={photo.label}
+            loading="lazy"
+            decoding="async"
+            draggable={false}
+            onError={() => setFailed(true)}
+            className="size-full cursor-default object-cover"
+          />
         ) : loading ? (
           <span className="absolute inset-0 animate-pulse bg-muted" aria-hidden />
         ) : (
