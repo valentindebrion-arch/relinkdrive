@@ -261,8 +261,12 @@ function DriverPublicPage() {
     void connect();
   }, [user?.id, driverId, connQuery.isLoading, connQuery.data, slug, connect]);
 
-  const vehiclePhoto = useSignedUrl("vehicles", d?.vehicle_photo_url).data;
-  const interiorPhoto = useSignedUrl("vehicles", d?.vehicle_interior_photo_url).data;
+  const exteriorQuery = useSignedUrl("vehicles", d?.vehicle_photo_url);
+  const interiorQuery = useSignedUrl("vehicles", d?.vehicle_interior_photo_url);
+  const vehiclePhoto = exteriorQuery.data ?? null;
+  const interiorPhoto = interiorQuery.data ?? null;
+  const vehiclePhotos = { isLoading: exteriorQuery.isLoading || interiorQuery.isLoading };
+
 
   if (driverQuery.isLoading) {
     return <div className="p-10 text-center text-sm text-muted-foreground">Chargement…</div>;
