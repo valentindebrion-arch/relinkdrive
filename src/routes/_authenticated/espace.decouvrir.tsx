@@ -81,28 +81,34 @@ function DiscoverPage() {
       <header className="mt-1">
         <h1 className="text-[22px] leading-tight font-black tracking-tight">La crème de la crème</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          La sélection officielle ReLink : jusqu'à 10 chauffeurs de référence.
+          Les chauffeurs sélectionnés par ReLink.
         </p>
       </header>
 
       {query.isLoading ? (
-        <div className="mt-5 space-y-5">
+        <div className="mt-4 space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="space-y-3">
-              <div className="aspect-[4/3] w-full animate-pulse rounded-[1.75rem] bg-muted" />
-              <div className="h-5 w-1/3 animate-pulse rounded-md bg-muted" />
+            <div
+              key={i}
+              className="overflow-hidden rounded-[1.25rem] border border-border bg-card shadow-card"
+            >
+              <div className="aspect-video w-full animate-pulse bg-muted" />
+              <div className="flex items-center justify-between px-4 py-3.5">
+                <div className="h-5 w-1/3 animate-pulse rounded-md bg-muted" />
+                <div className="h-4 w-24 animate-pulse rounded-md bg-muted" />
+              </div>
             </div>
           ))}
         </div>
       ) : !list.length ? (
-        <div className="mt-5 rounded-[1.75rem] border border-border/70 bg-card p-6 text-center">
+        <div className="mt-4 rounded-[1.25rem] border border-border/70 bg-card p-6 text-center shadow-card">
           <p className="text-sm font-bold">Aucune sélection disponible pour le moment</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Revenez plus tard pour découvrir les chauffeurs ReLink.
           </p>
         </div>
       ) : (
-        <ul className="mt-5 space-y-5">
+        <ul className="mt-4 space-y-4">
           {list.map((driver) => {
             const photoUrl = driver.vehicle_photo_url
               ? (photos.data?.[driver.vehicle_photo_url] ?? null)
@@ -113,9 +119,9 @@ function DiscoverPage() {
                   <Link
                     to="/chauffeur/$slug"
                     params={{ slug: driver.slug }}
-                    className="group block"
+                    className="group tap tap-active block overflow-hidden rounded-[1.25rem] border border-border bg-card shadow-card transition"
                   >
-                    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.75rem] bg-muted">
+                    <div className="relative aspect-video w-full bg-muted">
                       {photoUrl ? (
                         <img
                           src={photoUrl}
@@ -124,20 +130,39 @@ function DiscoverPage() {
                           loading="lazy"
                         />
                       ) : null}
+                      <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-primary/92 px-2.5 py-1 text-[11px] font-extrabold text-primary-foreground shadow-sm backdrop-blur-sm">
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Sélection ReLink
+                      </span>
                     </div>
-                    <div className="mt-2.5 flex items-center justify-between px-0.5">
-                      <span className="text-[17px] font-extrabold tracking-tight">
+                    <div className="flex items-center justify-between px-4 py-3.5">
+                      <span className="text-[15px] font-extrabold tracking-tight">
                         {driver.display_name}
                       </span>
-                      <ChevronRight
-                        className="size-5 text-muted-foreground transition group-hover:translate-x-0.5"
-                        aria-hidden
-                      />
+                      <span className="flex items-center gap-0.5 text-[13px] font-semibold text-primary">
+                        Voir le profil
+                        <ChevronRight
+                          className="size-4 transition group-hover:translate-x-0.5"
+                          aria-hidden
+                        />
+                      </span>
                     </div>
                   </Link>
                 ) : (
-                  <div className="block">
-                    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.75rem] bg-muted">
+                  <div className="group overflow-hidden rounded-[1.25rem] border border-border bg-card shadow-card">
+                    <div className="relative aspect-video w-full bg-muted">
                       {photoUrl ? (
                         <img
                           src={photoUrl}
@@ -146,9 +171,25 @@ function DiscoverPage() {
                           loading="lazy"
                         />
                       ) : null}
+                      <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-primary/92 px-2.5 py-1 text-[11px] font-extrabold text-primary-foreground shadow-sm backdrop-blur-sm">
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Sélection ReLink
+                      </span>
                     </div>
-                    <div className="mt-2.5 px-0.5">
-                      <span className="text-[17px] font-extrabold tracking-tight">
+                    <div className="px-4 py-3.5">
+                      <span className="text-[15px] font-extrabold tracking-tight">
                         {driver.display_name}
                       </span>
                     </div>
