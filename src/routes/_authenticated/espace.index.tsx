@@ -294,15 +294,17 @@ function ClientHome() {
           </Link>
         ) : null}
 
-        <div className="home-rise" style={{ animationDelay: "40ms" }}>
-          <HomeDriverCard
-            drivers={drivers}
-            index={safeIndex}
-            onGo={goToDriver}
-            dir={dir}
-            loading={data.isLoading || photosPending}
-          />
-        </div>
+        {noneAvailable ? null : (
+          <div className="home-rise" style={{ animationDelay: "40ms" }}>
+            <HomeDriverCard
+              drivers={drivers}
+              index={safeIndex}
+              onGo={goToDriver}
+              dir={dir}
+              loading={data.isLoading || photosPending}
+            />
+          </div>
+        )}
 
         <section className="home-rise space-y-2" style={{ animationDelay: "90ms" }}>
           {noneAvailable ? (
