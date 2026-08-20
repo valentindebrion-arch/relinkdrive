@@ -1,13 +1,20 @@
 import { useState, type ReactNode } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Menu, LogOut, UserRound, X } from "lucide-react";
+import { Menu, LogOut, UserRound, X, Lock } from "lucide-react";
 
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/NotificationBell";
 import { BrandLogo } from "@/components/BrandLogo";
 
-export type NavItem = { to: string; label: string; icon: ReactNode; badge?: number | undefined };
+export type NavItem = {
+  to: string;
+  label: string;
+  icon: ReactNode;
+  badge?: number | undefined;
+  /** Fonctionnalité visible mais réservée à ReLink Pro. */
+  locked?: boolean;
+};
 
 export function DashboardShell({
   items,
@@ -56,6 +63,11 @@ export function DashboardShell({
           >
             <span className="shrink-0 [&_svg]:size-4">{item.icon}</span>
             <span className="flex-1">{item.label}</span>
+            {item.locked ? (
+              <span className="flex items-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground">
+                <Lock className="size-3" /> PRO
+              </span>
+            ) : null}
             {item.badge ? (
               <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground">
                 {item.badge}
@@ -178,7 +190,12 @@ export function DashboardShell({
                       active ? "text-primary" : "text-muted-foreground",
                     )}
                   >
-                    <span className="[&_svg]:size-5">{item.icon}</span>
+                    <span className="relative [&_svg]:size-5">
+                      {item.icon}
+                      {item.locked ? (
+                        <Lock className="absolute -top-1 -right-2 !size-3 text-muted-foreground" />
+                      ) : null}
+                    </span>
                     {item.label}
                     {item.badge ? (
                       <span className="absolute top-1 right-1/2 translate-x-4 rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">

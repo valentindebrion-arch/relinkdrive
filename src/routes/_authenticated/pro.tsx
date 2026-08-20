@@ -18,7 +18,7 @@ import { useAuth } from "@/lib/auth";
 import { requireDriverAccess } from "@/lib/role-guard";
 import { useNewRequestsCount, useDriverProfile } from "@/lib/driver-queries";
 import { isDriverActive } from "@/lib/driver-dossier";
-import { useMyPlan } from "@/lib/plan";
+import { proOnlyPathFor, useMyPlan } from "@/lib/plan";
 import { ProUpsell } from "@/components/pro/ProUpsell";
 
 // Ordre réel des onglets de la barre inférieure chauffeur (index 0 = Accueil).
@@ -37,9 +37,7 @@ function ProLayout() {
   const driver = useDriverProfile();
   const { isPro } = useMyPlan();
   const { pathname } = useLocation();
-  const proOnlyPath = ["/pro/planning", "/pro/clients", "/pro/assistant", "/pro/disponibilites"].some(
-    (p) => pathname.startsWith(p),
-  );
+  const blocked = !isPro ? proOnlyPathFor(pathname) : null;
 
   useEffect(() => {
     if (!loading && !isDriver && !isAdmin) navigate({ to: "/espace", replace: true });
@@ -47,6 +45,7 @@ function ProLayout() {
 
   const active = isAdmin || isDriverActive(driver.data?.verification_status);
   const badge = active ? newRequests.data || undefined : undefined;
+  const lock = !isPro;
 
   // Compte non validé : menu réduit au dossier et aux informations obligatoires.
   const restrictedItems: NavItem[] = [
@@ -57,36 +56,26 @@ function ProLayout() {
     { to: "/aide", label: "Aide", icon: <HelpCircle /> },
   ];
 
-  // Les outils professionnels (planning, clientèle, assistant) sont réservés
-  // à l'offre ReLink Pro ; l'offre Gratuite conserve les Courses Flash.
+  // Les outils professionnels restent visibles en offre Standard, mais
+  // verrouillés : ils montrent la valeur de ReLink Pro sans jamais charger
+  // le moindre contenu Pro.
   const items: NavItem[] = [
     { to: "/pro", label: "Accueil", icon: <Home /> },
     { to: "/pro/courses", label: "Mes courses", icon: <Car />, badge },
-    ...(isPro
-      ? [
-          { to: "/pro/planning", label: "Planning", icon: <CalendarDays /> },
-          { to: "/pro/clients", label: "Mes clients", icon: <Users /> },
-        ]
-      : []),
+    { to: "/pro/planning", label: "Planning", icon: <CalendarDays />, locked: lock },
+    { to: "/pro/clients", label: "Mes clients", icon: <Users />, locked: lock },
     { to: "/pro/factures", label: "Facturation", icon: <Receipt /> },
-    ...(isPro ? [{ to: "/pro/assistant", label: "Assistant", icon: <Bot /> }] : []),
+    { to: "/pro/assistant", label: "Assistant", icon: <Bot />, locked: lock },
     { to: "/pro/profil", label: "Mon profil", icon: <UserRound /> },
   ];
 
-  const bottomItems: NavItem[] = isPro
-    ? [
-        { to: "/pro", label: "Accueil", icon: <Home /> },
-        { to: "/pro/courses", label: "Courses", icon: <Car />, badge },
-        { to: "/pro/clients", label: "Clients", icon: <Users /> },
-        { to: "/pro/planning", label: "Planning", icon: <CalendarDays /> },
-        { to: "/pro/profil", label: "Profil", icon: <UserRound /> },
-      ]
-    : [
-        { to: "/pro", label: "Accueil", icon: <Home /> },
-        { to: "/pro/courses", label: "Courses", icon: <Car />, badge },
-        { to: "/pro/factures", label: "Factures", icon: <Receipt /> },
-        { to: "/pro/profil", label: "Profil", icon: <UserRound /> },
-      ];
+  const bottomItems: NavItem[] = [
+    { to: "/pro", label: "Accueil", icon: <Home /> },
+    { to: "/pro/courses", label: "Courses", icon: <Car />, badge },
+    { to: "/pro/clients", label: "Clients", icon: <Users />, locked: lock },
+    { to: "/pro/planning", label: "Planning", icon: <CalendarDays />, locked: lock },
+    { to: "/pro/profil", label: "Profil", icon: <UserRound /> },
+  ];
 
   const restrictedBottom: NavItem[] = [
     { to: "/pro/dossier", label: "Dossier", icon: <ShieldCheck /> },
@@ -94,6 +83,7 @@ function ProLayout() {
     { to: "/pro/vehicule", label: "Véhicule", icon: <Car /> },
     { to: "/pro/parametres", label: "Compte", icon: <UserRound /> },
   ];
+
 
   return (
     <DashboardShell
@@ -104,7 +94,7 @@ function ProLayout() {
       brandTo={active ? "/pro" : "/pro/dossier"}
     >
       <ClientPageTransition tabOrder={PRO_TAB_ORDER} tabKeys={PRO_TAB_KEYS} bottomOffset="5.5rem">
-        {!isPro && proOnlyPath ? <ProUpsell /> : <Outlet />}
+        {blocked ? <ProUpsell feature={blocked.label} /> : <Outlet />}
       </ClientPageTransition>
     </DashboardShell>
   );

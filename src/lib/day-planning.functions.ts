@@ -15,6 +15,9 @@ export const getDriverDayPlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: Input) => inputSchema.parse(input))
   .handler(async ({ data, context }): Promise<DayPlan> => {
+    const { requireProPlan } = await import("@/lib/plan-guard.server");
+    await requireProPlan(context.supabase as never, context.userId);
     const { buildDayPlan } = await import("@/lib/day-planning.server");
     return buildDayPlan(data.date, context.supabase, context.userId);
   });
+

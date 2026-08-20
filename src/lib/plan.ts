@@ -17,8 +17,14 @@ export const MAX_PRICE_PER_KM = 3.0;
 export const PRO_PRICE_PER_MONTH = 120;
 
 export const PLAN_LABELS: Record<DriverPlan, string> = {
-  free: "ReLink Gratuit",
+  free: "ReLink Standard",
   pro: "ReLink Pro",
+};
+
+/** Libellé court utilisé dans les badges et tableaux. */
+export const PLAN_SHORT_LABELS: Record<DriverPlan, string> = {
+  free: "Standard / Gratuit",
+  pro: "Pro",
 };
 
 export const PRO_TAGLINE = "Vos clients. Vos tarifs. 0 % de commission.";
@@ -42,23 +48,68 @@ export const PRO_FEATURES = [
   "0 % de commission",
 ];
 
-/** Fonctionnalités réservées à ReLink Pro. */
-export type ProFeature =
-  | "scheduled_rides"
-  | "planning"
-  | "clients"
-  | "stats"
-  | "ai"
-  | "vehicle_tracking"
-  | "custom_pricing";
+/**
+ * Système central de permissions : le forfait du chauffeur est la seule
+ * source de vérité. Aucune règle d'accès ne doit être réécrite écran par
+ * écran ; on interroge toujours `planPermissions()` / `useProAccess()`.
+ * Le backend applique les mêmes règles (triggers SQL + requireProPlan).
+ */
+export type DriverPermission =
+  | "canAccessFlashRides"
+  | "canAccessScheduledRides"
+  | "canAccessPlanning"
+  | "canAccessAvailability"
+  | "canAccessClients"
+  | "canAccessAnalytics"
+  | "canAccessAI"
+  | "canAccessVehicleTracking"
+  | "canAccessCustomPricing"
+  | "canAccessBranding";
 
-export function planAllows(plan: DriverPlan | null | undefined, _feature: ProFeature) {
-  return plan === "pro";
+const PRO_ONLY_PERMISSIONS: DriverPermission[] = [
+  "canAccessScheduledRides",
+  "canAccessPlanning",
+  "canAccessAvailability",
+  "canAccessClients",
+  "canAccessAnalytics",
+  "canAccessAI",
+  "canAccessVehicleTracking",
+  "canAccessCustomPricing",
+  "canAccessBranding",
+];
+
+export type DriverPermissions = Record<DriverPermission, boolean>;
+
+export function planPermissions(plan: DriverPlan | null | undefined): DriverPermissions {
+  const pro = plan === "pro";
+  const base = { canAccessFlashRides: true } as DriverPermissions;
+  for (const key of PRO_ONLY_PERMISSIONS) base[key] = pro;
+  return base;
+}
+
+/** Une fonctionnalité est-elle autorisée pour ce forfait ? */
+export function planAllows(plan: DriverPlan | null | undefined, feature: DriverPermission) {
+  return planPermissions(plan)[feature];
+}
+
+/** Chemins de l'espace chauffeur réservés à ReLink Pro. */
+export const PRO_ONLY_PATHS: { path: string; label: string; permission: DriverPermission }[] = [
+  { path: "/pro/planning", label: "Planning", permission: "canAccessPlanning" },
+  { path: "/pro/disponibilites", label: "Disponibilités", permission: "canAccessAvailability" },
+  { path: "/pro/clients", label: "Mes clients", permission: "canAccessClients" },
+  { path: "/pro/assistant", label: "Analyse IA", permission: "canAccessAI" },
+  { path: "/pro/activite", label: "Statistiques", permission: "canAccessAnalytics" },
+  { path: "/pro/personnalisation", label: "Personnalisation", permission: "canAccessBranding" },
+];
+
+export function proOnlyPathFor(pathname: string) {
+  return PRO_ONLY_PATHS.find((p) => pathname === p.path || pathname.startsWith(p.path + "/")) ?? null;
 }
 
 export function normalizePlan(value: unknown): DriverPlan {
   return value === "pro" ? "pro" : "free";
 }
+
 
 /** Offre du chauffeur connecté. */
 export function useMyPlan() {
@@ -137,4 +188,13 @@ export function simulateTariff(
     nightAmount,
     total: Math.ceil(base + pickupAmount + nightAmount),
   };
+}
+
+/**
+ * Permissions du chauffeur connecté (source de vérité côté interface).
+ * Le backend refuse de toute façon les actions Pro avec PRO_PLAN_REQUIRED.
+ */
+export function useProAccess() {
+  const { plan, isPro, isLoading } = useMyPlan();
+  return { plan, isPro, isLoading, can: planPermissions(plan) };
 }
