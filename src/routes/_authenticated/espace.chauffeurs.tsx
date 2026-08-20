@@ -166,13 +166,23 @@ function ClientDrivers() {
         </label>
       ) : null}
 
-      <div className="mt-4 space-y-3">
+      <div className="mt-4 space-y-4">
         {drivers.isLoading ? (
           [0, 1].map((i) => (
-            <div key={i} className="h-40 animate-pulse rounded-[1.75rem] bg-muted" />
+            <div
+              key={i}
+              className="overflow-hidden rounded-[1.5rem] border border-border/60 bg-card shadow-card"
+            >
+              <div className="aspect-[16/10] w-full animate-pulse bg-muted" />
+              <div className="space-y-2 p-4">
+                <div className="h-5 w-1/2 animate-pulse rounded-md bg-muted" />
+                <div className="h-4 w-1/3 animate-pulse rounded-md bg-muted" />
+                <div className="h-11 w-full animate-pulse rounded-xl bg-muted" />
+              </div>
+            </div>
           ))
         ) : filtered.length === 0 ? (
-          <div className="rounded-[1.75rem] border border-border/70 bg-card p-6 text-center">
+          <div className="rounded-[1.5rem] border border-border/70 bg-card p-6 text-center">
             <p className="text-sm font-bold">Votre carnet est vide</p>
             <p className="mt-1 text-sm text-muted-foreground">
               Ajoutez un chauffeur en scannant son QR code en fin de course, ou découvrez nos
@@ -189,80 +199,86 @@ function ClientDrivers() {
           filtered.map((d) => (
             <article
               key={d.id}
-              className="overflow-hidden rounded-[1.75rem] border border-border/60 bg-card shadow-[0_10px_30px_-26px_rgba(0,0,0,0.55)]"
+              className="overflow-hidden rounded-[1.5rem] border border-border/60 bg-card shadow-card"
             >
-              <div className="flex gap-3 p-3.5">
-                <div className="relative size-20 shrink-0 overflow-hidden rounded-2xl bg-muted">
-                  {d.photoPath && photos.data?.[d.photoPath] ? (
+              {/* ZONE 1 — véhicule en entier, jamais recadré (contain, fond showroom conservé) */}
+              <div className="relative aspect-[16/10] w-full bg-muted/60">
+                {d.photoPath && photos.data?.[d.photoPath] ? (
+                  <img
+                    src={photos.data[d.photoPath]}
+                    alt={`Véhicule de ${d.name}`}
+                    className="size-full object-contain"
+                    loading="lazy"
+                  />
+                ) : (
+                  <span className="grid size-full place-items-center text-muted-foreground">
+                    <Car className="size-8" aria-hidden />
+                  </span>
+                )}
+              </div>
+
+              {/* ZONE 2 — informations, ordre et hauteurs identiques sur toutes les cartes */}
+              <div className="space-y-1 px-4 pt-3.5 pb-3">
+                <div className="flex min-h-7 items-center gap-2">
+                  {d.avatarUrl ? (
                     <img
-                      src={photos.data[d.photoPath]}
-                      alt={`Véhicule de ${d.name}`}
-                      className="size-full object-cover"
+                      src={d.avatarUrl}
+                      alt=""
+                      onError={(e) => (e.currentTarget.style.display = "none")}
+                      className="size-7 shrink-0 rounded-full object-cover"
                     />
                   ) : (
-                    <span className="grid size-full place-items-center text-muted-foreground">
-                      <Car className="size-6" aria-hidden />
+                    <span className="grid size-7 shrink-0 place-items-center rounded-full bg-primary/10 text-[11px] font-extrabold text-primary">
+                      {initials(d.name)}
                     </span>
                   )}
+                  <p className="truncate text-[16px] leading-tight font-extrabold">{d.name}</p>
                 </div>
 
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    {d.avatarUrl ? (
-                      <img
-                        src={d.avatarUrl}
-                        alt=""
-                        onError={(e) => (e.currentTarget.style.display = "none")}
-                        className="size-7 rounded-full object-cover"
-                      />
-                    ) : (
-                      <span className="grid size-7 shrink-0 place-items-center rounded-full bg-primary/10 text-[11px] font-extrabold text-primary">
-                        {initials(d.name)}
-                      </span>
-                    )}
-                    <p className="truncate text-[15px] leading-tight font-extrabold">{d.name}</p>
-                  </div>
-                  <p className="mt-1 truncate text-[12.5px] text-muted-foreground">
-                    {d.vehicle ?? "Véhicule non renseigné"}
-                  </p>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px] font-semibold">
-                    {d.ratingAvg ? (
-                      <span className="inline-flex items-center gap-1">
-                        <Star className="size-3.5 fill-primary text-primary" aria-hidden />
-                        {d.ratingAvg.toFixed(1)}
-                        <span className="text-muted-foreground">({d.ratingCount})</span>
-                      </span>
-                    ) : null}
-                    {d.zone ? (
-                      <span className="inline-flex items-center gap-1 text-muted-foreground">
-                        <MapPin className="size-3.5" aria-hidden /> {d.zone}
-                      </span>
-                    ) : null}
-                    <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11.5px] font-bold ${
-                        d.available
-                          ? "bg-primary/10 text-primary"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      <span
-                        className={`size-1.5 rounded-full ${
-                          d.available ? "status-dot-pulse bg-primary" : "bg-muted-foreground/60"
-                        }`}
-                        aria-hidden
-                      />
-                      {d.available ? "Disponible" : "Indisponible"}
+                <p className="min-h-5 truncate text-[13px] font-semibold text-muted-foreground">
+                  {d.vehicle ?? "Véhicule non renseigné"}
+                </p>
+
+                <div className="flex min-h-5 items-center gap-x-3 text-[12.5px] font-semibold">
+                  {d.ratingAvg ? (
+                    <span className="inline-flex shrink-0 items-center gap-1">
+                      <Star className="size-3.5 fill-primary text-primary" aria-hidden />
+                      {d.ratingAvg.toFixed(1)}
+                      <span className="text-muted-foreground">({d.ratingCount})</span>
                     </span>
-                  </div>
-                  {d.trips > 0 ? (
-                    <p className="mt-0.5 text-[12px] text-muted-foreground">
-                      {d.trips} trajet{d.trips > 1 ? "s" : ""} ensemble
-                    </p>
-                  ) : null}
+                  ) : (
+                    <span className="shrink-0 text-muted-foreground">Nouveau sur ReLink</span>
+                  )}
+                  <span className="inline-flex min-w-0 items-center gap-1 text-muted-foreground">
+                    <MapPin className="size-3.5 shrink-0" aria-hidden />
+                    <span className="truncate">{d.zone ?? "Zone non renseignée"}</span>
+                  </span>
+                </div>
+
+                <div className="flex min-h-6 items-center gap-x-3 text-[12px] font-semibold">
+                  <span
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[11.5px] font-bold ${
+                      d.available ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    <span
+                      className={`size-1.5 rounded-full ${
+                        d.available ? "status-dot-pulse bg-primary" : "bg-muted-foreground/60"
+                      }`}
+                      aria-hidden
+                    />
+                    {d.available ? "Disponible" : "Indisponible"}
+                  </span>
+                  <span className="truncate text-muted-foreground">
+                    {d.trips > 0
+                      ? `${d.trips} trajet${d.trips > 1 ? "s" : ""} ensemble`
+                      : "Aucun trajet ensemble"}
+                  </span>
                 </div>
               </div>
 
-              <div className="flex gap-2 border-t border-border/60 px-3.5 py-3">
+              {/* ZONE 3 — actions, toujours au même endroit */}
+              <div className="flex gap-2 border-t border-border/60 px-4 py-3">
                 <button
                   type="button"
                   onClick={() => book(d.id, "now")}
@@ -274,7 +290,7 @@ function ClientDrivers() {
                   type="button"
                   onClick={() => book(d.id, "later")}
                   aria-label={`Planifier un trajet avec ${d.name}`}
-                  className="grid min-h-11 w-12 place-items-center rounded-xl border border-border text-primary transition active:scale-[0.985]"
+                  className="grid min-h-11 w-12 shrink-0 place-items-center rounded-xl border border-border text-primary transition active:scale-[0.985]"
                 >
                   <CalendarClock className="size-4" />
                 </button>
@@ -282,16 +298,24 @@ function ClientDrivers() {
                   <Link
                     to="/chauffeur/$slug"
                     params={{ slug: d.slug }}
-                    className="flex min-h-11 items-center rounded-xl border border-border px-3 text-[13px] font-bold"
+                    className="flex min-h-11 shrink-0 items-center rounded-xl border border-border px-4 text-[13px] font-bold"
                   >
                     Profil
                   </Link>
-                ) : null}
+                ) : (
+                  <span
+                    aria-disabled
+                    className="flex min-h-11 shrink-0 items-center rounded-xl border border-border px-4 text-[13px] font-bold text-muted-foreground/60"
+                  >
+                    Profil
+                  </span>
+                )}
               </div>
             </article>
           ))
         )}
       </div>
+
 
       <AddDriverSheet open={addOpen} onClose={() => setAddOpen(false)} />
     </div>
