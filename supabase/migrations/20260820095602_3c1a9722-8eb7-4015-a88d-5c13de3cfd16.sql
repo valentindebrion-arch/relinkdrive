@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.guard_connection_immutable_parties() FROM PUBLIC, anon, authenticated;
