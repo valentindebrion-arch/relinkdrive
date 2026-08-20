@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { CalendarClock, Car, Compass, MapPin, Plus, Search, Star, Users } from "lucide-react";
+import { Car, Compass, MapPin, Plus, Search, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchConnectedProfile, fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { useAuth } from "@/lib/auth";
@@ -197,123 +197,108 @@ function ClientDrivers() {
             </Link>
           </div>
         ) : (
-          filtered.map((d) => (
-            <article
-              key={d.id}
-              className="overflow-hidden rounded-[1.5rem] border border-border/60 bg-card shadow-card"
-            >
-              {/* ZONE 1 — véhicule en entier, jamais recadré (contain, fond showroom conservé) */}
-              <div className="relative aspect-[16/10] w-full bg-muted/60">
-                {d.photoPath && photos.data?.[d.photoPath] ? (
-                  <img
-                    src={photos.data[d.photoPath]}
-                    alt={`Véhicule de ${d.name}`}
-                    className="size-full object-contain"
-                    loading="lazy"
-                  />
-                ) : (
-                  <span className="grid size-full place-items-center text-muted-foreground">
-                    <Car className="size-8" aria-hidden />
-                  </span>
-                )}
-              </div>
-
-              {/* ZONE 2 — informations, ordre et hauteurs identiques sur toutes les cartes */}
-              <div className="space-y-1 px-4 pt-3.5 pb-3">
-                <div className="flex min-h-7 items-center gap-2">
-                  {d.avatarUrl ? (
+          filtered.map((d) => {
+            const photoUrl = d.photoPath ? (photos.data?.[d.photoPath] ?? null) : null;
+            const cardClassName =
+              "group block overflow-hidden rounded-[1.25rem] border border-border bg-card shadow-card transition active:scale-[0.985]";
+            const cardBody = (
+              <>
+                {/* Photo véhicule — pleine largeur, format identique aux cartes Top 10 */}
+                <div className="relative aspect-video w-full bg-muted">
+                  {photoUrl ? (
                     <img
-                      src={d.avatarUrl}
-                      alt=""
-                      onError={(e) => (e.currentTarget.style.display = "none")}
-                      className="size-7 shrink-0 rounded-full object-cover"
+                      src={photoUrl}
+                      alt={`Véhicule de ${d.name}`}
+                      className="size-full object-cover transition duration-300 group-hover:scale-[1.02]"
+                      loading="lazy"
                     />
                   ) : (
-                    <span className="grid size-7 shrink-0 place-items-center rounded-full bg-primary/10 text-[11px] font-extrabold text-primary">
-                      {initials(d.name)}
+                    <span className="grid size-full place-items-center text-muted-foreground">
+                      <Car className="size-8" aria-hidden />
                     </span>
                   )}
-                  <p className="truncate text-[16px] leading-tight font-extrabold">{d.name}</p>
                 </div>
 
-                <p className="min-h-5 truncate text-[13px] font-semibold text-muted-foreground">
-                  {d.vehicle ?? "Véhicule non renseigné"}
-                </p>
+                {/* Informations compactes */}
+                <div className="px-4 py-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-2">
+                      {d.avatarUrl ? (
+                        <img
+                          src={d.avatarUrl}
+                          alt=""
+                          onError={(e) => (e.currentTarget.style.display = "none")}
+                          className="size-7 shrink-0 rounded-full object-cover"
+                        />
+                      ) : (
+                        <span className="grid size-7 shrink-0 place-items-center rounded-full bg-primary/10 text-[11px] font-extrabold text-primary">
+                          {initials(d.name)}
+                        </span>
+                      )}
+                      <p className="truncate text-[15px] leading-tight font-extrabold">{d.name}</p>
+                    </div>
 
-                <div className="flex min-h-5 items-center gap-x-3 text-[12.5px] font-semibold">
-                  {d.ratingAvg ? (
-                    <span className="inline-flex shrink-0 items-center gap-1">
-                      <Star className="size-3.5 fill-primary text-primary" aria-hidden />
-                      {d.ratingAvg.toFixed(1)}
-                      <span className="text-muted-foreground">({d.ratingCount})</span>
-                    </span>
-                  ) : (
-                    <span className="shrink-0 text-muted-foreground">Nouveau sur ReLink</span>
-                  )}
-                  <span className="inline-flex min-w-0 items-center gap-1 text-muted-foreground">
-                    <MapPin className="size-3.5 shrink-0" aria-hidden />
-                    <span className="truncate">{d.zone ?? "Zone non renseignée"}</span>
-                  </span>
-                </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        book(d.id, "now");
+                      }}
+                      className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-[12px] font-bold text-primary-foreground transition active:scale-95"
+                    >
+                      Réserver
+                    </button>
+                  </div>
 
-                <div className="flex min-h-6 items-center gap-x-3 text-[12px] font-semibold">
-                  <span
-                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[11.5px] font-bold ${
-                      d.available ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
-                    }`}
-                  >
+                  <p className="mt-1 truncate text-[13px] font-semibold text-muted-foreground">
+                    {d.vehicle ?? "Véhicule non renseigné"}
+                  </p>
+
+                  <div className="mt-2 flex min-h-5 flex-wrap items-center gap-x-3 gap-y-1 text-[12px] font-semibold">
                     <span
-                      className={`size-1.5 rounded-full ${
-                        d.available ? "status-dot-pulse bg-primary" : "bg-muted-foreground/60"
+                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                        d.available ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
                       }`}
-                      aria-hidden
-                    />
-                    {d.available ? "Disponible" : "Indisponible"}
-                  </span>
-                  <span className="truncate text-muted-foreground">
+                    >
+                      <span
+                        className={`size-1.5 rounded-full ${
+                          d.available ? "status-dot-pulse bg-primary" : "bg-muted-foreground/60"
+                        }`}
+                        aria-hidden
+                      />
+                      {d.available ? "Disponible" : "Indisponible"}
+                    </span>
+                    <span className="inline-flex min-w-0 items-center gap-1 text-muted-foreground">
+                      <MapPin className="size-3.5 shrink-0" aria-hidden />
+                      <span className="truncate">{d.zone ?? "Zone non renseignée"}</span>
+                    </span>
+                  </div>
+
+                  <p className="mt-2 text-[11px] font-semibold text-muted-foreground">
                     {d.trips > 0
                       ? `${d.trips} trajet${d.trips > 1 ? "s" : ""} ensemble`
                       : "Aucun trajet ensemble"}
-                  </span>
+                  </p>
                 </div>
-              </div>
+              </>
+            );
 
-              {/* ZONE 3 — actions, toujours au même endroit */}
-              <div className="flex gap-2 border-t border-border/60 px-4 py-3">
-                <button
-                  type="button"
-                  onClick={() => book(d.id, "now")}
-                  className="min-h-11 flex-1 rounded-xl bg-primary text-[13px] font-bold text-primary-foreground transition active:scale-[0.985]"
-                >
-                  Réserver
-                </button>
-                <button
-                  type="button"
-                  onClick={() => book(d.id, "later")}
-                  aria-label={`Planifier un trajet avec ${d.name}`}
-                  className="grid min-h-11 w-12 shrink-0 place-items-center rounded-xl border border-border text-primary transition active:scale-[0.985]"
-                >
-                  <CalendarClock className="size-4" />
-                </button>
-                {d.slug ? (
-                  <Link
-                    to="/chauffeur/$slug"
-                    params={{ slug: d.slug }}
-                    className="flex min-h-11 shrink-0 items-center rounded-xl border border-border px-4 text-[13px] font-bold"
-                  >
-                    Profil
-                  </Link>
-                ) : (
-                  <span
-                    aria-disabled
-                    className="flex min-h-11 shrink-0 items-center rounded-xl border border-border px-4 text-[13px] font-bold text-muted-foreground/60"
-                  >
-                    Profil
-                  </span>
-                )}
+            return d.slug ? (
+              <Link
+                key={d.id}
+                to="/chauffeur/$slug"
+                params={{ slug: d.slug }}
+                className={cardClassName}
+              >
+                {cardBody}
+              </Link>
+            ) : (
+              <div key={d.id} className={cardClassName}>
+                {cardBody}
               </div>
-            </article>
-          ))
+            );
+          })
         )}
       </div>
 
