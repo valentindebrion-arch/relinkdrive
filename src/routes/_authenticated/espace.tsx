@@ -1,7 +1,6 @@
 import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
 import { ClientPageTransition } from "@/components/ClientPageTransition";
-import { ClientSplash } from "@/components/ClientSplash";
 import { ClientTabBar } from "@/components/ClientTabBar";
 import { requireRoles } from "@/lib/role-guard";
 
@@ -18,17 +17,10 @@ function ClientLayout() {
   // Formulaire de demande : parcours plein écran, sans logo ni onglets.
   const isRequestFlow = pathname.startsWith("/espace/demandes");
 
-  if (isRequestFlow)
-    return (
-      <>
-        <ClientSplash />
-        <Outlet />
-      </>
-    );
+  if (isRequestFlow) return <Outlet />;
 
   return (
     <div className="relative min-h-[100dvh] overflow-x-hidden bg-background">
-      <ClientSplash />
       <ClientPageTransition onTransitionChange={handleTransitionChange}>
         {isHome ? (
           <Outlet />
