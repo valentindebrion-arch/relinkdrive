@@ -8,6 +8,8 @@ export type HomeCardDriver = {
   avatarUrl: string | null;
   vehicle: string | null;
   vehiclePhotoUrl: string | null;
+  /** URL signée de la photo de face du véhicule, affichée en priorité sur l'accueil. */
+  frontPhotoUrl?: string | null;
   ratingAvg: number | null;
   ratingCount: number;
   trips: number;
