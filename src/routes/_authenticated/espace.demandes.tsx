@@ -89,6 +89,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { useDriverSupportsScheduled } from "@/lib/plan";
 import {
   BookingThemeScope,
   PoweredByRelink,
@@ -390,6 +391,10 @@ function ClientRequests() {
     },
   });
 
+  // Les courses planifiées ne sont possibles qu'avec un chauffeur ReLink Pro.
+  const scheduledSupport = useDriverSupportsScheduled(form.driver_id || null);
+  const scheduledBlocked = !!form.driver_id && scheduledSupport.data === false;
+
   function scheduledIso() {
     return whenMode === "now"
       ? new Date(Date.now() + 10 * 60_000).toISOString()
@@ -442,6 +447,7 @@ function ClientRequests() {
             distanceKm: res.distanceKm,
             roundTrip: form.round_trip,
             at: scheduledIso().slice(0, 10),
+            atIso: scheduledIso(),
           });
         } catch {
           quote = null;
@@ -689,6 +695,16 @@ function ClientRequests() {
         toast.error("Mode de règlement indisponible", {
           description: "Choisissez un autre mode accepté par le chauffeur.",
         });
+        return;
+      }
+      if (/driver_plan_scheduled_unavailable/i.test(error.message)) {
+        const msg =
+          "Ce chauffeur accepte uniquement les courses immédiates. Réservez « Maintenant » ou choisissez un autre chauffeur.";
+        setSubmitError(msg);
+        setSlotWarning(msg);
+        setWhenMode("now");
+        setStep(0);
+        toast.error("Course planifiée indisponible", { description: msg });
         return;
       }
       if (/driver_unavailable_today/i.test(error.message)) {
@@ -1014,7 +1030,8 @@ function ClientRequests() {
                     const Icon = o.icon;
                     const on = whenMode === o.key;
                     const disabled =
-                      o.key === "now" && (!!blocking || (!!form.driver_id && !driverAvailable));
+                      (o.key === "now" && (!!blocking || (!!form.driver_id && !driverAvailable))) ||
+                      (o.key === "later" && scheduledBlocked);
                     return (
                       <button
                         key={o.key}
@@ -1050,7 +1067,14 @@ function ClientRequests() {
                   })}
                 </div>
 
-                {whenMode === "later" ? (
+                {scheduledBlocked ? (
+                  <p className="mt-3 rounded-2xl bg-muted/60 p-3 text-[13px] text-muted-foreground">
+                    Ce chauffeur accepte uniquement les courses immédiates. Réservez « Maintenant »
+                    ou choisissez un autre chauffeur.
+                  </p>
+                ) : null}
+
+                {whenMode === "later" && !scheduledBlocked ? (
                   <div className="rise-in mt-3 rounded-3xl bg-card p-4 shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)]">
                     {!form.driver_id ? (
                       <p className="text-[13.5px] text-muted-foreground">

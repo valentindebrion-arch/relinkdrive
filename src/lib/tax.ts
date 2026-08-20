@@ -40,6 +40,14 @@ export type RideQuote = {
   minimum_ht: number;
   base_ht: number;
   rounding_ht: number;
+  /** Offre du chauffeur ("free" = tarif ReLink imposé). */
+  plan: "free" | "pro";
+  km_amount: number;
+  pickup_pct: number;
+  pickup_amount: number;
+  night_applied: boolean;
+  night_pct: number;
+  night_amount: number;
 };
 
 export function normalizeQuote(row: Record<string, unknown> | null | undefined): RideQuote | null {
@@ -61,6 +69,13 @@ export function normalizeQuote(row: Record<string, unknown> | null | undefined):
     minimum_ht: Number(row["minimum_ht"] ?? 0),
     base_ht: Number(row["base_ht"] ?? 0),
     rounding_ht: Number(row["rounding_ht"] ?? 0),
+    plan: row["plan"] === "pro" ? "pro" : "free",
+    km_amount: Number(row["km_amount"] ?? 0),
+    pickup_pct: Number(row["pickup_pct"] ?? 0),
+    pickup_amount: Number(row["pickup_amount"] ?? 0),
+    night_applied: Boolean(row["night_applied"]),
+    night_pct: Number(row["night_pct"] ?? 0),
+    night_amount: Number(row["night_amount"] ?? 0),
   };
 }
 

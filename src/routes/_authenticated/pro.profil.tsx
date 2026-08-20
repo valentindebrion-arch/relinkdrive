@@ -7,6 +7,7 @@ import {
   Building2,
   Car,
   ChevronRight,
+  Crown,
   ExternalLink,
   FileCheck2,
   Palette,
@@ -26,17 +27,20 @@ import { VehiclePage } from "@/components/pro/VehiclePage";
 import { VerificationPage } from "@/components/pro/VerificationPage";
 import { QrPage } from "@/components/pro/QrPage";
 import { getBookingTheme } from "@/lib/booking-themes";
+import { SubscriptionSection } from "@/components/pro/SubscriptionSection";
+import { PLAN_LABELS, useMyPlan } from "@/lib/plan";
 
 export const Route = createFileRoute("/_authenticated/pro/profil")({
   component: ProProfileHub,
 });
 
-type SectionKey = "compte" | "entreprise" | "vehicule" | "verification" | "qr";
+type SectionKey = "compte" | "abonnement" | "entreprise" | "vehicule" | "verification" | "qr";
 
 type Search = { section?: SectionKey };
 
 const SECTION_TITLES: Record<SectionKey, string> = {
   compte: "Informations personnelles",
+  abonnement: "Mon abonnement",
   entreprise: "Entreprise",
   vehicule: "Véhicule",
   verification: "Documents et vérification",
@@ -119,6 +123,7 @@ function ProProfileHub() {
   const driver = useDriverProfile();
   const vehicle = useMyVehicle();
   const docs = useMyDocuments();
+  const { plan, isPro } = useMyPlan();
   const search = useSearch({ from: "/_authenticated/pro/profil" }) as Search;
   const navigate = useNavigate();
   const [section, setSectionState] = useState<SectionKey | null>(search.section ?? null);
@@ -185,6 +190,7 @@ function ProProfileHub() {
 
   const sectionStatus: Record<Exclude<SectionKey, "qr">, "neutral" | "warning" | "danger"> = {
     compte: "neutral",
+    abonnement: "neutral",
     entreprise: "neutral",
     vehicule:
       expired(v?.insurance_expires_at) || expired(v?.inspection_expires_at) || expired(v?.next_service_date)
@@ -212,6 +218,7 @@ function ProProfileHub() {
           <span className="truncate text-sm font-medium text-muted-foreground">{SECTION_TITLES[section]}</span>
         </div>
         {section === "compte" ? <ProSettings /> : null}
+        {section === "abonnement" ? <SubscriptionSection /> : null}
         {section === "entreprise" ? <CompanyPage /> : null}
         {section === "vehicule" ? <VehiclePage /> : null}
         {section === "verification" ? <VerificationPage /> : null}
@@ -295,6 +302,22 @@ function ProProfileHub() {
           }
           lines={["Univers visuel appliqué au parcours de vos clients"]}
           onClick={() => void navigate({ to: "/pro/personnalisation" })}
+        />
+        <SectionCard
+          icon={<Crown className="size-5" />}
+          title="Mon abonnement"
+          badge={
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+              {PLAN_LABELS[plan]}
+            </span>
+          }
+          lines={[
+            isPro
+              ? "Tarifs personnalisés, planning et clientèle"
+              : "Courses Flash, tarif ReLink imposé (1,85 €/km)",
+            "0 % de commission sur vos courses",
+          ]}
+          onClick={() => setSection("abonnement")}
         />
         <SectionCard
           icon={<UserRound className="size-5" />}

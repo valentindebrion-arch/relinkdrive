@@ -20,6 +20,11 @@ export type DriverTariff = {
   minimum_ht: number;
   basis: "ht" | "ttc" | "unqualified";
   basis_confirmed_at: string | null;
+  pickup_pct: number;
+  night_enabled: boolean;
+  night_start: string;
+  night_end: string;
+  night_pct: number;
 };
 
 /** Historique fiscal complet du chauffeur connecté (jamais écrasé). */
@@ -79,12 +84,15 @@ export async function fetchRideQuote(params: {
   distanceKm: number;
   roundTrip: boolean;
   at?: string | null;
+  /** Horodatage complet du départ : sert au calcul du tarif de nuit. */
+  atIso?: string | null;
 }): Promise<RideQuote | null> {
   const { data, error } = await supabase.rpc("compute_ride_quote", {
     _driver: params.driverId,
     _distance_km: params.distanceKm,
     _round_trip: params.roundTrip,
     ...(params.at ? { _at: params.at } : {}),
+    ...(params.atIso ? { _at_ts: params.atIso } : {}),
   } as never);
   if (error) throw error;
   const row = (data as unknown as Record<string, unknown>[] | null)?.[0] ?? null;
