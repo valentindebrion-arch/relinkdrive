@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Armchair, Briefcase, Dog, Luggage, Users } from "lucide-react";
+import { Armchair, Briefcase, Car, Dog, Luggage, Users } from "lucide-react";
 
 /**
  * Caractéristiques du véhicule du chauffeur sélectionné.
