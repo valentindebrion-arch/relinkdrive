@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.enforce_page_published_requires_verified() FROM PUBLIC, anon, authenticated;
