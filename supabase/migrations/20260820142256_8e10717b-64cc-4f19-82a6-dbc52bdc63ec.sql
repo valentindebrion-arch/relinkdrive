@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.guard_ride_invoice_draft() FROM public, anon, authenticated;

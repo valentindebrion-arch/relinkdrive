@@ -116,7 +116,13 @@ function DriverChip({ name }: { name?: string | undefined }) {
 
 function InvoiceHint({ invoice }: { invoice?: InvoiceRow | undefined }) {
   if (!invoice) return null;
-  const label = invoice.status === "paid" ? "Payée" : (INVOICE_LABELS[invoice.status] ?? "Facture disponible");
+  // Tant que le chauffeur n'a pas émis la facture, le client dispose d'un reçu.
+  const label =
+    invoice.status === "draft" || !invoice.number
+      ? "Reçu disponible"
+      : invoice.status === "paid"
+        ? "Payée"
+        : (INVOICE_LABELS[invoice.status] ?? "Facture disponible");
   return (
     <span className="inline-flex min-w-0 items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
       <FileText aria-hidden className="size-3 shrink-0" />
