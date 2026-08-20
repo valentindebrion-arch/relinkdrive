@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { LayoutDashboard, IdCard, Users, Car, Flag } from "lucide-react";
+import { LayoutDashboard, IdCard, Users, Car, Flag, Trophy } from "lucide-react";
 import { DashboardShell, type NavItem } from "@/components/DashboardShell";
 import { requireRoles } from "@/lib/role-guard";
 
@@ -12,6 +12,7 @@ const items: NavItem[] = [
   { to: "/admin", label: "Vue d'ensemble", icon: <LayoutDashboard /> },
   { to: "/admin/utilisateurs", label: "Utilisateurs", icon: <Users /> },
   { to: "/admin/chauffeurs", label: "Chauffeurs", icon: <IdCard /> },
+  { to: "/admin/top10", label: "Top 10", icon: <Trophy /> },
   { to: "/admin/courses", label: "Courses", icon: <Car /> },
   { to: "/admin/signalements", label: "Signalements", icon: <Flag /> },
 ];

@@ -2798,6 +2798,30 @@ export type Database = {
         }
         Relationships: []
       }
+      top10_drivers: {
+        Row: {
+          created_at: string
+          driver_id: string
+          id: string
+          rank_position: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          driver_id: string
+          id?: string
+          rank_position: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string
+          id?: string
+          rank_position?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -3492,6 +3516,38 @@ export type Database = {
           created_at: string
           id: string
           rating: number
+        }[]
+      }
+      get_top10_drivers: {
+        Args: never
+        Returns: {
+          accepting_requests: boolean
+          airports: string[]
+          already_connected: boolean
+          avatar_url: string
+          bio: string
+          city: string
+          display_name: string
+          full_name: string
+          languages: string[]
+          long_distance: boolean
+          max_passengers: number
+          member_since: string
+          on_duty: boolean
+          price_per_km: number
+          public_intro: string
+          rank_position: number
+          rating_avg: number
+          rating_count: number
+          services: string[]
+          slug: string
+          user_id: string
+          vehicle_brand: string
+          vehicle_category: string
+          vehicle_interior_photo_url: string
+          vehicle_model: string
+          vehicle_photo_url: string
+          zone: string
         }[]
       }
       has_role: {

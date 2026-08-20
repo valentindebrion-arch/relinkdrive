@@ -41,6 +41,12 @@ export const Route = createFileRoute("/_authenticated/espace/decouvrir")({
 });
 
 type Discovered = {
+  rank_position: number;
+  already_connected: boolean;
+  on_duty: boolean | null;
+  accepting_requests: boolean | null;
+  price_per_km: number | null;
+  vehicle_interior_photo_url: string | null;
   user_id: string;
   slug: string | null;
   display_name: string;
@@ -92,10 +98,10 @@ function DiscoverPage() {
   const [adding, setAdding] = useState(false);
 
   const query = useQuery({
-    queryKey: ["discover-drivers", user?.id],
+    queryKey: ["top10-drivers", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_discover_drivers", { _limit: 20 });
+      const { data, error } = await supabase.rpc("get_top10_drivers");
       if (error) throw error;
       return (data ?? []) as unknown as Discovered[];
     },
@@ -104,13 +110,14 @@ function DiscoverPage() {
   const list = useMemo(() => query.data ?? [], [query.data]);
   const photos = useSignedUrls(
     "vehicles",
-    list.map((d) => d.vehicle_photo_url),
+    list.flatMap((d) => [d.vehicle_photo_url, d.vehicle_interior_photo_url]),
   );
   const safeIndex = list.length ? ((index % list.length) + list.length) % list.length : 0;
   const driver = list[safeIndex] ?? null;
   const photoUrl = driver?.vehicle_photo_url
     ? (photos.data?.[driver.vehicle_photo_url] ?? null)
     : null;
+  const available = !!driver?.on_duty && driver?.accepting_requests !== false;
   const vehicle = driver
     ? [driver.vehicle_brand, driver.vehicle_model].filter(Boolean).join(" ") || null
     : null;
@@ -152,7 +159,7 @@ function DiscoverPage() {
           <h2 className="text-[15px] font-extrabold">La crème de la crème</h2>
         </div>
         <p className="mt-0.5 text-[13px] text-muted-foreground">
-          Découvrez des chauffeurs recommandés par ReLink.
+          La sélection officielle ReLink : jusqu'à 10 chauffeurs de référence.
         </p>
       </section>
 
@@ -160,7 +167,7 @@ function DiscoverPage() {
         <div className="mt-4 h-80 animate-pulse rounded-[1.75rem] bg-muted" />
       ) : !driver ? (
         <div className="mt-4 rounded-[1.75rem] border border-border/70 bg-card p-6 text-center">
-          <p className="text-sm font-bold">Aucun nouveau chauffeur pour le moment</p>
+          <p className="text-sm font-bold">Aucune sélection disponible pour le moment</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Vos chauffeurs enregistrés apparaissent dans « Mes chauffeurs ».
           </p>
@@ -254,6 +261,23 @@ function DiscoverPage() {
                 </p>
               ) : null}
 
+              {available ? (
+                <p className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-[12px] font-bold text-primary">
+                  <span className="size-2 rounded-full bg-primary" aria-hidden /> Disponible
+                </p>
+              ) : (
+                <p className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-[12px] font-bold text-muted-foreground">
+                  <span className="size-2 rounded-full bg-muted-foreground/50" aria-hidden />
+                  Indisponible pour le moment
+                </p>
+              )}
+
+              {driver.price_per_km ? (
+                <p className="text-[13px] font-semibold text-muted-foreground">
+                  À partir de {driver.price_per_km.toFixed(2).replace(".", ",")} € / km
+                </p>
+              ) : null}
+
               <ul className="flex flex-wrap gap-1.5">
                 {badgesFor(driver).map((b) => (
                   <li
@@ -288,7 +312,7 @@ function DiscoverPage() {
                 <button
                   type="button"
                   onClick={() => void addDriver()}
-                  disabled={adding}
+                  disabled={adding || driver.already_connected}
                   className="flex min-h-13 w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-[15px] font-extrabold text-primary-foreground transition active:scale-[0.985] disabled:opacity-70"
                 >
                   {adding ? (
@@ -296,7 +320,9 @@ function DiscoverPage() {
                   ) : (
                     <Plus className="size-4" />
                   )}
-                  Ajouter à mes chauffeurs
+                  {driver.already_connected
+                    ? "Déjà dans mes chauffeurs"
+                    : "Ajouter à mes chauffeurs"}
                 </button>
                 {driver.slug ? (
                   <button
