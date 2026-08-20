@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import {
   Home,
@@ -19,6 +19,7 @@ import { requireDriverAccess } from "@/lib/role-guard";
 import { useNewRequestsCount, useDriverProfile } from "@/lib/driver-queries";
 import { isDriverActive } from "@/lib/driver-dossier";
 import { useMyPlan } from "@/lib/plan";
+import { ProUpsell } from "@/components/pro/ProUpsell";
 
 // Ordre réel des onglets de la barre inférieure chauffeur (index 0 = Accueil).
 const PRO_TAB_ORDER = ["/pro", "/pro/courses", "/pro/clients", "/pro/planning", "/pro/profil"];
@@ -35,6 +36,10 @@ function ProLayout() {
   const newRequests = useNewRequestsCount();
   const driver = useDriverProfile();
   const { isPro } = useMyPlan();
+  const { pathname } = useLocation();
+  const proOnlyPath = ["/pro/planning", "/pro/clients", "/pro/assistant", "/pro/disponibilites"].some(
+    (p) => pathname.startsWith(p),
+  );
 
   useEffect(() => {
     if (!loading && !isDriver && !isAdmin) navigate({ to: "/espace", replace: true });
@@ -99,7 +104,7 @@ function ProLayout() {
       brandTo={active ? "/pro" : "/pro/dossier"}
     >
       <ClientPageTransition tabOrder={PRO_TAB_ORDER} tabKeys={PRO_TAB_KEYS} bottomOffset="5.5rem">
-        <Outlet />
+        {!isPro && proOnlyPath ? <ProUpsell /> : <Outlet />}
       </ClientPageTransition>
     </DashboardShell>
   );
