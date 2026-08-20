@@ -635,6 +635,16 @@ function DriverPublicPage() {
               label: "Extérieur du véhicule",
             },
             {
+              key: d.vehicle_front_photo_url ?? "front",
+              url: frontPhoto,
+              label: "Vue de face",
+            },
+            {
+              key: d.vehicle_side_photo_url ?? "side",
+              url: sidePhoto,
+              label: "Vue de côté",
+            },
+            {
               key: d.vehicle_interior_photo_url ?? "interior",
               url: interiorPhoto,
               label: "Intérieur du véhicule",
