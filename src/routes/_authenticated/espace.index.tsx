@@ -194,7 +194,12 @@ function ClientHome() {
   const rawDrivers = useMemo(() => data.data?.drivers ?? [], [data.data?.drivers]);
   const photos = useSignedUrls(
     "vehicles",
-    rawDrivers.flatMap((d) => [d.vehiclePhotoPath, d.facts.interiorPhotoPath]),
+    rawDrivers.flatMap((d) => [
+      d.vehiclePhotoPath,
+      d.frontPhotoPath,
+      d.exteriorPhotoPath,
+      d.facts.interiorPhotoPath,
+    ]),
     rawDrivers.map((d) => d.vehiclePhotoVersion),
   );
   const photoUrls = photos.data;
@@ -204,10 +209,15 @@ function ClientHome() {
         const interiorUrl = d.facts.interiorPhotoPath
           ? (photoUrls?.[d.facts.interiorPhotoPath] ?? null)
           : null;
+        const exteriorUrl = d.exteriorPhotoPath
+          ? (photoUrls?.[d.exteriorPhotoPath] ?? null)
+          : null;
         return {
           ...d,
           vehiclePhotoUrl: d.vehiclePhotoPath ? (photoUrls?.[d.vehiclePhotoPath] ?? null) : null,
-          facts: { ...d.facts, interiorPhotoUrl: interiorUrl },
+          frontPhotoUrl: d.frontPhotoPath ? (photoUrls?.[d.frontPhotoPath] ?? null) : null,
+          exteriorPhotoUrl: exteriorUrl,
+          facts: { ...d.facts, interiorPhotoUrl: interiorUrl, exteriorPhotoUrl: exteriorUrl },
         };
       }),
     [rawDrivers, photoUrls],
