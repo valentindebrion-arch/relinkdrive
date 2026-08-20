@@ -40,8 +40,8 @@ function AdminHome() {
       </div>
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         <Link to="/admin/chauffeurs" className="surface p-5 transition-colors hover:bg-accent/40">
-          <p className="font-medium">Vérifier les chauffeurs</p>
-          <p className="mt-1 text-sm text-muted-foreground">Valider ou refuser les documents et activer les pages publiques.</p>
+          <p className="font-medium">Gérer les chauffeurs</p>
+          <p className="mt-1 text-sm text-muted-foreground">Comptes chauffeurs, validation des dossiers et abonnements Gratuit ou Pro.</p>
         </Link>
         <Link to="/admin/utilisateurs" className="surface p-5 transition-colors hover:bg-accent/40">
           <p className="font-medium">Gérer les utilisateurs</p>
