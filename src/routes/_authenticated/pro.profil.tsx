@@ -296,9 +296,15 @@ function ProProfileHub() {
           icon={<Palette className="size-5" />}
           title="Personnalisation — Thème de réservation"
           badge={
-            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
-              {getBookingTheme((d as Record<string, unknown> | null | undefined)?.["booking_theme"]).name}
-            </span>
+            isPro ? (
+              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                {getBookingTheme((d as Record<string, unknown> | null | undefined)?.["booking_theme"]).name}
+              </span>
+            ) : (
+              <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
+                🔒 ReLink Pro
+              </span>
+            )
           }
           lines={["Univers visuel appliqué au parcours de vos clients"]}
           onClick={() => void navigate({ to: "/pro/personnalisation" })}
