@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, CalendarClock, Loader2, QrCode } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,6 +42,7 @@ function haptic() {
 function ClientHome() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const blocking = useBlockingImmediate().data ?? null;
 
