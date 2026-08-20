@@ -248,7 +248,10 @@ function ClientHome() {
   const ongoingLabel = activeRide ? "Suivre ma course en cours" : "Suivre ma demande en cours";
 
   const firstName = (user?.user_metadata?.["full_name"] as string | undefined)?.split(" ")[0] ?? "";
-  const noDriver = !data.isLoading && drivers.length === 0;
+  const connectionsCount = data.data?.connectionsCount ?? 0;
+  // Carnet vide : aucun chauffeur enregistré. Aucun disponible : carnet rempli mais tous hors service.
+  const noDriver = !data.isLoading && drivers.length === 0 && connectionsCount === 0;
+  const noneAvailable = !data.isLoading && drivers.length === 0 && connectionsCount > 0;
 
   function startRequest(mode: "now" | "later") {
     haptic();
@@ -302,7 +305,30 @@ function ClientHome() {
         </div>
 
         <section className="home-rise space-y-2" style={{ animationDelay: "90ms" }}>
-          {noDriver ? (
+          {noneAvailable ? (
+            <div className="rounded-[1.5rem] border border-border/70 bg-card p-5 text-center">
+              <p className="text-sm font-bold">
+                Aucun de vos chauffeurs n’est disponible pour le moment.
+              </p>
+              <p className="mt-1 text-[13px] text-muted-foreground">
+                Ils restent dans votre carnet : vous les retrouverez dès leur retour en service.
+              </p>
+              <div className="mt-4 flex flex-col gap-2">
+                <Link
+                  to="/espace/chauffeurs"
+                  className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-3 text-[14px] font-extrabold text-primary-foreground transition active:scale-[0.985]"
+                >
+                  Voir mes chauffeurs
+                </Link>
+                <Link
+                  to="/espace/decouvrir"
+                  className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-primary/35 px-3 text-[14px] font-bold text-primary transition active:scale-[0.985]"
+                >
+                  Trouver un chauffeur
+                </Link>
+              </div>
+            </div>
+          ) : noDriver ? (
             <Link
               to="/espace/chauffeurs"
               className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-3 text-[15px] font-extrabold text-primary-foreground transition active:scale-[0.985]"
