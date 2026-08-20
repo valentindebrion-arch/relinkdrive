@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchConnectedProfile, fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { useAuth } from "@/lib/auth";
 import { PageHeader } from "@/components/Ui";
 import { Button } from "@/components/ui/button";
@@ -138,7 +139,7 @@ function PlanningPage() {
       // Nom réel du client : lisible uniquement par le chauffeur connecté (RLS).
       const ids = Array.from(new Set(list.map((r) => r.client_id).filter((id): id is string => !!id)));
       if (ids.length) {
-        const { data: clients } = await supabase.from("profiles").select("id, full_name").in("id", ids);
+        const clients = await fetchConnectedProfiles(ids);
         const names = new Map((clients ?? []).map((c) => [c.id, (c.full_name ?? "").trim()]));
         return list.map((r) => ({
           ...r,

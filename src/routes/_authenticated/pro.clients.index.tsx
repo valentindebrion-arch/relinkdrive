@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { ChevronRight, Search, SlidersHorizontal } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchConnectedProfile, fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { useAuth } from "@/lib/auth";
 import { EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -79,7 +80,7 @@ function DriverClientsList() {
       const ids = (conns ?? []).map((c) => c.client_id);
       if (!ids.length) return [];
       const [{ data: profiles }, { data: rides }] = await Promise.all([
-        supabase.from("profiles").select("id, full_name, phone, email, avatar_url").in("id", ids),
+        fetchConnectedProfiles(ids).then((data) => ({ data })),
         supabase.from("rides").select("client_id, scheduled_at, price, status").eq("driver_id", user!.id),
       ]);
       return (conns ?? []).map((c) => {

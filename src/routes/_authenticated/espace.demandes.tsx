@@ -25,6 +25,7 @@ import {
   X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchConnectedProfile, fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { paymentMethodLabel, useDriverPaymentMethods } from "@/lib/payment-methods";
 import { useAuth } from "@/lib/auth";
 import { formatDateTime, formatEuro } from "@/lib/labels";
@@ -357,7 +358,7 @@ function ClientRequests() {
       const ids = (conns ?? []).map((c) => c.driver_id);
       if (!ids.length) return [];
       const [{ data }, { data: dprofiles }, { data: cars }, { data: past }] = await Promise.all([
-        supabase.from("profiles").select("id, full_name").in("id", ids),
+        fetchConnectedProfiles(ids).then((data) => ({ data })),
         supabase.rpc("get_connected_driver_profiles"),
         supabase
           .from("vehicles")

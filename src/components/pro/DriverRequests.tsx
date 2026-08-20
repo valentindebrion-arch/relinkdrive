@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Calendar, MapPin, Navigation, ShieldCheck, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchConnectedProfile, fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { paymentMethodLabel } from "@/lib/payment-methods";
 import { useAuth } from "@/lib/auth";
 import { EmptyState } from "@/components/Ui";
@@ -131,10 +132,7 @@ export function DriverRequests() {
       const clientIds = [...new Set((data ?? []).map((r) => r.client_id))];
       const names: Record<string, string> = {};
       if (clientIds.length) {
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, full_name, phone")
-          .in("id", clientIds);
+        const profiles = await fetchConnectedProfiles(clientIds);
         (profiles ?? []).forEach((p) => {
           names[p.id] = p.full_name || "Client";
         });

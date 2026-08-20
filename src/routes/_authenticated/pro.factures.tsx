@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ChevronLeft, ChevronRight, Download, Search, BarChart3, Users, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchConnectedProfile, fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { useAuth } from "@/lib/auth";
 import { useDriverProfile } from "@/lib/driver-queries";
 import { PageHeader, EmptyState } from "@/components/Ui";
@@ -155,8 +156,7 @@ function DriverInvoices() {
     queryKey: ["invoice-clients", clientIds.join(",")],
     enabled: clientIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("id, full_name").in("id", clientIds);
-      if (error) throw error;
+      const data = await fetchConnectedProfiles(clientIds);
       const map: Record<string, string> = {};
       for (const p of data ?? []) map[p.id] = p.full_name ?? "";
       return map;
@@ -234,11 +234,7 @@ function DriverInvoices() {
       if (data) {
         ride = data;
         if (data.client_id) {
-          const { data: p } = await supabase
-            .from("profiles")
-            .select("full_name, email, phone")
-            .eq("id", data.client_id)
-            .maybeSingle();
+          const p = await fetchConnectedProfile(data.client_id);
           client = p ?? null;
         }
       }

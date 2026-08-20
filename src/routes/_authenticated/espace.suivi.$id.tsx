@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchConnectedProfile, fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { useAuth } from "@/lib/auth";
 import {
   BookingThemeScope,
@@ -179,11 +180,7 @@ function TrackingPageInner() {
           { data: request },
           { data: history },
         ] = await Promise.all([
-          supabase
-            .from("profiles")
-            .select("full_name, avatar_url")
-            .eq("id", ride.driver_id)
-            .maybeSingle(),
+          fetchConnectedProfile(ride.driver_id).then((data) => ({ data })),
           supabase
             .from("vehicles")
             .select("brand, model, photo_url")
@@ -223,11 +220,7 @@ function TrackingPageInner() {
       if (!request) return null;
 
       const [{ data: driver }, { data: vehicle }, { data: linked }] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("full_name, avatar_url")
-          .eq("id", request.driver_id)
-          .maybeSingle(),
+        fetchConnectedProfile(request.driver_id).then((data) => ({ data })),
         supabase
           .from("vehicles")
           .select("brand, model, photo_url")

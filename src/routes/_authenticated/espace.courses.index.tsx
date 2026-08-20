@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchConnectedProfile, fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { useAuth } from "@/lib/auth";
 import { StatusBadge } from "@/components/StatusBadge";
 import { RIDE_STATUS_LABELS, INVOICE_LABELS, formatEuro } from "@/lib/labels";
@@ -373,7 +374,7 @@ function ClientRides() {
       const ids = [...new Set((rides ?? []).map((r) => r.driver_id))];
       const names: Record<string, string> = {};
       if (ids.length) {
-        const { data: profiles } = await supabase.from("profiles").select("id, full_name").in("id", ids);
+        const profiles = await fetchConnectedProfiles(ids);
         (profiles ?? []).forEach((p) => {
           if (p.full_name) names[p.id] = p.full_name;
         });

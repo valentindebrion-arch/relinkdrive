@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { CalendarClock, Car, Compass, MapPin, Plus, Search, Star, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchConnectedProfile, fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { useAuth } from "@/lib/auth";
 import { AddDriverSheet } from "@/components/client/AddDriverSheet";
 import { ClientTopBar } from "@/components/client/ClientTopBar";
@@ -62,7 +63,7 @@ function ClientDrivers() {
       if (!ids.length) return [];
       const [{ data: profiles }, { data: dprofiles }, { data: vehicles }, { data: rides }] =
         await Promise.all([
-          supabase.from("profiles").select("id, full_name, avatar_url").in("id", ids),
+          fetchConnectedProfiles(ids).then((data) => ({ data })),
           supabase.rpc("get_connected_driver_profiles"),
           supabase.from("vehicles").select("*").in("driver_id", ids),
           supabase.from("rides").select("driver_id").eq("client_id", user!.id),

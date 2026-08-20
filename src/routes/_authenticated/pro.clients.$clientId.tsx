@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, Phone, MessageSquare, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchConnectedProfile, fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { useAuth } from "@/lib/auth";
 import { StatusBadge } from "@/components/StatusBadge";
 import { CRM_LABELS, INVOICE_LABELS, RIDE_STATUS_LABELS, formatDate, formatDateTime, formatEuro } from "@/lib/labels";
@@ -59,7 +60,7 @@ function ClientDetail() {
           .eq("driver_id", user!.id)
           .eq("client_id", clientId)
           .maybeSingle(),
-        supabase.from("profiles").select("id, full_name, phone, email, avatar_url").eq("id", clientId).maybeSingle(),
+        fetchConnectedProfile(clientId).then((data) => ({ data })),
         supabase
           .from("rides")
           .select("*")
