@@ -180,6 +180,12 @@ export function VehicleFacts({
         Le véhicule
       </p>
       <div key={driverKey} className={`flex min-w-0 max-w-full flex-col gap-2 ${anim}`}>
+        <ExteriorPhoto
+          imageKey={`${driverKey}:${facts?.vehicleId ?? "no-vehicle"}:${facts?.exteriorPhotoPath ?? "no-photo"}`}
+          url={facts?.exteriorPhotoUrl ?? null}
+          alt="Extérieur du véhicule"
+          loading={loading}
+        />
         <InteriorPhoto
           imageKey={`${driverKey}:${facts?.vehicleId ?? "no-vehicle"}:${facts?.interiorPhotoPath ?? "no-photo"}`}
           url={facts?.interiorPhotoUrl ?? null}
