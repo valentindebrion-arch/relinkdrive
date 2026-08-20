@@ -80,8 +80,17 @@ export function buildInvoicePdf(opts: {
   doc.rect(0, 0, W, 6, "F");
 
   const isCredit = invoice.document_type === "credit_note";
-  text(isCredit ? "AVOIR" : "FACTURE", M, y, 20, true);
-  text(invoice.number ? `N° ${invoice.number}` : "BROUILLON — non émis", M, y + 7, 11, false, GREY);
+  // Tant qu'aucun numéro n'a été attribué, le document est un reçu (pas une facture fiscale).
+  const isReceipt = !isCredit && !invoice.number;
+  text(isCredit ? "AVOIR" : isReceipt ? "REÇU DE COURSE" : "FACTURE", M, y, 20, true);
+  text(
+    invoice.number ? `N° ${invoice.number}` : "Ce document n'est pas une facture",
+    M,
+    y + 7,
+    11,
+    false,
+    GREY,
+  );
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(GREY[0], GREY[1], GREY[2]);
