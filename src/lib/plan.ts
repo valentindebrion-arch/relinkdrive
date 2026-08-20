@@ -189,3 +189,12 @@ export function simulateTariff(
     total: Math.ceil(base + pickupAmount + nightAmount),
   };
 }
+
+/**
+ * Permissions du chauffeur connecté (source de vérité côté interface).
+ * Le backend refuse de toute façon les actions Pro avec PRO_PLAN_REQUIRED.
+ */
+export function useProAccess() {
+  const { plan, isPro, isLoading } = useMyPlan();
+  return { plan, isPro, isLoading, can: planPermissions(plan) };
+}
