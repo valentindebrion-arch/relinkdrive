@@ -155,7 +155,12 @@ function ClientHome() {
           if (fav) drivers.unshift(fav);
         }
       }
-      return { requests: requests ?? [], rides: rides ?? [], drivers };
+      return {
+        requests: requests ?? [],
+        rides: rides ?? [],
+        drivers,
+        connectionsCount: ids.length,
+      };
     },
   });
 
