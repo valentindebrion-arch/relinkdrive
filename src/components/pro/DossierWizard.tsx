@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AlertTriangle, ArrowLeft, ArrowRight, CheckCircle2, Loader2, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { ensureVehicleRowId } from "@/lib/vehicle-row";
 import { useAuth } from "@/lib/auth";
 import { useDriverProfile, useMyDocuments, useMyVehicle } from "@/lib/driver-queries";
 import {
@@ -379,9 +380,9 @@ export function DossierWizard() {
           inspection_expires_at: f["inspection_expires_at"] || null,
           is_primary: true,
         };
-        const { error } = vehicle.data?.id
-          ? await supabase.from("vehicles").update(payload).eq("id", vehicle.data.id)
-          : await supabase.from("vehicles").insert(payload);
+        // Ligne unique : jamais d'INSERT parallèle qui orphelinerait les photos.
+        const vehicleId = vehicle.data?.id ?? (await ensureVehicleRowId(user!.id));
+        const { error } = await supabase.from("vehicles").update(payload).eq("id", vehicleId);
         if (error) throw error;
         await saveDossierDetails(user!.id, {
           registration_holder: f["registration_holder"] || null,
