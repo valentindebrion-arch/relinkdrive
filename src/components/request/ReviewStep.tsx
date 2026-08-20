@@ -35,6 +35,11 @@ export type ReviewEstimate = {
     minimum_ht: number;
     base_ht: number;
     rounding_ht: number;
+    pickup_pct?: number;
+    pickup_amount?: number;
+    night_applied?: boolean;
+    night_pct?: number;
+    night_amount?: number;
   } | null;
 };
 
@@ -221,6 +226,18 @@ export function ReviewStep(props: ReviewStepProps) {
                 {estimate.quote ? (
                   <>
                     <Row label="Sous-total HT" value={formatEuro(estimate.quote.base_ht)} />
+                    {estimate.quote.pickup_amount ? (
+                      <Row
+                        label={`Prise en charge (+${estimate.quote.pickup_pct} %)`}
+                        value={formatEuro(estimate.quote.pickup_amount)}
+                      />
+                    ) : null}
+                    {estimate.quote.night_applied && estimate.quote.night_amount ? (
+                      <Row
+                        label={`Tarif de nuit (+${estimate.quote.night_pct} %)`}
+                        value={formatEuro(estimate.quote.night_amount)}
+                      />
+                    ) : null}
                     {estimate.quote.rounding_ht > 0 ? (
                       <Row
                         label="Arrondi reversé au chauffeur"
