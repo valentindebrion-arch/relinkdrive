@@ -1,19 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, CalendarClock, Loader2 } from "lucide-react";
+import { ArrowRight, CalendarClock, Loader2, QrCode } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { BrandLogo } from "@/components/BrandLogo";
-import { NotificationBell } from "@/components/NotificationBell";
+import { ClientTopBar } from "@/components/client/ClientTopBar";
 import { useBlockingImmediate } from "@/lib/immediate-request";
 import { saveRequestDraft } from "@/lib/request-draft";
 import { ConnectionDecor } from "@/components/client/ConnectionDecor";
-import {
-  ANIM_MS,
-  DriverSpotlight,
-  type SpotlightDriver,
-} from "@/components/client/DriverSpotlight";
+import { HomeDriverCard, type HomeCardDriver } from "@/components/client/HomeDriverCard";
 import {
   EQUIPMENT_LABELS,
   VehicleFacts,
@@ -25,11 +20,15 @@ export const Route = createFileRoute("/_authenticated/espace/")({
   component: ClientHome,
 });
 
-type HomeDriver = SpotlightDriver & { zone: string | null; facts: VehicleFactsData };
+type HomeDriver = HomeCardDriver & {
+  vehiclePhotoPath: string | null;
+  vehiclePhotoVersion: string | null;
+  facts: VehicleFactsData;
+};
 
 let selectedDriverMemory: string | null = null;
+const ANIM_MS = 260;
 
-/** Léger retour haptique, facultatif et jamais nécessaire à la compréhension. */
 function haptic() {
   if (typeof navigator !== "undefined" && "vibrate" in navigator) {
     try {
@@ -85,35 +84,50 @@ function ClientHome() {
       let drivers: HomeDriver[] = [];
       if (ids.length) {
         const [{ data: profiles }, { data: dprofiles }, { data: vehicles }] = await Promise.all([
-          supabase.from("profiles").select("id, full_name").in("id", ids),
+          supabase.from("profiles").select("id, full_name, avatar_url").in("id", ids),
           supabase.rpc("get_connected_driver_profiles"),
           supabase.from("vehicles").select("*").in("driver_id", ids),
         ]);
+
         const counts = new Map<string, number>();
         (rides ?? []).forEach((r) => counts.set(r.driver_id, (counts.get(r.driver_id) ?? 0) + 1));
         let favoriteId: string | null = null;
         counts.forEach((n, id) => {
           if (n > (favoriteId ? (counts.get(favoriteId) ?? 0) : 0)) favoriteId = id;
         });
+
+        // Notes publiques agrégées (une requête par chauffeur du carnet).
+        const ratings = new Map<string, { avg: number | null; count: number }>();
+        await Promise.all(
+          ids.map(async (id) => {
+            const slug = (dprofiles ?? []).find((d) => d.user_id === id)?.slug;
+            if (!slug) return;
+            const { data: r } = await supabase.rpc("get_public_driver_rating", { _slug: slug });
+            const row = r?.[0];
+            if (row) ratings.set(id, { avg: row.rating_avg ?? null, count: Number(row.rating_count ?? 0) });
+          }),
+        );
+
         drivers = ids.map((id) => {
           const profile = (profiles ?? []).find((p) => p.id === id);
           const dp = (dprofiles ?? []).find((d) => d.user_id === id);
           const car =
             (vehicles ?? []).find((v) => v.driver_id === id && v.is_primary) ??
             (vehicles ?? []).find((v) => v.driver_id === id);
+          const rating = ratings.get(id);
           return {
             id,
             name: dp?.business_name || profile?.full_name || "Chauffeur",
+            avatarUrl: profile?.avatar_url ?? null,
             available: dp?.on_duty ?? false,
             vehicle: car ? [car.brand, car.model].filter(Boolean).join(" ") || null : null,
-            activeVehicleId: car?.id ?? null,
+            vehiclePhotoUrl: null,
+            ratingAvg: rating?.avg ?? null,
+            ratingCount: rating?.count ?? 0,
+            trips: counts.get(id) ?? 0,
+            slug: dp?.slug ?? null,
             vehiclePhotoPath: car?.photo_url ?? null,
             vehiclePhotoVersion: car?.updated_at ?? null,
-            zone: dp?.zone ?? null,
-            slug: dp?.slug ?? null,
-            favorite: id === favoriteId,
-            // Objet de présentation unique, construit avec le véhicule actif :
-            // aucune valeur inventée, `false` et « absent » restent distincts.
             facts: {
               vehicleId: car?.id ?? null,
               interiorPhotoPath: car?.photo_interior_url ?? null,
@@ -128,16 +142,22 @@ function ClientHome() {
                   ).map((e) => e.label)
                 : [],
             } satisfies VehicleFactsData,
-          };
+            favoriteId,
+          } as HomeDriver & { favoriteId: string | null };
         });
+        drivers = drivers.map((d) => ({ ...d }));
+        // Le chauffeur le plus sollicité est présenté en premier.
+        const favIndex = drivers.findIndex((d) => d.id === favoriteId);
+        if (favIndex > 0) {
+          const [fav] = drivers.splice(favIndex, 1);
+          if (fav) drivers.unshift(fav);
+        }
       }
       return { requests: requests ?? [], rides: rides ?? [], drivers };
     },
   });
 
   const rawDrivers = useMemo(() => data.data?.drivers ?? [], [data.data?.drivers]);
-  // Les photos sont stockées en privé : le chemin permanent est la source de vérité,
-  // l'URL signée est mise en cache (clé = bucket + chemins) et renouvelée si besoin.
   const photos = useSignedUrls(
     "vehicles",
     rawDrivers.flatMap((d) => [d.vehiclePhotoPath, d.facts.interiorPhotoPath]),
@@ -153,28 +173,22 @@ function ClientHome() {
         return {
           ...d,
           vehiclePhotoUrl: d.vehiclePhotoPath ? (photoUrls?.[d.vehiclePhotoPath] ?? null) : null,
-          vehicleInteriorUrl: interiorUrl,
           facts: { ...d.facts, interiorPhotoUrl: interiorUrl },
         };
       }),
     [rawDrivers, photoUrls],
   );
-  // Tant que les URL signées ne sont pas résolues, on garde le skeleton :
-  // jamais le placeholder « photo indisponible » sur un véhicule qui en a une.
   const photosPending =
     photos.isPending && rawDrivers.some((d) => !!d.vehiclePhotoPath || !!d.facts.interiorPhotoPath);
   const rides = data.data?.rides ?? [];
   const requests = data.data?.requests ?? [];
 
-  // Le chauffeur sélectionné est restauré par identifiant, jamais par la
-  // position momentanée du carrousel lors d'un retour de route.
   const primed = useRef(false);
   useEffect(() => {
     if (primed.current || !drivers.length) return;
     primed.current = true;
     if (selectedDriverId && drivers.some((driver) => driver.id === selectedDriverId)) return;
-    const fav = drivers.findIndex((d) => d.favorite);
-    const initial = drivers[fav >= 0 ? fav : 0]?.id ?? null;
+    const initial = drivers[0]?.id ?? null;
     selectedDriverMemory = initial;
     setSelectedDriverId(initial);
   }, [drivers, selectedDriverId]);
@@ -185,10 +199,6 @@ function ClientHome() {
   const safeIndex = restoredIndex >= 0 ? restoredIndex : 0;
   const selectedDriver = drivers[safeIndex] ?? null;
 
-  /**
-   * Changement de chauffeur atomique : photo extérieure, identité, disponibilité
-   * et caractéristiques du véhicule basculent dans le même rendu.
-   */
   function goToDriver(delta: number) {
     if (drivers.length < 2 || transitioning) return;
     const nextIndex = (safeIndex + delta + drivers.length) % drivers.length;
@@ -202,28 +212,19 @@ function ClientHome() {
   const activeRide = rides.find((r) =>
     ["driver_enroute", "driver_arrived", "client_onboard", "in_progress"].includes(r.status),
   );
-  const nextRide = rides
-    .filter(
-      (r) =>
-        new Date(r.scheduled_at) >= new Date() && !["cancelled", "completed"].includes(r.status),
-    )
-    .sort((a, b) => +new Date(a.scheduled_at) - +new Date(b.scheduled_at))[0];
-
   const pendingLocal = requests.find(
     (r) =>
       ["new", "reviewing", "proposal_sent", "awaiting_client"].includes(r.status) &&
       !rides.some((ride) => ride.request_id === r.id),
   );
+  const ongoingId = activeRide?.id ?? blocking?.request_id ?? pendingLocal?.id ?? null;
+  const ongoingLabel = activeRide ? "Suivre ma course en cours" : "Suivre ma demande en cours";
 
   const firstName = (user?.user_metadata?.["full_name"] as string | undefined)?.split(" ")[0] ?? "";
-
-  const shortName = selectedDriver?.name ?? "";
-  const bookLabel =
-    shortName && shortName.length <= 16
-      ? `Réserver auprès de ${shortName}`
-      : "Réserver auprès de ce chauffeur";
+  const noDriver = !data.isLoading && drivers.length === 0;
 
   function startRequest(mode: "now" | "later") {
+    haptic();
     saveRequestDraft({
       driver_id: selectedDriver?.id ?? "",
       pickup_address: "",
@@ -236,40 +237,6 @@ function ClientHome() {
     void navigate({ to: "/espace/demandes" });
   }
 
-  /** Action principale unique, déduite de la situation courante. */
-  const primary: { label: string; onClick: () => void } = activeRide
-    ? {
-        label: "Suivre ma course",
-        onClick: () => void navigate({ to: "/espace/suivi/$id", params: { id: activeRide.id } }),
-      }
-    : blocking
-      ? {
-          label: "Suivre ma demande",
-          onClick: () =>
-            void navigate({ to: "/espace/suivi/$id", params: { id: blocking.request_id } }),
-        }
-      : pendingLocal
-        ? {
-            label: "Suivre ma demande",
-            onClick: () =>
-              void navigate({ to: "/espace/suivi/$id", params: { id: pendingLocal.id } }),
-          }
-        : nextRide
-          ? {
-              label: "Voir ma prochaine course",
-              onClick: () =>
-                void navigate({ to: "/espace/suivi/$id", params: { id: nextRide.id } }),
-            }
-          : selectedDriver?.available
-            ? { label: bookLabel, onClick: () => startRequest("now") }
-            : { label: "Planifier avec ce chauffeur", onClick: () => startRequest("later") };
-
-  const showSecondary = primary.label === bookLabel;
-  const noDriver = !data.isLoading && drivers.length === 0;
-
-
-
-
   return (
     <div
       className="home-screen relative isolate flex w-full max-w-full flex-col overflow-x-hidden bg-muted/30"
@@ -277,73 +244,68 @@ function ClientHome() {
     >
       <ConnectionDecor />
 
-      {/* 1. En-tête compact */}
-      <header className="home-rise relative shrink-0 px-4 pt-2 pb-0.5">
-        <div className="flex items-center justify-center">
-          <BrandLogo to="/espace" size="sm" />
-          <NotificationBell className="absolute top-1 right-3" />
-        </div>
-        <p className="mt-1 text-center text-[14px] font-semibold sm:text-[15px]">
+      <div className="home-rise relative shrink-0 px-4">
+        <ClientTopBar />
+        <p className="mt-1 text-[13px] font-semibold text-muted-foreground">
           {firstName ? `Bonjour ${firstName} 👋` : "Bonjour 👋"}
         </p>
-      </header>
+        <h1 className="text-[22px] leading-tight font-black tracking-tight">Votre chauffeur</h1>
+      </div>
 
-      <main className="flex w-full min-w-0 flex-col gap-[var(--home-gap)] px-4 pt-[var(--home-gap)] pb-[calc(var(--home-tabbar-h)+env(safe-area-inset-bottom)+20px)]">
-        {/* 2 & 3. Carte du chauffeur sélectionné + carrousel */}
+      <main className="flex w-full min-w-0 flex-col gap-[var(--home-gap)] px-4 pt-[var(--home-gap)] pb-[calc(var(--home-tabbar-h)+env(safe-area-inset-bottom)+24px)]">
+        {ongoingId ? (
+          <Link
+            to="/espace/suivi/$id"
+            params={{ id: ongoingId }}
+            className="home-rise flex items-center justify-between gap-2 rounded-2xl border border-primary/30 bg-primary/8 px-4 py-3 text-[13px] font-bold text-primary"
+          >
+            {ongoingLabel}
+            <ArrowRight className="size-4 shrink-0" />
+          </Link>
+        ) : null}
+
         <div className="home-rise" style={{ animationDelay: "40ms" }}>
-          <DriverSpotlight
+          <HomeDriverCard
             drivers={drivers}
             index={safeIndex}
             onGo={goToDriver}
             dir={dir}
             loading={data.isLoading || photosPending}
-            onPhotoRefresh={() => photos.refetch()}
           />
         </div>
 
-        {/* 4 & 5. Action principale + action secondaire */}
-        <section
-          className="home-rise space-y-[calc(var(--home-gap)*0.7)]"
-          style={{ animationDelay: "90ms" }}
-        >
-
+        <section className="home-rise space-y-2" style={{ animationDelay: "90ms" }}>
           {noDriver ? (
             <Link
               to="/espace/chauffeurs"
-              className="group flex min-h-[var(--home-btn-h)] w-full items-center justify-center gap-2 rounded-3xl bg-primary px-3 text-center text-[15px] font-extrabold text-primary-foreground shadow-[0_8px_20px_-14px_rgba(0,0,0,0.6)] transition-transform duration-200 active:scale-[0.985] sm:text-[16px]"
+              className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-3 text-[15px] font-extrabold text-primary-foreground transition active:scale-[0.985]"
             >
-              Ajouter un chauffeur
-              <ArrowRight className="size-5 shrink-0 transition-transform duration-200 group-active:translate-x-1" />
+              <QrCode className="size-5" /> Ajouter mon premier chauffeur
             </Link>
           ) : (
-            <button
-              type="button"
-              onClick={() => {
-                haptic();
-                primary.onClick();
-              }}
-              disabled={data.isLoading || transitioning}
-              className="group flex min-h-[var(--home-btn-h)] w-full items-center justify-center gap-2 rounded-3xl bg-primary px-3 text-center text-[15px] leading-tight font-extrabold text-primary-foreground shadow-[0_8px_20px_-14px_rgba(0,0,0,0.6)] transition-all duration-200 active:scale-[0.985] active:shadow-none disabled:opacity-70 sm:text-[16px]"
-            >
-              {data.isLoading ? <Loader2 className="size-5 shrink-0 animate-spin" /> : null}
-              {primary.label}
-              <ArrowRight className="size-5 shrink-0 transition-transform duration-200 group-active:translate-x-1" />
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => startRequest("now")}
+                disabled={data.isLoading || transitioning}
+                className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-3 text-[15px] font-extrabold text-primary-foreground transition active:scale-[0.985] disabled:opacity-70"
+              >
+                {data.isLoading ? <Loader2 className="size-5 animate-spin" /> : null}
+                Réserver maintenant
+                <ArrowRight className="size-5 shrink-0" />
+              </button>
+              <button
+                type="button"
+                onClick={() => startRequest("later")}
+                disabled={transitioning}
+                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-primary/35 bg-card px-3 text-[14px] font-bold text-primary transition active:scale-[0.985] disabled:opacity-70"
+              >
+                <CalendarClock className="size-4" /> Planifier un trajet
+              </button>
+            </>
           )}
-
-          {showSecondary ? (
-            <button
-              type="button"
-              onClick={() => startRequest("later")}
-              disabled={transitioning}
-              className="flex min-h-[var(--home-btn2-h)] disabled:opacity-70 w-full items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-card px-3 text-[13px] leading-tight font-bold text-primary transition-transform duration-200 active:scale-[0.985] sm:text-[14px]"
-            >
-              <CalendarClock className="size-4 shrink-0" /> Planifier avec ce chauffeur
-            </button>
-          ) : null}
         </section>
 
-        {/* 6. Caractéristiques du véhicule du chauffeur sélectionné */}
         <VehicleFacts
           facts={selectedDriver?.facts ?? null}
           driverSlug={selectedDriver?.slug ?? null}
@@ -353,9 +315,7 @@ function ClientHome() {
           }
           loading={data.isLoading || photosPending}
         />
-
       </main>
     </div>
   );
 }
-
