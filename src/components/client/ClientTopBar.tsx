@@ -101,46 +101,7 @@ export function ClientTopBar({ title, className }: { title?: string; className?:
 
       {title ? <h1 className="text-[22px] leading-tight font-black tracking-tight">{title}</h1> : null}
 
-      {open ? (
-        <div className="fixed inset-0 z-50 flex justify-end bg-foreground/25 backdrop-blur-[2px]">
-          <button
-            type="button"
-            aria-label="Fermer le menu"
-            className="absolute inset-0 cursor-default"
-            onClick={() => setOpen(false)}
-          />
-          <nav
-            className="relative m-3 h-fit w-64 rounded-3xl border border-border/70 bg-card p-3 shadow-xl"
-            style={{ marginTop: "calc(env(safe-area-inset-top) + 0.75rem)" }}
-          >
-            <div className="flex items-center justify-between px-1 pb-2">
-              <p className="text-sm font-bold">Menu</p>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                aria-label="Fermer"
-                className="grid size-8 place-items-center rounded-full bg-muted text-muted-foreground"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-            <ul className="space-y-1">
-              {MENU.map((item) => (
-                <li key={item.label}>
-                  <Link
-                    to={item.to}
-                    onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold transition hover:bg-muted"
-                  >
-                    <item.icon className="size-4 text-primary" aria-hidden />
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </div>
-      ) : null}
+      {open && mounted ? createPortal(panel, document.body) : null}
     </>
   );
 }
