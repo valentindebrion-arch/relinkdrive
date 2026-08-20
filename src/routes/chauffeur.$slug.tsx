@@ -265,9 +265,19 @@ function DriverPublicPage() {
 
   const exteriorQuery = useSignedUrl("vehicles", d?.vehicle_photo_url);
   const interiorQuery = useSignedUrl("vehicles", d?.vehicle_interior_photo_url);
+  const frontQuery = useSignedUrl("vehicles", d?.vehicle_front_photo_url);
+  const sideQuery = useSignedUrl("vehicles", d?.vehicle_side_photo_url);
   const vehiclePhoto = exteriorQuery.data ?? null;
   const interiorPhoto = interiorQuery.data ?? null;
-  const vehiclePhotos = { isLoading: exteriorQuery.isLoading || interiorQuery.isLoading };
+  const frontPhoto = frontQuery.data ?? null;
+  const sidePhoto = sideQuery.data ?? null;
+  const vehiclePhotos = {
+    isLoading:
+      exteriorQuery.isLoading ||
+      interiorQuery.isLoading ||
+      frontQuery.isLoading ||
+      sideQuery.isLoading,
+  };
 
 
   if (driverQuery.isLoading) {
@@ -623,6 +633,16 @@ function DriverPublicPage() {
               key: d.vehicle_photo_url ?? "exterior",
               url: vehiclePhoto,
               label: "Extérieur du véhicule",
+            },
+            {
+              key: d.vehicle_front_photo_url ?? "front",
+              url: frontPhoto,
+              label: "Vue de face",
+            },
+            {
+              key: d.vehicle_side_photo_url ?? "side",
+              url: sidePhoto,
+              label: "Vue de côté",
             },
             {
               key: d.vehicle_interior_photo_url ?? "interior",
