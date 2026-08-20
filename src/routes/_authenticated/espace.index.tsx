@@ -23,6 +23,8 @@ export const Route = createFileRoute("/_authenticated/espace/")({
 
 type HomeDriver = HomeCardDriver & {
   vehiclePhotoPath: string | null;
+  frontPhotoPath: string | null;
+  exteriorPhotoPath: string | null;
   vehiclePhotoVersion: string | null;
   facts: VehicleFactsData;
 };
