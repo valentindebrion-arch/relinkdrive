@@ -688,6 +688,48 @@ export type Database = {
         }
         Relationships: []
       }
+      driver_plan_changes: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          driver_id: string
+          expires_at: string | null
+          id: string
+          new_billing_status: string | null
+          new_plan: string
+          old_billing_status: string | null
+          old_plan: string
+          reason: string | null
+          source: string
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          driver_id: string
+          expires_at?: string | null
+          id?: string
+          new_billing_status?: string | null
+          new_plan: string
+          old_billing_status?: string | null
+          old_plan: string
+          reason?: string | null
+          source?: string
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          driver_id?: string
+          expires_at?: string | null
+          id?: string
+          new_billing_status?: string | null
+          new_plan?: string
+          old_billing_status?: string | null
+          old_plan?: string
+          reason?: string | null
+          source?: string
+        }
+        Relationships: []
+      }
       driver_profiles: {
         Row: {
           accepting_requests: boolean
@@ -697,6 +739,7 @@ export type Database = {
           approved_by: string | null
           availability: string[]
           billing_legal_info: string | null
+          billing_status: string
           bio: string | null
           booking_notice: string | null
           booking_theme: string
@@ -717,8 +760,11 @@ export type Database = {
           page_published: boolean
           payment_methods: string[]
           plan: string
+          plan_expires_at: string | null
+          plan_reason: string | null
           plan_renews_at: string | null
           plan_started_at: string | null
+          pro_tariff_snapshot: Json | null
           professional_address: string | null
           public_intro: string | null
           public_phone: string | null
@@ -754,6 +800,7 @@ export type Database = {
           approved_by?: string | null
           availability?: string[]
           billing_legal_info?: string | null
+          billing_status?: string
           bio?: string | null
           booking_notice?: string | null
           booking_theme?: string
@@ -774,8 +821,11 @@ export type Database = {
           page_published?: boolean
           payment_methods?: string[]
           plan?: string
+          plan_expires_at?: string | null
+          plan_reason?: string | null
           plan_renews_at?: string | null
           plan_started_at?: string | null
+          pro_tariff_snapshot?: Json | null
           professional_address?: string | null
           public_intro?: string | null
           public_phone?: string | null
@@ -811,6 +861,7 @@ export type Database = {
           approved_by?: string | null
           availability?: string[]
           billing_legal_info?: string | null
+          billing_status?: string
           bio?: string | null
           booking_notice?: string | null
           booking_theme?: string
@@ -831,8 +882,11 @@ export type Database = {
           page_published?: boolean
           payment_methods?: string[]
           plan?: string
+          plan_expires_at?: string | null
+          plan_reason?: string | null
           plan_renews_at?: string | null
           plan_started_at?: string | null
+          pro_tariff_snapshot?: Json | null
           professional_address?: string | null
           public_intro?: string | null
           public_phone?: string | null
@@ -2963,6 +3017,17 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_set_driver_plan: {
+        Args: {
+          _billing_status?: string
+          _driver: string
+          _expires_at?: string
+          _plan: string
+          _reason?: string
+          _restore_tariffs?: boolean
+        }
+        Returns: Json
+      }
       admin_validate_section: {
         Args: { _driver: string; _note?: string; _section: string }
         Returns: Json
@@ -3222,6 +3287,7 @@ export type Database = {
         Args: { _client?: string }
         Returns: number
       }
+      expire_temporary_pro_plans: { Args: never; Returns: number }
       get_blocking_immediate_request: {
         Args: never
         Returns: {
