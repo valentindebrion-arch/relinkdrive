@@ -716,6 +716,9 @@ export type Database = {
           on_duty: boolean
           page_published: boolean
           payment_methods: string[]
+          plan: string
+          plan_renews_at: string | null
+          plan_started_at: string | null
           professional_address: string | null
           public_intro: string | null
           public_phone: string | null
@@ -770,6 +773,9 @@ export type Database = {
           on_duty?: boolean
           page_published?: boolean
           payment_methods?: string[]
+          plan?: string
+          plan_renews_at?: string | null
+          plan_started_at?: string | null
           professional_address?: string | null
           public_intro?: string | null
           public_phone?: string | null
@@ -824,6 +830,9 @@ export type Database = {
           on_duty?: boolean
           page_published?: boolean
           payment_methods?: string[]
+          plan?: string
+          plan_renews_at?: string | null
+          plan_started_at?: string | null
           professional_address?: string | null
           public_intro?: string | null
           public_phone?: string | null
@@ -920,6 +929,11 @@ export type Database = {
           created_at: string
           driver_id: string
           minimum_ht: number
+          night_enabled: boolean
+          night_end: string
+          night_pct: number
+          night_start: string
+          pickup_pct: number
           price_per_km_ht: number
           updated_at: string
         }
@@ -929,6 +943,11 @@ export type Database = {
           created_at?: string
           driver_id: string
           minimum_ht?: number
+          night_enabled?: boolean
+          night_end?: string
+          night_pct?: number
+          night_start?: string
+          pickup_pct?: number
           price_per_km_ht?: number
           updated_at?: string
         }
@@ -938,6 +957,11 @@ export type Database = {
           created_at?: string
           driver_id?: string
           minimum_ht?: number
+          night_enabled?: boolean
+          night_end?: string
+          night_pct?: number
+          night_start?: string
+          pickup_pct?: number
           price_per_km_ht?: number
           updated_at?: string
         }
@@ -2954,6 +2978,7 @@ export type Database = {
       compute_ride_quote: {
         Args: {
           _at?: string
+          _at_ts?: string
           _distance_km: number
           _driver: string
           _round_trip?: boolean
@@ -2963,8 +2988,15 @@ export type Database = {
           amount_ttc: number
           base_ht: number
           effective_from: string
+          km_amount: number
           legal_mention: string
           minimum_ht: number
+          night_amount: number
+          night_applied: boolean
+          night_pct: number
+          pickup_amount: number
+          pickup_pct: number
+          plan: string
           price_per_km_ht: number
           rate_label: string
           regime: string
@@ -3172,6 +3204,8 @@ export type Database = {
       }
       driver_dossier_state: { Args: { _driver: string }; Returns: Json }
       driver_payment_methods: { Args: { _driver: string }; Returns: string[] }
+      driver_plan: { Args: { _driver: string }; Returns: string }
+      driver_supports_scheduled: { Args: { _driver: string }; Returns: boolean }
       driver_tax_at: {
         Args: { _at?: string; _driver: string }
         Returns: {
