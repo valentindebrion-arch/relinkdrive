@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, Download, Search, BarChart3, Users, ShieldCheck } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Search, BarChart3, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchConnectedProfile, fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { useAuth } from "@/lib/auth";
@@ -130,6 +130,7 @@ function DriverInvoices() {
   const [offset, setOffset] = useState(0);
   const [search, setSearch] = useState("");
   const [issuing, setIssuing] = useState<DraftInvoice | null>(null);
+  const [tab, setTab] = useState<"drafts" | "issued" | "credits">("drafts");
 
   const invoices = useQuery({
     queryKey: ["driver-invoices", user?.id],
@@ -303,15 +304,25 @@ function DriverInvoices() {
   );
 
 
+  // Les brouillons ne sont pas limités à la période : ils doivent toujours être
+  // visibles tant qu'ils ne sont pas émis.
+  const allDrafts = list.filter((i) => i.status === "draft");
+  const tabList =
+    tab === "drafts"
+      ? allDrafts
+      : tab === "credits"
+        ? inPeriod.filter((i) => i.document_type === "credit_note")
+        : inPeriod.filter((i) => i.status !== "draft" && i.document_type !== "credit_note");
+
   const q = search.trim().toLowerCase();
   const shown = q
-    ? inPeriod.filter((i) =>
+    ? tabList.filter((i) =>
         [i.number ?? "", clientName(i), formatDate(i.issued_on), i.issued_on, i.description ?? ""]
           .join(" ")
           .toLowerCase()
           .includes(q),
       )
-    : inPeriod;
+    : tabList;
 
   return (
     <>
@@ -332,38 +343,53 @@ function DriverInvoices() {
       {drafts.length ? (
         <div className="surface mb-4 border-warning/40 bg-warning/10 p-4 text-sm">
           <p className="font-medium">
-            {drafts.length} brouillon(s) à compléter — ces documents ne sont pas des factures définitives.
+            {drafts.length} brouillon(s) en attente — ce ne sont pas encore des factures.
           </p>
           <p className="mt-1 text-muted-foreground">
-            Sélectionnez le client facturé et le montant, puis émettez-les pour obtenir un numéro définitif.
+            Vérifiez le client facturé puis émettez la facture en un clic.
           </p>
         </div>
       ) : null}
 
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <h2 className="text-base font-semibold">Toutes les factures</h2>
-        <div className="flex items-center gap-1">
-          <Button asChild size="sm" variant="ghost" aria-label="Statistiques">
-            <Link to="/pro/activite">
-              <BarChart3 className="size-4" />
-            </Link>
-          </Button>
-          <Button asChild size="sm" variant="ghost" aria-label="Clients facturés">
-            <Link to="/pro/clients-factures">
-              <Users className="size-4" />
-            </Link>
-          </Button>
-          <Button asChild size="sm" variant="ghost" aria-label="Facturation électronique">
-            <Link to="/pro/einvoicing">
-              <ShieldCheck className="size-4" />
-            </Link>
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => exportCsv(shown)}>
-            <Download className="mr-1 size-4" /> Export
-          </Button>
-        </div>
+      <div className="mb-3 grid grid-cols-3 gap-1 rounded-2xl bg-muted p-1">
+        {(
+          [
+            ["drafts", `Brouillons${allDrafts.length ? ` (${allDrafts.length})` : ""}`],
+            ["issued", "Factures"],
+            ["credits", "Avoirs"],
+          ] as const
+        ).map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setTab(key)}
+            className={`tap-active h-9 rounded-xl text-sm font-medium transition-colors ${
+              tab === key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
+      <div className="mb-3 flex items-center justify-end gap-1">
+        <Button asChild size="sm" variant="ghost" aria-label="Statistiques">
+          <Link to="/pro/activite">
+            <BarChart3 className="size-4" />
+          </Link>
+        </Button>
+        <Button asChild size="sm" variant="ghost" aria-label="Clients facturés">
+          <Link to="/pro/clients-factures">
+            <Users className="size-4" />
+          </Link>
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => exportCsv(shown)}>
+          <Download className="mr-1 size-4" /> Export
+        </Button>
+      </div>
+
+      {tab === "drafts" ? null : (
+        <>
       <div className="relative mb-3">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -402,6 +428,8 @@ function DriverInvoices() {
           </Button>
         </div>
       </div>
+        </>
+      )}
 
       {invoices.isLoading ? (
         <div className="space-y-3">
@@ -416,8 +444,14 @@ function DriverInvoices() {
           <EmptyState title="Aucune facture ne correspond à votre recherche." />
         ) : (
           <EmptyState
-            title="Aucune facture pour cette période."
-            description="Les factures de vos courses terminées apparaîtront automatiquement ici."
+            title={
+              tab === "drafts"
+                ? "Aucun brouillon en attente."
+                : tab === "credits"
+                  ? "Aucun avoir sur cette période."
+                  : "Aucune facture sur cette période."
+            }
+            description="Les documents de vos courses terminées apparaissent automatiquement ici."
           />
         )
       ) : (
@@ -431,7 +465,7 @@ function DriverInvoices() {
                   <p className="truncate text-xs text-muted-foreground">
                     {inv.number
                       ? `${inv.document_type === "credit_note" ? "Avoir" : "Facture"} n° ${inv.number}`
-                      : "Brouillon — non numéroté"}
+                      : "Brouillon"}
                   </p>
                   <p className="mt-1 text-sm font-semibold text-primary">{formatEuro(Number(inv.amount_ttc))}</p>
                 </div>
@@ -440,7 +474,7 @@ function DriverInvoices() {
               <div className="mt-3 flex items-center gap-2 overflow-x-auto">
                 {inv.status === "draft" ? (
                   <Button size="sm" className="shrink-0" onClick={() => setIssuing(inv as DraftInvoice)}>
-                    Émettre
+                    Émettre la facture
                   </Button>
                 ) : null}
                 {inv.status === "issued" ? (
