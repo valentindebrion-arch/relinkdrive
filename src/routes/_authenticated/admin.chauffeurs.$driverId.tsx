@@ -104,6 +104,7 @@ function DossierDetailPage() {
   const { driverId } = Route.useParams();
   return (
     <>
+      <SubscriptionAdminCard driverId={driverId} />
       <WomenProgramCard driverId={driverId} />
       <DossierReview driverId={driverId} />
     </>
