@@ -46,7 +46,7 @@ export function PlanBadge({ plan }: { plan: DriverPlan }) {
     </span>
   ) : (
     <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-[11px] font-bold tracking-wide text-muted-foreground uppercase">
-      Free
+      Standard
     </span>
   );
 }
@@ -110,7 +110,7 @@ export function SubscriptionAdminCard({ driverId }: { driverId: string }) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[12px] font-bold tracking-wide text-muted-foreground uppercase">
-            Abonnement actuel
+            Forfait du chauffeur
           </p>
           <p className="mt-1 flex items-center gap-2 text-[19px] font-extrabold tracking-tight">
             {isPro ? <Crown className="size-5 text-primary" /> : null}
@@ -118,7 +118,7 @@ export function SubscriptionAdminCard({ driverId }: { driverId: string }) {
               ? "Chargement…"
               : isPro
                 ? `${PLAN_LABELS.pro} — ${formatEuro(PRO_PRICE_PER_MONTH)}/mois`
-                : PLAN_LABELS.free}
+                : "Standard / Gratuit — 1,85 €/km imposé"}
           </p>
           <p className="mt-1 text-[13px] text-muted-foreground">
             Facturation : {BILLING_STATUS_LABELS[current?.billing_status ?? "free"]}
@@ -132,9 +132,25 @@ export function SubscriptionAdminCard({ driverId }: { driverId: string }) {
         </div>
         <div className="flex flex-col items-end gap-2">
           <PlanBadge plan={current?.plan ?? "free"} />
-          <Button size="sm" variant="outline" onClick={() => openDialog(isPro ? "free" : "pro")}>
-            <Sparkles className="size-4" /> Modifier l'abonnement
-          </Button>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button
+              size="sm"
+              variant={isPro ? "outline" : "secondary"}
+              disabled={!isPro || sub.isLoading}
+              onClick={() => openDialog("free")}
+            >
+              Standard / Gratuit
+            </Button>
+            <Button
+              size="sm"
+              variant={isPro ? "secondary" : "default"}
+              disabled={isPro || sub.isLoading}
+              onClick={() => openDialog("pro")}
+            >
+              <Sparkles className="size-4" /> Pro
+            </Button>
+          </div>
+          <p className="text-[11px] text-muted-foreground">Modifier le forfait — effet immédiat</p>
         </div>
       </div>
 
