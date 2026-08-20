@@ -18,7 +18,7 @@ import { useAuth } from "@/lib/auth";
 import { requireDriverAccess } from "@/lib/role-guard";
 import { useNewRequestsCount, useDriverProfile } from "@/lib/driver-queries";
 import { isDriverActive } from "@/lib/driver-dossier";
-import { useMyPlan } from "@/lib/plan";
+import { proOnlyPathFor, useMyPlan } from "@/lib/plan";
 import { ProUpsell } from "@/components/pro/ProUpsell";
 
 // Ordre réel des onglets de la barre inférieure chauffeur (index 0 = Accueil).
@@ -94,7 +94,7 @@ function ProLayout() {
       brandTo={active ? "/pro" : "/pro/dossier"}
     >
       <ClientPageTransition tabOrder={PRO_TAB_ORDER} tabKeys={PRO_TAB_KEYS} bottomOffset="5.5rem">
-        {!isPro && proOnlyPath ? <ProUpsell /> : <Outlet />}
+        {blocked ? <ProUpsell feature={blocked.label} /> : <Outlet />}
       </ClientPageTransition>
     </DashboardShell>
   );
