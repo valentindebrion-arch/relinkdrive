@@ -119,7 +119,7 @@ function ClientHome() {
             id,
             name: dp?.business_name || profile?.full_name || "Chauffeur",
             avatarUrl: profile?.avatar_url ?? null,
-            available: dp?.on_duty ?? false,
+            available: !!dp?.on_duty && dp?.accepting_requests !== false,
             vehicle: car ? [car.brand, car.model].filter(Boolean).join(" ") || null : null,
             vehiclePhotoUrl: null,
             ratingAvg: rating?.avg ?? null,
@@ -145,7 +145,9 @@ function ClientHome() {
             favoriteId,
           } as HomeDriver & { favoriteId: string | null };
         });
-        drivers = drivers.map((d) => ({ ...d }));
+        // L'accueil ne présente que les chauffeurs du carnet actuellement disponibles.
+        // La relation client / chauffeur reste intacte : « Mes chauffeurs » affiche tout le carnet.
+        drivers = drivers.filter((d) => d.available);
         // Le chauffeur le plus sollicité est présenté en premier.
         const favIndex = drivers.findIndex((d) => d.id === favoriteId);
         if (favIndex > 0) {
