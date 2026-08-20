@@ -190,6 +190,7 @@ function ProProfileHub() {
 
   const sectionStatus: Record<Exclude<SectionKey, "qr">, "neutral" | "warning" | "danger"> = {
     compte: "neutral",
+    abonnement: "neutral",
     entreprise: "neutral",
     vehicule:
       expired(v?.insurance_expires_at) || expired(v?.inspection_expires_at) || expired(v?.next_service_date)
