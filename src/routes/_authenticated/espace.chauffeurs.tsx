@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { CalendarClock, Car, Compass, MapPin, Plus, Search, Star, Users } from "lucide-react";
+import { Car, Compass, MapPin, Plus, Search, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchConnectedProfile, fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { useAuth } from "@/lib/auth";
