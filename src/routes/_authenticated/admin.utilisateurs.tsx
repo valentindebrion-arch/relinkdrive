@@ -65,7 +65,12 @@ function AdminUsers() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erreur"),
   });
 
-  const filtered = (users ?? []).filter((u) => {
+  // Séparation stricte : les comptes chauffeurs sont gérés dans /admin/chauffeurs
+  const clientsOnly = (users ?? []).filter(
+    (u) => u.roles.includes("client") && !u.roles.includes("driver"),
+  );
+
+  const filtered = clientsOnly.filter((u) => {
     const q = search.trim().toLowerCase();
     if (!q) return true;
     return [u.full_name, u.email, u.phone].some((v) => (v ?? "").toLowerCase().includes(q));
@@ -73,7 +78,7 @@ function AdminUsers() {
 
   return (
     <div>
-      <PageHeader title="Utilisateurs" description="Passagers, chauffeurs et administrateurs utilisant Relink." />
+      <PageHeader title="Utilisateurs" description="Comptes passagers utilisant Relink. Les chauffeurs sont gérés dans l'onglet Chauffeurs." />
 
       <Input
         placeholder="Rechercher un nom, un e-mail, un téléphone…"
@@ -81,6 +86,7 @@ function AdminUsers() {
         onChange={(e) => setSearch(e.target.value)}
         className="mb-4 max-w-sm"
       />
+
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Chargement…</p>
