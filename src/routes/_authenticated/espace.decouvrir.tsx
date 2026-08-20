@@ -119,7 +119,7 @@ function DiscoverPage() {
                   <Link
                     to="/chauffeur/$slug"
                     params={{ slug: driver.slug }}
-                    className="group tap tap-active block overflow-hidden rounded-[1.25rem] border border-border bg-card shadow-card transition active:scale-[0.985]"
+                    className="group tap tap-active block overflow-hidden rounded-[1.25rem] border border-border bg-card shadow-card transition"
                   >
                     <div className="relative aspect-video w-full bg-muted">
                       {photoUrl ? (
