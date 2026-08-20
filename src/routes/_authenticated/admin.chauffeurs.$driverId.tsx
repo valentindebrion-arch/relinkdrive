@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Switch } from "@/components/ui/switch";
 import { DossierReview } from "@/components/admin/DossierReview";
+import { SubscriptionAdminCard } from "@/components/admin/SubscriptionAdminCard";
 
 export const Route = createFileRoute("/_authenticated/admin/chauffeurs/$driverId")({
   head: () => ({
@@ -103,6 +104,7 @@ function DossierDetailPage() {
   const { driverId } = Route.useParams();
   return (
     <>
+      <SubscriptionAdminCard driverId={driverId} />
       <WomenProgramCard driverId={driverId} />
       <DossierReview driverId={driverId} />
     </>

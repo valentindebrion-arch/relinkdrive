@@ -23,6 +23,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { PlanBadge } from "@/components/admin/SubscriptionAdminCard";
+import {
+  PLAN_FILTER_LABELS,
+  matchesPlanFilter,
+  normalizeBillingStatus,
+  type PlanFilter,
+} from "@/lib/subscription";
 
 
 export const Route = createFileRoute("/_authenticated/admin/chauffeurs/")({
@@ -34,6 +41,7 @@ const FILTERS = ["pending", "under_review", "changes_requested", "expired_docume
 function AdminDrivers() {
   const qc = useQueryClient();
   const [filter, setFilter] = useState<string>("pending");
+  const [planFilter, setPlanFilter] = useState<PlanFilter>("all");
   const [note, setNote] = useState<Record<string, string>>({});
   const [viewer, setViewer] = useState<ReviewDocument | null>(null);
   const [approveId, setApproveId] = useState<string | null>(null);
@@ -130,6 +138,13 @@ function AdminDrivers() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erreur"),
   });
 
+  const visibleDrivers = (drivers ?? []).filter((d) =>
+    matchesPlanFilter(planFilter, {
+      plan: d.plan === "pro" ? "pro" : "free",
+      billing_status: normalizeBillingStatus(d.billing_status),
+    }),
+  );
+
   return (
     <div>
       <PageHeader
@@ -149,13 +164,25 @@ function AdminDrivers() {
         ))}
       </div>
 
+      <div className="mb-4 flex flex-wrap gap-2">
+        {(Object.keys(PLAN_FILTER_LABELS) as PlanFilter[]).map((f) => (
+          <button
+            key={f}
+            onClick={() => setPlanFilter(f)}
+            className={`rounded-full border px-3 py-1.5 text-xs ${planFilter === f ? "border-primary bg-accent" : "border-border text-muted-foreground"}`}
+          >
+            {PLAN_FILTER_LABELS[f]}
+          </button>
+        ))}
+      </div>
+
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Chargement…</p>
-      ) : !drivers?.length ? (
+      ) : !visibleDrivers.length ? (
         <EmptyState title="Aucun dossier" description="Aucun chauffeur ne correspond à ce filtre." />
       ) : (
         <div className="space-y-4">
-          {drivers.map((d) => (
+          {visibleDrivers.map((d) => (
             <div key={d.user_id} className="surface p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -168,7 +195,10 @@ function AdminDrivers() {
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  <StatusBadge status={d.verification_status} labels={VERIFICATION_LABELS} />
+                  <div className="flex items-center gap-2">
+                    <PlanBadge plan={d.plan === "pro" ? "pro" : "free"} />
+                    <StatusBadge status={d.verification_status} labels={VERIFICATION_LABELS} />
+                  </div>
                   <Button asChild size="sm" variant="outline">
                     <Link to="/admin/chauffeurs/$driverId" params={{ driverId: d.user_id }}>
                       Consulter le dossier
