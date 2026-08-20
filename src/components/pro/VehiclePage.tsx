@@ -34,7 +34,14 @@ const PETS_POLICIES = [
   ["conditional", "Acceptés sous conditions"],
 ] as const;
 
-type PhotoField = "photo_url" | "photo_interior_url";
+type PhotoField = "photo_url" | "photo_interior_url" | "photo_front_url" | "photo_side_url";
+
+const PHOTO_KIND: Record<PhotoField, string> = {
+  photo_url: "exterior",
+  photo_interior_url: "interior",
+  photo_front_url: "front",
+  photo_side_url: "side",
+};
 
 export function VehiclePage() {
   const { user } = useAuth();
@@ -62,6 +69,8 @@ export function VehiclePage() {
     next_service_date: "",
     photo_url: "",
     photo_interior_url: "",
+    photo_front_url: "",
+    photo_side_url: "",
     category: "",
   });
   const [flags, setFlags] = useState({
@@ -109,6 +118,8 @@ export function VehiclePage() {
       next_service_date: v.next_service_date ?? "",
       photo_url: v.photo_url ?? "",
       photo_interior_url: v.photo_interior_url ?? "",
+      photo_front_url: v.photo_front_url ?? "",
+      photo_side_url: v.photo_side_url ?? "",
       category: v.category ?? "",
     });
     setFlags({
@@ -153,7 +164,7 @@ export function VehiclePage() {
     setBusy(field);
     const previous = form[field];
     const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-    const kind = field === "photo_url" ? "exterior" : "interior";
+    const kind = PHOTO_KIND[field];
     const vehicleId = await ensureVehicleId();
     if (!vehicleId) {
       setBusy(null);
@@ -172,7 +183,7 @@ export function VehiclePage() {
     }
     const { error: dbError } = await supabase
       .from("vehicles")
-      .update(field === "photo_url" ? { photo_url: path } : { photo_interior_url: path })
+      .update({ [field]: path })
       .eq("id", vehicleId);
     if (dbError) {
       setBusy(null);
@@ -184,7 +195,7 @@ export function VehiclePage() {
     // fichier doit exister réellement dans le stockage permanent.
     const { data: saved } = await supabase
       .from("vehicles")
-      .select("photo_url, photo_interior_url")
+      .select("photo_url, photo_interior_url, photo_front_url, photo_side_url")
       .eq("id", vehicleId)
       .maybeSingle();
     const storedPath = saved?.[field] ?? null;
@@ -213,7 +224,7 @@ export function VehiclePage() {
     setBusy(field);
     const { error } = await supabase
       .from("vehicles")
-      .update(field === "photo_url" ? { photo_url: null } : { photo_interior_url: null })
+      .update({ [field]: null })
       .eq("id", vehicle.data.id);
     setBusy(null);
     if (error) {
@@ -345,6 +356,8 @@ export function VehiclePage() {
 
   const photo = useSignedUrl("vehicles", form.photo_url);
   const interior = useSignedUrl("vehicles", form.photo_interior_url);
+  const front = useSignedUrl("vehicles", form.photo_front_url);
+  const side = useSignedUrl("vehicles", form.photo_side_url);
 
   const text = (key: keyof typeof form, label: string, type = "text") => (
     <div>
@@ -396,6 +409,24 @@ export function VehiclePage() {
             hasPath={!!form.photo_interior_url}
             onSelect={(file) => void upload(file, "photo_interior_url")}
             onRemove={() => void removePhoto("photo_interior_url")}
+          />
+          <PhotoSlot
+            id="photo-front"
+            label="Photo de face du véhicule"
+            url={front.data ?? null}
+            loading={busy === "photo_front_url" || front.isLoading}
+            hasPath={!!form.photo_front_url}
+            onSelect={(file) => void upload(file, "photo_front_url")}
+            onRemove={() => void removePhoto("photo_front_url")}
+          />
+          <PhotoSlot
+            id="photo-side"
+            label="Photo de côté du véhicule"
+            url={side.data ?? null}
+            loading={busy === "photo_side_url" || side.isLoading}
+            hasPath={!!form.photo_side_url}
+            onSelect={(file) => void upload(file, "photo_side_url")}
+            onRemove={() => void removePhoto("photo_side_url")}
           />
         </div>
 
