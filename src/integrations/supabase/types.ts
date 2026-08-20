@@ -2876,7 +2876,9 @@ export type Database = {
           pets_conditions: string | null
           pets_max: number | null
           pets_policy: string
+          photo_front_url: string | null
           photo_interior_url: string | null
+          photo_side_url: string | null
           photo_url: string | null
           plate: string | null
           quiet_ride: boolean
@@ -2917,7 +2919,9 @@ export type Database = {
           pets_conditions?: string | null
           pets_max?: number | null
           pets_policy?: string
+          photo_front_url?: string | null
           photo_interior_url?: string | null
+          photo_side_url?: string | null
           photo_url?: string | null
           plate?: string | null
           quiet_ride?: boolean
@@ -2958,7 +2962,9 @@ export type Database = {
           pets_conditions?: string | null
           pets_max?: number | null
           pets_policy?: string
+          photo_front_url?: string | null
           photo_interior_url?: string | null
+          photo_side_url?: string | null
           photo_url?: string | null
           plate?: string | null
           quiet_ride?: boolean
@@ -3505,9 +3511,11 @@ export type Database = {
           vehicle_brand: string
           vehicle_category: string
           vehicle_color: string
+          vehicle_front_photo_url: string
           vehicle_interior_photo_url: string
           vehicle_model: string
           vehicle_photo_url: string
+          vehicle_side_photo_url: string
           vehicle_year: number
           verified_docs: string[]
           water: boolean
