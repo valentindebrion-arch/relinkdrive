@@ -73,7 +73,7 @@ export function PaymentSummary({
   onEdit,
 }: {
   option: PaymentMethodOption | null;
-  driverName?: string | null;
+  driverName?: string | null | undefined;
   onEdit: () => void;
 }) {
   const who = firstName(driverName);
@@ -120,9 +120,9 @@ export function PaymentBlock({
   loading: boolean;
   value: string | null;
   onSelect: (key: string) => void;
-  driverName?: string | null;
+  driverName?: string | null | undefined;
   onContactDriver: () => void;
-  showError?: boolean;
+  showError?: boolean | undefined;
 }) {
   const who = firstName(driverName);
   const selected = options.find((o) => o.key === value) ?? null;
@@ -205,7 +205,7 @@ export function PaymentSheet({
   options: PaymentMethodOption[];
   value: string | null;
   onSelect: (key: string) => void;
-  driverName?: string | null;
+  driverName?: string | null | undefined;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
