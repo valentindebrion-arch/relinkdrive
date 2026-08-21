@@ -1,5 +1,5 @@
 /**
- * Étape 3 sur 4 — Options et demandes (facultative).
+ * Étape 3 sur 4 — Règlement et demandes.
  *
  * Tout est replié par défaut : seules les options réellement choisies
  * apparaissent, sous forme de tags supprimables. La compatibilité n'est
@@ -13,6 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { CompatibilityNotice } from "@/components/request/CompatibilityNotice";
+import { PaymentBlock, PAYMENT_SECTION_ID } from "@/components/request/PaymentChoice";
+import type { PaymentMethodOption } from "@/lib/payment-methods";
 import { EquipmentContextPhoto } from "@/components/request/VehiclePhotos";
 import type { CompatibilityResult } from "@/lib/compatibility";
 import type { VehicleMedia } from "@/lib/vehicle-photos";
@@ -30,6 +32,11 @@ export function ExtrasStep({
   vehicleMedia,
   needs,
   pets,
+  paymentOptions,
+  paymentLoading,
+  paymentMethod,
+  onSelectPayment,
+  onContactDriver,
   compatibility,
   compatibilityLoading,
   comment,
@@ -42,6 +49,11 @@ export function ExtrasStep({
   vehicleMedia?: VehicleMedia | null;
   needs: SpecialNeedsState;
   pets: PetsState;
+  paymentOptions: PaymentMethodOption[];
+  paymentLoading: boolean;
+  paymentMethod: string | null;
+  onSelectPayment: (key: string) => void;
+  onContactDriver: () => void;
   compatibility: CompatibilityResult | null;
   compatibilityLoading: boolean;
   comment: string;
@@ -56,6 +68,8 @@ export function ExtrasStep({
 }) {
   const who = firstName(driverName);
   const [listOpen, setListOpen] = useState(false);
+  const [paymentError, setPaymentError] = useState(false);
+  const noPaymentConfigured = !paymentLoading && paymentOptions.length === 0;
   const [messageOpen, setMessageOpen] = useState(!!comment.trim());
 
   const petSelected = pets.count > 0;
@@ -95,21 +109,25 @@ export function ExtrasStep({
         <div className="mx-auto w-full max-w-lg space-y-4">
           <div className="rise-in pt-1">
             <h2 className="text-[24px] leading-tight font-extrabold tracking-tight">
-              Personnalisez votre course
+              Finalisez vos préférences
             </h2>
             <p className="mt-1 text-[13.5px] leading-snug text-muted-foreground">
-              Ajoutez uniquement les informations utiles à {who}.
+              Choisissez votre mode de règlement et ajoutez une demande si nécessaire.
             </p>
           </div>
 
-          {vehicleMedia ? (
-            <EquipmentContextPhoto
-              media={vehicleMedia}
-              driverName={driverName ?? null}
-              needs={needs.keys}
-              petsCount={pets.count}
-            />
-          ) : null}
+          <PaymentBlock
+            options={paymentOptions}
+            loading={paymentLoading}
+            value={paymentMethod}
+            onSelect={(k) => {
+              setPaymentError(false);
+              onSelectPayment(k);
+            }}
+            driverName={driverName ?? null}
+            onContactDriver={onContactDriver}
+            showError={paymentError}
+          />
 
           {/* Options et demandes particulières — replié par défaut */}
           <section className="rounded-3xl border border-border/70 bg-card p-4 shadow-[0_10px_30px_-30px_rgba(0,0,0,0.45)]">
@@ -190,6 +208,16 @@ export function ExtrasStep({
                     );
                   })}
                 </div>
+                {vehicleMedia ? (
+                  <div className="mt-3">
+                    <EquipmentContextPhoto
+                      media={vehicleMedia}
+                      driverName={driverName ?? null}
+                      needs={needs.keys}
+                      petsCount={pets.count}
+                    />
+                  </div>
+                ) : null}
                 <Button
                   type="button"
                   variant="outline"
@@ -322,7 +350,15 @@ export function ExtrasStep({
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}
       >
         <div className="mx-auto w-full max-w-lg">
-          {incompatible ? (
+          {noPaymentConfigured ? (
+            <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
+              Ce chauffeur n'a pas encore renseigné de mode de règlement.
+            </p>
+          ) : !paymentMethod ? (
+            <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
+              Choisissez un mode de règlement pour continuer.
+            </p>
+          ) : incompatible ? (
             <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
               Ajustez votre demande ou choisissez un autre de vos chauffeurs pour continuer.
             </p>
@@ -334,8 +370,17 @@ export function ExtrasStep({
           <Button
             size="lg"
             className="h-13 w-full rounded-2xl text-[15px] font-bold transition-transform active:scale-[0.99]"
-            disabled={busy || incompatible || needsDetailMissing}
-            onClick={onContinue}
+            disabled={busy || incompatible || needsDetailMissing || !paymentMethod || noPaymentConfigured}
+            onClick={() => {
+              if (!paymentMethod) {
+                setPaymentError(true);
+                document
+                  .getElementById(PAYMENT_SECTION_ID)
+                  ?.scrollIntoView({ behavior: "smooth", block: "center" });
+                return;
+              }
+              onContinue();
+            }}
           >
             {busy ? <Loader2 className="size-4 animate-spin" /> : null}
             Continuer — Vérifier la course

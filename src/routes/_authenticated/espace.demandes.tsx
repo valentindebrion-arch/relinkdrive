@@ -113,8 +113,8 @@ type Estimate = {
 
 const STEP_LABELS = [
   "Trajet et véhicule",
-  "Voyage et règlement",
-  "Options et demandes",
+  "Voyageurs et bagages",
+  "Règlement et demandes",
   "Prix et confirmation",
 ];
 
@@ -618,7 +618,7 @@ function ClientRequests() {
       setBusy(false);
       sentRef.current = false;
       setSubmitError("Sélectionnez un mode de règlement avant d'envoyer votre demande.");
-      setStep(1);
+      setStep(2);
       toast.error("Mode de règlement manquant", {
         description: "Choisissez comment vous réglerez la course.",
       });
@@ -1379,7 +1379,7 @@ function ClientRequests() {
                 onClick={() => void next()}
               >
                 {busy || checking ? <Loader2 className="size-4 animate-spin" /> : null}
-                Continuer
+                Continuer — Votre voyage
                 <ArrowRight className="size-4" />
               </Button>
             </div>
@@ -1392,11 +1392,6 @@ function ClientRequests() {
           passengers={Number(form.passengers) || 1}
           largeLuggage={requirements.largeLuggage}
           cabinLuggage={requirements.cabinLuggage}
-          paymentOptions={paymentOptions}
-          paymentLoading={!!form.driver_id && paymentMethods.isLoading}
-          paymentMethod={paymentMethod}
-          onSelectPayment={(k) => setPaymentMethod(k || null)}
-          onContactDriver={() => void navigate({ to: "/espace/chauffeurs" })}
           busy={busy || checking}
           onContinue={() => void next()}
           onChange={(patch) =>
@@ -1418,6 +1413,11 @@ function ClientRequests() {
           vehicleMedia={form.driver_id ? vehicleMedia : null}
           needs={needs}
           pets={pets}
+          paymentOptions={paymentOptions}
+          paymentLoading={!!form.driver_id && paymentMethods.isLoading}
+          paymentMethod={paymentMethod}
+          onSelectPayment={(k: string) => setPaymentMethod(k || null)}
+          onContactDriver={() => void navigate({ to: "/espace/chauffeurs" })}
           compatibility={compatibility}
           compatibilityLoading={!!form.driver_id && vehicleCapacity.isLoading}
           comment={form.comment}

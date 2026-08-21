@@ -1,15 +1,12 @@
 /**
- * Étape 2 sur 4 — Voyage et règlement.
+ * Étape 2 sur 4 — Voyageurs et bagages.
  *
- * Galerie habitacle / coffre reliée aux compteurs, puis choix du mode de
- * règlement. Le trajet saisi à l'étape 1 n'est jamais répété ici.
+ * Galerie habitacle / coffre reliée aux compteurs. Le trajet saisi à
+ * l'étape 1 n'est jamais répété ici, et le règlement arrive à l'étape 3.
  */
-import { useState } from "react";
 import { ArrowRight, Loader2, Luggage, PackageOpen, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CabinTrunkGallery } from "@/components/request/VehiclePhotos";
-import { PaymentBlock, PAYMENT_SECTION_ID } from "@/components/request/PaymentChoice";
-import type { PaymentMethodOption } from "@/lib/payment-methods";
 import type { VehicleMedia } from "@/lib/vehicle-photos";
 
 export function Stepper({
@@ -74,11 +71,6 @@ export function TravelStep({
   passengers,
   largeLuggage,
   cabinLuggage,
-  paymentOptions,
-  paymentLoading,
-  paymentMethod,
-  onSelectPayment,
-  onContactDriver,
   busy,
   onChange,
   onContinue,
@@ -88,11 +80,6 @@ export function TravelStep({
   passengers: number;
   largeLuggage: number;
   cabinLuggage: number;
-  paymentOptions: PaymentMethodOption[];
-  paymentLoading: boolean;
-  paymentMethod: string | null;
-  onSelectPayment: (key: string) => void;
-  onContactDriver: () => void;
   busy: boolean;
   onChange: (patch: {
     passengers?: number;
@@ -101,10 +88,6 @@ export function TravelStep({
   }) => void;
   onContinue: () => void;
 }) {
-  const [paymentError, setPaymentError] = useState(false);
-  const noPaymentConfigured = !paymentLoading && paymentOptions.length === 0;
-  const blocked = !paymentMethod || noPaymentConfigured;
-
   return (
     <>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[calc(7.5rem+env(safe-area-inset-bottom))]">
@@ -114,7 +97,7 @@ export function TravelStep({
               Préparez votre voyage
             </h2>
             <p className="mt-1 text-[13.5px] leading-snug text-muted-foreground">
-              Indiquez le nombre de voyageurs, vos bagages et votre mode de règlement.
+              Indiquez le nombre de voyageurs et les bagages à transporter.
             </p>
           </div>
 
@@ -162,18 +145,6 @@ export function TravelStep({
             />
           </section>
 
-          <PaymentBlock
-            options={paymentOptions}
-            loading={paymentLoading}
-            value={paymentMethod}
-            onSelect={(k) => {
-              setPaymentError(false);
-              onSelectPayment(k);
-            }}
-            driverName={driverName ?? null}
-            onContactDriver={onContactDriver}
-            showError={paymentError}
-          />
         </div>
       </div>
 
@@ -182,32 +153,14 @@ export function TravelStep({
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}
       >
         <div className="mx-auto w-full max-w-lg">
-          {noPaymentConfigured ? (
-            <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
-              Ce chauffeur n'a pas encore renseigné de mode de règlement.
-            </p>
-          ) : !paymentMethod ? (
-            <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
-              Choisissez un mode de règlement pour continuer.
-            </p>
-          ) : null}
           <Button
             size="lg"
             className="h-13 w-full rounded-2xl text-[15px] font-bold transition-transform active:scale-[0.99]"
-            disabled={busy || blocked}
-            onClick={() => {
-              if (!paymentMethod) {
-                setPaymentError(true);
-                document
-                  .getElementById(PAYMENT_SECTION_ID)
-                  ?.scrollIntoView({ behavior: "smooth", block: "center" });
-                return;
-              }
-              onContinue();
-            }}
+            disabled={busy}
+            onClick={onContinue}
           >
             {busy ? <Loader2 className="size-4 animate-spin" /> : null}
-            Continuer — Vos options
+            Continuer — Règlement et demandes
             <ArrowRight className="size-4" />
           </Button>
         </div>
