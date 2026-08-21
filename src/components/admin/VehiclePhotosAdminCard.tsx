@@ -16,7 +16,12 @@ import { useSignedUrl } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-type PhotoField = "photo_url" | "photo_interior_url" | "photo_front_url" | "photo_side_url";
+type PhotoField =
+  | "photo_url"
+  | "photo_interior_url"
+  | "photo_front_url"
+  | "photo_side_url"
+  | "photo_trunk_url";
 
 const MAX_BYTES = 8 * 1024 * 1024;
 const ACCEPTED = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
@@ -26,6 +31,7 @@ const FIELD_LABEL: Record<PhotoField, string> = {
   photo_interior_url: "Photo intérieure",
   photo_front_url: "Photo de face",
   photo_side_url: "Photo de côté",
+  photo_trunk_url: "Photo du coffre",
 };
 
 const PHOTO_KIND: Record<PhotoField, string> = {
@@ -33,6 +39,7 @@ const PHOTO_KIND: Record<PhotoField, string> = {
   photo_interior_url: "interior",
   photo_front_url: "front",
   photo_side_url: "side",
+  photo_trunk_url: "trunk",
 };
 
 function useDriverVehicle(driverId: string) {
@@ -41,7 +48,7 @@ function useDriverVehicle(driverId: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("vehicles")
-        .select("id, photo_url, photo_interior_url, photo_front_url, photo_side_url")
+        .select("id, photo_url, photo_interior_url, photo_front_url, photo_side_url, photo_trunk_url")
         .eq("driver_id", driverId)
         .order("is_primary", { ascending: false })
         .order("created_at")
@@ -84,7 +91,11 @@ function PhotoSlot({
               <Car className="size-5" />
             )}
             <p className="text-[11px] font-semibold">
-              {path ? "Photo indisponible" : "Aucune photo"}
+              {path
+                ? "Photo indisponible"
+                : field === "photo_trunk_url"
+                  ? "Aucune photo du coffre ajoutée"
+                  : "Aucune photo"}
             </p>
           </div>
         )}
@@ -230,7 +241,7 @@ export function VehiclePhotosAdminCard({ driverId }: { driverId: string }) {
     // Contrôle final : la référence est relue et le fichier doit exister.
     const { data: saved } = await supabase
       .from("vehicles")
-      .select("photo_url, photo_interior_url, photo_front_url, photo_side_url")
+      .select("photo_url, photo_interior_url, photo_front_url, photo_side_url, photo_trunk_url")
       .eq("id", vehicleId)
       .maybeSingle();
     const { data: check } = await supabase.storage.from("vehicles").createSignedUrl(path, 3600);
@@ -330,6 +341,13 @@ export function VehiclePhotosAdminCard({ driverId }: { driverId: string }) {
             busy={busy === "photo_side_url"}
             onSelect={(f) => void replace(f, "photo_side_url")}
             onRemove={() => void remove("photo_side_url")}
+          />
+          <PhotoSlot
+            field="photo_trunk_url"
+            path={vehicle.data.photo_trunk_url}
+            busy={busy === "photo_trunk_url"}
+            onSelect={(f) => void replace(f, "photo_trunk_url")}
+            onRemove={() => void remove("photo_trunk_url")}
           />
         </div>
       )}
