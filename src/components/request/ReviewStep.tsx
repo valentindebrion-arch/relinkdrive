@@ -288,8 +288,42 @@ export function ReviewStep(props: ReviewStepProps) {
             ) : null}
           </section>
 
-          {/* Votre trajet */}
-          <Card title="Votre trajet" editLabel="Modifier le trajet" onEdit={props.onEditTrip}>
+          {/* Rappel du mode de règlement, directement sous le prix */}
+          <section className="flex items-center gap-3 rounded-3xl border border-border/70 bg-card p-4 shadow-[0_10px_30px_-30px_rgba(0,0,0,0.45)]">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-primary/12 text-primary">
+              <Wallet className="size-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              {paymentLabel ? (
+                <>
+                  <span className="block text-[14.5px] font-bold">{paymentLabel}</span>
+                  <span className="block text-[12.5px] leading-snug text-muted-foreground">
+                    Réglé directement à {driver ? driver.name : "votre chauffeur"} — rien n'est
+                    encaissé par ReLink.
+                  </span>
+                </>
+              ) : (
+                <span className="block text-[13px] font-semibold text-destructive">
+                  Sélectionnez un mode de règlement avant d'envoyer votre demande.
+                </span>
+              )}
+            </span>
+            <button
+              type="button"
+              onClick={props.onEditPayment}
+              aria-label="Modifier le mode de règlement"
+              className="shrink-0 rounded-full px-2 py-1 text-[13px] font-bold text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            >
+              Modifier
+            </button>
+          </section>
+
+          {/* Carte 1 — Votre trajet et vos options */}
+          <Card
+            title="Votre trajet"
+            editLabel="Modifier le trajet"
+            onEdit={props.onEditTrip}
+          >
             <div className="relative pl-6">
               <span className="absolute top-2.5 left-[5px] h-[calc(100%-1.5rem)] w-px bg-primary/30" />
               <div className="pb-3">
@@ -321,12 +355,40 @@ export function ReviewStep(props: ReviewStepProps) {
                   </span>
                 }
               />
+              <Row label="Type de trajet" value={roundTrip ? "Aller-retour" : "Aller simple"} />
+              {roundTrip && returnLabel ? <Row label="Retour" value={returnLabel} /> : null}
               <Row label="Distance estimée" value={estimate ? `${estimate.distanceKm} km` : "—"} />
               <Row label="Durée estimée" value={estimate ? `~${estimate.durationMin} min` : "—"} />
             </dl>
+            <div className="mt-2 border-t border-border pt-2">
+              <div className="mb-1 flex items-center justify-between gap-3">
+                <p className="text-[13px] font-bold">Voyageurs et options</p>
+                <button
+                  type="button"
+                  onClick={props.onEditOptions}
+                  className="rounded-full px-2 py-1 text-[13px] font-bold text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                >
+                  Modifier
+                </button>
+              </div>
+              {hasOptions ? (
+                <dl>
+                  <Row label="Passagers" value={passengers} />
+                  <Row label="Grands bagages" value={largeLuggage} />
+                  <Row label="Bagages cabine" value={cabinLuggage} />
+                  {petsLabel ? <Row label="Animaux" value={petsLabel} /> : null}
+                  {needsLabel.trim() ? (
+                    <Row label="Demandes particulières" value={needsLabel} />
+                  ) : null}
+                  {comment.trim() ? <Row label="Message au chauffeur" value={comment} /> : null}
+                </dl>
+              ) : (
+                <p className="text-[13px] text-muted-foreground">Aucune option particulière</p>
+              )}
+            </div>
           </Card>
 
-          {/* Votre chauffeur */}
+          {/* Carte 2 — Votre chauffeur et son véhicule */}
           <Card
             title="Votre chauffeur"
             editLabel="Modifier le chauffeur"
@@ -367,48 +429,6 @@ export function ReviewStep(props: ReviewStepProps) {
             ) : null}
           </Card>
 
-
-          {/* Vos options */}
-          <Card title="Vos options" editLabel="Modifier les options" onEdit={props.onEditOptions}>
-            {hasOptions ? (
-              <dl>
-                <Row label="Nombre de passagers" value={passengers} />
-                <Row label="Grands bagages" value={largeLuggage} />
-                <Row label="Bagages cabine" value={cabinLuggage} />
-                <Row label="Animaux" value={petsLabel ?? "Aucun"} />
-                <Row label="Type de trajet" value={roundTrip ? "Aller-retour" : "Aller simple"} />
-                {roundTrip && returnLabel ? <Row label="Retour" value={returnLabel} /> : null}
-                {needsLabel.trim() ? <Row label="Besoins particuliers" value={needsLabel} /> : null}
-                {comment.trim() ? (
-                  <Row label="Informations pour le chauffeur" value={comment} />
-                ) : null}
-              </dl>
-            ) : (
-              <p className="text-[13px] text-muted-foreground">Aucune option particulière</p>
-            )}
-          </Card>
-
-          {/* Mode de règlement */}
-          <Card
-            title="Mode de règlement"
-            editLabel="Modifier le mode de règlement"
-            onEdit={props.onEditPayment}
-          >
-            {paymentLabel ? (
-              <p className="flex items-center gap-2 text-[15px] font-bold">
-                <Wallet className="size-4 shrink-0 text-primary" />
-                {paymentLabel}
-              </p>
-            ) : (
-              <p className="text-[13px] font-semibold text-destructive">
-                Sélectionnez un mode de règlement avant d'envoyer votre demande.
-              </p>
-            )}
-            <p className="mt-2 text-[12.5px] leading-snug text-muted-foreground">
-              Vous réglez directement votre chauffeur. Le choix d'un mode de règlement ne constitue
-              pas un paiement : aucun montant n'est encaissé par ReLink.
-            </p>
-          </Card>
 
           {/* Compatibilité */}
           <CompatibilityNotice
