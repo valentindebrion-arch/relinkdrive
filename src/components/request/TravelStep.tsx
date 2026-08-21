@@ -148,18 +148,6 @@ export function TravelStep({
             />
           </section>
 
-          <PaymentBlock
-            options={paymentOptions}
-            loading={paymentLoading}
-            value={paymentMethod}
-            onSelect={(k) => {
-              setPaymentError(false);
-              onSelectPayment(k);
-            }}
-            driverName={driverName ?? null}
-            onContactDriver={onContactDriver}
-            showError={paymentError}
-          />
         </div>
       </div>
 
@@ -168,32 +156,14 @@ export function TravelStep({
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}
       >
         <div className="mx-auto w-full max-w-lg">
-          {noPaymentConfigured ? (
-            <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
-              Ce chauffeur n'a pas encore renseigné de mode de règlement.
-            </p>
-          ) : !paymentMethod ? (
-            <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
-              Choisissez un mode de règlement pour continuer.
-            </p>
-          ) : null}
           <Button
             size="lg"
             className="h-13 w-full rounded-2xl text-[15px] font-bold transition-transform active:scale-[0.99]"
-            disabled={busy || blocked}
-            onClick={() => {
-              if (!paymentMethod) {
-                setPaymentError(true);
-                document
-                  .getElementById(PAYMENT_SECTION_ID)
-                  ?.scrollIntoView({ behavior: "smooth", block: "center" });
-                return;
-              }
-              onContinue();
-            }}
+            disabled={busy}
+            onClick={onContinue}
           >
             {busy ? <Loader2 className="size-4 animate-spin" /> : null}
-            Continuer — Vos options
+            Continuer — Règlement et demandes
             <ArrowRight className="size-4" />
           </Button>
         </div>
