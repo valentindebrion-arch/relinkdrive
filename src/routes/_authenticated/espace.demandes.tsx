@@ -1337,7 +1337,6 @@ function ClientRequests() {
           largeLuggage={requirements.largeLuggage}
           cabinLuggage={requirements.cabinLuggage}
           pets={pets}
-          vehicleMedia={form.driver_id ? vehicleMedia : null}
           compatibility={compatibility}
           compatibilityLoading={!!form.driver_id && vehicleCapacity.isLoading}
           vehicleMedia={form.driver_id ? vehicleMedia : null}
@@ -1424,6 +1423,7 @@ function ClientRequests() {
           }
           compatibility={compatibility}
           compatibilityLoading={!!form.driver_id && vehicleCapacity.isLoading}
+          vehicleMedia={form.driver_id ? vehicleMedia : null}
           needsLabel={form.special_needs}
           comment={form.comment}
           driver={
