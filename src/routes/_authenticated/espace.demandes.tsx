@@ -113,8 +113,8 @@ type Estimate = {
 
 const STEP_LABELS = [
   "Trajet et véhicule",
-  "Voyage et règlement",
-  "Options et demandes",
+  "Voyageurs et bagages",
+  "Règlement et demandes",
   "Prix et confirmation",
 ];
 
