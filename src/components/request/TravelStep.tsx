@@ -1,15 +1,12 @@
 /**
- * Étape 2 sur 4 — Voyage et règlement.
+ * Étape 2 sur 4 — Voyageurs et bagages.
  *
- * Galerie habitacle / coffre reliée aux compteurs, puis choix du mode de
- * règlement. Le trajet saisi à l'étape 1 n'est jamais répété ici.
+ * Galerie habitacle / coffre reliée aux compteurs. Le trajet saisi à
+ * l'étape 1 n'est jamais répété ici, et le règlement arrive à l'étape 3.
  */
-import { useState } from "react";
 import { ArrowRight, Loader2, Luggage, PackageOpen, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CabinTrunkGallery } from "@/components/request/VehiclePhotos";
-import { PaymentBlock, PAYMENT_SECTION_ID } from "@/components/request/PaymentChoice";
-import type { PaymentMethodOption } from "@/lib/payment-methods";
 import type { VehicleMedia } from "@/lib/vehicle-photos";
 
 export function Stepper({
@@ -100,7 +97,7 @@ export function TravelStep({
               Préparez votre voyage
             </h2>
             <p className="mt-1 text-[13.5px] leading-snug text-muted-foreground">
-              Indiquez le nombre de voyageurs, vos bagages et votre mode de règlement.
+              Indiquez le nombre de voyageurs et les bagages à transporter.
             </p>
           </div>
 
