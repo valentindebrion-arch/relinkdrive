@@ -108,7 +108,6 @@ export function ExtrasStep({
               driverName={driverName ?? null}
               needs={needs.keys}
               petsCount={pets.count}
-              compact
             />
           ) : null}
 
