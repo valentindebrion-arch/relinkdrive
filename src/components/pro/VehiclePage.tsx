@@ -417,6 +417,16 @@ export function VehiclePage() {
         {text("inspection_expires_at", "Échéance contrôle technique", "date")}
         {text("next_service_date", "Prochain entretien", "date")}
 
+        <div className="sm:col-span-2">
+          <h3 className="border-b border-border pb-2 text-lg font-bold">
+            Photos et capacité du véhicule
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Ces photos réelles sont montrées à vos clients pendant leur réservation. Aucune image
+            générique n'est ajoutée à votre place : un emplacement vide reste vide.
+          </p>
+        </div>
+
         <div className="grid gap-4 sm:col-span-2 sm:grid-cols-2">
           <PhotoSlot
             id="photo"
