@@ -57,6 +57,8 @@ import { estimateRoute, reverseGeocode } from "@/lib/route-estimate.functions";
 import { fetchRideQuote } from "@/lib/tax-queries";
 import type { RideQuote } from "@/lib/tax";
 import { ReviewStep } from "@/components/request/ReviewStep";
+import { VehicleExteriorCard } from "@/components/request/VehiclePhotos";
+import { useDriverVehicleMedia } from "@/lib/vehicle-photos";
 import {
   evaluateCompatibility,
   parseServerIncompatibility,
@@ -230,6 +232,8 @@ function ClientRequests() {
 
   // Moteur de compatibilité partagé : mêmes règles que la validation serveur.
   const vehicleCapacity = useDriverVehicleCapacity(form.driver_id || null);
+  // Photos contextuelles du véhicule réellement déclaré par le chauffeur.
+  const vehicleMedia = useDriverVehicleMedia(form.driver_id || null);
   const requirements: RideRequirements = {
     passengers: Number(form.passengers) || 1,
     largeLuggage: Number(form.large_luggage) || 0,
@@ -935,6 +939,17 @@ function ClientRequests() {
                     </span>
                   </p>
                 ) : null}
+
+                {selectedDriver ? (
+                  <div className="mt-3">
+                    <VehicleExteriorCard
+                      media={vehicleMedia}
+                      driverName={selectedDriver.full_name ?? null}
+                      available={driverAvailable}
+                      onChangeVehicle={() => setDriverPickerOpen(true)}
+                    />
+                  </div>
+                ) : null}
               </section>
 
               {/* Carte principale : l'itinéraire */}
@@ -1324,6 +1339,7 @@ function ClientRequests() {
           pets={pets}
           compatibility={compatibility}
           compatibilityLoading={!!form.driver_id && vehicleCapacity.isLoading}
+          vehicleMedia={form.driver_id ? vehicleMedia : null}
           onChangeDriver={() => {
             setStep(0);
             setDriverPickerOpen(true);
