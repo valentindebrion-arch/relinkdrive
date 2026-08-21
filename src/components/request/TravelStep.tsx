@@ -74,11 +74,6 @@ export function TravelStep({
   passengers,
   largeLuggage,
   cabinLuggage,
-  paymentOptions,
-  paymentLoading,
-  paymentMethod,
-  onSelectPayment,
-  onContactDriver,
   busy,
   onChange,
   onContinue,
@@ -88,11 +83,6 @@ export function TravelStep({
   passengers: number;
   largeLuggage: number;
   cabinLuggage: number;
-  paymentOptions: PaymentMethodOption[];
-  paymentLoading: boolean;
-  paymentMethod: string | null;
-  onSelectPayment: (key: string) => void;
-  onContactDriver: () => void;
   busy: boolean;
   onChange: (patch: {
     passengers?: number;
