@@ -91,10 +91,6 @@ export function TravelStep({
   }) => void;
   onContinue: () => void;
 }) {
-  const [paymentError, setPaymentError] = useState(false);
-  const noPaymentConfigured = !paymentLoading && paymentOptions.length === 0;
-  const blocked = !paymentMethod || noPaymentConfigured;
-
   return (
     <>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[calc(7.5rem+env(safe-area-inset-bottom))]">
