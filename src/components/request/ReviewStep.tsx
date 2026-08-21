@@ -19,6 +19,8 @@ import { formatEuro } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 import { CompatibilityNotice } from "@/components/request/CompatibilityNotice";
 import type { CompatibilityResult } from "@/lib/compatibility";
+import { VehicleConfirmCard } from "@/components/request/VehiclePhotos";
+import type { VehicleMedia } from "@/lib/vehicle-photos";
 
 export type ReviewEstimate = {
   distanceKm: number;
@@ -56,6 +58,7 @@ export type ReviewStepProps = {
   cabinLuggage: number;
   petsLabel: string | null;
   vehicleLabel: string | null;
+  vehicleMedia?: VehicleMedia | null;
   compatibility: CompatibilityResult | null;
   compatibilityLoading: boolean;
   needsLabel: string;
@@ -351,7 +354,19 @@ export function ReviewStep(props: ReviewStepProps) {
                 ) : null}
               </div>
             </div>
+            {props.vehicleMedia ? (
+              <div className="mt-3">
+                <VehicleConfirmCard
+                  media={props.vehicleMedia}
+                  driverName={driver?.name ?? null}
+                  passengers={passengers}
+                  largeLuggage={largeLuggage}
+                  cabinLuggage={cabinLuggage}
+                />
+              </div>
+            ) : null}
           </Card>
+
 
           {/* Vos options */}
           <Card title="Vos options" editLabel="Modifier les options" onEdit={props.onEditOptions}>

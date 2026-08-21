@@ -26,6 +26,8 @@ import { CompatibilityNotice } from "@/components/request/CompatibilityNotice";
 import type { CompatibilityResult } from "@/lib/compatibility";
 import { PaymentMethodSection } from "@/components/request/PaymentMethodSection";
 import type { PaymentMethodOption } from "@/lib/payment-methods";
+import { CabinTrunkGallery, EquipmentContextPhoto } from "@/components/request/VehiclePhotos";
+import type { VehicleMedia } from "@/lib/vehicle-photos";
 
 export type ReturnMode = "immediate" | "scheduled";
 
@@ -142,6 +144,7 @@ export function OptionsStep({
   pets,
   compatibility,
   compatibilityLoading,
+  vehicleMedia,
   onChangeDriver,
   roundTrip,
   comment,
@@ -172,6 +175,7 @@ export function OptionsStep({
   pets: PetsState;
   compatibility: CompatibilityResult | null;
   compatibilityLoading: boolean;
+  vehicleMedia?: VehicleMedia | null;
   onChangeDriver: () => void;
   roundTrip: boolean;
   comment: string;
@@ -326,6 +330,15 @@ export function OptionsStep({
               />
             </div>
           </section>
+
+          {vehicleMedia ? (
+            <CabinTrunkGallery
+              media={vehicleMedia}
+              driverName={driverName ?? null}
+              largeLuggage={largeLuggage}
+              cabinLuggage={cabinLuggage}
+            />
+          ) : null}
 
           {/* Animaux */}
           <section
@@ -637,6 +650,15 @@ export function OptionsStep({
               </div>
             ) : null}
           </section>
+
+          {vehicleMedia ? (
+            <EquipmentContextPhoto
+              media={vehicleMedia}
+              driverName={driverName ?? null}
+              needs={needs.keys}
+              petsCount={pets.count}
+            />
+          ) : null}
 
           {/* Compatibilité avec le véhicule du chauffeur */}
           <section aria-live="polite">
