@@ -16,13 +16,9 @@ import {
   Clock,
   Loader2,
   LocateFixed,
-  Luggage,
-  MapPin,
   Search,
   Star,
-  UserRound,
   Users,
-  X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchConnectedProfile, fetchConnectedProfiles } from "@/lib/connected-profiles";
@@ -48,11 +44,13 @@ type CreateResult = {
   reused: boolean;
 };
 import {
-  OptionsStep,
   serializeNeeds,
   type ReturnMode,
   type SpecialNeedsState,
-} from "@/components/request/OptionsStep";
+} from "@/components/request/needs";
+import { TravelStep } from "@/components/request/TravelStep";
+import { ExtrasStep } from "@/components/request/ExtrasStep";
+import { PaymentSheet } from "@/components/request/PaymentChoice";
 import { estimateRoute, reverseGeocode } from "@/lib/route-estimate.functions";
 import { fetchRideQuote } from "@/lib/tax-queries";
 import type { RideQuote } from "@/lib/tax";
@@ -80,7 +78,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -114,28 +111,11 @@ type Estimate = {
   quote: RideQuote | null;
 };
 
-const STEP_LABELS = ["Votre trajet", "Vos options", "Vérification et confirmation"];
-
-const TRIP_TYPES = [
-  "Aéroport",
-  "Gare",
-  "Événement",
-  "Trajet urbain",
-  "Longue distance",
-  "Mise à disposition",
-  "Autre",
-] as const;
-
-const HEADINGS = [
-  {
-    title: "Préparons votre trajet",
-    sub: "Indiquez où votre chauffeur doit vous récupérer et où vous souhaitez aller.",
-  },
-  { title: "Vos options", sub: "Passagers, bagages et précisions pour le chauffeur." },
-  {
-    title: "Vérifiez et confirmez",
-    sub: "Contrôlez les informations avant d'envoyer votre demande.",
-  },
+const STEP_LABELS = [
+  "Trajet et véhicule",
+  "Voyage et règlement",
+  "Options et demandes",
+  "Prix et confirmation",
 ];
 
 /** Progression minimaliste : « Étape n sur 4 » + barre fine. */
@@ -156,10 +136,6 @@ function StepProgress({ step }: { step: number }) {
       </div>
     </div>
   );
-}
-
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <p className="mb-1.5 text-[13px] font-bold">{children}</p>;
 }
 
 function ClientRequests() {
@@ -209,6 +185,7 @@ function ClientRequests() {
   const [slotWarning, setSlotWarning] = useState<string | null>(null);
   const [scanOpen, setScanOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
+  const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
   /** Empêche tout double envoi d'une même demande. */
   const sentRef = useRef(false);
   /** Clé d'idempotence : un rejeu réseau ne crée jamais de doublon côté serveur. */
@@ -472,7 +449,7 @@ function ClientRequests() {
               tip: Math.round((Math.ceil(fallbackBase) - fallbackBase) * 100) / 100,
             },
       });
-      setStep(2);
+      setStep(3);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Estimation impossible");
     } finally {
@@ -579,7 +556,8 @@ function ClientRequests() {
       setEstimate(null);
       return setStep(1);
     }
-    if (step === 1) return void computeEstimate();
+    if (step === 1) return setStep(2);
+    if (step === 2) return void computeEstimate();
   }
 
   function resetForm() {
@@ -779,7 +757,6 @@ function ClientRequests() {
     resetForm();
     navigate({ to: "/espace/suivi/$id", params: { id: created.request_id } });
   }
-  const heading = HEADINGS[step]!;
   const draft = {
     driver_id: form.driver_id,
     pickup_address: form.pickup_address,
@@ -1177,6 +1154,88 @@ function ClientRequests() {
                 ) : null}
               </div>
 
+              {/* Type de course */}
+              <div>
+                <h3 className="mb-3 text-[17px] font-extrabold tracking-tight">
+                  Type de course
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {(
+                    [
+                      { key: false, label: "Aller simple", sub: "Un seul trajet" },
+                      { key: true, label: "Aller-retour", sub: "Retour prévu" },
+                    ] as const
+                  ).map((o) => {
+                    const on = form.round_trip === o.key;
+                    return (
+                      <button
+                        key={String(o.key)}
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, round_trip: o.key }))}
+                        className={cn(
+                          "relative rounded-3xl px-4 py-3.5 text-left transition-all",
+                          on
+                            ? "bg-primary/8 ring-2 ring-primary"
+                            : "bg-card shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)]",
+                        )}
+                      >
+                        <p className="text-[15.5px] font-bold">{o.label}</p>
+                        <p className="text-[12.5px] text-muted-foreground">{o.sub}</p>
+                        {on ? (
+                          <span className="animate-scale-in absolute top-3 right-3 flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                            <Check className="size-3" />
+                          </span>
+                        ) : null}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {form.round_trip ? (
+                  <div className="rise-in mt-3 rounded-3xl bg-card p-4 shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)]">
+                    <p className="text-[13px] font-bold">Votre retour</p>
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      {(
+                        [
+                          { key: "immediate", label: "Juste après" },
+                          { key: "scheduled", label: "À une heure précise" },
+                        ] as const
+                      ).map((o) => (
+                        <button
+                          key={o.key}
+                          type="button"
+                          aria-pressed={returnMode === o.key}
+                          onClick={() => setReturnMode(o.key)}
+                          className={cn(
+                            "min-h-11 rounded-2xl px-3 text-[13.5px] font-semibold transition-all",
+                            returnMode === o.key ? "bg-primary/8 ring-2 ring-primary" : "bg-muted",
+                          )}
+                        >
+                          {o.label}
+                        </button>
+                      ))}
+                    </div>
+                    {returnMode === "scheduled" ? (
+                      <div className="mt-3">
+                        <Label htmlFor="return-at" className="text-[13px] font-bold">
+                          Heure du retour
+                        </Label>
+                        <Input
+                          id="return-at"
+                          type="datetime-local"
+                          min={toLocalInput(scheduledIso())}
+                          className="mt-1.5 h-12 rounded-2xl border-0 bg-muted text-[15px]"
+                          value={returnTrip.at}
+                          onChange={(e) =>
+                            setReturnTrip((r) => ({ ...r, at: e.target.value }))
+                          }
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+
               {checking || avail ? (
                 <div
                   className={cn(
@@ -1327,57 +1386,20 @@ function ClientRequests() {
           </div>
         </>
       ) : step === 1 ? (
-        <OptionsStep
-          pickup={form.pickup_address}
-          dropoff={form.dropoff_address}
-          whenLabel={formatDateTime(scheduledIso())}
-          whenMode={whenMode}
+        <TravelStep
           driverName={driverName}
+          vehicleMedia={form.driver_id ? vehicleMedia : null}
           passengers={Number(form.passengers) || 1}
           largeLuggage={requirements.largeLuggage}
           cabinLuggage={requirements.cabinLuggage}
-          pets={pets}
-          compatibility={compatibility}
-          compatibilityLoading={!!form.driver_id && vehicleCapacity.isLoading}
-          vehicleMedia={form.driver_id ? vehicleMedia : null}
-          onChangeDriver={() => {
-            setStep(0);
-            setDriverPickerOpen(true);
-          }}
-          roundTrip={form.round_trip}
-          comment={form.comment}
-          needs={needs}
-          returnMode={returnMode}
-          returnAt={returnTrip.at}
-          returnPickup={returnTrip.pickup}
-          returnDropoff={returnTrip.dropoff}
-          minReturnLocal={toLocalInput(scheduledIso())}
-          busy={busy || checking}
           paymentOptions={paymentOptions}
           paymentLoading={!!form.driver_id && paymentMethods.isLoading}
           paymentMethod={paymentMethod}
-          onSelectPayment={setPaymentMethod}
+          onSelectPayment={(k) => setPaymentMethod(k || null)}
           onContactDriver={() => void navigate({ to: "/espace/chauffeurs" })}
-          onEditTrip={() => setStep(0)}
+          busy={busy || checking}
           onContinue={() => void next()}
-          onChange={(patch) => {
-            if (patch.needs) {
-              setNeeds(patch.needs);
-              setForm((f) => ({ ...f, special_needs: serializeNeeds(patch.needs!) }));
-            }
-            if (patch.pets) setPets(patch.pets);
-            if (patch.returnMode) setReturnMode(patch.returnMode);
-            if (
-              patch.returnAt !== undefined ||
-              patch.returnPickup !== undefined ||
-              patch.returnDropoff !== undefined
-            ) {
-              setReturnTrip((r) => ({
-                at: patch.returnAt ?? r.at,
-                pickup: patch.returnPickup ?? r.pickup,
-                dropoff: patch.returnDropoff ?? r.dropoff,
-              }));
-            }
+          onChange={(patch) =>
             setForm((f) => ({
               ...f,
               ...(patch.passengers !== undefined ? { passengers: String(patch.passengers) } : {}),
@@ -1387,9 +1409,34 @@ function ClientRequests() {
               ...(patch.cabinLuggage !== undefined
                 ? { cabin_luggage: String(patch.cabinLuggage) }
                 : {}),
-              ...(patch.roundTrip !== undefined ? { round_trip: patch.roundTrip } : {}),
-              ...(patch.comment !== undefined ? { comment: patch.comment } : {}),
-            }));
+            }))
+          }
+        />
+      ) : step === 2 ? (
+        <ExtrasStep
+          driverName={driverName}
+          vehicleMedia={form.driver_id ? vehicleMedia : null}
+          needs={needs}
+          pets={pets}
+          compatibility={compatibility}
+          compatibilityLoading={!!form.driver_id && vehicleCapacity.isLoading}
+          comment={form.comment}
+          busy={busy || checking}
+          onChangeDriver={() => {
+            setStep(0);
+            setDriverPickerOpen(true);
+          }}
+          onContinue={() => void next()}
+          onChange={(patch) => {
+            if (patch.needs) {
+              setNeeds(patch.needs);
+              setForm((f) => ({ ...f, special_needs: serializeNeeds(patch.needs!) }));
+            }
+            if (patch.pets) setPets(patch.pets);
+            if (patch.comment !== undefined) {
+              const value = patch.comment;
+              setForm((f) => ({ ...f, comment: value }));
+            }
           }}
         />
       ) : (
@@ -1444,9 +1491,9 @@ function ClientRequests() {
             setStep(0);
             setDriverPickerOpen(true);
           }}
-          onEditOptions={() => setStep(1)}
+          onEditOptions={() => setStep(2)}
           paymentLabel={paymentMethodLabel(paymentMethod)}
-          onEditPayment={() => setStep(1)}
+          onEditPayment={() => setPaymentSheetOpen(true)}
           onSubmit={() => void submit()}
         />
       )}
@@ -1533,6 +1580,15 @@ function ClientRequests() {
           saveRequestDraft(draft);
           navigate({ to: "/espace/chauffeurs" });
         }}
+      />
+
+      <PaymentSheet
+        open={paymentSheetOpen}
+        onOpenChange={setPaymentSheetOpen}
+        options={paymentOptions}
+        value={paymentMethod}
+        onSelect={setPaymentMethod}
+        driverName={driverName ?? null}
       />
 
       <QrScannerDialog
