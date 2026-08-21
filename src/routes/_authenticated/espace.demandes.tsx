@@ -1379,7 +1379,7 @@ function ClientRequests() {
                 onClick={() => void next()}
               >
                 {busy || checking ? <Loader2 className="size-4 animate-spin" /> : null}
-                Continuer
+                Continuer — Votre voyage
                 <ArrowRight className="size-4" />
               </Button>
             </div>
