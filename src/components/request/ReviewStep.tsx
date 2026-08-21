@@ -351,7 +351,19 @@ export function ReviewStep(props: ReviewStepProps) {
                 ) : null}
               </div>
             </div>
+            {props.vehicleMedia ? (
+              <div className="mt-3">
+                <VehicleConfirmCard
+                  media={props.vehicleMedia}
+                  driverName={driver?.name ?? null}
+                  passengers={passengers}
+                  largeLuggage={largeLuggage}
+                  cabinLuggage={cabinLuggage}
+                />
+              </div>
+            ) : null}
           </Card>
+
 
           {/* Vos options */}
           <Card title="Vos options" editLabel="Modifier les options" onEdit={props.onEditOptions}>
