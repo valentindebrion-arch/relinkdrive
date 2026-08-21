@@ -34,13 +34,25 @@ const PETS_POLICIES = [
   ["conditional", "Acceptés sous conditions"],
 ] as const;
 
-type PhotoField = "photo_url" | "photo_interior_url" | "photo_front_url" | "photo_side_url";
+type PhotoField =
+  | "photo_url"
+  | "photo_interior_url"
+  | "photo_front_url"
+  | "photo_side_url"
+  | "photo_trunk_url"
+  | "photo_child_seat_url"
+  | "photo_access_url"
+  | "photo_pet_url";
 
 const PHOTO_KIND: Record<PhotoField, string> = {
   photo_url: "exterior",
   photo_interior_url: "interior",
   photo_front_url: "front",
   photo_side_url: "side",
+  photo_trunk_url: "trunk",
+  photo_child_seat_url: "child-seat",
+  photo_access_url: "access",
+  photo_pet_url: "pet",
 };
 
 export function VehiclePage() {
@@ -71,6 +83,10 @@ export function VehiclePage() {
     photo_interior_url: "",
     photo_front_url: "",
     photo_side_url: "",
+    photo_trunk_url: "",
+    photo_child_seat_url: "",
+    photo_access_url: "",
+    photo_pet_url: "",
     category: "",
   });
   const [flags, setFlags] = useState({
@@ -120,6 +136,10 @@ export function VehiclePage() {
       photo_interior_url: v.photo_interior_url ?? "",
       photo_front_url: v.photo_front_url ?? "",
       photo_side_url: v.photo_side_url ?? "",
+      photo_trunk_url: v.photo_trunk_url ?? "",
+      photo_child_seat_url: v.photo_child_seat_url ?? "",
+      photo_access_url: v.photo_access_url ?? "",
+      photo_pet_url: v.photo_pet_url ?? "",
       category: v.category ?? "",
     });
     setFlags({
@@ -195,7 +215,9 @@ export function VehiclePage() {
     // fichier doit exister réellement dans le stockage permanent.
     const { data: saved } = await supabase
       .from("vehicles")
-      .select("photo_url, photo_interior_url, photo_front_url, photo_side_url")
+      .select(
+        "photo_url, photo_interior_url, photo_front_url, photo_side_url, photo_trunk_url, photo_child_seat_url, photo_access_url, photo_pet_url",
+      )
       .eq("id", vehicleId)
       .maybeSingle();
     const storedPath = saved?.[field] ?? null;
@@ -358,6 +380,10 @@ export function VehiclePage() {
   const interior = useSignedUrl("vehicles", form.photo_interior_url);
   const front = useSignedUrl("vehicles", form.photo_front_url);
   const side = useSignedUrl("vehicles", form.photo_side_url);
+  const trunk = useSignedUrl("vehicles", form.photo_trunk_url);
+  const childSeat = useSignedUrl("vehicles", form.photo_child_seat_url);
+  const access = useSignedUrl("vehicles", form.photo_access_url);
+  const petPhoto = useSignedUrl("vehicles", form.photo_pet_url);
 
   const text = (key: keyof typeof form, label: string, type = "text") => (
     <div>
@@ -428,6 +454,47 @@ export function VehiclePage() {
             onSelect={(file) => void upload(file, "photo_side_url")}
             onRemove={() => void removePhoto("photo_side_url")}
           />
+          <PhotoSlot
+            id="photo-trunk"
+            label="Photo du coffre vide et ouvert"
+            url={trunk.data ?? null}
+            loading={busy === "photo_trunk_url" || trunk.isLoading}
+            hasPath={!!form.photo_trunk_url}
+            onSelect={(file) => void upload(file, "photo_trunk_url")}
+            onRemove={() => void removePhoto("photo_trunk_url")}
+          />
+          <PhotoSlot
+            id="photo-child-seat"
+            label="Photo du siège enfant disponible"
+            url={childSeat.data ?? null}
+            loading={busy === "photo_child_seat_url" || childSeat.isLoading}
+            hasPath={!!form.photo_child_seat_url}
+            onSelect={(file) => void upload(file, "photo_child_seat_url")}
+            onRemove={() => void removePhoto("photo_child_seat_url")}
+          />
+          <PhotoSlot
+            id="photo-access"
+            label="Photo de l'accès au véhicule (accessibilité)"
+            url={access.data ?? null}
+            loading={busy === "photo_access_url" || access.isLoading}
+            hasPath={!!form.photo_access_url}
+            onSelect={(file) => void upload(file, "photo_access_url")}
+            onRemove={() => void removePhoto("photo_access_url")}
+          />
+          <PhotoSlot
+            id="photo-pet"
+            label="Photo de la protection intérieure (animaux)"
+            url={petPhoto.data ?? null}
+            loading={busy === "photo_pet_url" || petPhoto.isLoading}
+            hasPath={!!form.photo_pet_url}
+            onSelect={(file) => void upload(file, "photo_pet_url")}
+            onRemove={() => void removePhoto("photo_pet_url")}
+          />
+          <p className="sm:col-span-2 text-xs text-muted-foreground">
+            Ces photos sont montrées au client à l'étape correspondante de sa réservation. Une
+            capacité déclarée sans photo est affichée au client comme « déclarée par vous, photo non
+            disponible » : aucune image générique n'est utilisée à votre place.
+          </p>
         </div>
 
         <div className="grid gap-4 sm:col-span-2 sm:grid-cols-3">
