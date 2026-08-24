@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowRight, Clock, Flag, Loader2, LocateFixed, MapPin, Route as RouteIcon } from "lucide-react";
+import {
+  ArrowRight,
+  Clock,
+  Flag,
+  Loader2,
+  LocateFixed,
+  MapPin,
+  Route as RouteIcon,
+} from "lucide-react";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { Button } from "@/components/ui/button";
 import { estimateRoute, priceForKm, reverseGeocode } from "@/lib/route-estimate.functions";
@@ -90,7 +98,7 @@ export function TripEstimator({
     };
   }, [pickup, dropoff, pickupOk, dropoffOk, driverId, estimateFn]);
 
-  async function useMyPosition() {
+  async function locateMe() {
     if (!navigator.geolocation) return;
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
@@ -137,7 +145,7 @@ export function TripEstimator({
         />
         <button
           type="button"
-          onClick={() => void useMyPosition()}
+          onClick={() => void locateMe()}
           disabled={locating}
           className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-foreground transition active:scale-95"
         >
@@ -198,8 +206,8 @@ export function TripEstimator({
                 <span className="ml-1 text-sm font-bold text-muted-foreground">TTC</span>
               </p>
               <p className="mt-1 text-[11px] text-muted-foreground">
-                Estimation basée sur le tarif de {firstName}. Le montant définitif est confirmé lors de
-                l'acceptation de la course.
+                Estimation basée sur le tarif de {firstName}. Le montant définitif est confirmé lors
+                de l'acceptation de la course.
               </p>
             </div>
           </div>

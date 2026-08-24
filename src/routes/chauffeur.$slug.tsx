@@ -64,7 +64,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-
 function driverNameFromSlug(slug: string) {
   return slug
     .split("-")
@@ -156,7 +155,6 @@ function Fold({
   );
 }
 
-
 function Chip({ icon: Icon, children }: { icon?: typeof Car; children: React.ReactNode }) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-medium text-foreground">
@@ -246,7 +244,8 @@ function DriverPublicPage() {
   });
 
   useEffect(() => {
-    if (d?.user_id) void supabase.rpc("track_driver_event", { _slug: slug, _event: "driver_page_view" });
+    if (d?.user_id)
+      void supabase.rpc("track_driver_event", { _slug: slug, _event: "driver_page_view" });
   }, [d?.user_id, slug]);
 
   const driverId = d?.user_id;
@@ -261,7 +260,11 @@ function DriverPublicPage() {
     setAdding(true);
     const { error } = await supabase
       .from("driver_client_connections")
-      .insert({ client_id: user.id, driver_id: driverId, source: source === "qr" ? "qr_code" : "link" });
+      .insert({
+        client_id: user.id,
+        driver_id: driverId,
+        source: source === "qr" ? "qr_code" : "link",
+      });
     setAdding(false);
     if (error) {
       if (error.code === "23505") {
@@ -309,7 +312,6 @@ function DriverPublicPage() {
       sideQuery.isLoading,
   };
 
-
   if (driverQuery.isLoading) {
     return <div className="p-10 text-center text-sm text-muted-foreground">Chargement…</div>;
   }
@@ -319,7 +321,8 @@ function DriverPublicPage() {
         <div>
           <h1 className="text-xl font-semibold">Page chauffeur indisponible</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Ce lien n'est plus actif. Le chauffeur n'est pas disponible actuellement sur {BRAND.name}.
+            Ce lien n'est plus actif. Le chauffeur n'est pas disponible actuellement sur{" "}
+            {BRAND.name}.
           </p>
           <Button asChild variant="outline" className="mt-5">
             <Link to="/">Retour à l'accueil</Link>
@@ -356,8 +359,6 @@ function DriverPublicPage() {
     { label: "TikTok", url: d.tiktok_url, icon: Music2 },
     { label: "LinkedIn", url: d.linkedin_url, icon: Linkedin },
   ].filter((s): s is { label: string; url: string; icon: typeof Car } => !!s.url);
-
-
 
   function startAdd(mode: "signin" | "signup" = "signup") {
     void supabase.rpc("track_driver_event", { _slug: slug, _event: "driver_add_click" });
@@ -405,7 +406,10 @@ function DriverPublicPage() {
     });
     if (!session) {
       sessionStorage.setItem("relink:pending-driver", slug);
-      navigate({ to: "/auth", search: { mode: "signup", role: "client", next: "/espace/demandes" } });
+      navigate({
+        to: "/auth",
+        search: { mode: "signup", role: "client", next: "/espace/demandes" },
+      });
       return;
     }
     void navigate({ to: "/espace/demandes", search: { driver: d!.user_id } });
@@ -414,8 +418,8 @@ function DriverPublicPage() {
   const bookAction =
     isDriver || isAdmin ? (
       <p className="rounded-2xl border border-border bg-muted/40 px-4 py-3 text-center text-sm text-muted-foreground">
-        Vous êtes connecté avec un compte professionnel : seuls les comptes passagers peuvent ajouter
-        un chauffeur à leur carnet.
+        Vous êtes connecté avec un compte professionnel : seuls les comptes passagers peuvent
+        ajouter un chauffeur à leur carnet.
       </p>
     ) : connected ? (
       <div className="space-y-2 text-center">
@@ -441,17 +445,19 @@ function DriverPublicPage() {
       </Button>
     );
 
-
   const experienceLabel = memberSince ? `Depuis ${memberSince}` : "Nouveau";
   const vehicleLabel = [d.vehicle_brand, d.vehicle_model].filter(Boolean).join(" ") || "Véhicule";
   const vehicleSub = [d.vehicle_color, d.vehicle_category].filter(Boolean).join(" • ") || "Berline";
 
   const reviews = reviewsQuery.data ?? [];
-  const ratingAvg = ratingQuery.data?.rating_avg != null ? Number(ratingQuery.data.rating_avg) : null;
+  const ratingAvg =
+    ratingQuery.data?.rating_avg != null ? Number(ratingQuery.data.rating_avg) : null;
   const ratingCount = Number(ratingQuery.data?.rating_count ?? 0);
   const distribution = [5, 4, 3, 2, 1].map((s) => ({
     stars: s,
-    count: Number((ratingQuery.data as Record<string, number> | null | undefined)?.[`stars${s}`] ?? 0),
+    count: Number(
+      (ratingQuery.data as Record<string, number> | null | undefined)?.[`stars${s}`] ?? 0,
+    ),
   }));
 
   return (
@@ -465,7 +471,11 @@ function DriverPublicPage() {
         <section className="flex items-center gap-3.5 pt-1">
           <div className="relative shrink-0">
             {d.avatar_url ? (
-              <img src={d.avatar_url} alt={firstName} className="size-16 rounded-full object-cover" />
+              <img
+                src={d.avatar_url}
+                alt={firstName}
+                className="size-16 rounded-full object-cover"
+              />
             ) : (
               <div className="flex size-16 items-center justify-center rounded-full bg-accent text-xl font-semibold text-accent-foreground">
                 {firstName.charAt(0)}
@@ -481,15 +491,14 @@ function DriverPublicPage() {
                 {firstName}
                 {lastInitial ? ` ${lastInitial}.` : ""}
               </span>
-              <BadgeCheck
-                className="size-4 shrink-0 text-primary"
-                aria-label="Chauffeur vérifié"
-              />
+              <BadgeCheck className="size-4 shrink-0 text-primary" aria-label="Chauffeur vérifié" />
             </h1>
             <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[13px] font-semibold text-muted-foreground">
               <span className="inline-flex items-center gap-1">
                 <StarIcon className="size-3.5 fill-warning text-warning" />
-                <span className="text-foreground">{ratingAvg ? ratingAvg.toFixed(2) : "Nouveau"}</span>
+                <span className="text-foreground">
+                  {ratingAvg ? ratingAvg.toFixed(2) : "Nouveau"}
+                </span>
                 {ratingCount ? <span>({ratingCount})</span> : null}
               </span>
               {d.city ? (
@@ -594,7 +603,9 @@ function DriverPublicPage() {
                         <StarIcon key={i} className="size-4 fill-primary text-primary" />
                       ))}
                     </div>
-                    <p className="mt-1 text-xs text-muted-foreground">Basé sur {ratingCount} avis</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Basé sur {ratingCount} avis
+                    </p>
                   </div>
                   <div className="space-y-1.5 border-l border-border pl-5">
                     {distribution.map((r) => (
@@ -606,7 +617,9 @@ function DriverPublicPage() {
                             style={{ width: `${ratingCount ? (r.count / ratingCount) * 100 : 0}%` }}
                           />
                         </span>
-                        <span className="w-8 shrink-0 text-right text-muted-foreground">{r.count}</span>
+                        <span className="w-8 shrink-0 text-right text-muted-foreground">
+                          {r.count}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -646,7 +659,9 @@ function DriverPublicPage() {
                         ))}
                       </div>
                       {r.comment ? (
-                        <p className="mt-2 line-clamp-5 text-sm text-muted-foreground">{r.comment}</p>
+                        <p className="mt-2 line-clamp-5 text-sm text-muted-foreground">
+                          {r.comment}
+                        </p>
                       ) : null}
                     </article>
                   ))}
@@ -773,7 +788,8 @@ function DriverPublicPage() {
                 })}
               </div>
               <p className="mt-3 text-muted-foreground">
-                {d.booking_notice ?? "Disponible principalement sur réservation, selon mon planning."}
+                {d.booking_notice ??
+                  "Disponible principalement sur réservation, selon mon planning."}
               </p>
             </Fold>
           ) : null}
@@ -803,7 +819,12 @@ function DriverPublicPage() {
                   <div className="flex flex-wrap gap-2 pt-1">
                     {socials.map((s) => (
                       <Button key={s.label} asChild variant="secondary" size="sm">
-                        <a href={s.url} target="_blank" rel="noopener noreferrer" aria-label={s.label}>
+                        <a
+                          href={s.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={s.label}
+                        >
                           <s.icon className="size-4" /> {s.label}
                         </a>
                       </Button>
@@ -879,30 +900,28 @@ function DriverPublicPage() {
           </Fold>
         </Accordion>
 
-
         <div className="space-y-1 pb-2 text-center text-xs text-muted-foreground">
           <p>
-            {BRAND.name} — carnet privé de chauffeurs. Seules les informations que le chauffeur a choisi de
-            publier sont visibles ici : aucune coordonnée personnelle n'est diffusée automatiquement.
+            {BRAND.name} — carnet privé de chauffeurs. Seules les informations que le chauffeur a
+            choisi de publier sont visibles ici : aucune coordonnée personnelle n'est diffusée
+            automatiquement.
           </p>
           <p>
-            Mentions légales · Confidentialité — {BRAND.name} n'organise aucune mise en relation publique et
-            ne prélève aucune commission. Les données des passagers ne sont utilisées que pour la relation
-            avec les chauffeurs de leur carnet.
+            Mentions légales · Confidentialité — {BRAND.name} n'organise aucune mise en relation
+            publique et ne prélève aucune commission. Les données des passagers ne sont utilisées
+            que pour la relation avec les chauffeurs de leur carnet.
           </p>
         </div>
         <PoweredByRelink />
       </div>
-
-
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Ajouter {firstName} à vos chauffeurs ?</AlertDialogTitle>
             <AlertDialogDescription>
-              {firstName} sera enregistré dans votre carnet privé et pourra recevoir vos demandes de trajet.
-              Vous pouvez le retirer à tout moment.
+              {firstName} sera enregistré dans votre carnet privé et pourra recevoir vos demandes de
+              trajet. Vous pouvez le retirer à tout moment.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -927,7 +946,6 @@ function DriverPublicPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
     </BookingThemeScope>
   );
 }
