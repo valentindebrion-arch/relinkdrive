@@ -145,14 +145,6 @@ export function ReviewStep(props: ReviewStepProps) {
   const [detailOpen, setDetailOpen] = useState(false);
   const acceptId = useId();
 
-  const hasOptions =
-    passengers > 1 ||
-    largeLuggage > 0 ||
-    cabinLuggage > 0 ||
-    roundTrip ||
-    !!petsLabel ||
-    !!needsLabel.trim() ||
-    !!comment.trim();
 
   const incompatible = !!compatibility && !compatibility.compatible;
   const disabled = busy || !accepted || !estimate || !!blockedReason || incompatible || !paymentLabel;
