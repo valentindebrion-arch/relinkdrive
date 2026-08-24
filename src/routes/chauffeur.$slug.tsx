@@ -172,6 +172,7 @@ function DriverPublicPage() {
   const navigate = useNavigate();
   const [adding, setAdding] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [removeOpen, setRemoveOpen] = useState(false);
 
   const source =
     typeof window !== "undefined" && new URLSearchParams(window.location.search).get("src") === "qr"
@@ -373,31 +374,73 @@ function DriverPublicPage() {
     void supabase.rpc("track_driver_event", { _slug: slug, _event: "driver_request_click" });
   }
 
-  const primaryAction = isDriver || isAdmin ? (
-    <p className="rounded-2xl border border-border bg-muted/40 px-4 py-3 text-center text-sm text-muted-foreground">
-      Vous êtes connecté avec un compte professionnel : seuls les comptes passagers peuvent ajouter un
-      chauffeur à leur carnet.
-    </p>
-  ) : connected ? (
-    <div className="space-y-2">
-      <p className="flex items-center justify-center gap-1.5 text-sm font-medium text-primary">
-        <Check className="size-4" /> Déjà dans mes chauffeurs
+  async function removeFromBook() {
+    if (!user?.id || !driverId) return;
+    setAdding(true);
+    const { error } = await supabase
+      .from("driver_client_connections")
+      .delete()
+      .eq("client_id", user.id)
+      .eq("driver_id", driverId);
+    setAdding(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`${firstName} a été retiré de votre carnet`);
+    void connQuery.refetch();
+  }
+
+  /** Envoie le client vers le formulaire existant, prérempli avec l'estimation. */
+  function goToRequest(est: TripEstimate) {
+    trackRequest();
+    saveRequestDraft({
+      driver_id: d!.user_id,
+      pickup_address: est.pickup,
+      dropoff_address: est.dropoff,
+      scheduled_at: "",
+      whenMode: "now",
+      pickupOk: true,
+      dropoffOk: true,
+    });
+    if (!session) {
+      sessionStorage.setItem("relink:pending-driver", slug);
+      navigate({ to: "/auth", search: { mode: "signup", role: "client", next: "/espace/demandes" } });
+      return;
+    }
+    void navigate({ to: "/espace/demandes", search: { driver: d!.user_id } });
+  }
+
+  const bookAction =
+    isDriver || isAdmin ? (
+      <p className="rounded-2xl border border-border bg-muted/40 px-4 py-3 text-center text-sm text-muted-foreground">
+        Vous êtes connecté avec un compte professionnel : seuls les comptes passagers peuvent ajouter
+        un chauffeur à leur carnet.
       </p>
-      <Button asChild className="h-12 w-full text-base" onClick={trackRequest}>
-        <Link to="/espace/demandes" search={{ driver: d.user_id }}>
-          Demander un trajet à {firstName}
-        </Link>
+    ) : connected ? (
+      <div className="space-y-2 text-center">
+        <p className="flex items-center justify-center gap-1.5 text-sm font-semibold text-primary">
+          <Check className="size-4" /> {firstName} est dans mes chauffeurs
+        </p>
+        <button
+          type="button"
+          onClick={() => setRemoveOpen(true)}
+          disabled={adding}
+          className="text-xs font-semibold text-muted-foreground underline underline-offset-4 transition hover:text-foreground"
+        >
+          Retirer {firstName} de mes chauffeurs
+        </button>
+      </div>
+    ) : (
+      <Button
+        className="h-12 w-full text-base"
+        onClick={() => startAdd("signup")}
+        disabled={adding || !accepting}
+      >
+        <UserPlus className="size-4" /> Ajouter {firstName} à mes chauffeurs
       </Button>
-    </div>
-  ) : (
-    <Button
-      className="h-12 w-full text-base"
-      onClick={() => startAdd("signup")}
-      disabled={adding || !accepting}
-    >
-      <UserPlus className="size-4" /> Ajouter {firstName} à mes chauffeurs
-    </Button>
-  );
+    );
+
 
   const experienceLabel = memberSince ? `Depuis ${memberSince}` : "Nouveau";
   const vehicleLabel = [d.vehicle_brand, d.vehicle_model].filter(Boolean).join(" ") || "Véhicule";
