@@ -26,7 +26,6 @@ import {
   Star as StarIcon,
   ThumbsUp,
   UserRound,
-  ChevronRight,
   ShieldCheck,
   Snowflake,
   Sparkles,
@@ -38,6 +37,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useSignedUrl } from "@/lib/storage";
 import { VehicleGallery } from "@/components/VehicleGallery";
+import { TripEstimator, type TripEstimate } from "@/components/driver/TripEstimator";
+import { saveRequestDraft } from "@/lib/request-draft";
 
 import { BRAND } from "@/lib/brand";
 import {
@@ -46,6 +47,12 @@ import {
   useDriverBranding,
 } from "@/components/BookingThemeScope";
 import { Button } from "@/components/ui/button";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,6 +63,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+
 
 function driverNameFromSlug(slug: string) {
   return slug
