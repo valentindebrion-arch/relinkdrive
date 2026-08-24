@@ -16,7 +16,7 @@ function Frame({
 }: {
   photo: VehiclePhoto;
   loading: boolean;
-  overlay?: string | null;
+  overlay?: string | null | undefined;
 }) {
   const [failed, setFailed] = useState(false);
   const show = !!photo.url && !failed;
@@ -56,7 +56,7 @@ export function VehicleShowcase({
 }: {
   photos: VehiclePhoto[];
   loading?: boolean;
-  overlay?: string | null;
+  overlay?: string | null | undefined;
 }) {
   const [index, setIndex] = useState(0);
   const ref = useRef<HTMLDivElement | null>(null);
