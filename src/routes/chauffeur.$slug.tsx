@@ -36,7 +36,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useSignedUrl } from "@/lib/storage";
-import { VehicleGallery } from "@/components/VehicleGallery";
+import { VehicleShowcase } from "@/components/VehicleShowcase";
 import { TripEstimator, type TripEstimate } from "@/components/driver/TripEstimator";
 import { saveRequestDraft } from "@/lib/request-draft";
 
