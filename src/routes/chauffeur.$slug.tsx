@@ -136,6 +136,27 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
+/** Bloc secondaire replié : ouverture animée, un seul ouvert à la fois. */
+function Fold({
+  value,
+  title,
+  children,
+}: {
+  value: string;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <AccordionItem value={value} className="surface border-b-0 px-5">
+      <AccordionTrigger className="text-base font-semibold hover:no-underline">
+        {title}
+      </AccordionTrigger>
+      <AccordionContent className="text-sm">{children}</AccordionContent>
+    </AccordionItem>
+  );
+}
+
+
 function Chip({ icon: Icon, children }: { icon?: typeof Car; children: React.ReactNode }) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-medium text-foreground">
