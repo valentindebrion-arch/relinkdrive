@@ -899,6 +899,11 @@ function DriverPublicPage() {
           </Fold>
         </Accordion>
 
+        {/* 5. Carnet de chauffeurs — dernier bloc fonctionnel */}
+        <div className="surface p-5">{bookAction}</div>
+
+
+
         <div className="space-y-1 pb-2 text-center text-xs text-muted-foreground">
           <p>
             {BRAND.name} — carnet privé de chauffeurs. Seules les informations que le chauffeur a
