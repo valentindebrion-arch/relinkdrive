@@ -258,13 +258,11 @@ function DriverPublicPage() {
       return;
     }
     setAdding(true);
-    const { error } = await supabase
-      .from("driver_client_connections")
-      .insert({
-        client_id: user.id,
-        driver_id: driverId,
-        source: source === "qr" ? "qr_code" : "link",
-      });
+    const { error } = await supabase.from("driver_client_connections").insert({
+      client_id: user.id,
+      driver_id: driverId,
+      source: source === "qr" ? "qr_code" : "link",
+    });
     setAdding(false);
     if (error) {
       if (error.code === "23505") {
