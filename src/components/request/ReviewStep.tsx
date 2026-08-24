@@ -73,6 +73,7 @@ export type ReviewStepProps = {
   onEditTrip: () => void;
   onEditDriver: () => void;
   onEditOptions: () => void;
+  onEditTravel: () => void;
   onSubmit: () => void;
 };
 
