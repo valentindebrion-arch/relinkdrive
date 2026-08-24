@@ -511,9 +511,12 @@ function DriverPublicPage() {
           </div>
         </section>
 
-        {/* 2. Photos du véhicule — section critique, toujours affichée */}
-        <VehicleGallery
+        {/* 2. Galerie véhicule immersive — toujours affichée */}
+        <VehicleShowcase
           loading={vehiclePhotos.isLoading}
+          overlay={
+            d.max_passengers ? `${vehicleLabel} · ${d.max_passengers} places` : vehicleLabel
+          }
           photos={[
             {
               key: d.vehicle_photo_url ?? "exterior",
@@ -521,14 +524,14 @@ function DriverPublicPage() {
               label: "Extérieur du véhicule",
             },
             {
-              key: d.vehicle_front_photo_url ?? "front",
-              url: frontPhoto,
-              label: "Vue de face",
-            },
-            {
               key: d.vehicle_side_photo_url ?? "side",
               url: sidePhoto,
               label: "Vue de côté",
+            },
+            {
+              key: d.vehicle_front_photo_url ?? "front",
+              url: frontPhoto,
+              label: "Vue de face",
             },
             {
               key: d.vehicle_interior_photo_url ?? "interior",
@@ -541,11 +544,9 @@ function DriverPublicPage() {
         {/* 3. Estimateur de trajet */}
         <TripEstimator driverId={d.user_id} firstName={firstName} onRequest={goToRequest} />
 
-        {/* 4. Carnet de chauffeurs */}
-        <div className="surface p-5">{bookAction}</div>
-
-        {/* 5. Blocs secondaires repliés */}
+        {/* 4. Blocs secondaires repliés */}
         <Accordion type="single" collapsible className="space-y-3">
+
           {d.public_intro || d.bio ? (
             <Fold value="about" title={`À propos de ${firstName}`}>
               <p className="flex gap-2 whitespace-pre-line text-muted-foreground">
