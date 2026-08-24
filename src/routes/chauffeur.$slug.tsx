@@ -932,6 +932,23 @@ function DriverPublicPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={removeOpen} onOpenChange={setRemoveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Retirer {firstName} de vos chauffeurs ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {firstName} ne figurera plus dans votre carnet et vous ne pourrez plus lui envoyer de
+              demande de trajet. Vous pourrez l'ajouter de nouveau à tout moment.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void removeFromBook()}>Retirer</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </BookingThemeScope>
   );
 }
