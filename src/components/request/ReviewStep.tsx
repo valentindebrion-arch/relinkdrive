@@ -73,6 +73,7 @@ export type ReviewStepProps = {
   onEditTrip: () => void;
   onEditDriver: () => void;
   onEditOptions: () => void;
+  onEditTravel: () => void;
   onSubmit: () => void;
 };
 
@@ -144,14 +145,6 @@ export function ReviewStep(props: ReviewStepProps) {
   const [detailOpen, setDetailOpen] = useState(false);
   const acceptId = useId();
 
-  const hasOptions =
-    passengers > 1 ||
-    largeLuggage > 0 ||
-    cabinLuggage > 0 ||
-    roundTrip ||
-    !!petsLabel ||
-    !!needsLabel.trim() ||
-    !!comment.trim();
 
   const incompatible = !!compatibility && !compatibility.compatible;
   const disabled = busy || !accepted || !estimate || !!blockedReason || incompatible || !paymentLabel;
@@ -362,7 +355,24 @@ export function ReviewStep(props: ReviewStepProps) {
             </dl>
             <div className="mt-2 border-t border-border pt-2">
               <div className="mb-1 flex items-center justify-between gap-3">
-                <p className="text-[13px] font-bold">Voyageurs et options</p>
+                <p className="text-[13px] font-bold">Voyageurs et bagages</p>
+                <button
+                  type="button"
+                  onClick={props.onEditTravel}
+                  className="rounded-full px-2 py-1 text-[13px] font-bold text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                >
+                  Modifier
+                </button>
+              </div>
+              <dl>
+                <Row label="Passagers" value={passengers} />
+                <Row label="Grands bagages" value={largeLuggage} />
+                <Row label="Bagages cabine" value={cabinLuggage} />
+              </dl>
+            </div>
+            <div className="mt-2 border-t border-border pt-2">
+              <div className="mb-1 flex items-center justify-between gap-3">
+                <p className="text-[13px] font-bold">Demandes particulières</p>
                 <button
                   type="button"
                   onClick={props.onEditOptions}
@@ -371,19 +381,14 @@ export function ReviewStep(props: ReviewStepProps) {
                   Modifier
                 </button>
               </div>
-              {hasOptions ? (
+              {petsLabel || needsLabel.trim() || comment.trim() ? (
                 <dl>
-                  <Row label="Passagers" value={passengers} />
-                  <Row label="Grands bagages" value={largeLuggage} />
-                  <Row label="Bagages cabine" value={cabinLuggage} />
                   {petsLabel ? <Row label="Animaux" value={petsLabel} /> : null}
-                  {needsLabel.trim() ? (
-                    <Row label="Demandes particulières" value={needsLabel} />
-                  ) : null}
+                  {needsLabel.trim() ? <Row label="Demandes" value={needsLabel} /> : null}
                   {comment.trim() ? <Row label="Message au chauffeur" value={comment} /> : null}
                 </dl>
               ) : (
-                <p className="text-[13px] text-muted-foreground">Aucune option particulière</p>
+                <p className="text-[13px] text-muted-foreground">Aucune demande particulière</p>
               )}
             </div>
           </Card>

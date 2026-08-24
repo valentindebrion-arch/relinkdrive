@@ -1492,6 +1492,7 @@ function ClientRequests() {
             setDriverPickerOpen(true);
           }}
           onEditOptions={() => setStep(2)}
+          onEditTravel={() => setStep(1)}
           paymentLabel={paymentMethodLabel(paymentMethod)}
           onEditPayment={() => setPaymentSheetOpen(true)}
           onSubmit={() => void submit()}
