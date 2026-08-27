@@ -577,3 +577,78 @@
     animation: none !important;
   }
 }
+
+/* ── Achievement : ajout d'un chauffeur au carnet ─────────────────── */
+@keyframes achievement-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes achievement-lift {
+  0% { transform: perspective(900px) translate3d(0, 14px, 0) scale(0.94) rotateX(6deg); opacity: 0; }
+  45% { transform: perspective(900px) translate3d(0, -10px, 0) scale(1.035) rotateX(-2deg); opacity: 1; }
+  70% { transform: perspective(900px) translate3d(0, -6px, 0) scale(1.01) rotateX(0deg); opacity: 1; }
+  100% { transform: perspective(900px) translate3d(0, -34px, 0) scale(0.9) rotateX(0deg); opacity: 0.15; }
+}
+
+@keyframes achievement-check {
+  0%, 12% { transform: scale(0.4); opacity: 0; }
+  32% { transform: scale(1.12); opacity: 1; }
+  45% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes achievement-caption {
+  0%, 25% { transform: translateY(8px); opacity: 0; }
+  45% { transform: translateY(0); opacity: 1; }
+  85% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-6px); opacity: 0; }
+}
+
+@keyframes achievement-land {
+  0% { transform: translate3d(0, 16px, 0) scale(0.96); opacity: 0; }
+  55% { transform: translate3d(0, -3px, 0) scale(1.012); opacity: 1; }
+  100% { transform: translate3d(0, 0, 0) scale(1); opacity: 1; }
+}
+
+@keyframes achievement-glow {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 38%, transparent); }
+  70% { box-shadow: 0 0 0 10px color-mix(in oklab, var(--primary) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 0%, transparent); }
+}
+
+.achievement-overlay {
+  animation: achievement-fade 0.22s ease-out both;
+}
+
+.achievement-card {
+  animation: achievement-lift 1.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  box-shadow: 0 30px 60px -28px rgb(0 0 0 / 0.45);
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+
+.achievement-check {
+  animation: achievement-check 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.achievement-caption {
+  animation: achievement-caption 1.7s ease-out both;
+}
+
+.achievement-land {
+  animation:
+    achievement-land 0.55s cubic-bezier(0.22, 1, 0.36, 1) both,
+    achievement-glow 1.1s ease-out 0.15s both;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .achievement-overlay,
+  .achievement-card,
+  .achievement-check,
+  .achievement-caption,
+  .achievement-land {
+    animation: achievement-fade 0.2s ease-out both !important;
+  }
+}
