@@ -158,8 +158,8 @@ export function ReviewStep(props: ReviewStepProps) {
 
   return (
     <>
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[calc(7rem+env(safe-area-inset-bottom))]">
-        <div className="mx-auto w-full max-w-lg space-y-4">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4">
+        <div className="mx-auto w-full max-w-lg space-y-4 pb-8">
           <div className="rise-in pt-1">
             <h2 className="text-[26px] leading-[1.15] font-extrabold tracking-tight">
               Vérifiez et confirmez
