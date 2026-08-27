@@ -123,12 +123,33 @@ export function TripEstimator({
     );
   }
 
+  // Départ pré-rempli avec la position lorsque l'autorisation est déjà accordée.
+  useEffect(() => {
+    if (!autoLocate || pickup || typeof navigator === "undefined") return;
+    const perms = navigator.permissions;
+    if (!perms?.query) return;
+    let cancelled = false;
+    void perms
+      .query({ name: "geolocation" as PermissionName })
+      .then((status) => {
+        if (!cancelled && status.state === "granted") void locateMe();
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoLocate]);
+
+  const ready = pickupOk && dropoffOk && !!pickup && !!dropoff;
+
   return (
-    <section className="surface p-5">
-      <h2 className="text-base font-semibold">Estimez votre trajet</h2>
+    <section id="estimation" className="surface scroll-mt-4 border-primary/30 p-5 shadow-sm">
+      <h2 className="text-lg font-black tracking-tight">Estimer mon trajet</h2>
       <p className="mt-1 text-[13px] text-muted-foreground">
-        Renseignez votre départ et votre destination pour connaître le tarif de {firstName}.
+        Indiquez votre départ et votre destination pour connaître le tarif de {firstName}.
       </p>
+
 
       <div className="mt-4 space-y-2">
         <AddressAutocomplete
