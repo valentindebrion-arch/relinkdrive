@@ -40,10 +40,13 @@ export function TripEstimator({
   driverId,
   firstName,
   onRequest,
+  autoLocate = false,
 }: {
   driverId: string;
   firstName: string;
   onRequest: (estimate: TripEstimate) => void;
+  /** Renseigne automatiquement le départ si la géolocalisation est déjà autorisée. */
+  autoLocate?: boolean;
 }) {
   const estimateFn = useServerFn(estimateRoute);
   const geocodeFn = useServerFn(reverseGeocode);
