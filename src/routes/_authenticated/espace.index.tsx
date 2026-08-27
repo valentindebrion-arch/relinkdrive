@@ -16,6 +16,7 @@ import {
   type VehicleFactsData,
 } from "@/components/client/VehicleFacts";
 import { useSignedUrls } from "@/lib/storage";
+import emptyDriverStateAsset from "@/assets/empty-driver-state.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/espace/")({
   component: ClientHome,
@@ -311,7 +312,23 @@ function ClientHome() {
           </Link>
         ) : null}
 
-        {noneAvailable ? null : (
+        {noDriver ? (
+          <div
+            className="home-rise overflow-hidden rounded-[1.75rem] border border-border/60 bg-card shadow-[0_10px_30px_-24px_rgba(0,0,0,0.55)]"
+            style={{ animationDelay: "40ms" }}
+          >
+            <div className="relative aspect-[16/10] w-full bg-muted">
+              <img
+                src={emptyDriverStateAsset.url}
+                alt="Pas encore de chauffeur"
+                loading="eager"
+                decoding="async"
+                draggable={false}
+                className="size-full cursor-default object-cover"
+              />
+            </div>
+          </div>
+        ) : noneAvailable ? null : (
           <div className="home-rise" style={{ animationDelay: "40ms" }}>
             <HomeDriverCard
               drivers={drivers}
