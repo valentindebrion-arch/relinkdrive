@@ -144,6 +144,7 @@ function DriverPublicPage() {
   const { slug } = Route.useParams();
   const { session, user, isDriver, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [adding, setAdding] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [removeOpen, setRemoveOpen] = useState(false);
