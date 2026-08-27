@@ -396,15 +396,16 @@ function ClientHome() {
         </section>
 
         {noneAvailable ? null : (
-        <VehicleFacts
-          facts={selectedDriver?.facts ?? null}
-          driverSlug={selectedDriver?.slug ?? null}
-          driverKey={selectedDriver?.id ?? (data.isLoading ? "loading" : "empty")}
-          anim={
-            dir === "right" ? "driver-card-in-right" : dir === "left" ? "driver-card-in-left" : ""
-          }
-          loading={data.isLoading || photosPending}
-        />
+          <VehicleFacts
+            facts={selectedDriver?.facts ?? null}
+            driverSlug={selectedDriver?.slug ?? null}
+            driverKey={selectedDriver?.id ?? (data.isLoading ? "loading" : "empty")}
+            anim={
+              dir === "right" ? "driver-card-in-right" : dir === "left" ? "driver-card-in-left" : ""
+            }
+            loading={data.isLoading || photosPending}
+            locked={noDriver}
+          />
         )}
       </main>
     </div>
