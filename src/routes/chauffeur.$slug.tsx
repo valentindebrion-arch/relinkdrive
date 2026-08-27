@@ -38,6 +38,8 @@ import { useSignedUrl } from "@/lib/storage";
 import { VehicleShowcase } from "@/components/VehicleShowcase";
 import { TripEstimator, type TripEstimate } from "@/components/driver/TripEstimator";
 import { saveRequestDraft } from "@/lib/request-draft";
+import { prefersReducedMotion, setDriverCelebration } from "@/lib/driver-celebration";
+import { DriverAddedOverlay } from "@/components/client/DriverAddedOverlay";
 
 import { BRAND } from "@/lib/brand";
 import {
@@ -144,6 +146,7 @@ function DriverPublicPage() {
   const [adding, setAdding] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [removeOpen, setRemoveOpen] = useState(false);
+  const [celebration, setCelebration] = useState<{ first: boolean } | null>(null);
 
   const source =
     typeof window !== "undefined" && new URLSearchParams(window.location.search).get("src") === "qr"
@@ -231,6 +234,11 @@ function DriverPublicPage() {
       return;
     }
     setAdding(true);
+    // Nombre de chauffeurs déjà au carnet : détermine la variante « premier chauffeur ».
+    const { count: before } = await supabase
+      .from("driver_client_connections")
+      .select("id", { count: "exact", head: true })
+      .eq("client_id", user.id);
     const { error } = await supabase.from("driver_client_connections").insert({
       client_id: user.id,
       driver_id: driverId,
@@ -253,10 +261,28 @@ function DriverPublicPage() {
       city: driverCity,
       metadata: { source },
     });
-    toast.success("Chauffeur ajouté à votre carnet");
     void connQuery.refetch();
+
+    // Enregistrement réussi : on lance immédiatement l'expérience d'achievement.
+    const first = (before ?? 0) === 0;
+    const name =
+      (driverQuery.data?.full_name ?? "").trim().split(" ")[0] || "Votre chauffeur";
+    setDriverCelebration({ driverId, firstName: name, first });
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      try {
+        navigator.vibrate?.(12);
+      } catch {
+        /* retour tactile indisponible */
+      }
+    }
+    if (prefersReducedMotion()) {
+      toast.success("Chauffeur ajouté à votre carnet");
+      void navigate({ to: "/espace/chauffeurs" });
+      return;
+    }
+    setCelebration({ first });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, driverId, driverCity, source, isDriver, isAdmin]);
+  }, [user?.id, driverId, driverCity, source, isDriver, isAdmin, driverQuery.data, navigate]);
 
   // Ajout automatique après connexion / création de compte depuis ce lien
   useEffect(() => {
@@ -892,6 +918,20 @@ function DriverPublicPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {celebration ? (
+        <DriverAddedOverlay
+          firstName={firstName}
+          name={d.full_name ?? firstName}
+          vehicleLabel={vehicleLabel}
+          photoUrl={sidePhoto ?? vehiclePhoto ?? frontPhoto}
+          first={celebration.first}
+          onDone={() => {
+            setCelebration(null);
+            void navigate({ to: "/espace/chauffeurs" });
+          }}
+        />
+      ) : null}
       {false && (
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] sm:hidden">
           <a

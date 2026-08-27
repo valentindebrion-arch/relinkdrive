@@ -9,6 +9,7 @@ import { AddDriverSheet } from "@/components/client/AddDriverSheet";
 import { ClientTopBar } from "@/components/client/ClientTopBar";
 import { saveRequestDraft } from "@/lib/request-draft";
 import { useSignedUrls } from "@/lib/storage";
+import { takeDriverCelebration, type DriverCelebration } from "@/lib/driver-celebration";
 
 export const Route = createFileRoute("/_authenticated/espace/chauffeurs")({
   component: ClientDrivers,
@@ -31,6 +32,16 @@ function ClientDrivers() {
   const [addOpen, setAddOpen] = useState(false);
   const [search, setSearch] = useState("");
   const queryClient = useQueryClient();
+
+  // Suite de l'animation d'ajout : la carte arrive dans la liste.
+  const [celebration, setCelebration] = useState<DriverCelebration | null>(null);
+  useEffect(() => {
+    const c = takeDriverCelebration();
+    if (!c) return;
+    setCelebration(c);
+    const t = window.setTimeout(() => setCelebration(null), 3200);
+    return () => window.clearTimeout(t);
+  }, []);
 
   // Temps réel : le statut Disponible / Indisponible se met à jour sans rechargement.
   useEffect(() => {
@@ -167,6 +178,23 @@ function ClientDrivers() {
         </label>
       ) : null}
 
+      {celebration ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className="achievement-land mt-4 rounded-2xl border border-primary/25 bg-primary/8 px-4 py-3 text-center"
+        >
+          <p className="text-[14px] font-black tracking-tight text-primary">
+            {celebration.first ? "Votre réseau commence ici" : "+1 chauffeur de confiance"}
+          </p>
+          <p className="mt-0.5 text-[12.5px] font-semibold text-muted-foreground">
+            {celebration.first
+              ? `${celebration.firstName} est votre premier chauffeur Relink`
+              : `${celebration.firstName} rejoint vos chauffeurs`}
+          </p>
+        </div>
+      ) : null}
+
       <div className="mt-4 space-y-4">
         {drivers.isLoading ? (
           [0, 1].map((i) => (
@@ -199,8 +227,10 @@ function ClientDrivers() {
         ) : (
           filtered.map((d) => {
             const photoUrl = d.photoPath ? (photos.data?.[d.photoPath] ?? null) : null;
-            const cardClassName =
-              "group block overflow-hidden rounded-[1.25rem] border border-border bg-card shadow-card transition active:scale-[0.985]";
+            const justAdded = celebration?.driverId === d.id;
+            const cardClassName = `group block overflow-hidden rounded-[1.25rem] border bg-card shadow-card transition active:scale-[0.985] ${
+              justAdded ? "achievement-land border-primary/40" : "border-border"
+            }`;
             const cardBody = (
               <>
                 {/* Photo véhicule — pleine largeur, format identique aux cartes Top 10 */}
