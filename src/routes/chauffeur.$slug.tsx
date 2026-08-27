@@ -441,9 +441,12 @@ function DriverPublicPage() {
   return (
     <BookingThemeScope theme={branding.data?.themeId} className="min-h-screen pb-28 sm:pb-10">
       <div className="mx-auto max-w-lg space-y-3 px-4 py-6">
-        <p className="text-center text-xs font-medium tracking-wide text-muted-foreground uppercase">
+        <Link
+          to="/"
+          className="block text-center text-xs font-medium tracking-wide text-muted-foreground uppercase transition hover:opacity-80 active:scale-95 cursor-pointer"
+        >
           {BRAND.name}
-        </p>
+        </Link>
 
         {/* 1 — Identité du chauffeur */}
         <section className="surface overflow-hidden">

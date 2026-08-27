@@ -157,6 +157,22 @@ export function TripEstimator({
           placeholder="Adresse de départ"
           ariaLabel="Adresse de départ"
           icon={<MapPin className="size-4" />}
+          action={
+            <button
+              type="button"
+              onClick={() => void locateMe()}
+              disabled={locating}
+              className="inline-flex shrink-0 items-center gap-1 rounded-full bg-muted px-2 py-1 text-[11px] font-semibold text-muted-foreground transition hover:text-foreground active:scale-95 disabled:opacity-60"
+              aria-label="Utiliser ma position actuelle"
+            >
+              {locating ? (
+                <Loader2 className="size-3.5 animate-spin text-primary" />
+              ) : (
+                <LocateFixed className="size-3.5 text-primary" />
+              )}
+              Position
+            </button>
+          }
           onChange={(v) => {
             setPickup(v);
             setPickupOk(false);
@@ -166,19 +182,6 @@ export function TripEstimator({
             setPickupOk(true);
           }}
         />
-        <button
-          type="button"
-          onClick={() => void locateMe()}
-          disabled={locating}
-          className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-foreground transition active:scale-95"
-        >
-          {locating ? (
-            <Loader2 className="size-3.5 animate-spin" />
-          ) : (
-            <LocateFixed className="size-3.5 text-primary" />
-          )}
-          Ma position actuelle
-        </button>
         <AddressAutocomplete
           value={dropoff}
           confirmed={dropoffOk}
@@ -240,12 +243,7 @@ export function TripEstimator({
             <ArrowRight className="size-4" />
           </Button>
         </div>
-      ) : (
-        <Button className="mt-4 h-12 w-full text-base" disabled={!ready}>
-          Estimer mon trajet
-          <ArrowRight className="size-4" />
-        </Button>
-      )}
+      ) : null}
     </section>
   );
 }
