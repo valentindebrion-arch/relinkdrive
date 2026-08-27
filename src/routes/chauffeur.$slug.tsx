@@ -918,6 +918,20 @@ function DriverPublicPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {celebration ? (
+        <DriverAddedOverlay
+          firstName={firstName}
+          name={d.full_name ?? firstName}
+          vehicleLabel={vehicleLabel}
+          photoUrl={sidePhoto ?? vehiclePhoto ?? frontPhoto}
+          first={celebration.first}
+          onDone={() => {
+            setCelebration(null);
+            void navigate({ to: "/espace/chauffeurs" });
+          }}
+        />
+      ) : null}
       {false && (
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] sm:hidden">
           <a
