@@ -71,6 +71,11 @@ export function TravelStep({
   passengers,
   largeLuggage,
   cabinLuggage,
+  maxPassengers,
+  maxLargeLuggage,
+  maxCabinLuggage,
+  capacityLoading,
+  blockingMessages = [],
   busy,
   onChange,
   onContinue,
@@ -80,6 +85,12 @@ export function TravelStep({
   passengers: number;
   largeLuggage: number;
   cabinLuggage: number;
+  /** Capacités réelles du véhicule sélectionné (null = non renseignée). */
+  maxPassengers?: number | null;
+  maxLargeLuggage?: number | null;
+  maxCabinLuggage?: number | null;
+  capacityLoading?: boolean;
+  blockingMessages?: string[];
   busy: boolean;
   onChange: (patch: {
     passengers?: number;
@@ -88,6 +99,11 @@ export function TravelStep({
   }) => void;
   onContinue: () => void;
 }) {
+  const passengerMax = maxPassengers ?? 8;
+  const largeMax = maxLargeLuggage ?? 10;
+  const cabinMax = maxCabinLuggage ?? 10;
+  const blocked = blockingMessages.length > 0;
+
   return (
     <>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[calc(7.5rem+env(safe-area-inset-bottom))]">
@@ -109,6 +125,7 @@ export function TravelStep({
               cabinLuggage={cabinLuggage}
             />
           ) : null}
+
 
           <section
             aria-label="Voyageurs et bagages"
