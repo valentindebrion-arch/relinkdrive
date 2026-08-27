@@ -214,14 +214,14 @@ export function VehicleFacts({
           url={facts?.exteriorPhotoUrl ?? null}
           alt="Extérieur du véhicule"
           loading={loading}
-          locked={locked}
+          locked={locked ?? false}
         />
         <InteriorPhoto
           imageKey={`${driverKey}:${facts?.vehicleId ?? "no-vehicle"}:${facts?.interiorPhotoPath ?? "no-photo"}`}
           url={facts?.interiorPhotoUrl ?? null}
           alt="Intérieur du véhicule"
           loading={loading}
-          locked={locked}
+          locked={locked ?? false}
         />
 
         <div className="flex min-w-0 flex-col gap-2 rounded-2xl border border-primary/25 bg-card p-3 shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]">
