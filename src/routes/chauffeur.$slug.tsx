@@ -25,7 +25,6 @@ import {
   Quote,
   Star as StarIcon,
   ThumbsUp,
-  UserRound,
   ShieldCheck,
   Snowflake,
   Sparkles,
@@ -47,12 +46,6 @@ import {
   useDriverBranding,
 } from "@/components/BookingThemeScope";
 import { Button } from "@/components/ui/button";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -132,26 +125,6 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h2 className="text-base font-semibold">{title}</h2>
       <div className="mt-3 text-sm">{children}</div>
     </section>
-  );
-}
-
-/** Bloc secondaire replié : ouverture animée, un seul ouvert à la fois. */
-function Fold({
-  value,
-  title,
-  children,
-}: {
-  value: string;
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <AccordionItem value={value} className="surface border-b-0 px-5">
-      <AccordionTrigger className="text-base font-semibold hover:no-underline">
-        {title}
-      </AccordionTrigger>
-      <AccordionContent className="text-sm">{children}</AccordionContent>
-    </AccordionItem>
   );
 }
 
@@ -912,6 +885,14 @@ function DriverPublicPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] sm:hidden">
+        <a
+          href="#estimation"
+          className="pointer-events-auto mx-auto flex h-12 max-w-lg items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-bold text-primary-foreground shadow-lg"
+        >
+          Estimer mon trajet
+        </a>
+      </div>
     </BookingThemeScope>
   );
 }
