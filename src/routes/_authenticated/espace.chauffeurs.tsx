@@ -33,6 +33,16 @@ function ClientDrivers() {
   const [search, setSearch] = useState("");
   const queryClient = useQueryClient();
 
+  // Suite de l'animation d'ajout : la carte arrive dans la liste.
+  const [celebration, setCelebration] = useState<DriverCelebration | null>(null);
+  useEffect(() => {
+    const c = takeDriverCelebration();
+    if (!c) return;
+    setCelebration(c);
+    const t = window.setTimeout(() => setCelebration(null), 3200);
+    return () => window.clearTimeout(t);
+  }, []);
+
   // Temps réel : le statut Disponible / Indisponible se met à jour sans rechargement.
   useEffect(() => {
     if (!user?.id) return;
