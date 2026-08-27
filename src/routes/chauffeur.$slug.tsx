@@ -567,7 +567,9 @@ function DriverPublicPage() {
         <section className="space-y-3">
           <VehicleShowcase
             loading={vehiclePhotos.isLoading}
-            overlay={d.max_passengers ? `${vehicleLabel} · ${d.max_passengers} places` : vehicleLabel}
+            overlay={
+              d.max_passengers ? `${vehicleLabel} · ${d.max_passengers} places` : vehicleLabel
+            }
             photos={[
               {
                 key: d.vehicle_photo_url ?? "exterior",
@@ -675,7 +677,12 @@ function DriverPublicPage() {
                 <div className="flex flex-wrap gap-2 pt-1">
                   {socials.map((s) => (
                     <Button key={s.label} asChild variant="secondary" size="sm">
-                      <a href={s.url} target="_blank" rel="noopener noreferrer" aria-label={s.label}>
+                      <a
+                        href={s.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={s.label}
+                      >
                         <s.icon className="size-4" /> {s.label}
                       </a>
                     </Button>
@@ -835,9 +842,6 @@ function DriverPublicPage() {
 
         {/* Carnet de chauffeurs — dernier bloc fonctionnel */}
         <div className="surface p-5">{bookAction}</div>
-
-
-
 
         <div className="space-y-1 pb-2 text-center text-xs text-muted-foreground">
           <p>

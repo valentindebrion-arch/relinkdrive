@@ -150,7 +150,6 @@ export function TripEstimator({
         Indiquez votre départ et votre destination pour connaître le tarif de {firstName}.
       </p>
 
-
       <div className="mt-4 space-y-2">
         <AddressAutocomplete
           value={pickup}
