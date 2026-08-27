@@ -516,34 +516,29 @@ export function ReviewStep(props: ReviewStepProps) {
               <span>{errorMessage}</span>
             </p>
           ) : null}
-        </div>
-      </div>
 
-      <div
-        className="shrink-0 bg-gradient-to-t from-background via-background to-transparent px-4 pt-3"
-        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}
-      >
-        <div className="mx-auto w-full max-w-lg">
-          {helper ? (
-            <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
-              {helper}
-            </p>
-          ) : null}
-          <Button
-            size="lg"
-            className="h-13 w-full rounded-2xl text-[15px] font-bold transition-transform active:scale-[0.99]"
-            disabled={disabled}
-            onClick={props.onSubmit}
-          >
-            {busy ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : accepted ? (
-              <Send className="size-4" />
-            ) : (
-              <Check className="size-4" />
-            )}
-            {busy ? "Envoi en cours…" : "Envoyer ma demande"}
-          </Button>
+          <div className="pt-2">
+            {helper ? (
+              <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
+                {helper}
+              </p>
+            ) : null}
+            <Button
+              size="lg"
+              className="h-13 w-full rounded-2xl text-[15px] font-bold transition-transform active:scale-[0.99]"
+              disabled={disabled}
+              onClick={props.onSubmit}
+            >
+              {busy ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : accepted ? (
+                <Send className="size-4" />
+              ) : (
+                <Check className="size-4" />
+              )}
+              {busy ? "Envoi en cours…" : "Envoyer ma demande"}
+            </Button>
+          </div>
         </div>
       </div>
     </>
