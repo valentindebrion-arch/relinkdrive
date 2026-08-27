@@ -40,10 +40,13 @@ export function TripEstimator({
   driverId,
   firstName,
   onRequest,
+  autoLocate = false,
 }: {
   driverId: string;
   firstName: string;
   onRequest: (estimate: TripEstimate) => void;
+  /** Renseigne automatiquement le départ si la géolocalisation est déjà autorisée. */
+  autoLocate?: boolean;
 }) {
   const estimateFn = useServerFn(estimateRoute);
   const geocodeFn = useServerFn(reverseGeocode);
@@ -120,11 +123,31 @@ export function TripEstimator({
     );
   }
 
+  // Départ pré-rempli avec la position lorsque l'autorisation est déjà accordée.
+  useEffect(() => {
+    if (!autoLocate || pickup || typeof navigator === "undefined") return;
+    const perms = navigator.permissions;
+    if (!perms?.query) return;
+    let cancelled = false;
+    void perms
+      .query({ name: "geolocation" as PermissionName })
+      .then((status) => {
+        if (!cancelled && status.state === "granted") void locateMe();
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoLocate]);
+
+  const ready = pickupOk && dropoffOk && !!pickup && !!dropoff;
+
   return (
-    <section className="surface p-5">
-      <h2 className="text-base font-semibold">Estimez votre trajet</h2>
+    <section id="estimation" className="surface scroll-mt-4 border-primary/30 p-5 shadow-sm">
+      <h2 className="text-lg font-black tracking-tight">Estimer mon trajet</h2>
       <p className="mt-1 text-[13px] text-muted-foreground">
-        Renseignez votre départ et votre destination pour connaître le tarif de {firstName}.
+        Indiquez votre départ et votre destination pour connaître le tarif de {firstName}.
       </p>
 
       <div className="mt-4 space-y-2">
@@ -217,7 +240,12 @@ export function TripEstimator({
             <ArrowRight className="size-4" />
           </Button>
         </div>
-      ) : null}
+      ) : (
+        <Button className="mt-4 h-12 w-full text-base" disabled={!ready}>
+          Estimer mon trajet
+          <ArrowRight className="size-4" />
+        </Button>
+      )}
     </section>
   );
 }

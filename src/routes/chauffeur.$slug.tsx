@@ -25,7 +25,6 @@ import {
   Quote,
   Star as StarIcon,
   ThumbsUp,
-  UserRound,
   ShieldCheck,
   Snowflake,
   Sparkles,
@@ -47,12 +46,6 @@ import {
   useDriverBranding,
 } from "@/components/BookingThemeScope";
 import { Button } from "@/components/ui/button";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -132,26 +125,6 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h2 className="text-base font-semibold">{title}</h2>
       <div className="mt-3 text-sm">{children}</div>
     </section>
-  );
-}
-
-/** Bloc secondaire replié : ouverture animée, un seul ouvert à la fois. */
-function Fold({
-  value,
-  title,
-  children,
-}: {
-  value: string;
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <AccordionItem value={value} className="surface border-b-0 px-5">
-      <AccordionTrigger className="text-base font-semibold hover:no-underline">
-        {title}
-      </AccordionTrigger>
-      <AccordionContent className="text-sm">{children}</AccordionContent>
-    </AccordionItem>
   );
 }
 
@@ -458,451 +431,417 @@ function DriverPublicPage() {
     ),
   }));
 
+  const availabilityChips = (d.availability ?? []) as string[];
+  const zoneChips = [
+    ...(d.city ? [d.city] : []),
+    ...(d.zone ? [d.zone] : []),
+    ...((d.service_areas ?? []) as string[]),
+  ];
+
   return (
-    <BookingThemeScope theme={branding.data?.themeId} className="min-h-screen pb-10">
+    <BookingThemeScope theme={branding.data?.themeId} className="min-h-screen pb-28 sm:pb-10">
       <div className="mx-auto max-w-lg space-y-3 px-4 py-6">
         <p className="text-center text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {BRAND.name}
         </p>
 
-        {/* 1. En-tête compact */}
-        <section className="flex items-center gap-3.5 pt-1">
-          <div className="relative shrink-0">
-            {d.avatar_url ? (
-              <img
-                src={d.avatar_url}
-                alt={firstName}
-                className="size-16 rounded-full object-cover"
+        {/* 1 — Identité du chauffeur */}
+        <section className="surface overflow-hidden">
+          <div className="flex items-center gap-3.5 p-5 pb-4">
+            <div className="relative shrink-0">
+              {d.avatar_url ? (
+                <img
+                  src={d.avatar_url}
+                  alt={firstName}
+                  className="size-20 rounded-full object-cover ring-2 ring-primary/20"
+                />
+              ) : (
+                <div className="flex size-20 items-center justify-center rounded-full bg-accent text-2xl font-semibold text-accent-foreground">
+                  {firstName.charAt(0)}
+                </div>
+              )}
+              <span
+                className={`absolute right-1 bottom-1 size-3.5 rounded-full border-2 border-background ${accepting ? "bg-primary" : "bg-muted-foreground"}`}
               />
-            ) : (
-              <div className="flex size-16 items-center justify-center rounded-full bg-accent text-xl font-semibold text-accent-foreground">
-                {firstName.charAt(0)}
-              </div>
-            )}
-            <span
-              className={`absolute right-0.5 bottom-0.5 size-3.5 rounded-full border-2 border-background ${accepting ? "bg-primary" : "bg-muted-foreground"}`}
-            />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h1 className="flex min-w-0 items-center gap-1.5 text-[22px] leading-tight font-black tracking-tight">
-              <span className="truncate">
-                {firstName}
-                {lastInitial ? ` ${lastInitial}.` : ""}
-              </span>
-              <BadgeCheck className="size-4 shrink-0 text-primary" aria-label="Chauffeur vérifié" />
-            </h1>
-            <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[13px] font-semibold text-muted-foreground">
-              <span className="inline-flex items-center gap-1">
-                <StarIcon className="size-3.5 fill-warning text-warning" />
-                <span className="text-foreground">
-                  {ratingAvg ? ratingAvg.toFixed(2) : "Nouveau"}
+            </div>
+            <div className="min-w-0 flex-1">
+              <h1 className="flex min-w-0 items-center gap-1.5 text-[24px] leading-tight font-black tracking-tight">
+                <span className="truncate">
+                  {firstName}
+                  {lastInitial ? ` ${lastInitial}.` : ""}
                 </span>
-                {ratingCount ? <span>({ratingCount})</span> : null}
-              </span>
-              {d.city ? (
-                <span className="inline-flex min-w-0 items-center gap-1">
-                  <MapPin className="size-3.5" /> <span className="truncate">{d.city}</span>
+                <BadgeCheck
+                  className="size-5 shrink-0 text-primary"
+                  aria-label="Chauffeur vérifié"
+                />
+              </h1>
+              <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[13px] font-semibold text-muted-foreground">
+                <span className="inline-flex items-center gap-1">
+                  <StarIcon className="size-3.5 fill-warning text-warning" />
+                  <span className="text-foreground">
+                    {ratingAvg ? ratingAvg.toFixed(2) : "Nouveau"}
+                  </span>
+                  {ratingCount ? <span>({ratingCount} avis)</span> : null}
                 </span>
-              ) : null}
-            </p>
-            <p className="truncate text-[13px] text-muted-foreground">
-              {vehicleLabel} · {vehicleSub}
-            </p>
+                {d.city ? (
+                  <span className="inline-flex min-w-0 items-center gap-1">
+                    <MapPin className="size-3.5" /> <span className="truncate">{d.city}</span>
+                  </span>
+                ) : null}
+              </p>
+              <p className="mt-0.5 truncate text-[13px] text-muted-foreground">
+                {vehicleLabel} · {vehicleSub}
+              </p>
+            </div>
           </div>
+          <div className="flex flex-wrap items-center gap-2 border-t border-border px-5 py-3">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
+              <ShieldCheck className="size-3.5" /> Chauffeur vérifié {BRAND.name}
+            </span>
+            <span className="text-xs font-medium text-muted-foreground">{experienceLabel}</span>
+          </div>
+          {d.public_intro || d.bio ? (
+            <p className="flex gap-2 border-t border-border px-5 py-4 text-sm whitespace-pre-line text-muted-foreground">
+              <Quote className="size-4 shrink-0 fill-primary text-primary" />
+              {d.public_intro ?? d.bio}
+            </p>
+          ) : null}
         </section>
 
-        {/* 2. Galerie véhicule immersive — toujours affichée */}
-        <VehicleShowcase
-          loading={vehiclePhotos.isLoading}
-          overlay={
-            d.max_passengers ? `${vehicleLabel} · ${d.max_passengers} places` : vehicleLabel
-          }
-          photos={[
-            {
-              key: d.vehicle_photo_url ?? "exterior",
-              url: vehiclePhoto,
-              label: "Extérieur du véhicule",
-            },
-            {
-              key: d.vehicle_side_photo_url ?? "side",
-              url: sidePhoto,
-              label: "Vue de côté",
-            },
-            {
-              key: d.vehicle_front_photo_url ?? "front",
-              url: frontPhoto,
-              label: "Vue de face",
-            },
-            {
-              key: d.vehicle_interior_photo_url ?? "interior",
-              url: interiorPhoto,
-              label: "Intérieur du véhicule",
-            },
-          ]}
+        {/* 2 — Estimer mon trajet */}
+        <TripEstimator
+          driverId={d.user_id}
+          firstName={firstName}
+          onRequest={goToRequest}
+          autoLocate
         />
 
-        {/* 3. Estimateur de trajet */}
-        <TripEstimator driverId={d.user_id} firstName={firstName} onRequest={goToRequest} />
-
-        {/* 4. Blocs secondaires repliés */}
-        <Accordion type="single" collapsible className="space-y-3">
-
-          {d.public_intro || d.bio ? (
-            <Fold value="about" title={`À propos de ${firstName}`}>
-              <p className="flex gap-2 whitespace-pre-line text-muted-foreground">
-                <Quote className="size-4 shrink-0 fill-primary text-primary" />
-                {d.public_intro ?? d.bio}
-              </p>
-              <div className="mt-4 grid grid-cols-2 gap-3 border-t border-border pt-4 sm:grid-cols-3">
-                {[
-                  {
-                    icon: Languages,
-                    label: "Langues",
-                    value: (d.languages ?? []).join(", ") || "Français",
-                  },
-                  {
-                    icon: StarIcon,
-                    label: "Note moyenne",
-                    value: ratingAvg ? `${ratingAvg.toFixed(2)}/5` : "Pas encore noté",
-                  },
-                  {
-                    icon: ThumbsUp,
-                    label: "Apprécié pour",
-                    value: (d.services ?? []).slice(0, 2).join(", ") || "Ponctualité",
-                  },
-                ].map((m) => (
-                  <div key={m.label} className="flex min-w-0 items-center gap-2">
-                    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
-                      <m.icon className="size-4" />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-xs text-muted-foreground">{m.label}</p>
-                      <p className="truncate text-sm font-semibold">{m.value}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Fold>
-          ) : null}
-
-          <Fold
-            value="reviews"
-            title={ratingCount ? `Avis des passagers (${ratingCount})` : "Avis des passagers"}
+        {/* 3 — Disponibilités */}
+        <Section title="Disponibilités">
+          <p
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${accepting ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}
           >
-            {ratingCount ? (
-              <>
-                <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-5">
-                  <div className="text-center">
-                    <p className="text-4xl font-black">
-                      {ratingAvg?.toFixed(2)}
-                      <span className="text-base font-medium text-muted-foreground"> /5</span>
-                    </p>
-                    <div className="mt-1 flex justify-center gap-0.5">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <StarIcon key={i} className="size-4 fill-primary text-primary" />
-                      ))}
-                    </div>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Basé sur {ratingCount} avis
-                    </p>
-                  </div>
-                  <div className="space-y-1.5 border-l border-border pl-5">
-                    {distribution.map((r) => (
-                      <div key={r.stars} className="flex items-center gap-2 text-xs">
-                        <span className="w-8 shrink-0 text-muted-foreground">{r.stars} ★</span>
-                        <span className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-muted">
-                          <span
-                            className="block h-full rounded-full bg-primary"
-                            style={{ width: `${ratingCount ? (r.count / ratingCount) * 100 : 0}%` }}
-                          />
-                        </span>
-                        <span className="w-8 shrink-0 text-right text-muted-foreground">
-                          {r.count}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  {reviews.map((r) => (
-                    <article key={r.id} className="rounded-2xl border border-border bg-card p-4">
-                      <div className="flex items-center gap-3">
-                        {r.author_avatar ? (
-                          <img
-                            src={r.author_avatar}
-                            alt=""
-                            loading="lazy"
-                            className="size-9 shrink-0 rounded-full object-cover"
-                          />
-                        ) : (
-                          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                            {r.author_name.charAt(0)}
-                          </span>
-                        )}
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold">{r.author_name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(r.created_at).toLocaleDateString("fr-FR", {
-                              month: "long",
-                              year: "numeric",
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="mt-2 flex gap-0.5">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                          <StarIcon
-                            key={i}
-                            className={`size-3.5 ${i <= r.rating ? "fill-primary text-primary" : "text-muted-foreground/40"}`}
-                          />
-                        ))}
-                      </div>
-                      {r.comment ? (
-                        <p className="mt-2 line-clamp-5 text-sm text-muted-foreground">
-                          {r.comment}
-                        </p>
-                      ) : null}
-                    </article>
-                  ))}
-                </div>
-                {ratingCount > reviews.length ? (
-                  <Button
-                    variant="outline"
-                    className="mt-3 w-full"
-                    onClick={() => setReviewsLimit((n) => Math.min(n + 6, 20))}
-                  >
-                    Voir tous les avis
-                  </Button>
-                ) : null}
-              </>
-            ) : (
-              <div className="rounded-2xl bg-muted/60 p-5 text-center">
-                <div className="mx-auto grid size-10 place-items-center rounded-full bg-primary/10 text-primary">
-                  <StarIcon className="size-5" />
-                </div>
-                <p className="mt-2 font-semibold">Pas encore d'avis</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Les avis apparaîtront ici après les premiers trajets réalisés avec {firstName}.
-                </p>
-              </div>
-            )}
-          </Fold>
+            <span
+              className={`size-2 rounded-full ${accepting ? "bg-primary" : "bg-muted-foreground"}`}
+            />
+            {accepting ? "Accepte des demandes" : "Ne prend pas de demande actuellement"}
+          </p>
+          {availabilityChips.length ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {availabilityChips.map((a) => {
+                const item = AVAILABILITY_LABELS[a];
+                return item ? (
+                  <Chip key={a} icon={item.icon}>
+                    {item.label}
+                  </Chip>
+                ) : null;
+              })}
+            </div>
+          ) : null}
+          <p className="mt-3 text-muted-foreground">
+            {d.booking_notice ?? "Disponible principalement sur réservation, selon mon planning."}
+          </p>
+        </Section>
 
-          {d.vehicle_brand || d.max_passengers ? (
-            <Fold value="vehicle" title="Détails du véhicule">
-              <p className="font-medium">
-                {[d.vehicle_brand, d.vehicle_model, d.vehicle_color].filter(Boolean).join(" · ")}
-                {d.vehicle_year ? ` · ${d.vehicle_year}` : ""}
-              </p>
-              <p className="mt-1 text-muted-foreground">
-                {d.vehicle_category ? `${d.vehicle_category} · ` : ""}
+        {/* 4 — Zone d'activité */}
+        {zoneChips.length || d.stations?.length || d.airports?.length ? (
+          <Section title="Zone d'activité">
+            <div className="flex flex-wrap gap-2">
+              {zoneChips.map((z) => (
+                <Chip key={z} icon={MapPin}>
+                  {z}
+                </Chip>
+              ))}
+              {((d.stations ?? []) as string[]).map((z) => (
+                <Chip key={z}>Gare · {z}</Chip>
+              ))}
+              {((d.airports ?? []) as string[]).map((z) => (
+                <Chip key={z}>Aéroport · {z}</Chip>
+              ))}
+              {d.long_distance ? <Chip>Longue distance</Chip> : null}
+            </div>
+          </Section>
+        ) : null}
+
+        {/* 5 — Le véhicule */}
+        <section className="space-y-3">
+          <VehicleShowcase
+            loading={vehiclePhotos.isLoading}
+            overlay={
+              d.max_passengers ? `${vehicleLabel} · ${d.max_passengers} places` : vehicleLabel
+            }
+            photos={[
+              {
+                key: d.vehicle_photo_url ?? "exterior",
+                url: vehiclePhoto,
+                label: "Extérieur du véhicule",
+              },
+              { key: d.vehicle_side_photo_url ?? "side", url: sidePhoto, label: "Vue de côté" },
+              { key: d.vehicle_front_photo_url ?? "front", url: frontPhoto, label: "Vue de face" },
+              {
+                key: d.vehicle_interior_photo_url ?? "interior",
+                url: interiorPhoto,
+                label: "Intérieur du véhicule",
+              },
+            ]}
+          />
+          <Section title="Le véhicule">
+            <p className="font-medium">
+              {[d.vehicle_brand, d.vehicle_model, d.vehicle_color].filter(Boolean).join(" · ") ||
+                vehicleLabel}
+              {d.vehicle_year ? ` · ${d.vehicle_year}` : ""}
+            </p>
+            <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
+              <li>
                 {d.max_passengers != null
                   ? `Jusqu'à ${d.max_passengers} passagers`
                   : "Capacité en passagers non renseignée"}
-              </p>
-
-              {/* Capacités déclarées par le chauffeur */}
-              <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
-                <li>
-                  {d.large_luggage_capacity != null
-                    ? `${d.large_luggage_capacity} grands bagages`
-                    : d.luggage_capacity != null
-                      ? `${d.luggage_capacity} bagages au total`
-                      : "Capacité en bagages non renseignée"}
-                </li>
-                {d.cabin_luggage_capacity != null ? (
-                  <li>{d.cabin_luggage_capacity} bagages cabine</li>
-                ) : null}
-                <li>
-                  {d.pets_policy === "accepted"
-                    ? `Animaux acceptés${d.pets_max ? ` (jusqu'à ${d.pets_max})` : ""}`
-                    : d.pets_policy === "conditional"
-                      ? `Animaux acceptés sous conditions${d.pets_conditions ? ` : ${d.pets_conditions}` : ""}`
-                      : "Animaux non acceptés"}
-                </li>
-                {d.pets_carrier_required && d.pets_policy !== "refused" ? (
-                  <li>Animal transporté en caisse ou en sac obligatoire</li>
-                ) : null}
-                {d.child_seat ? <li>Siège enfant disponible</li> : null}
-                {d.booster_seat ? <li>Rehausseur disponible</li> : null}
-                {d.stroller_space ? <li>Espace pour poussette</li> : null}
-                {d.accessible ? <li>Accessible en fauteuil roulant</li> : null}
-                {d.large_trunk ? <li>Grand coffre pour bagages volumineux</li> : null}
-              </ul>
-              {equipments.length ? (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {equipments.map((e) => (
-                    <Chip key={e.label} icon={e.icon}>
-                      {e.label}
-                    </Chip>
-                  ))}
-                </div>
+              </li>
+              <li>
+                {d.large_luggage_capacity != null
+                  ? `${d.large_luggage_capacity} grands bagages`
+                  : d.luggage_capacity != null
+                    ? `${d.luggage_capacity} bagages au total`
+                    : "Capacité en bagages non renseignée"}
+              </li>
+              {d.cabin_luggage_capacity != null ? (
+                <li>{d.cabin_luggage_capacity} bagages cabine</li>
               ) : null}
-            </Fold>
-          ) : null}
-
-          {d.services?.length ? (
-            <Fold value="services" title="Services proposés">
-              <div className="flex flex-wrap gap-2">
-                {d.services.map((s: string) => (
-                  <Chip key={s} icon={Briefcase}>
-                    {s}
+              {d.child_seat ? <li>Siège enfant disponible</li> : null}
+              {d.booster_seat ? <li>Rehausseur disponible</li> : null}
+              {d.stroller_space ? <li>Espace pour poussette</li> : null}
+              {d.accessible ? <li>Accessible en fauteuil roulant</li> : null}
+              {d.large_trunk ? <li>Grand coffre pour bagages volumineux</li> : null}
+            </ul>
+            {equipments.length ? (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {equipments.map((e) => (
+                  <Chip key={e.label} icon={e.icon}>
+                    {e.label}
                   </Chip>
                 ))}
               </div>
-            </Fold>
-          ) : null}
+            ) : null}
+          </Section>
+        </section>
 
-          {d.city || d.service_areas?.length || d.stations?.length || d.airports?.length ? (
-            <Fold value="zone" title="Zone d'activité">
-              <div className="flex flex-wrap gap-2">
-                {d.city ? <Chip icon={MapPin}>{d.city}</Chip> : null}
-                {d.zone ? <Chip icon={MapPin}>{d.zone}</Chip> : null}
-                {(d.service_areas ?? []).map((z: string) => (
-                  <Chip key={z} icon={MapPin}>
-                    {z}
-                  </Chip>
-                ))}
-                {(d.stations ?? []).map((z: string) => (
-                  <Chip key={z}>Gare · {z}</Chip>
-                ))}
-                {(d.airports ?? []).map((z: string) => (
-                  <Chip key={z}>Aéroport · {z}</Chip>
-                ))}
-                {d.long_distance ? <Chip>Longue distance</Chip> : null}
-              </div>
-            </Fold>
-          ) : null}
-
-          {d.availability?.length || d.booking_notice ? (
-            <Fold value="availability" title="Disponibilités">
-              <div className="flex flex-wrap gap-2">
-                {(d.availability ?? []).map((a: string) => {
-                  const item = AVAILABILITY_LABELS[a];
-                  return item ? (
-                    <Chip key={a} icon={item.icon}>
-                      {item.label}
-                    </Chip>
-                  ) : null;
-                })}
-              </div>
-              <p className="mt-3 text-muted-foreground">
-                {d.booking_notice ??
-                  "Disponible principalement sur réservation, selon mon planning."}
-              </p>
-            </Fold>
+        {/* 6 — Votre trajet avec [prénom] */}
+        <Section title={`Votre trajet avec ${firstName}`}>
+          <div className="flex flex-wrap gap-2">
+            {((d.languages ?? []) as string[]).map((l) => (
+              <Chip key={l} icon={Languages}>
+                {l}
+              </Chip>
+            ))}
+            {((d.services ?? []) as string[]).map((s) => (
+              <Chip key={s} icon={Briefcase}>
+                {s}
+              </Chip>
+            ))}
+            {d.quiet_ride ? <Chip icon={Volume2}>Trajet silencieux sur demande</Chip> : null}
+            {d.luggage_help ? <Chip icon={Luggage}>Aide avec les bagages</Chip> : null}
+            {d.card_payment ? <Chip icon={CreditCard}>Paiement par carte</Chip> : null}
+            <Chip icon={Dog}>
+              {d.pets_policy === "accepted"
+                ? `Animaux acceptés${d.pets_max ? ` (jusqu'à ${d.pets_max})` : ""}`
+                : d.pets_policy === "conditional"
+                  ? "Animaux sous conditions"
+                  : "Animaux non acceptés"}
+            </Chip>
+          </div>
+          {d.pets_conditions && d.pets_policy === "conditional" ? (
+            <p className="mt-2 text-xs text-muted-foreground">{d.pets_conditions}</p>
           ) : null}
 
           {publicPhone || whatsapp || socials.length ? (
-            <Fold value="contact" title={`Contacter ${firstName}`}>
-              <div className="space-y-2">
-                {publicPhone ? (
-                  <Button asChild variant="outline" className="w-full justify-start">
-                    <a href={`tel:${publicPhone.replace(/\s/g, "")}`}>
-                      <Phone className="size-4" /> Appeler {publicPhone}
-                    </a>
-                  </Button>
-                ) : null}
-                {whatsapp ? (
-                  <Button asChild variant="outline" className="w-full justify-start">
-                    <a
-                      href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <MessageCircle className="size-4" /> Écrire sur WhatsApp
-                    </a>
-                  </Button>
-                ) : null}
-                {socials.length ? (
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {socials.map((s) => (
-                      <Button key={s.label} asChild variant="secondary" size="sm">
-                        <a
-                          href={s.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label={s.label}
-                        >
-                          <s.icon className="size-4" /> {s.label}
-                        </a>
-                      </Button>
+            <div className="mt-4 space-y-2 border-t border-border pt-4">
+              {publicPhone ? (
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <a href={`tel:${publicPhone.replace(/\s/g, "")}`}>
+                    <Phone className="size-4" /> Appeler {publicPhone}
+                  </a>
+                </Button>
+              ) : null}
+              {whatsapp ? (
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <a
+                    href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <MessageCircle className="size-4" /> Écrire sur WhatsApp
+                  </a>
+                </Button>
+              ) : null}
+              {socials.length ? (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {socials.map((s) => (
+                    <Button key={s.label} asChild variant="secondary" size="sm">
+                      <a
+                        href={s.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={s.label}
+                      >
+                        <s.icon className="size-4" /> {s.label}
+                      </a>
+                    </Button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </Section>
+
+        {/* 7 — Avis passagers */}
+        <Section title={ratingCount ? `Avis des passagers (${ratingCount})` : "Avis des passagers"}>
+          {ratingCount ? (
+            <>
+              <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-5">
+                <div className="text-center">
+                  <p className="text-4xl font-black">
+                    {ratingAvg?.toFixed(2)}
+                    <span className="text-base font-medium text-muted-foreground"> /5</span>
+                  </p>
+                  <div className="mt-1 flex justify-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <StarIcon key={i} className="size-4 fill-primary text-primary" />
                     ))}
                   </div>
-                ) : null}
+                  <p className="mt-1 text-xs text-muted-foreground">Basé sur {ratingCount} avis</p>
+                </div>
+                <div className="space-y-1.5 border-l border-border pl-5">
+                  {distribution.map((r) => (
+                    <div key={r.stars} className="flex items-center gap-2 text-xs">
+                      <span className="w-8 shrink-0 text-muted-foreground">{r.stars} ★</span>
+                      <span className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-muted">
+                        <span
+                          className="block h-full rounded-full bg-primary"
+                          style={{ width: `${ratingCount ? (r.count / ratingCount) * 100 : 0}%` }}
+                        />
+                      </span>
+                      <span className="w-8 shrink-0 text-right text-muted-foreground">
+                        {r.count}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <p className="mt-3 text-xs text-muted-foreground">
-                Seules les coordonnées que {firstName} a choisi de rendre publiques sont affichées.
-              </p>
-            </Fold>
-          ) : null}
-
-          <Fold value="trust" title="Votre chauffeur vérifié">
-            <ul className="space-y-2">
-              {VERIFICATION_BADGES.filter((b) => verifiedDocs.includes(b.doc)).map((b) => (
-                <li key={b.doc} className="flex items-center gap-2">
-                  <ShieldCheck className="size-4 text-primary" /> {b.label}
-                </li>
-              ))}
-              {d.company_verified ? (
-                <li className="flex items-center gap-2">
-                  <ShieldCheck className="size-4 text-primary" /> Entreprise enregistrée
-                </li>
-              ) : null}
-              <li className="flex items-center gap-2">
-                <ShieldCheck className="size-4 text-primary" /> Profil validé par {BRAND.name}
-              </li>
-              {memberSince ? (
-                <li className="flex items-center gap-2 text-muted-foreground">
-                  <Check className="size-4" /> Membre depuis {memberSince}
-                </li>
-              ) : null}
-            </ul>
-          </Fold>
-
-          {d.languages?.length || equipments.length ? (
-            <Fold value="preferences" title="Langues et préférences de trajet">
-              <div className="flex flex-wrap gap-2">
-                {(d.languages ?? []).map((l: string) => (
-                  <Chip key={l} icon={Languages}>
-                    {l}
-                  </Chip>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {reviews.map((r) => (
+                  <article key={r.id} className="rounded-2xl border border-border bg-card p-4">
+                    <div className="flex items-center gap-3">
+                      {r.author_avatar ? (
+                        <img
+                          src={r.author_avatar}
+                          alt=""
+                          loading="lazy"
+                          className="size-9 shrink-0 rounded-full object-cover"
+                        />
+                      ) : (
+                        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                          {r.author_name.charAt(0)}
+                        </span>
+                      )}
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold">{r.author_name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(r.created_at).toLocaleDateString("fr-FR", {
+                            month: "long",
+                            year: "numeric",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-2 flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <StarIcon
+                          key={i}
+                          className={`size-3.5 ${i <= r.rating ? "fill-primary text-primary" : "text-muted-foreground/40"}`}
+                        />
+                      ))}
+                    </div>
+                    {r.comment ? (
+                      <p className="mt-2 line-clamp-5 text-sm text-muted-foreground">{r.comment}</p>
+                    ) : null}
+                  </article>
                 ))}
-                {d.quiet_ride ? <Chip icon={Volume2}>Trajet silencieux sur demande</Chip> : null}
-                {d.luggage_help ? <Chip icon={Luggage}>Aide avec les bagages</Chip> : null}
-                {d.pets_allowed ? <Chip icon={Dog}>Animaux acceptés</Chip> : null}
-                {d.card_payment ? <Chip icon={CreditCard}>Paiement par carte</Chip> : null}
               </div>
-            </Fold>
-          ) : null}
+              {ratingCount > reviews.length ? (
+                <Button
+                  variant="outline"
+                  className="mt-3 w-full"
+                  onClick={() => setReviewsLimit((n) => Math.min(n + 6, 20))}
+                >
+                  Voir tous les avis
+                </Button>
+              ) : null}
+            </>
+          ) : (
+            <div className="rounded-2xl bg-muted/60 p-5 text-center">
+              <div className="mx-auto grid size-10 place-items-center rounded-full bg-primary/10 text-primary">
+                <StarIcon className="size-5" />
+              </div>
+              <p className="mt-2 font-semibold">Pas encore d'avis</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Les avis apparaîtront ici après les premiers trajets réalisés avec {firstName}.
+              </p>
+            </div>
+          )}
+        </Section>
 
-          <Fold value="how" title="Comment ça fonctionne ?">
-            <ol className="space-y-2">
-              {[
-                "Estimez votre trajet et envoyez votre demande.",
-                "Ajoutez ce chauffeur à votre carnet.",
-                "Retrouvez-le pour tous vos prochains trajets.",
-              ].map((step, i) => (
-                <li key={step} className="flex gap-3">
-                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                    {i + 1}
-                  </span>
-                  {step}
-                </li>
-              ))}
-            </ol>
-            <p className="mt-3 text-xs text-muted-foreground">
-              {BRAND.name} vous permet de conserver les coordonnées des chauffeurs que vous avez
-              réellement rencontrés. {BRAND.name} ne vous attribue jamais un chauffeur inconnu et ne
-              prélève aucune commission sur les courses.
-            </p>
-          </Fold>
-        </Accordion>
+        {/* 8 — Votre chauffeur est vérifié */}
+        <Section title="Votre chauffeur est vérifié">
+          <p className="text-muted-foreground">
+            {BRAND.name} vérifie les documents professionnels de {firstName} avant la publication de
+            cette page.
+          </p>
+          <ul className="mt-3 space-y-2">
+            {VERIFICATION_BADGES.filter((b) => verifiedDocs.includes(b.doc)).map((b) => (
+              <li key={b.doc} className="flex items-center gap-2">
+                <ShieldCheck className="size-4 text-primary" /> {b.label}
+              </li>
+            ))}
+            {d.company_verified ? (
+              <li className="flex items-center gap-2">
+                <ShieldCheck className="size-4 text-primary" /> Entreprise enregistrée
+              </li>
+            ) : null}
+            <li className="flex items-center gap-2">
+              <ShieldCheck className="size-4 text-primary" /> Profil validé par {BRAND.name}
+            </li>
+            {memberSince ? (
+              <li className="flex items-center gap-2 text-muted-foreground">
+                <Check className="size-4" /> Membre depuis {memberSince}
+              </li>
+            ) : null}
+          </ul>
+        </Section>
 
-        {/* 5. Carnet de chauffeurs — dernier bloc fonctionnel */}
+        {/* 9 — Comment ça fonctionne ? */}
+        <Section title="Comment ça fonctionne ?">
+          <ol className="space-y-2">
+            {[
+              "Estimez votre trajet en quelques secondes.",
+              `Envoyez votre demande directement à ${firstName}.`,
+              "Échangez avec lui et organisez votre trajet.",
+            ].map((step, i) => (
+              <li key={step} className="flex gap-3">
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                  {i + 1}
+                </span>
+                {step}
+              </li>
+            ))}
+          </ol>
+          <p className="mt-3 text-xs text-muted-foreground">
+            {BRAND.name} vous permet de conserver les coordonnées des chauffeurs que vous avez
+            réellement rencontrés et ne prélève aucune commission sur les courses.
+          </p>
+        </Section>
+
+        {/* Carnet de chauffeurs — dernier bloc fonctionnel */}
         <div className="surface p-5">{bookAction}</div>
-
-
 
         <div className="space-y-1 pb-2 text-center text-xs text-muted-foreground">
           <p>
@@ -950,6 +889,14 @@ function DriverPublicPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] sm:hidden">
+        <a
+          href="#estimation"
+          className="pointer-events-auto mx-auto flex h-12 max-w-lg items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-bold text-primary-foreground shadow-lg"
+        >
+          Estimer mon trajet
+        </a>
+      </div>
     </BookingThemeScope>
   );
 }
