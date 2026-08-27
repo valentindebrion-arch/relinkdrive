@@ -543,13 +543,38 @@ function DriverPublicPage() {
           ) : null}
         </section>
 
-        {/* 2 — Estimer mon trajet */}
-        <TripEstimator
-          driverId={d.user_id}
-          firstName={firstName}
-          onRequest={goToRequest}
-          autoLocate
-        />
+        {/* 2 — Estimer mon trajet : réservé aux chauffeurs de mon réseau */}
+        {connected ? (
+          <TripEstimator
+            driverId={d.user_id}
+            firstName={firstName}
+            onRequest={goToRequest}
+            autoLocate
+          />
+        ) : (
+          <section id="estimation" className="surface scroll-mt-4 border-primary/30 p-5 shadow-sm">
+            <h2 className="flex items-center gap-2 text-lg font-black tracking-tight">
+              <Lock className="size-4 text-primary" aria-hidden /> Estimer mon trajet
+            </h2>
+            <p className="mt-1 text-[13px] text-muted-foreground">
+              Ajoutez d'abord {firstName} à mes chauffeurs pour estimer ou réserver une course avec
+              lui.
+            </p>
+            {isDriver || isAdmin ? (
+              <p className="mt-4 rounded-2xl border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+                Seuls les comptes passagers peuvent ajouter un chauffeur à leur carnet.
+              </p>
+            ) : (
+              <Button
+                className="mt-4 h-12 w-full text-base"
+                onClick={() => startAdd("signup")}
+                disabled={adding || !accepting}
+              >
+                <UserPlus className="size-4" /> Ajouter {firstName} à mes chauffeurs
+              </Button>
+            )}
+          </section>
+        )}
 
         {/* 3 — Disponibilités */}
         <Section title="Disponibilités">
