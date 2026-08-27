@@ -241,7 +241,12 @@ export function TripEstimator({
             <ArrowRight className="size-4" />
           </Button>
         </div>
-      ) : null}
+      ) : (
+        <Button className="mt-4 h-12 w-full text-base" disabled={!ready}>
+          Estimer mon trajet
+          <ArrowRight className="size-4" />
+        </Button>
+      )}
     </section>
   );
 }
