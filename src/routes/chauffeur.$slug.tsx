@@ -892,14 +892,16 @@ function DriverPublicPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] sm:hidden">
-        <a
-          href="#estimation"
-          className="pointer-events-auto mx-auto flex h-12 max-w-lg items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-bold text-primary-foreground shadow-lg"
-        >
-          Estimer mon trajet
-        </a>
-      </div>
+      {false && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] sm:hidden">
+          <a
+            href="#estimation"
+            className="pointer-events-auto mx-auto flex h-12 max-w-lg items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-bold text-primary-foreground shadow-lg"
+          >
+            Estimer mon trajet
+          </a>
+        </div>
+      )}
     </BookingThemeScope>
   );
 }
