@@ -232,6 +232,11 @@ function DriverPublicPage() {
       return;
     }
     setAdding(true);
+    // Nombre de chauffeurs déjà au carnet : détermine la variante « premier chauffeur ».
+    const { count: before } = await supabase
+      .from("driver_client_connections")
+      .select("id", { count: "exact", head: true })
+      .eq("client_id", user.id);
     const { error } = await supabase.from("driver_client_connections").insert({
       client_id: user.id,
       driver_id: driverId,
