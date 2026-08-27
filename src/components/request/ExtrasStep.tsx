@@ -105,8 +105,8 @@ export function ExtrasStep({
 
   return (
     <>
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[calc(7.5rem+env(safe-area-inset-bottom))]">
-        <div className="mx-auto w-full max-w-lg space-y-4">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4">
+        <div className="mx-auto w-full max-w-lg space-y-4 pb-8">
           <div className="rise-in pt-1">
             <h2 className="text-[24px] leading-tight font-extrabold tracking-tight">
               Finalisez vos préférences
@@ -342,50 +342,45 @@ export function ExtrasStep({
               </button>
             )}
           </section>
-        </div>
-      </div>
 
-      <div
-        className="shrink-0 bg-gradient-to-t from-background via-background to-transparent px-4 pt-3"
-        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}
-      >
-        <div className="mx-auto w-full max-w-lg">
-          {noPaymentConfigured ? (
-            <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
-              Ce chauffeur n'a pas encore renseigné de mode de règlement.
-            </p>
-          ) : !paymentMethod ? (
-            <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
-              Choisissez un mode de règlement pour continuer.
-            </p>
-          ) : incompatible ? (
-            <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
-              Ajustez votre demande ou choisissez un autre de vos chauffeurs pour continuer.
-            </p>
-          ) : needsDetailMissing ? (
-            <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
-              Précisez votre demande « Autre » pour continuer.
-            </p>
-          ) : null}
-          <Button
-            size="lg"
-            className="h-13 w-full rounded-2xl text-[15px] font-bold transition-transform active:scale-[0.99]"
-            disabled={busy || incompatible || needsDetailMissing || !paymentMethod || noPaymentConfigured}
-            onClick={() => {
-              if (!paymentMethod) {
-                setPaymentError(true);
-                document
-                  .getElementById(PAYMENT_SECTION_ID)
-                  ?.scrollIntoView({ behavior: "smooth", block: "center" });
-                return;
-              }
-              onContinue();
-            }}
-          >
-            {busy ? <Loader2 className="size-4 animate-spin" /> : null}
-            Continuer — Vérifier la course
-            <ArrowRight className="size-4" />
-          </Button>
+          <div className="pt-2">
+            {noPaymentConfigured ? (
+              <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
+                Ce chauffeur n'a pas encore renseigné de mode de règlement.
+              </p>
+            ) : !paymentMethod ? (
+              <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
+                Choisissez un mode de règlement pour continuer.
+              </p>
+            ) : incompatible ? (
+              <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
+                Ajustez votre demande ou choisissez un autre de vos chauffeurs pour continuer.
+              </p>
+            ) : needsDetailMissing ? (
+              <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
+                Précisez votre demande « Autre » pour continuer.
+              </p>
+            ) : null}
+            <Button
+              size="lg"
+              className="h-13 w-full rounded-2xl text-[15px] font-bold transition-transform active:scale-[0.99]"
+              disabled={busy || incompatible || needsDetailMissing || !paymentMethod || noPaymentConfigured}
+              onClick={() => {
+                if (!paymentMethod) {
+                  setPaymentError(true);
+                  document
+                    .getElementById(PAYMENT_SECTION_ID)
+                    ?.scrollIntoView({ behavior: "smooth", block: "center" });
+                  return;
+                }
+                onContinue();
+              }}
+            >
+              {busy ? <Loader2 className="size-4 animate-spin" /> : null}
+              Continuer — Vérifier la course
+              <ArrowRight className="size-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </>

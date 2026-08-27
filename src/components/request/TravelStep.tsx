@@ -106,8 +106,8 @@ export function TravelStep({
 
   return (
     <>
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[calc(7.5rem+env(safe-area-inset-bottom))]">
-        <div className="mx-auto w-full max-w-lg space-y-4">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4">
+        <div className="mx-auto w-full max-w-lg space-y-4 pb-8">
           <div className="rise-in pt-1">
             <h2 className="text-[24px] leading-tight font-extrabold tracking-tight">
               Préparez votre voyage
@@ -191,29 +191,24 @@ export function TravelStep({
               </ul>
             </div>
           ) : null}
-        </div>
-      </div>
 
-      <div
-        className="shrink-0 bg-gradient-to-t from-background via-background to-transparent px-4 pt-3"
-        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}
-      >
-        <div className="mx-auto w-full max-w-lg">
-          {blocked ? (
-            <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
-              {blockingMessages[0]}
-            </p>
-          ) : null}
-          <Button
-            size="lg"
-            className="h-13 w-full rounded-2xl text-[15px] font-bold transition-transform active:scale-[0.99]"
-            disabled={busy || blocked || !!capacityLoading}
-            onClick={onContinue}
-          >
-            {busy || capacityLoading ? <Loader2 className="size-4 animate-spin" /> : null}
-            Continuer — Règlement et demandes
-            <ArrowRight className="size-4" />
-          </Button>
+          <div className="pt-2">
+            {blocked ? (
+              <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
+                {blockingMessages[0]}
+              </p>
+            ) : null}
+            <Button
+              size="lg"
+              className="h-13 w-full rounded-2xl text-[15px] font-bold transition-transform active:scale-[0.99]"
+              disabled={busy || blocked || !!capacityLoading}
+              onClick={onContinue}
+            >
+              {busy || capacityLoading ? <Loader2 className="size-4 animate-spin" /> : null}
+              Continuer — Règlement et demandes
+              <ArrowRight className="size-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
