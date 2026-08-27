@@ -3602,6 +3602,7 @@ export type Database = {
         Args: { _client: string; _driver: string }
         Returns: boolean
       }
+      is_public_driver_folder: { Args: { _folder: string }; Returns: boolean }
       is_valid_siren: { Args: { _siren: string }; Returns: boolean }
       is_verified_driver: { Args: { _driver: string }; Returns: boolean }
       issue_invoice: {
