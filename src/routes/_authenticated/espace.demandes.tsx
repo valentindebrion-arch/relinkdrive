@@ -842,92 +842,94 @@ function ClientRequests() {
                 </p>
               </div>
 
-              {/* 1. Chauffeur — obligatoire, première action */}
-              <section aria-labelledby="drv">
-                <div className="mb-2 flex items-baseline justify-between gap-2">
-                  <h3 id="drv" className="text-[15px] font-extrabold tracking-tight">
-                    Votre chauffeur
-                  </h3>
-                  <span className="text-[12px] font-semibold text-muted-foreground">
-                    Obligatoire
-                  </span>
-                </div>
+              {/* 1. Chauffeur — masqué sur cette étape pour un départ plus direct. */}
+              {false && (
+                <section aria-labelledby="drv">
+                  <div className="mb-2 flex items-baseline justify-between gap-2">
+                    <h3 id="drv" className="text-[15px] font-extrabold tracking-tight">
+                      Votre chauffeur
+                    </h3>
+                    <span className="text-[12px] font-semibold text-muted-foreground">
+                      Obligatoire
+                    </span>
+                  </div>
 
-                <button
-                  type="button"
-                  onClick={() => setDriverPickerOpen(true)}
-                  aria-label={selectedDriver ? "Modifier le chauffeur" : "Choisir un chauffeur"}
-                  className="flex w-full items-center gap-3 rounded-[26px] bg-card p-3.5 text-left shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)] transition-colors active:bg-muted/60"
-                >
-                  <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[15px] font-bold text-primary">
-                    {selectedDriver ? (
-                      (selectedDriver.full_name ?? "C").slice(0, 2).toUpperCase()
-                    ) : (
-                      <Users className="size-5" />
-                    )}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    {selectedDriver ? (
-                      <>
-                        <span className="flex items-center gap-1.5">
-                          <span className="truncate text-[15.5px] font-bold">
-                            Course demandée à {selectedDriver.full_name ?? "votre chauffeur"}
+                  <button
+                    type="button"
+                    onClick={() => setDriverPickerOpen(true)}
+                    aria-label={selectedDriver ? "Modifier le chauffeur" : "Choisir un chauffeur"}
+                    className="flex w-full items-center gap-3 rounded-[26px] bg-card p-3.5 text-left shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)] transition-colors active:bg-muted/60"
+                  >
+                    <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[15px] font-bold text-primary">
+                      {selectedDriver ? (
+                        (selectedDriver.full_name ?? "C").slice(0, 2).toUpperCase()
+                      ) : (
+                        <Users className="size-5" />
+                      )}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      {selectedDriver ? (
+                        <>
+                          <span className="flex items-center gap-1.5">
+                            <span className="truncate text-[15.5px] font-bold">
+                              Course demandée à {selectedDriver.full_name ?? "votre chauffeur"}
+                            </span>
+                            {selectedDriver.favorite ? (
+                              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
+                                <Star className="size-3" /> Favori
+                              </span>
+                            ) : null}
                           </span>
-                          {selectedDriver.favorite ? (
-                            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
-                              <Star className="size-3" /> Favori
+                          <span
+                            className={cn(
+                              "mt-0.5 block text-[12.5px] font-bold",
+                              driverAvailable ? "text-primary" : "text-muted-foreground",
+                            )}
+                          >
+                            {driverAvailable ? "Disponible maintenant" : "Hors service actuellement"}
+                          </span>
+                          {selectedDriver.vehicle ? (
+                            <span className="block truncate text-[12.5px] text-muted-foreground">
+                              {selectedDriver.vehicle}
                             </span>
                           ) : null}
-                        </span>
-                        <span
-                          className={cn(
-                            "mt-0.5 block text-[12.5px] font-bold",
-                            driverAvailable ? "text-primary" : "text-muted-foreground",
-                          )}
-                        >
-                          {driverAvailable ? "Disponible maintenant" : "Hors service actuellement"}
-                        </span>
-                        {selectedDriver.vehicle ? (
-                          <span className="block truncate text-[12.5px] text-muted-foreground">
-                            {selectedDriver.vehicle}
+                        </>
+                      ) : (
+                        <>
+                          <span className="block text-[15.5px] font-bold">Choisir un chauffeur</span>
+                          <span className="block text-[12.5px] text-muted-foreground">
+                            Sélectionnez un chauffeur de confiance
                           </span>
-                        ) : null}
-                      </>
-                    ) : (
-                      <>
-                        <span className="block text-[15.5px] font-bold">Choisir un chauffeur</span>
-                        <span className="block text-[12.5px] text-muted-foreground">
-                          Sélectionnez un chauffeur de confiance
-                        </span>
-                      </>
-                    )}
-                  </span>
-                  <span className="shrink-0 text-[13px] font-bold text-primary">
-                    {selectedDriver ? "Modifier" : <ChevronRight className="size-5" />}
-                  </span>
-                </button>
-
-                {selectedDriver && !driverAvailable ? (
-                  <p className="mt-2 flex items-start gap-2 rounded-2xl bg-muted/70 px-3.5 py-2.5 text-[12.5px] leading-snug text-muted-foreground">
-                    <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-                    <span>
-                      Ce chauffeur n'est pas disponible immédiatement. Planifiez votre trajet ou
-                      choisissez un autre chauffeur.
+                        </>
+                      )}
                     </span>
-                  </p>
-                ) : null}
+                    <span className="shrink-0 text-[13px] font-bold text-primary">
+                      {selectedDriver ? "Modifier" : <ChevronRight className="size-5" />}
+                    </span>
+                  </button>
 
-                {selectedDriver ? (
-                  <div className="mt-3">
-                    <VehicleExteriorCard
-                      media={vehicleMedia}
-                      driverName={selectedDriver.full_name ?? null}
-                      available={driverAvailable}
-                      onChangeVehicle={() => setDriverPickerOpen(true)}
-                    />
-                  </div>
-                ) : null}
-              </section>
+                  {selectedDriver && !driverAvailable ? (
+                    <p className="mt-2 flex items-start gap-2 rounded-2xl bg-muted/70 px-3.5 py-2.5 text-[12.5px] leading-snug text-muted-foreground">
+                      <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                      <span>
+                        Ce chauffeur n'est pas disponible immédiatement. Planifiez votre trajet ou
+                        choisissez un autre chauffeur.
+                      </span>
+                    </p>
+                  ) : null}
+
+                  {selectedDriver ? (
+                    <div className="mt-3">
+                      <VehicleExteriorCard
+                        media={vehicleMedia}
+                        driverName={selectedDriver.full_name ?? null}
+                        available={driverAvailable}
+                        onChangeVehicle={() => setDriverPickerOpen(true)}
+                      />
+                    </div>
+                  ) : null}
+                </section>
+              )}
 
               {/* Carte principale : l'itinéraire */}
               <div className="relative rounded-[26px] bg-card p-4 shadow-[0_18px_40px_-28px_rgba(0,0,0,0.45)]">
