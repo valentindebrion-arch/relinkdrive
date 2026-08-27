@@ -144,6 +144,7 @@ function DriverPublicPage() {
   const [adding, setAdding] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [removeOpen, setRemoveOpen] = useState(false);
+  const [celebration, setCelebration] = useState<{ first: boolean } | null>(null);
 
   const source =
     typeof window !== "undefined" && new URLSearchParams(window.location.search).get("src") === "qr"
