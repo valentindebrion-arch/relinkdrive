@@ -225,6 +225,45 @@ function ClientRequests() {
       ? null
       : (serverCompatibility ?? evaluateCompatibility(vehicleCapacity.data ?? null, requirements));
 
+  // Capacités réelles du véhicule sélectionné : bornes des sélecteurs de l'étape 2.
+  const cap = vehicleCapacity.data ?? null;
+  const maxPassengers = cap?.max_passengers ?? null;
+  const maxLargeLuggage =
+    cap?.large_luggage_capacity ??
+    (cap?.large_luggage_capacity === null && cap?.cabin_luggage_capacity != null
+      ? 0
+      : (cap?.luggage_capacity ?? null));
+  const maxCabinLuggage =
+    cap?.cabin_luggage_capacity ??
+    (cap?.large_luggage_capacity != null ? 0 : (cap?.luggage_capacity ?? null));
+
+  // Le véhicule (ou le chauffeur) change : on ramène les quantités dans les limites.
+  useEffect(() => {
+    setForm((f) => {
+      const p = Number(f.passengers) || 1;
+      const lg = Number(f.large_luggage) || 0;
+      const cb = Number(f.cabin_luggage) || 0;
+      const np = maxPassengers != null ? Math.min(p, Math.max(1, maxPassengers)) : p;
+      const nlg = maxLargeLuggage != null ? Math.min(lg, Math.max(0, maxLargeLuggage)) : lg;
+      const ncb = maxCabinLuggage != null ? Math.min(cb, Math.max(0, maxCabinLuggage)) : cb;
+      if (np === p && nlg === lg && ncb === cb) return f;
+      return {
+        ...f,
+        passengers: String(np),
+        large_luggage: String(nlg),
+        cabin_luggage: String(ncb),
+      };
+    });
+  }, [cap?.vehicle_id, maxPassengers, maxLargeLuggage, maxCabinLuggage]);
+
+  // Messages bloquants liés aux voyageurs et bagages (étape 2).
+  const travelBlocking = (compatibility?.blockingIssues ?? [])
+    .filter((i) =>
+      ["passengers", "large_luggage", "cabin_luggage", "luggage", "vehicle"].includes(i.field),
+    )
+    .map((i) => i.message);
+
+
   // Toute modification des besoins invalide un refus serveur précédent.
   useEffect(() => {
     setServerCompatibility(null);
@@ -556,7 +595,14 @@ function ClientRequests() {
       setEstimate(null);
       return setStep(1);
     }
-    if (step === 1) return setStep(2);
+    if (step === 1) {
+      if (travelBlocking.length) {
+        return toast.error("Capacités du véhicule dépassées", {
+          description: travelBlocking[0],
+        });
+      }
+      return setStep(2);
+    }
     if (step === 2) return void computeEstimate();
   }
 
@@ -1392,6 +1438,11 @@ function ClientRequests() {
           passengers={Number(form.passengers) || 1}
           largeLuggage={requirements.largeLuggage}
           cabinLuggage={requirements.cabinLuggage}
+          maxPassengers={maxPassengers}
+          maxLargeLuggage={maxLargeLuggage}
+          maxCabinLuggage={maxCabinLuggage}
+          capacityLoading={!!form.driver_id && vehicleCapacity.isLoading}
+          blockingMessages={travelBlocking}
           busy={busy || checking}
           onContinue={() => void next()}
           onChange={(patch) =>
