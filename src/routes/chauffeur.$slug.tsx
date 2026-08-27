@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -15,6 +15,7 @@ import {
   Instagram,
   Languages,
   Linkedin,
+  Lock,
   Luggage,
   MapPin,
   MessageCircle,
