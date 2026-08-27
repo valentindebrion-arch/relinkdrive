@@ -227,8 +227,10 @@ function ClientDrivers() {
         ) : (
           filtered.map((d) => {
             const photoUrl = d.photoPath ? (photos.data?.[d.photoPath] ?? null) : null;
-            const cardClassName =
-              "group block overflow-hidden rounded-[1.25rem] border border-border bg-card shadow-card transition active:scale-[0.985]";
+            const justAdded = celebration?.driverId === d.id;
+            const cardClassName = `group block overflow-hidden rounded-[1.25rem] border bg-card shadow-card transition active:scale-[0.985] ${
+              justAdded ? "achievement-land border-primary/40" : "border-border"
+            }`;
             const cardBody = (
               <>
                 {/* Photo véhicule — pleine largeur, format identique aux cartes Top 10 */}
