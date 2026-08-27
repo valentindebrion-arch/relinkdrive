@@ -264,6 +264,10 @@ function DriverPublicPage() {
       metadata: { source },
     });
     void connQuery.refetch();
+    // Le chauffeur quitte immédiatement les espaces de découverte et rejoint le carnet.
+    void queryClient.invalidateQueries({ queryKey: ["top10-drivers"] });
+    void queryClient.invalidateQueries({ queryKey: ["client-drivers"] });
+    void queryClient.invalidateQueries({ queryKey: ["discover-drivers"] });
 
     // Enregistrement réussi : on lance immédiatement l'expérience d'achievement.
     const first = (before ?? 0) === 0;
