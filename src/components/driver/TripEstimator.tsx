@@ -141,7 +141,6 @@ export function TripEstimator({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoLocate]);
 
-  const ready = pickupOk && dropoffOk && !!pickup && !!dropoff;
 
   return (
     <section id="estimation" className="surface scroll-mt-4 border-primary/30 p-5 shadow-sm">
