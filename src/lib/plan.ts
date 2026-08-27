@@ -99,7 +99,8 @@ export const PRO_ONLY_PATHS: { path: string; label: string; permission: DriverPe
   { path: "/pro/planning", label: "Planning", permission: "canAccessPlanning" },
   { path: "/pro/disponibilites", label: "Disponibilités", permission: "canAccessAvailability" },
   { path: "/pro/clients", label: "Mes clients", permission: "canAccessClients" },
-  { path: "/pro/tarification", label: "Tarification", permission: "canAccessPricing" },
+  // La page Tarification reste accessible en version gratuite : seul le prix
+  // minimum y est modifiable, le reste est visible mais verrouillé.
   { path: "/pro/activite", label: "Statistiques", permission: "canAccessAnalytics" },
   { path: "/pro/personnalisation", label: "Personnalisation", permission: "canAccessBranding" },
 ];
