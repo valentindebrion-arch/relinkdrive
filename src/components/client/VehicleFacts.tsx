@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Armchair, Briefcase, Car, Dog, Luggage, Users } from "lucide-react";
+import lockedVehicleStateAsset from "@/assets/locked-vehicle-state.png.asset.json";
 
 /**
  * Caractéristiques du véhicule du chauffeur sélectionné.
@@ -35,11 +36,13 @@ function ExteriorPhoto({
   url,
   alt,
   loading,
+  locked,
 }: {
   imageKey: string;
   url: string | null;
   alt: string;
   loading: boolean;
+  locked?: boolean;
 }) {
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -56,6 +59,15 @@ function ExteriorPhoto({
     <div className="vehicle-media bg-muted shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]">
       {loading && !ready ? (
         <span className="absolute inset-0 animate-pulse bg-muted" aria-hidden />
+      ) : locked ? (
+        <img
+          src={lockedVehicleStateAsset.url}
+          alt="Contenu véhicule verrouillé"
+          loading="lazy"
+          decoding="async"
+          draggable={false}
+          className="size-full cursor-default object-cover"
+        />
       ) : show ? (
         <>
           {!ready ? <span className="absolute inset-0 animate-pulse bg-muted" aria-hidden /> : null}
@@ -93,11 +105,13 @@ function InteriorPhoto({
   url,
   alt,
   loading,
+  locked,
 }: {
   imageKey: string;
   url: string | null;
   alt: string;
   loading: boolean;
+  locked?: boolean;
 }) {
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -114,6 +128,15 @@ function InteriorPhoto({
     <div className="vehicle-media bg-muted shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]">
       {loading && !ready ? (
         <span className="absolute inset-0 animate-pulse bg-muted" aria-hidden />
+      ) : locked ? (
+        <img
+          src={lockedVehicleStateAsset.url}
+          alt="Contenu véhicule verrouillé"
+          loading="lazy"
+          decoding="async"
+          draggable={false}
+          className="size-full cursor-default object-cover"
+        />
       ) : show ? (
         <>
           {!ready ? <span className="absolute inset-0 animate-pulse bg-muted" aria-hidden /> : null}
@@ -167,12 +190,14 @@ export function VehicleFacts({
   driverKey,
   anim,
   loading,
+  locked,
 }: {
   facts: VehicleFactsData | null;
   driverSlug: string | null;
   driverKey: string;
   anim: string;
   loading: boolean;
+  locked?: boolean;
 }) {
   const badges = facts?.equipment ?? [];
   const visible = badges.slice(0, 3);
@@ -189,12 +214,14 @@ export function VehicleFacts({
           url={facts?.exteriorPhotoUrl ?? null}
           alt="Extérieur du véhicule"
           loading={loading}
+          locked={locked ?? false}
         />
         <InteriorPhoto
           imageKey={`${driverKey}:${facts?.vehicleId ?? "no-vehicle"}:${facts?.interiorPhotoPath ?? "no-photo"}`}
           url={facts?.interiorPhotoUrl ?? null}
           alt="Intérieur du véhicule"
           loading={loading}
+          locked={locked ?? false}
         />
 
         <div className="flex min-w-0 flex-col gap-2 rounded-2xl border border-primary/25 bg-card p-3 shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]">
