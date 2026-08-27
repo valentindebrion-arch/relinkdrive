@@ -259,10 +259,28 @@ function DriverPublicPage() {
       city: driverCity,
       metadata: { source },
     });
-    toast.success("Chauffeur ajouté à votre carnet");
     void connQuery.refetch();
+
+    // Enregistrement réussi : on lance immédiatement l'expérience d'achievement.
+    const first = (before ?? 0) === 0;
+    const name =
+      (driverQuery.data?.full_name ?? "").trim().split(" ")[0] || "Votre chauffeur";
+    setDriverCelebration({ driverId, firstName: name, first });
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      try {
+        navigator.vibrate?.(12);
+      } catch {
+        /* retour tactile indisponible */
+      }
+    }
+    if (prefersReducedMotion()) {
+      toast.success("Chauffeur ajouté à votre carnet");
+      void navigate({ to: "/espace/chauffeurs" });
+      return;
+    }
+    setCelebration({ first });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, driverId, driverCity, source, isDriver, isAdmin]);
+  }, [user?.id, driverId, driverCity, source, isDriver, isAdmin, driverQuery.data, navigate]);
 
   // Ajout automatique après connexion / création de compte depuis ce lien
   useEffect(() => {
