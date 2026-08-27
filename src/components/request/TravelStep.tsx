@@ -133,35 +133,64 @@ export function TravelStep({
           >
             <Stepper
               label="Passagers"
-              hint="Vous inclus"
+              hint={
+                maxPassengers != null
+                  ? `Vous inclus · ${maxPassengers} maximum`
+                  : "Vous inclus"
+              }
               icon={Users}
               value={passengers}
               min={1}
-              max={8}
+              max={passengerMax}
               onChange={(n) => onChange({ passengers: n })}
             />
             <div className="h-px bg-border/70" />
             <Stepper
               label="Grands bagages"
-              hint="Valises de soute"
+              hint={
+                maxLargeLuggage != null
+                  ? `Valises de soute · ${maxLargeLuggage} maximum`
+                  : "Valises de soute"
+              }
               icon={Luggage}
               value={largeLuggage}
               min={0}
-              max={10}
+              max={largeMax}
               onChange={(n) => onChange({ largeLuggage: n })}
             />
             <div className="h-px bg-border/70" />
             <Stepper
               label="Bagages cabine"
-              hint="Sacs et petits bagages"
+              hint={
+                maxCabinLuggage != null
+                  ? `Sacs et petits bagages · ${maxCabinLuggage} maximum`
+                  : "Sacs et petits bagages"
+              }
               icon={PackageOpen}
               value={cabinLuggage}
               min={0}
-              max={10}
+              max={cabinMax}
               onChange={(n) => onChange({ cabinLuggage: n })}
             />
           </section>
 
+          {blocked ? (
+            <div
+              role="alert"
+              className="rounded-2xl border-2 border-destructive/40 bg-destructive/5 p-3"
+            >
+              <p className="text-[13.5px] font-bold">
+                Cette configuration dépasse les capacités du véhicule :
+              </p>
+              <ul className="mt-2 space-y-1 pl-5">
+                {blockingMessages.map((m, i) => (
+                  <li key={i} className="list-disc text-[13px]">
+                    {m}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -170,18 +199,24 @@ export function TravelStep({
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}
       >
         <div className="mx-auto w-full max-w-lg">
+          {blocked ? (
+            <p aria-live="polite" className="mb-2 text-center text-[12px] text-muted-foreground">
+              {blockingMessages[0]}
+            </p>
+          ) : null}
           <Button
             size="lg"
             className="h-13 w-full rounded-2xl text-[15px] font-bold transition-transform active:scale-[0.99]"
-            disabled={busy}
+            disabled={busy || blocked || !!capacityLoading}
             onClick={onContinue}
           >
-            {busy ? <Loader2 className="size-4 animate-spin" /> : null}
+            {busy || capacityLoading ? <Loader2 className="size-4 animate-spin" /> : null}
             Continuer — Règlement et demandes
             <ArrowRight className="size-4" />
           </Button>
         </div>
       </div>
+
     </>
   );
 }
