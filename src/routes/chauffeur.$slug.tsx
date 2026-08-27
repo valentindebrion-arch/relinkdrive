@@ -38,6 +38,8 @@ import { useSignedUrl } from "@/lib/storage";
 import { VehicleShowcase } from "@/components/VehicleShowcase";
 import { TripEstimator, type TripEstimate } from "@/components/driver/TripEstimator";
 import { saveRequestDraft } from "@/lib/request-draft";
+import { prefersReducedMotion, setDriverCelebration } from "@/lib/driver-celebration";
+import { DriverAddedOverlay } from "@/components/client/DriverAddedOverlay";
 
 import { BRAND } from "@/lib/brand";
 import {
