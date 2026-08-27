@@ -9,6 +9,7 @@ import { AddDriverSheet } from "@/components/client/AddDriverSheet";
 import { ClientTopBar } from "@/components/client/ClientTopBar";
 import { saveRequestDraft } from "@/lib/request-draft";
 import { useSignedUrls } from "@/lib/storage";
+import { takeDriverCelebration, type DriverCelebration } from "@/lib/driver-celebration";
 
 export const Route = createFileRoute("/_authenticated/espace/chauffeurs")({
   component: ClientDrivers,
