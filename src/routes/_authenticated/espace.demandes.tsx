@@ -1431,6 +1431,11 @@ function ClientRequests() {
           passengers={Number(form.passengers) || 1}
           largeLuggage={requirements.largeLuggage}
           cabinLuggage={requirements.cabinLuggage}
+          maxPassengers={maxPassengers}
+          maxLargeLuggage={maxLargeLuggage}
+          maxCabinLuggage={maxCabinLuggage}
+          capacityLoading={!!form.driver_id && vehicleCapacity.isLoading}
+          blockingMessages={travelBlocking}
           busy={busy || checking}
           onContinue={() => void next()}
           onChange={(patch) =>
