@@ -595,7 +595,14 @@ function ClientRequests() {
       setEstimate(null);
       return setStep(1);
     }
-    if (step === 1) return setStep(2);
+    if (step === 1) {
+      if (travelBlocking.length) {
+        return toast.error("Capacités du véhicule dépassées", {
+          description: travelBlocking[0],
+        });
+      }
+      return setStep(2);
+    }
     if (step === 2) return void computeEstimate();
   }
 
