@@ -842,8 +842,8 @@ function ClientRequests() {
                 </p>
               </div>
 
-              {/* 1. Chauffeur — obligatoire, première action */}
-              <section aria-labelledby="drv">
+              {/* 1. Chauffeur — obligatoire, première action. Masqué sur cette étape pour un départ plus direct. */}
+              <section aria-labelledby="drv" className="hidden">
                 <div className="mb-2 flex items-baseline justify-between gap-2">
                   <h3 id="drv" className="text-[15px] font-extrabold tracking-tight">
                     Votre chauffeur
@@ -912,7 +912,7 @@ function ClientRequests() {
                     <AlertTriangle className="mt-0.5 size-4 shrink-0" />
                     <span>
                       Ce chauffeur n'est pas disponible immédiatement. Planifiez votre trajet ou
-                      choisissez un autre chauffeur.
+                      choisisz un autre chauffeur.
                     </span>
                   </p>
                 ) : null}
