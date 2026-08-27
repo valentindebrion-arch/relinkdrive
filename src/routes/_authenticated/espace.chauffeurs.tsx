@@ -178,6 +178,23 @@ function ClientDrivers() {
         </label>
       ) : null}
 
+      {celebration ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className="achievement-land mt-4 rounded-2xl border border-primary/25 bg-primary/8 px-4 py-3 text-center"
+        >
+          <p className="text-[14px] font-black tracking-tight text-primary">
+            {celebration.first ? "Votre réseau commence ici" : "+1 chauffeur de confiance"}
+          </p>
+          <p className="mt-0.5 text-[12.5px] font-semibold text-muted-foreground">
+            {celebration.first
+              ? `${celebration.firstName} est votre premier chauffeur Relink`
+              : `${celebration.firstName} rejoint vos chauffeurs`}
+          </p>
+        </div>
+      ) : null}
+
       <div className="mt-4 space-y-4">
         {drivers.isLoading ? (
           [0, 1].map((i) => (
