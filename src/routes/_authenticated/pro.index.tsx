@@ -259,9 +259,11 @@ function ProOverview() {
             {onDuty ? "Disponible" : "Indisponible"}
           </span>
           <span className="block text-[11px] text-muted-foreground">
-            {onDuty
-              ? "Vous pouvez recevoir de nouvelles demandes."
-              : "Vous ne recevez actuellement aucune nouvelle demande."}
+            {!verified
+              ? "Disponible après validation de votre dossier"
+              : onDuty
+                ? "Vous pouvez recevoir de nouvelles demandes."
+                : "Vous ne recevez actuellement aucune nouvelle demande."}
           </span>
         </span>
         <span
