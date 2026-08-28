@@ -76,7 +76,9 @@ export async function requireDriverAccess(pathname: string) {
     .maybeSingle();
   const verificationStatus = normalizeDriverVerificationStatus(data?.verification_status);
   const driverActive = verificationStatus === "verified";
-  if (!driverActive && !isPreApprovalRoute(pathname)) {
+  // Dossier envoyé : l'espace complet reste accessible pendant la vérification.
+  const submitted = verificationStatus !== "incomplete";
+  if (!submitted && !isPreApprovalRoute(pathname)) {
     throw redirect({ to: "/pro/dossier", replace: true });
   }
   return { ...current, driverActive, verificationStatus };
