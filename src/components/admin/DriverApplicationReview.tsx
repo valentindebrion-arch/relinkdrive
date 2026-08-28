@@ -57,10 +57,22 @@ export function DriverApplicationReview({ driverId }: { driverId: string }) {
     | undefined;
   const name = (dossier?.profile as { full_name?: string } | null)?.full_name ?? "ce chauffeur";
   const state = dossier?.state as
-    | { all_approved?: boolean; sections?: { key: string; state: string }[] }
+    | {
+        all_approved?: boolean;
+        sections?: { key: string; state: string; label?: string; missing?: string[] }[];
+      }
     | null
     | undefined;
   const proSection = state?.sections?.find((s) => s.key === "pro");
+  const blocking = (state?.sections ?? [])
+    .filter((s) => s.state !== "approved")
+    .map((s) => {
+      const label = s.label ?? s.key;
+      if (s.state === "todo") return `${label} : élément manquant`;
+      if (s.state === "expired") return `${label} : document expiré`;
+      if (s.state === "changes") return `${label} : pièce refusée / correction demandée`;
+      return `${label} : en attente de validation`;
+    });
   const kind = driver?.driver_kind === "taxi" ? "taxi" : "vtc";
   const number = (kind === "taxi" ? driver?.taxi_license_number : driver?.vtc_card_number) ?? "—";
   const verified = driver?.verification_status === "verified";
