@@ -3534,6 +3534,39 @@ export type Database = {
           vtc_card_number: string
         }[]
       }
+      get_local_drivers: {
+        Args: { _limit?: number; _sector?: string }
+        Returns: {
+          accepting_requests: boolean
+          airports: string[]
+          avatar_url: string
+          bio: string
+          city: string
+          display_name: string
+          long_distance: boolean
+          max_passengers: number
+          member_since: string
+          on_duty: boolean
+          price_per_km: number
+          public_intro: string
+          quality_score: number
+          rank_position: number
+          rating_avg: number
+          rating_count: number
+          sector_match: boolean
+          service_areas: string[]
+          services: string[]
+          slug: string
+          user_id: string
+          vehicle_brand: string
+          vehicle_category: string
+          vehicle_interior_photo_url: string
+          vehicle_model: string
+          vehicle_photo_url: string
+          woman_for_woman: boolean
+          zone: string
+        }[]
+      }
       get_public_driver_page: {
         Args: { _slug: string }
         Returns: {
@@ -3907,6 +3940,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      relink_normalize: { Args: { _t: string }; Returns: string }
       start_invoice_submission: {
         Args: {
           _environment: string
