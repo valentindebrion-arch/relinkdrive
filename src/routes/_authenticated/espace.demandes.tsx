@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchConnectedProfile, fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { paymentMethodLabel, useDriverPaymentMethods } from "@/lib/payment-methods";
 import { useAuth } from "@/lib/auth";
+import { clientCanRequestWfw, isWfwServerError, WFW_SERVER_ERROR_MESSAGE } from "@/lib/woman-for-woman";
 import { formatDateTime, formatEuro } from "@/lib/labels";
 import { ScheduleSheet } from "@/components/request/ScheduleSheet";
 import { AddressSearchPanel, pushRecentAddress } from "@/components/request/AddressSearchPanel";
@@ -139,7 +140,7 @@ function StepProgress({ step }: { step: number }) {
 }
 
 function ClientRequests() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const search = Route.useSearch();
   const navigate = useNavigate();
   const estimateFn = useServerFn(estimateRoute);
@@ -186,6 +187,8 @@ function ClientRequests() {
   const [scanOpen, setScanOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
   const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
+  /** Option Woman for Woman demandée par la cliente. */
+  const [womanForWoman, setWomanForWoman] = useState(false);
   /** Empêche tout double envoi d'une même demande. */
   const sentRef = useRef(false);
   /** Clé d'idempotence : un rejeu réseau ne crée jamais de doublon côté serveur. */
