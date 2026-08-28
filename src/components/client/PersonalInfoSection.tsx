@@ -33,8 +33,13 @@ export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
   const [newAddress, setNewAddress] = useState({ label: "", address: "" });
   const [addingAddress, setAddingAddress] = useState(false);
 
+  // Le genre est une déclaration unique : une fois enregistré, il est définitif.
+  const genderLocked = !!profile?.gender;
+  const [confirmGender, setConfirmGender] = useState(false);
+
   useEffect(() => {
     if (profile)
+
       setForm({
         full_name: profile.full_name ?? "",
         phone: profile.phone ?? "",
