@@ -52,6 +52,7 @@ export function ProSettings() {
     city: "",
     zone: "",
     service_areas: "",
+    service_departments: "",
     stations: "",
     airports: "",
     booking_notice: "",
@@ -91,6 +92,7 @@ export function ProSettings() {
       city: d.city ?? "",
       zone: d.zone ?? "",
       service_areas: (d.service_areas ?? []).join(", "),
+      service_departments: ((d as { service_departments?: string[] | null }).service_departments ?? []).join(", "),
       stations: (d.stations ?? []).join(", "),
       airports: (d.airports ?? []).join(", "),
       booking_notice: d.booking_notice ?? "",
@@ -128,6 +130,9 @@ export function ProSettings() {
         city: pro.city || null,
         zone: pro.zone || null,
         service_areas: toList(pro.service_areas),
+        service_departments: toList(pro.service_departments)
+          .map((v) => v.toUpperCase())
+          .filter((v) => /^(2A|2B|\d{2,3})$/.test(v)),
         stations: toList(pro.stations),
         airports: toList(pro.airports),
         booking_notice: pro.booking_notice || null,
@@ -237,6 +242,11 @@ export function ProSettings() {
         <div>
           <Label htmlFor="areas">Départements / zones couverts (virgules)</Label>
           <Input id="areas" value={pro.service_areas} maxLength={200} onChange={(e) => setPro({ ...pro, service_areas: e.target.value })} />
+        </div>
+        <div>
+          <Label htmlFor="deps">Départements d'intervention (codes, virgules — ex. 63, 03)</Label>
+          <Input id="deps" value={pro.service_departments} maxLength={120} onChange={(e) => setPro({ ...pro, service_departments: e.target.value })} />
+          <p className="mt-1 text-[12px] text-muted-foreground">Vous apparaissez dans la page Trouver des clients situés dans ces départements.</p>
         </div>
         <div>
           <Label htmlFor="stations">Gares desservies (virgules)</Label>

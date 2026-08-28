@@ -772,6 +772,7 @@ export type Database = {
           public_phone: string | null
           rejection_reason: string | null
           service_areas: string[]
+          service_departments: string[]
           services: string[]
           show_public_phone: boolean
           show_whatsapp: boolean
@@ -837,6 +838,7 @@ export type Database = {
           public_phone?: string | null
           rejection_reason?: string | null
           service_areas?: string[]
+          service_departments?: string[]
           services?: string[]
           show_public_phone?: boolean
           show_whatsapp?: boolean
@@ -902,6 +904,7 @@ export type Database = {
           public_phone?: string | null
           rejection_reason?: string | null
           service_areas?: string[]
+          service_departments?: string[]
           services?: string[]
           show_public_phone?: boolean
           show_whatsapp?: boolean
@@ -1501,6 +1504,7 @@ export type Database = {
           lat: number | null
           lng: number | null
           name_norm: string
+          postcode: string | null
           resolved: boolean
         }
         Insert: {
@@ -1509,6 +1513,7 @@ export type Database = {
           lat?: number | null
           lng?: number | null
           name_norm: string
+          postcode?: string | null
           resolved?: boolean
         }
         Update: {
@@ -1517,6 +1522,7 @@ export type Database = {
           lat?: number | null
           lng?: number | null
           name_norm?: string
+          postcode?: string | null
           resolved?: boolean
         }
         Relationships: []
@@ -3582,6 +3588,7 @@ export type Database = {
           rating_count: number
           sector_match: boolean
           service_areas: string[]
+          service_departments: string[]
           services: string[]
           slug: string
           user_id: string
@@ -3967,6 +3974,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      relink_department_code: { Args: { _value: string }; Returns: string }
       relink_normalize: { Args: { _t: string }; Returns: string }
       start_invoice_submission: {
         Args: {
