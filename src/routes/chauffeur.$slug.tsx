@@ -487,17 +487,24 @@ function DriverPublicPage() {
       </p>
     ) : connected ? (
       <div className="space-y-2 text-center">
-        <p className="flex items-center justify-center gap-1.5 text-sm font-semibold text-primary">
-          <Check className="size-4" /> {firstName} est dans mes chauffeurs
+        <p
+          className={
+            "flex items-center justify-center gap-1.5 text-sm font-semibold transition-colors " +
+            (removal ? "text-destructive" : "text-primary")
+          }
+        >
+          <Check className="size-4" />{" "}
+          {removal ? "Chauffeur retiré" : `${firstName} est dans mes chauffeurs`}
         </p>
         <button
           type="button"
           onClick={() => setRemoveOpen(true)}
-          disabled={adding}
+          disabled={adding || removal}
           className="text-xs font-semibold text-muted-foreground underline underline-offset-4 transition hover:text-foreground"
         >
           Retirer {firstName} de mes chauffeurs
         </button>
+
       </div>
     ) : (
       <Button
