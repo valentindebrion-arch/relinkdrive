@@ -704,6 +704,7 @@ function ClientRequests() {
       _immediate: whenMode === "now",
       _idempotency_key: idempotencyRef.current,
       _payment_method: paymentMethod,
+      _woman_for_woman: wantWfw,
       _cgu_version: LEGAL_VERSIONS.cgu,
       _cgv_version: LEGAL_VERSIONS.cgv,
       _cancellation_version: LEGAL_VERSIONS.cancellation,
@@ -1479,6 +1480,11 @@ function ClientRequests() {
           compatibilityLoading={!!form.driver_id && vehicleCapacity.isLoading}
           comment={form.comment}
           busy={busy || checking}
+          wfwAvailable={wfwAvailable}
+          wfwEligible={wfwEligible}
+          wfwChecked={womanForWoman}
+          onToggleWfw={(v) => setWomanForWoman(v && wfwEligible)}
+          onCompleteProfile={() => void navigate({ to: "/espace/parametres" })}
           onChangeDriver={() => {
             setStep(0);
             setDriverPickerOpen(true);
