@@ -108,6 +108,8 @@ export function ProSettings() {
       facebook_url: d.facebook_url ?? "",
       tiktok_url: d.tiktok_url ?? "",
       linkedin_url: d.linkedin_url ?? "",
+      gender: ((d as { gender?: string | null }).gender as GenderValue | null) ?? "",
+      woman_for_woman: (d as { woman_for_woman?: boolean }).woman_for_woman ?? false,
     });
     setAvailability(d.availability ?? []);
     setPaymentMethods(d.payment_methods ?? []);
