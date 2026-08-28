@@ -1039,7 +1039,21 @@ function DriverPublicPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {removal ? (
+        <DriverRemovedOverlay
+          firstName={firstName}
+          name={d.full_name ?? firstName}
+          vehicleLabel={vehicleLabel}
+          photoUrl={sidePhoto ?? vehiclePhoto ?? frontPhoto}
+          onDone={() => {
+            setRemoval(false);
+            void connQuery.refetch();
+          }}
+        />
+      ) : null}
+
       {celebration ? (
+
         <DriverAddedOverlay
           firstName={firstName}
           name={d.full_name ?? firstName}
