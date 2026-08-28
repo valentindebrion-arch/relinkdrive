@@ -118,8 +118,6 @@ export function DocumentUploader({
         doc_type: docType,
         file_path: path,
         expires_at: expires || null,
-        status: "pending" as const,
-        review_note: null,
       };
       const { error: dbErr } = doc?.id
         ? await supabase.from("verification_documents").update(payload).eq("id", doc.id)
