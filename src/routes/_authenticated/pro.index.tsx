@@ -195,8 +195,9 @@ function ProOverview() {
   });
 
   const onDuty = !!driver.data?.on_duty;
+  const verified = driver.data?.verification_status === "verified";
   async function toggleDuty() {
-    if (!user?.id || dutyBusy) return;
+    if (!user?.id || dutyBusy || !verified) return;
     setDutyBusy(true);
     const { error } = await supabase.from("driver_profiles").update({ on_duty: !onDuty }).eq("user_id", user.id);
     setDutyBusy(false);
