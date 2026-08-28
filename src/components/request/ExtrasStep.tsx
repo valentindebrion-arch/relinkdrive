@@ -18,6 +18,11 @@ import type { PaymentMethodOption } from "@/lib/payment-methods";
 import { EquipmentContextPhoto } from "@/components/request/VehiclePhotos";
 import type { CompatibilityResult } from "@/lib/compatibility";
 import type { VehicleMedia } from "@/lib/vehicle-photos";
+import {
+  WFW_CLIENT_DESCRIPTION,
+  WFW_CLIENT_PROFILE_REQUIRED,
+  WFW_LABEL,
+} from "@/lib/woman-for-woman";
 import { firstName } from "@/lib/vehicle-photos";
 import {
   PET_NEED,
@@ -41,6 +46,11 @@ export function ExtrasStep({
   compatibilityLoading,
   comment,
   busy,
+  wfwAvailable = false,
+  wfwEligible = false,
+  wfwChecked = false,
+  onToggleWfw,
+  onCompleteProfile,
   onChangeDriver,
   onChange,
   onContinue,
@@ -58,6 +68,13 @@ export function ExtrasStep({
   compatibilityLoading: boolean;
   comment: string;
   busy: boolean;
+  /** La chauffeuse sélectionnée propose réellement le service. */
+  wfwAvailable?: boolean;
+  /** La cliente a déclaré l'information nécessaire dans son profil. */
+  wfwEligible?: boolean;
+  wfwChecked?: boolean;
+  onToggleWfw?: (value: boolean) => void;
+  onCompleteProfile?: () => void;
   onChangeDriver: () => void;
   onChange: (patch: {
     needs?: SpecialNeedsState;
@@ -128,6 +145,43 @@ export function ExtrasStep({
             onContactDriver={onContactDriver}
             showError={paymentError}
           />
+
+          {wfwAvailable ? (
+            <section className="rounded-3xl border border-border/70 bg-card p-4 shadow-[0_10px_30px_-30px_rgba(0,0,0,0.45)]">
+              <label className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  className="mt-1 size-5 accent-[hsl(var(--primary))]"
+                  checked={wfwChecked && wfwEligible}
+                  onChange={(e) => onToggleWfw?.(e.target.checked)}
+                />
+                <span className="min-w-0">
+                  <span className="block text-[15px] font-extrabold tracking-tight">
+                    {WFW_LABEL}
+                  </span>
+                  <span className="block text-[12.5px] leading-snug text-muted-foreground">
+                    {WFW_CLIENT_DESCRIPTION}
+                  </span>
+                </span>
+              </label>
+              {!wfwEligible ? (
+                <div className="mt-3 rounded-2xl bg-muted/60 p-3">
+                  <p className="text-[12.5px] leading-snug text-muted-foreground">
+                    {WFW_CLIENT_PROFILE_REQUIRED}
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="mt-2 min-h-10"
+                    onClick={() => onCompleteProfile?.()}
+                  >
+                    Compléter mon profil
+                  </Button>
+                </div>
+              ) : null}
+            </section>
+          ) : null}
+
 
           {/* Options et demandes particulières — replié par défaut */}
           <section className="rounded-3xl border border-border/70 bg-card p-4 shadow-[0_10px_30px_-30px_rgba(0,0,0,0.45)]">

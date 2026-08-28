@@ -12,6 +12,8 @@ export type Profile = {
   phone: string | null;
   avatar_url: string | null;
   status: string;
+  /** Déclaratif uniquement (services de mise en relation, ex. Woman for Woman). */
+  gender: string | null;
 };
 
 type AuthValue = {

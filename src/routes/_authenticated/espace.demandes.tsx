@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchConnectedProfile, fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { paymentMethodLabel, useDriverPaymentMethods } from "@/lib/payment-methods";
 import { useAuth } from "@/lib/auth";
+import { clientCanRequestWfw, isWfwServerError, WFW_SERVER_ERROR_MESSAGE } from "@/lib/woman-for-woman";
 import { formatDateTime, formatEuro } from "@/lib/labels";
 import { ScheduleSheet } from "@/components/request/ScheduleSheet";
 import { AddressSearchPanel, pushRecentAddress } from "@/components/request/AddressSearchPanel";
@@ -139,7 +140,7 @@ function StepProgress({ step }: { step: number }) {
 }
 
 function ClientRequests() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const search = Route.useSearch();
   const navigate = useNavigate();
   const estimateFn = useServerFn(estimateRoute);
@@ -186,6 +187,8 @@ function ClientRequests() {
   const [scanOpen, setScanOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
   const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
+  /** Option Woman for Woman demandée par la cliente. */
+  const [womanForWoman, setWomanForWoman] = useState(false);
   /** Empêche tout double envoi d'une même demande. */
   const sentRef = useRef(false);
   /** Clé d'idempotence : un rejeu réseau ne crée jamais de doublon côté serveur. */
@@ -405,6 +408,8 @@ function ClientRequests() {
           ...p,
           on_duty: profile?.on_duty ?? false,
           zone: profile?.zone ?? null,
+          woman_for_woman:
+            (profile as { woman_for_woman?: boolean } | undefined)?.woman_for_woman ?? false,
           vehicle,
           favorite: p.id === favoriteId,
         };
@@ -699,6 +704,7 @@ function ClientRequests() {
       _immediate: whenMode === "now",
       _idempotency_key: idempotencyRef.current,
       _payment_method: paymentMethod,
+      _woman_for_woman: wantWfw,
       _cgu_version: LEGAL_VERSIONS.cgu,
       _cgv_version: LEGAL_VERSIONS.cgv,
       _cancellation_version: LEGAL_VERSIONS.cancellation,
@@ -715,6 +721,13 @@ function ClientRequests() {
         toast.error("Cette demande n'est pas réalisable avec ce véhicule", {
           description: incompatible.blockingIssues[0]?.message,
         });
+        return;
+      }
+      if (isWfwServerError(error.message)) {
+        setWomanForWoman(false);
+        setStep(2);
+        setSubmitError(WFW_SERVER_ERROR_MESSAGE);
+        toast.error("Woman for Woman indisponible", { description: WFW_SERVER_ERROR_MESSAGE });
         return;
       }
       if (/payment_method/i.test(error.message)) {
@@ -829,6 +842,12 @@ function ClientRequests() {
   const selectedDriver = (drivers.data ?? []).find((d) => d.id === form.driver_id);
   const driverName = selectedDriver?.full_name ?? undefined;
   const driverAvailable = !!selectedDriver?.on_duty;
+
+  // Woman for Woman : la cliente doit avoir déclaré l'information et la
+  // chauffeuse doit réellement proposer le service. Le serveur revalide.
+  const wfwAvailable = !!selectedDriver?.woman_for_woman;
+  const wfwEligible = clientCanRequestWfw(profile?.gender);
+  const wantWfw = wfwAvailable && wfwEligible && womanForWoman;
 
   const scheduleValid =
     whenMode === "now" ||
@@ -1468,6 +1487,11 @@ function ClientRequests() {
           compatibilityLoading={!!form.driver_id && vehicleCapacity.isLoading}
           comment={form.comment}
           busy={busy || checking}
+          wfwAvailable={wfwAvailable}
+          wfwEligible={wfwEligible}
+          wfwChecked={womanForWoman}
+          onToggleWfw={(v) => setWomanForWoman(v && wfwEligible)}
+          onCompleteProfile={() => void navigate({ to: "/espace/parametres" })}
           onChangeDriver={() => {
             setStep(0);
             setDriverPickerOpen(true);

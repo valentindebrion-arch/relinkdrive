@@ -12,6 +12,16 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { PushSettingsCard } from "@/components/PushSettingsCard";
 import { PAYMENT_METHOD_OPTIONS } from "@/lib/payment-methods";
+import {
+  GENDER_FIELD_LABEL,
+  GENDER_HELP,
+  GENDER_OPTIONS,
+  WFW_DRIVER_DESCRIPTION,
+  WFW_DRIVER_PROFILE_REQUIRED,
+  WFW_LABEL,
+  driverCanOfferWfw,
+  type GenderValue,
+} from "@/lib/woman-for-woman";
 
 
 const AVAILABILITY_OPTIONS = [
@@ -59,6 +69,8 @@ export function ProSettings() {
     facebook_url: "",
     tiktok_url: "",
     linkedin_url: "",
+    gender: "" as GenderValue | "",
+    woman_for_woman: false,
   });
   const [availability, setAvailability] = useState<string[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
@@ -96,6 +108,8 @@ export function ProSettings() {
       facebook_url: d.facebook_url ?? "",
       tiktok_url: d.tiktok_url ?? "",
       linkedin_url: d.linkedin_url ?? "",
+      gender: ((d as { gender?: string | null }).gender as GenderValue | null) ?? "",
+      woman_for_woman: (d as { woman_for_woman?: boolean }).woman_for_woman ?? false,
     });
     setAvailability(d.availability ?? []);
     setPaymentMethods(d.payment_methods ?? []);
@@ -133,6 +147,9 @@ export function ProSettings() {
         facebook_url: pro.facebook_url || null,
         tiktok_url: pro.tiktok_url || null,
         linkedin_url: pro.linkedin_url || null,
+        gender: pro.gender || null,
+        // Sécurité : le serveur désactive de toute façon l'option si le genre change.
+        woman_for_woman: driverCanOfferWfw(pro.gender) && pro.woman_for_woman,
       })
       .eq("user_id", user!.id);
     if (e1 || e2) {
@@ -236,6 +253,48 @@ export function ProSettings() {
             </p>
           ) : null}
         </div>
+
+        <div className="rounded-xl border border-border p-4 sm:col-span-2">
+          <Label htmlFor="pro-gender">{GENDER_FIELD_LABEL}</Label>
+          <select
+            id="pro-gender"
+            value={pro.gender}
+            onChange={(e) => {
+              const gender = e.target.value as GenderValue | "";
+              setPro((p) => ({
+                ...p,
+                gender,
+                woman_for_woman: driverCanOfferWfw(gender) ? p.woman_for_woman : false,
+              }));
+            }}
+            className="mt-1 min-h-11 w-full rounded-xl border border-input bg-background px-3 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          >
+            <option value="">Non renseigné</option>
+            {GENDER_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-muted-foreground">{GENDER_HELP}</p>
+
+          <label className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2">
+            <span className="min-w-0">
+              <span className="block text-sm font-medium">{WFW_LABEL}</span>
+              <span className="block text-xs text-muted-foreground">{WFW_DRIVER_DESCRIPTION}</span>
+            </span>
+            <Switch
+              checked={pro.woman_for_woman}
+              disabled={!driverCanOfferWfw(pro.gender)}
+              onCheckedChange={(v) => setPro((p) => ({ ...p, woman_for_woman: v }))}
+            />
+          </label>
+          {!driverCanOfferWfw(pro.gender) ? (
+            <p className="mt-2 text-xs text-muted-foreground">{WFW_DRIVER_PROFILE_REQUIRED}</p>
+          ) : null}
+        </div>
+
+
 
         <div className="rounded-xl border border-border p-4 sm:col-span-2">
           <p className="text-sm font-semibold">Coordonnées publiques (facultatives)</p>

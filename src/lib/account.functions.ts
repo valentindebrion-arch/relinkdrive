@@ -11,6 +11,8 @@ const profileSchema = z.object({
     .regex(/^[0-9+ ().-]*$/, "Numéro de téléphone invalide")
     .optional()
     .default(""),
+  // Donnée strictement déclarative, jamais déduite d'une autre information.
+  gender: z.enum(["female", "male", "undisclosed"]).nullable().optional(),
 });
 
 /** Met à jour le profil de l'utilisateur connecté uniquement (RLS appliquée). */
@@ -20,7 +22,11 @@ export const updateMyProfile = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
       .from("profiles")
-      .update({ full_name: data.full_name, phone: data.phone || null })
+      .update({
+        full_name: data.full_name,
+        phone: data.phone || null,
+        ...(data.gender !== undefined ? { gender: data.gender } : {}),
+      })
       .eq("id", context.userId);
     if (error) throw new Error(error.message);
     return { ok: true as const };
