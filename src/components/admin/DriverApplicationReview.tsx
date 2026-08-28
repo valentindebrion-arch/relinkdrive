@@ -56,6 +56,7 @@ export function DriverApplicationReview({ driverId }: { driverId: string }) {
     | null
     | undefined;
   const name = (dossier?.profile as { full_name?: string } | null)?.full_name ?? "ce chauffeur";
+  const approver = (dossier as { approver?: string | null } | undefined)?.approver ?? null;
   const state = dossier?.state as
     | {
         all_approved?: boolean;
