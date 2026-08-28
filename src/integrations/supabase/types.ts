@@ -750,6 +750,7 @@ export type Database = {
           business_name: string | null
           city: string | null
           created_at: string
+          driver_kind: string
           expiry_notified_at: string | null
           facebook_url: string | null
           instagram_url: string | null
@@ -779,6 +780,7 @@ export type Database = {
           submitted_at: string | null
           suspended_at: string | null
           suspension_reason: string | null
+          taxi_license_number: string | null
           theme_updated_at: string | null
           tiktok_url: string | null
           updated_at: string
@@ -811,6 +813,7 @@ export type Database = {
           business_name?: string | null
           city?: string | null
           created_at?: string
+          driver_kind?: string
           expiry_notified_at?: string | null
           facebook_url?: string | null
           instagram_url?: string | null
@@ -840,6 +843,7 @@ export type Database = {
           submitted_at?: string | null
           suspended_at?: string | null
           suspension_reason?: string | null
+          taxi_license_number?: string | null
           theme_updated_at?: string | null
           tiktok_url?: string | null
           updated_at?: string
@@ -872,6 +876,7 @@ export type Database = {
           business_name?: string | null
           city?: string | null
           created_at?: string
+          driver_kind?: string
           expiry_notified_at?: string | null
           facebook_url?: string | null
           instagram_url?: string | null
@@ -901,6 +906,7 @@ export type Database = {
           submitted_at?: string | null
           suspended_at?: string | null
           suspension_reason?: string | null
+          taxi_license_number?: string | null
           theme_updated_at?: string | null
           tiktok_url?: string | null
           updated_at?: string

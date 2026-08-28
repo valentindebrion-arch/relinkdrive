@@ -1,30 +1,14 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-  AlertCircle,
-  ArrowLeft,
-  ArrowRight,
-  CheckCircle2,
-  ChevronRight,
-  Clock,
-  LogOut,
-  FileWarning,
-  ShieldCheck,
-  Upload,
-} from "lucide-react";
+import { CheckCircle2, Clock, LogOut, Send, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useDriverProfile, useMyDocuments } from "@/lib/driver-queries";
-import {
-  DOSSIER_STATUS_LABELS,
-  SECTION_STATE_LABELS,
-  useDossierState,
-  type DossierSection,
-  type SectionState,
-} from "@/lib/driver-dossier";
-import { DOCUMENT_LABELS, formatDate } from "@/lib/labels";
+import { DOSSIER_STATUS_LABELS, useDossierState } from "@/lib/driver-dossier";
+import { APPLICATION_DOCS, type DriverKind } from "@/lib/driver-application";
+import { DocumentUploader, type DriverDocument } from "@/components/pro/DocumentUploader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,67 +23,115 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const MAX_SIZE = 8 * 1024 * 1024;
-const ACCEPTED = ["image/jpeg", "image/png", "image/webp", "image/heic", "application/pdf"];
+const READ_ONLY = ["pending", "under_review", "verified"];
 
-/** Champs à compléter en dehors du dépôt de pièces, par section. */
-const FIELD_TARGETS: Record<string, { label: string; to: string }> = {
-  identity: { label: "Compléter mes informations personnelles", to: "/pro/parametres" },
-  vtc: { label: "Renseigner mon numéro de carte VTC", to: "/pro/entreprise" },
-  company: { label: "Compléter mes informations d'entreprise", to: "/pro/entreprise" },
-  vehicle: { label: "Compléter les informations du véhicule", to: "/pro/vehicule" },
-  tax: { label: "Configurer mon régime de TVA et mes tarifs", to: "/pro/entreprise" },
-};
+/** Bloc « Informations professionnelles » : statut VTC ou Taxi et numéro correspondant. */
+function ProfessionalInfo({
+  kind,
+  number,
+  readOnly,
+  onSaved,
+}: {
+  kind: DriverKind;
+  number: string;
+  readOnly: boolean;
+  onSaved: () => void;
+}) {
+  const { user } = useAuth();
+  const [localKind, setLocalKind] = useState<DriverKind>(kind);
+  const [localNumber, setLocalNumber] = useState(number);
+  const [busy, setBusy] = useState(false);
 
-const STATE_STYLES: Record<SectionState, string> = {
-  todo: "bg-muted text-muted-foreground",
-  review: "bg-warning/15 text-warning-foreground",
-  approved: "bg-primary/10 text-primary",
-  changes: "bg-destructive/10 text-destructive",
-  expired: "bg-destructive/10 text-destructive",
-};
+  useEffect(() => setLocalKind(kind), [kind]);
+  useEffect(() => setLocalNumber(number), [number]);
 
-const LAST_SECTION_KEY = "relink:dossier:last-section";
-const READ_ONLY = ["pending", "under_review"];
+  async function save() {
+    setBusy(true);
+    const { error } = await supabase
+      .from("driver_profiles")
+      .update({
+        driver_kind: localKind,
+        vtc_card_number: localKind === "vtc" ? localNumber.trim() : null,
+        taxi_license_number: localKind === "taxi" ? localNumber.trim() : null,
+      })
+      .eq("user_id", user!.id);
+    setBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Informations professionnelles enregistrées.");
+    onSaved();
+  }
 
-function isDone(s: SectionState) {
-  return s === "review" || s === "approved";
+  return (
+    <div className="rounded-xl border border-border p-3">
+      <p className="text-sm font-medium">
+        Informations professionnelles <span className="text-destructive">*</span>
+      </p>
+      <div className="mt-3 flex gap-2">
+        {(["vtc", "taxi"] as DriverKind[]).map((k) => (
+          <button
+            key={k}
+            type="button"
+            disabled={readOnly}
+            onClick={() => setLocalKind(k)}
+            className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition ${
+              localKind === k
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border text-muted-foreground"
+            }`}
+          >
+            {k === "vtc" ? "VTC" : "Taxi"}
+          </button>
+        ))}
+      </div>
+      <div className="mt-3">
+        <Label htmlFor="pro-number" className="text-xs">
+          {localKind === "vtc" ? "Numéro de carte VTC" : "Numéro / licence Taxi"}
+        </Label>
+        <Input
+          id="pro-number"
+          value={localNumber}
+          disabled={readOnly}
+          placeholder={localKind === "vtc" ? "Ex. 075 1234567" : "Ex. ADS 4521"}
+          onChange={(e) => setLocalNumber(e.target.value)}
+        />
+      </div>
+      {readOnly ? null : (
+        <Button
+          type="button"
+          size="sm"
+          className="mt-3"
+          disabled={busy || !localNumber.trim()}
+          onClick={() => void save()}
+        >
+          Enregistrer
+        </Button>
+      )}
+    </div>
+  );
 }
 
 export function DossierPage() {
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
   const driver = useDriverProfile();
   const docs = useMyDocuments();
   const dossier = useDossierState();
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const search = useSearch({ strict: false }) as { section?: string };
-  const [busy, setBusy] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [signOutOpen, setSignOutOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [openingApplication, setOpeningApplication] = useState(false);
 
   const status = driver.data?.verification_status ?? "incomplete";
   const state = dossier.data;
-  const sections = useMemo(() => state?.sections ?? [], [state]);
   const readOnly = READ_ONLY.includes(status);
 
-  const openKey = search.section;
-
-  useEffect(() => {
-    if (openKey && typeof window !== "undefined") {
-      window.localStorage.setItem(LAST_SECTION_KEY, openKey);
-      window.scrollTo({ top: 0 });
-    }
-  }, [openKey]);
-
-  function goSection(key: string | undefined) {
-    setOpeningApplication(true);
-    // Navigation immédiate : la page du dossier charge ses données elle-même.
-    void navigate({ to: "/pro/dossier/completer", search: key ? { section: key } : {} })
-      .catch(() => toast.error("Impossible d’ouvrir votre dossier pour le moment. Réessayez."))
-      .finally(() => setOpeningApplication(false));
+  function refresh() {
+    void qc.invalidateQueries({ queryKey: ["my-documents"] });
+    void qc.invalidateQueries({ queryKey: ["dossier-state"] });
+    void qc.invalidateQueries({ queryKey: ["driver-profile"] });
   }
 
   async function handleSignOut() {
@@ -108,51 +140,6 @@ export function DossierPage() {
     qc.clear();
     await signOut();
     void navigate({ to: "/auth", replace: true });
-  }
-
-
-  function refresh() {
-    void qc.invalidateQueries({ queryKey: ["my-documents"] });
-    void qc.invalidateQueries({ queryKey: ["dossier-state"] });
-    void qc.invalidateQueries({ queryKey: ["driver-profile"] });
-  }
-
-  async function uploadDoc(docType: string, file: File, expiresAt: string) {
-    if (!ACCEPTED.includes(file.type)) {
-      toast.error("Format non accepté (JPEG, PNG, WEBP ou PDF).");
-      return;
-    }
-    if (file.size > MAX_SIZE) {
-      toast.error("Fichier trop volumineux (8 Mo maximum).");
-      return;
-    }
-    setBusy(docType);
-    const path = `${user!.id}/${docType}-${Date.now()}-${file.name}`;
-    const { error: upErr } = await supabase.storage
-      .from("documents")
-      .upload(path, file, { upsert: true });
-    if (upErr) {
-      setBusy(null);
-      toast.error(upErr.message);
-      return;
-    }
-    const existing = (docs.data ?? []).find((d) => d.doc_type === docType);
-    const payload = {
-      driver_id: user!.id,
-      doc_type: docType,
-      file_path: path,
-      expires_at: expiresAt || null,
-    };
-    const { error } = existing
-      ? await supabase.from("verification_documents").update(payload).eq("id", existing.id)
-      : await supabase.from("verification_documents").insert(payload);
-    setBusy(null);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success("Document enregistré. Son statut passe à « À vérifier ».");
-    refresh();
   }
 
   async function submitDossier() {
@@ -164,56 +151,20 @@ export function DossierPage() {
       toast.error(error.message);
       return;
     }
-    toast.success("Votre dossier a bien été transmis. Il est en cours de vérification.");
+    toast.success("Demande envoyée ✓");
     refresh();
   }
 
   const canSubmit =
     !!state?.complete && ["incomplete", "changes_requested", "expired_documents"].includes(status);
 
-  /** Section de reprise : corrections d'abord, puis dernière section commencée, puis première incomplète. */
-  const resumeKey = useMemo(() => {
-    if (!sections.length) return undefined;
-    const fix = sections.find((s) => s.state === "changes" || s.state === "expired");
-    if (fix) return fix.key;
-    const last =
-      typeof window !== "undefined" ? window.localStorage.getItem(LAST_SECTION_KEY) : null;
-    if (last && sections.some((s) => s.key === last && !isDone(s.state))) return last;
-    const todo = sections.find((s) => !isDone(s.state));
-    return (todo ?? sections[0])!.key;
-  }, [sections]);
+  const documents = (docs.data ?? []) as DriverDocument[];
+  const kind = ((driver.data as { driver_kind?: string } | null)?.driver_kind ?? "vtc") as DriverKind;
+  const proNumber =
+    (kind === "taxi"
+      ? (driver.data as { taxi_license_number?: string } | null)?.taxi_license_number
+      : driver.data?.vtc_card_number) ?? "";
 
-  const changesCount = sections.filter((s) => s.state === "changes").length;
-  const started = (state?.percent ?? 0) > 0;
-
-  const primary: { label: string; action: () => void } = (() => {
-    if (status === "verified")
-      return {
-        label: "Accéder à mon espace professionnel",
-        action: () => void navigate({ to: "/pro" }),
-      };
-    if (readOnly)
-      return { label: "Consulter mon dossier", action: () => goSection(resumeKey) };
-    if (status === "expired_documents")
-      return { label: "Mettre à jour mes documents", action: () => goSection(resumeKey) };
-    if (status === "changes_requested")
-      return { label: "Corriger mon dossier", action: () => goSection(resumeKey) };
-    if (state?.complete)
-      return { label: "Vérifier et envoyer mon dossier", action: () => goSection("review") };
-    return {
-      label: started ? "Reprendre mon dossier" : "Compléter mon dossier",
-      action: () => goSection(resumeKey),
-    };
-  })();
-
-
-  function nextSectionKey(from: string) {
-    const idx = sections.findIndex((s) => s.key === from);
-    const rest = sections.slice(idx + 1);
-    return (rest.find((s) => !isDone(s.state)) ?? rest[0])?.key;
-  }
-
-  /* ---------- Statut du compte ---------- */
   return (
     <div className="space-y-5">
       <header className="surface p-5">
@@ -229,8 +180,8 @@ export function DossierPage() {
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {status === "verified"
-                ? "Votre compte professionnel a été validé. Vous pouvez maintenant utiliser toutes les fonctionnalités ReLink."
-                : "Complétez votre dossier puis transmettez-le pour vérification. Après validation, vous pourrez recevoir des demandes et partager votre profil."}
+                ? "Votre compte a été validé par ReLink. Vous pouvez utiliser toutes les fonctionnalités."
+                : "Fournissez uniquement les éléments ci-dessous pour envoyer votre demande. Le reste de votre profil pourra être complété ensuite."}
             </p>
             <p className="mt-3 inline-flex rounded-full bg-muted px-3 py-1 text-xs font-medium">
               {DOSSIER_STATUS_LABELS[status] ?? status}
@@ -240,7 +191,7 @@ export function DossierPage() {
 
         <div className="mt-4">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Progression du dossier</span>
+            <span>Éléments obligatoires</span>
             <span className="font-semibold text-foreground">{state?.percent ?? 0} %</span>
           </div>
           <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
@@ -251,25 +202,29 @@ export function DossierPage() {
           </div>
         </div>
 
-        {dossier.isError || driver.isError ? (
-          <div className="mt-4 space-y-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-            <p>Impossible de charger l’état de votre dossier pour le moment.</p>
-            <Button type="button" variant="outline" size="sm" onClick={() => refresh()}>
-              Réessayer
-            </Button>
-          </div>
+        {status === "pending" || status === "under_review" ? (
+          <p className="mt-4 flex items-start gap-2 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
+            <Clock className="mt-0.5 size-4 shrink-0" />
+            Demande envoyée ✓ Votre dossier est maintenant en cours de vérification par ReLink.
+          </p>
         ) : null}
 
-        <Button
-          type="button"
-          size="lg"
-          className="mt-4 h-12 w-full text-base"
-          disabled={openingApplication}
-          aria-label={primary.label}
-          onClick={primary.action}
-        >
-          {primary.label}
-        </Button>
+        {status === "changes_requested" && driver.data?.rejection_reason ? (
+          <p className="mt-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+            Corrections demandées : {driver.data.rejection_reason}
+          </p>
+        ) : null}
+        {status === "rejected" && driver.data?.rejection_reason ? (
+          <p className="mt-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+            Motif du refus : {driver.data.rejection_reason}
+          </p>
+        ) : null}
+
+        {status === "verified" ? (
+          <Button type="button" size="lg" className="mt-4 h-12 w-full text-base" onClick={() => void navigate({ to: "/pro" })}>
+            Accéder à mon espace professionnel
+          </Button>
+        ) : null}
 
         <Button
           type="button"
@@ -280,113 +235,68 @@ export function DossierPage() {
         >
           <LogOut className="size-4" /> Se déconnecter
         </Button>
-
-
-
-
-        {readOnly ? (
-          <p className="mt-4 flex items-start gap-2 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
-            <Clock className="mt-0.5 size-4 shrink-0" />
-            Votre dossier est en cours de vérification.
-          </p>
-        ) : null}
-
-        {changesCount > 0 ? (
-          <p className="mt-3 text-sm text-destructive">
-            {changesCount} section{changesCount > 1 ? "s" : ""} à corriger.
-          </p>
-        ) : null}
-
-        {status === "changes_requested" && driver.data?.rejection_reason ? (
-          <p className="mt-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-            Des corrections sont nécessaires avant la validation de votre compte :{" "}
-            {driver.data.rejection_reason}
-          </p>
-        ) : null}
-        {status === "rejected" && driver.data?.rejection_reason ? (
-          <p className="mt-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-            Motif du refus : {driver.data.rejection_reason}
-          </p>
-        ) : null}
-        {status === "suspended" ? (
-          <p className="mt-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-            Votre compte est suspendu. Vos courses, factures et historiques restent accessibles.
-          </p>
-        ) : null}
-        {status === "expired_documents" ? (
-          <p className="mt-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-            Un justificatif obligatoire a expiré. Remplacez-le puis renvoyez votre dossier.
-          </p>
-        ) : null}
       </header>
 
-      <section className="space-y-2">
-        <h2 className="text-sm font-semibold text-muted-foreground">Sections du dossier</h2>
-        {sections.map((section) => (
-          <button
-            key={section.key}
-            type="button"
-            onClick={() => goSection(section.key)}
-            className={`surface tap-active flex w-full items-center justify-between gap-3 p-4 text-left ${
-              section.state === "changes" || section.state === "expired"
-                ? "border-destructive/40 bg-destructive/5"
-                : ""
-            }`}
-          >
-            <span className="min-w-0">
-              <span className="block truncate font-medium">{section.label}</span>
-              {section.missing.length ? (
-                <span className="block text-xs text-muted-foreground">
-                  {section.missing.includes("fields")
-                    ? "Informations à compléter"
-                    : "Pièces à fournir"}
-                </span>
-              ) : null}
-            </span>
-            <span className="flex shrink-0 items-center gap-2">
-              <span
-                className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATE_STYLES[section.state]}`}
-              >
-                {SECTION_STATE_LABELS[section.state]}
-              </span>
-              <ChevronRight className="size-4 text-muted-foreground" />
-            </span>
-          </button>
+      <section className="surface space-y-3 p-4">
+        <h2 className="text-sm font-semibold">Éléments obligatoires</h2>
+        {APPLICATION_DOCS.map((item) => (
+          <DocumentUploader
+            key={item.docType}
+            docType={item.docType}
+            label={item.label}
+            required
+            withExpiry={item.docType === "insurance"}
+            readOnly={readOnly}
+            doc={documents.find((d) => d.doc_type === item.docType) ?? null}
+          />
         ))}
+        <ProfessionalInfo kind={kind} number={proNumber} readOnly={readOnly} onSaved={refresh} />
       </section>
 
       {status !== "verified" && !readOnly ? (
         <div className="surface space-y-3 p-4">
-          {!state?.complete ? (
-            <p className="text-sm text-muted-foreground">
-              Il manque encore des informations ou des pièces obligatoires pour envoyer votre
-              dossier.
+          {state?.complete ? (
+            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+              <CheckCircle2 className="size-4 text-primary" /> Tous les éléments obligatoires sont
+              fournis.
             </p>
           ) : (
-            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-              <CheckCircle2 className="size-4 text-primary" /> Votre dossier est complet.
+            <p className="text-sm text-muted-foreground">
+              Il manque encore un ou plusieurs éléments obligatoires.
             </p>
           )}
           <Button
             className="w-full"
             disabled={!canSubmit || submitting}
-            onClick={() => goSection("review")}
+            onClick={() => setConfirmOpen(true)}
           >
-            <Upload className="size-4" /> Envoyer mon dossier pour vérification
+            <Send className="size-4" /> Envoyer ma demande
           </Button>
         </div>
       ) : null}
 
+      <div className="surface p-4">
+        <p className="text-sm font-medium">Compléter le reste de mon profil</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Entreprise, véhicule, fiscalité : facultatif pour envoyer votre demande, utile ensuite.
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          className="mt-3 w-full"
+          onClick={() => void navigate({ to: "/pro/dossier/completer" })}
+        >
+          Ouvrir mon profil complet
+        </Button>
+      </div>
+
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              Confirmez-vous que les informations et documents transmis sont exacts et à jour ?
-            </AlertDialogTitle>
+            <AlertDialogTitle>Envoyer ma demande de vérification ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Récapitulatif : {sections.length} section{sections.length > 1 ? "s" : ""} complétées,
-              progression {state?.percent ?? 0} %. Votre dossier sera transmis à l'équipe ReLink
-              pour vérification. Vous serez informé dès qu'une décision sera prise.
+              Vos documents et vos informations professionnelles seront transmis à l'équipe ReLink.
+              Vous serez informé dès qu'une décision sera prise.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
