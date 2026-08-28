@@ -41,6 +41,11 @@ export function ExtrasStep({
   compatibilityLoading,
   comment,
   busy,
+  wfwAvailable = false,
+  wfwEligible = false,
+  wfwChecked = false,
+  onToggleWfw,
+  onCompleteProfile,
   onChangeDriver,
   onChange,
   onContinue,
@@ -58,6 +63,13 @@ export function ExtrasStep({
   compatibilityLoading: boolean;
   comment: string;
   busy: boolean;
+  /** La chauffeuse sélectionnée propose réellement le service. */
+  wfwAvailable?: boolean;
+  /** La cliente a déclaré l'information nécessaire dans son profil. */
+  wfwEligible?: boolean;
+  wfwChecked?: boolean;
+  onToggleWfw?: (value: boolean) => void;
+  onCompleteProfile?: () => void;
   onChangeDriver: () => void;
   onChange: (patch: {
     needs?: SpecialNeedsState;
