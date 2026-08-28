@@ -38,6 +38,11 @@
   --color-warning-foreground: var(--warning-foreground);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
+  --color-wfw: var(--wfw);
+  --color-wfw-foreground: var(--wfw-foreground);
+  --color-wfw-surface: var(--wfw-surface);
+  --color-wfw-border: var(--wfw-border);
+
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
