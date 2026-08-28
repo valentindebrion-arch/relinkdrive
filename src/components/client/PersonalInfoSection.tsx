@@ -7,20 +7,36 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { deleteMyAddress, saveMyAddress, updateMyProfile } from "@/lib/account.functions";
+import {
+  GENDER_FIELD_LABEL,
+  GENDER_HELP,
+  GENDER_OPTIONS,
+  genderLabel,
+  type GenderValue,
+} from "@/lib/woman-for-woman";
 
 type Address = { id: string; label: string; address: string };
 
 export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
   const { user, profile, refresh } = useAuth();
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ full_name: "", phone: "" });
+  const [form, setForm] = useState<{ full_name: string; phone: string; gender: GenderValue | "" }>({
+    full_name: "",
+    phone: "",
+    gender: "",
+  });
   const [busy, setBusy] = useState(false);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [newAddress, setNewAddress] = useState({ label: "", address: "" });
   const [addingAddress, setAddingAddress] = useState(false);
 
   useEffect(() => {
-    if (profile) setForm({ full_name: profile.full_name ?? "", phone: profile.phone ?? "" });
+    if (profile)
+      setForm({
+        full_name: profile.full_name ?? "",
+        phone: profile.phone ?? "",
+        gender: (profile.gender as GenderValue | null) ?? "",
+      });
   }, [profile]);
 
   useEffect(() => {
