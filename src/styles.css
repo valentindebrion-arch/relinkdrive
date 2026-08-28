@@ -459,6 +459,43 @@
   animation: badge-pop 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* Cloche : signal discret à l'arrivée d'une notification (jamais en boucle). */
+@keyframes bell-ring {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  15% {
+    transform: rotate(-11deg) scale(1.06);
+  }
+  32% {
+    transform: rotate(9deg) scale(1.05);
+  }
+  50% {
+    transform: rotate(-6deg) scale(1.03);
+  }
+  68% {
+    transform: rotate(4deg) scale(1.02);
+  }
+  85% {
+    transform: rotate(-2deg) scale(1.01);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+@utility bell-ring {
+  animation: bell-ring 0.7s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  transform-origin: 50% 15%;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bell-ring {
+    animation: none;
+  }
+}
+
 @utility decor-dot {
   animation: decor-travel linear infinite;
   will-change: offset-distance, opacity;
