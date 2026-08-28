@@ -92,8 +92,14 @@ export const checkDriverAvailability = createServerFn({ method: "POST" })
     for (const driverId of driverIds) {
       const hours = (hoursRows ?? []).filter((h) => h.driver_id === driverId);
       const absences = (absenceRows ?? []).filter((a) => a.driver_id === driverId);
+      const onDuty = !!(dutyRows ?? []).find((d) => d.user_id === driverId)?.on_duty;
+      // Le statut manuel « Disponible » prime sur les horaires habituels,
+      // mais uniquement pour un départ immédiat (≤ 30 min).
+      const manualNow = onDuty && desired.getTime() <= Date.now() + 30 * 60_000;
       const fitsSchedule = (start: Date, minutes: number) =>
+        manualNow ||
         fitsDeclaredAvailability(hours, absences, start, new Date(start.getTime() + minutes * 60_000));
+
 
       const planning = (rides ?? [])
         .filter((r) => r.driver_id === driverId && r.request_id !== (data.ignoreRequestId ?? null))
