@@ -18,6 +18,11 @@ import type { PaymentMethodOption } from "@/lib/payment-methods";
 import { EquipmentContextPhoto } from "@/components/request/VehiclePhotos";
 import type { CompatibilityResult } from "@/lib/compatibility";
 import type { VehicleMedia } from "@/lib/vehicle-photos";
+import {
+  WFW_CLIENT_DESCRIPTION,
+  WFW_CLIENT_PROFILE_REQUIRED,
+  WFW_LABEL,
+} from "@/lib/woman-for-woman";
 import { firstName } from "@/lib/vehicle-photos";
 import {
   PET_NEED,
