@@ -25,6 +25,7 @@ export function NotificationBell({ className }: { className?: string }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [ring, setRing] = useState(false);
   const seen = useRef<Set<string>>(new Set());
   const primed = useRef(false);
   const bellRef = useRef<HTMLButtonElement>(null);
