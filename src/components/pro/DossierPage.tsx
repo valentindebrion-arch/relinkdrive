@@ -155,8 +155,18 @@ export function DossierPage() {
     refresh();
   }
 
+  const missingLabels = (state?.sections ?? []).flatMap((s) =>
+    s.missing.map((m) =>
+      m === "fields"
+        ? "Statut professionnel (VTC ou Taxi) et numéro correspondant"
+        : (APPLICATION_DOC_LABELS[m] ?? m),
+    ),
+  );
+
   const canSubmit =
-    !!state?.complete && ["incomplete", "changes_requested", "expired_documents"].includes(status);
+    missingLabels.length === 0 &&
+    !!state &&
+    ["incomplete", "changes_requested", "expired_documents", "rejected"].includes(status);
 
   const documents = (docs.data ?? []) as DriverDocument[];
   const kind = ((driver.data as { driver_kind?: string } | null)?.driver_kind ?? "vtc") as DriverKind;
