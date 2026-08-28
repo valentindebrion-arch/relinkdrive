@@ -239,11 +239,12 @@ function ProOverview() {
       <button
         type="button"
         onClick={() => void toggleDuty()}
-        disabled={dutyBusy}
+        disabled={dutyBusy || !verified}
         aria-pressed={onDuty}
+        title={verified ? undefined : "Disponible après validation de votre dossier"}
         className={`surface grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 p-3 text-left transition-colors ${
           onDuty ? "border-primary/40 bg-primary/5" : ""
-        }`}
+        } ${verified ? "" : "opacity-60"}`}
       >
         <span
           className={`grid size-9 shrink-0 place-items-center rounded-full ${
