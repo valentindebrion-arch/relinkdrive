@@ -151,7 +151,7 @@ function Chip({ icon: Icon, children }: { icon?: typeof Car; children: React.Rea
 
 function DriverPublicPage() {
   const { slug } = Route.useParams();
-  const { session, user, isDriver, isAdmin } = useAuth();
+  const { session, user, profile, isDriver, isAdmin } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [adding, setAdding] = useState(false);
