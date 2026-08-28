@@ -607,7 +607,9 @@ function DriverPublicPage() {
               Ajoutez d'abord {firstName} à mes chauffeurs pour estimer ou réserver une course avec
               lui.
             </p>
-            {isDriver || isAdmin ? (
+            {wfwGate ? (
+              <div className="mt-4">{wfwGate}</div>
+            ) : isDriver || isAdmin ? (
               <p className="mt-4 rounded-2xl border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
                 Seuls les comptes passagers peuvent ajouter un chauffeur à leur carnet.
               </p>
