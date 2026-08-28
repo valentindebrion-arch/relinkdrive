@@ -832,6 +832,12 @@ function ClientRequests() {
   const driverName = selectedDriver?.full_name ?? undefined;
   const driverAvailable = !!selectedDriver?.on_duty;
 
+  // Woman for Woman : la cliente doit avoir déclaré l'information et la
+  // chauffeuse doit réellement proposer le service. Le serveur revalide.
+  const wfwAvailable = !!selectedDriver?.woman_for_woman;
+  const wfwEligible = clientCanRequestWfw(profile?.gender);
+  const wantWfw = wfwAvailable && wfwEligible && womanForWoman;
+
   const scheduleValid =
     whenMode === "now" ||
     (!!form.scheduled_at && new Date(form.scheduled_at).getTime() > Date.now());
