@@ -1,7 +1,15 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/pro/demandes")({
-  beforeLoad: () => {
-    throw redirect({ to: "/pro/courses", replace: true });
+  validateSearch: (search: Record<string, unknown>): { demande?: string } =>
+    typeof search["demande"] === "string" ? { demande: search["demande"] as string } : {},
+
+  beforeLoad: ({ search }) => {
+    // Le lien d'une notification push pointe sur la demande concernée.
+    throw redirect({
+      to: "/pro/courses",
+      search: search.demande ? { demande: search.demande } : {},
+      replace: true,
+    });
   },
 });

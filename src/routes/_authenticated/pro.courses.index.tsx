@@ -13,6 +13,8 @@ import { ActiveRidePanel } from "@/components/ActiveRidePanel";
 import { useNewRequestsCount } from "@/lib/driver-queries";
 
 export const Route = createFileRoute("/_authenticated/pro/courses/")({
+  validateSearch: (search: Record<string, unknown>): { demande?: string } =>
+    typeof search["demande"] === "string" ? { demande: search["demande"] as string } : {},
   head: () => ({
     meta: [
       { title: "Mes courses — Relink Chauffeur" },

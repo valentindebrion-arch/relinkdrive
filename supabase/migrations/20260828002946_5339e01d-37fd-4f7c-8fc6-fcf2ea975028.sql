@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.dedupe_notification() FROM PUBLIC, anon, authenticated;

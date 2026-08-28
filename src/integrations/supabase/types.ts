@@ -2040,6 +2040,7 @@ export type Database = {
           id: string
           kind: string
           link: string | null
+          push: boolean
           read_at: string | null
           title: string
           user_id: string
@@ -2050,6 +2051,7 @@ export type Database = {
           id?: string
           kind?: string
           link?: string | null
+          push?: boolean
           read_at?: string | null
           title: string
           user_id: string
@@ -2060,6 +2062,7 @@ export type Database = {
           id?: string
           kind?: string
           link?: string | null
+          push?: boolean
           read_at?: string | null
           title?: string
           user_id?: string
