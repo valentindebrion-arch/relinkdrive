@@ -175,6 +175,7 @@ function ClientDrivers() {
   /**
    * Retrait du carnet : suppression backend d'abord, puis animation rouge de sortie.
    * En cas d'échec, la carte reste en place et une erreur est affichée.
+   * Après l'animation, redirection automatique vers l'Accueil client (/espace).
    */
   async function removeDriver(driverId: string, name: string) {
     if (!user?.id || removingId) return;
@@ -189,11 +190,12 @@ function ClientDrivers() {
       return;
     }
     const finish = () => {
-      setRemovingId(null);
       void queryClient.invalidateQueries({ queryKey: ["client-drivers", user.id] });
       void queryClient.invalidateQueries({ queryKey: ["discover-drivers"] });
       void queryClient.invalidateQueries({ queryKey: ["top10-drivers"] });
       toast.success(`${firstName} a été retiré de vos chauffeurs`);
+      // Navigation interne vers l'Accueil client une fois l'animation terminée.
+      void navigate({ to: "/espace" });
     };
     setRemovingId(driverId);
     window.setTimeout(finish, prefersReducedMotion() ? 220 : 1500);
