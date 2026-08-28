@@ -115,32 +115,18 @@ export async function getPushState(userId: string | undefined): Promise<PushStat
 
   if (data) return "enabled";
 
-  // Abonnement local orphelin (expiré ou effacé côté serveur) : on le nettoie.
-  await subscription.unsubscribe().catch(() => undefined);
-  return "disabled";
+  // Abonnement local présent mais absent côté serveur : on le réenregistre
+  // plutôt que de le détruire (sinon l'appareil perd les push silencieusement).
+  try {
+    await saveSubscription(userId, subscription);
+    return "enabled";
+  } catch (error) {
+    console.warn("[push] resynchronisation impossible", error);
+    return "disabled";
+  }
 }
 
-/** Demande la permission, s'abonne au push et enregistre l'appareil. */
-export async function enablePush(userId: string): Promise<void> {
-  if (isIOS() && !isStandalone()) {
-    throw new Error("Ajoutez d'abord Relink à votre écran d'accueil pour activer les notifications.");
-  }
-  if (!pushSupported()) throw new Error("Les notifications ne sont pas supportées sur cet appareil.");
-
-  const permission = await Notification.requestPermission();
-  if (permission !== "granted") throw new Error("Notifications refusées dans les réglages du navigateur.");
-
-  const registration = await registerPushWorker();
-  await navigator.serviceWorker.ready;
-
-  const existing = await registration.pushManager.getSubscription();
-  const subscription =
-    existing ??
-    (await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource,
-    }));
-
+async function saveSubscription(userId: string, subscription: PushSubscription): Promise<void> {
   const json = subscription.toJSON() as { endpoint?: string; keys?: { p256dh?: string; auth?: string } };
   const p256dh = json.keys?.p256dh ?? keyToBase64(subscription.getKey("p256dh"));
   const auth = json.keys?.auth ?? keyToBase64(subscription.getKey("auth"));
@@ -165,6 +151,57 @@ export async function enablePush(userId: string): Promise<void> {
     .update({ push_enabled: true })
     .eq("id", userId);
   if (profileError) throw profileError;
+}
+
+/** Demande la permission, s'abonne au push et enregistre l'appareil. */
+export async function enablePush(userId: string): Promise<void> {
+  if (isIOS() && !isStandalone()) {
+    throw new Error("Ajoutez d'abord Relink à votre écran d'accueil pour activer les notifications.");
+  }
+  if (!pushSupported()) throw new Error("Les notifications ne sont pas supportées sur cet appareil.");
+
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") throw new Error("Notifications refusées dans les réglages du navigateur.");
+
+  const registration = await registerPushWorker();
+  await navigator.serviceWorker.ready;
+
+  const existing = await registration.pushManager.getSubscription();
+  const subscription =
+    existing ??
+    (await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource,
+    }));
+
+  await saveSubscription(userId, subscription);
+}
+
+/**
+ * Ouverture de l'application : sans jamais demander la permission, on remet
+ * l'abonnement en état (worker à jour, abonnement recréé, ligne serveur).
+ */
+export async function syncPushSubscription(userId: string): Promise<void> {
+  try {
+    if (!pushSupported()) return;
+    if (isIOS() && !isStandalone()) return;
+    if (Notification.permission !== "granted") return;
+
+    const registration = await registerPushWorker();
+    await navigator.serviceWorker.ready;
+
+    const subscription =
+      (await registration.pushManager.getSubscription()) ??
+      (await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource,
+      }));
+
+    await saveSubscription(userId, subscription);
+    console.info("[push] abonnement synchronisé");
+  } catch (error) {
+    console.warn("[push] synchronisation impossible", error);
+  }
 }
 
 export async function disablePush(userId: string): Promise<void> {
