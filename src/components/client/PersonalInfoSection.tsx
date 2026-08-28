@@ -61,7 +61,9 @@ export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
   async function save() {
     setBusy(true);
     try {
-      await updateMyProfile({ data: form });
+      await updateMyProfile({
+        data: { full_name: form.full_name, phone: form.phone, gender: form.gender || null },
+      });
       toast.success("Informations mises à jour");
       setEditing(false);
       await refresh();
