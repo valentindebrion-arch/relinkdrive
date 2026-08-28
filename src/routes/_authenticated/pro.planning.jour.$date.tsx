@@ -44,6 +44,8 @@ import { RELINK_TZ } from "@/lib/schedule";
 const searchSchema = z.object({
   view: z.enum(["week", "month", "year"]).optional(),
   cursor: z.string().optional(),
+  /** Deep link : course à mettre en évidence dans la journée. */
+  ride: z.string().optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/pro/planning/jour/$date")({
@@ -307,7 +309,15 @@ function todayKey() {
   }).format(new Date());
 }
 
-function Timeline({ plan, onPick }: { plan: DayPlan; onPick: (e: DayEvent) => void }) {
+function Timeline({
+  plan,
+  onPick,
+  highlightId,
+}: {
+  plan: DayPlan;
+  onPick: (e: DayEvent) => void;
+  highlightId?: string | null;
+}) {
   const { slices } = useMemo(() => buildTimeline(plan), [plan]);
   const [nowMin, setNowMin] = useState(() => nowMinutes());
   useEffect(() => {
@@ -437,6 +447,8 @@ function Timeline({ plan, onPick }: { plan: DayPlan; onPick: (e: DayEvent) => vo
             return (
               <button
                 key={ev.id}
+                id={`planning-event-${ev.id}`}
+                data-event-id={ev.id}
                 onClick={() => onPick(ev)}
                 title={`${minutesToTime(ev.startMin)} — ${ev.clientLabel ?? "Client non renseigné"}`}
                 className={cn(
@@ -449,6 +461,7 @@ function Timeline({ plan, onPick }: { plan: DayPlan; onPick: (e: DayEvent) => vo
                         ? "border-primary bg-primary/20"
                         : "border-primary/40 bg-primary/10",
                   s.conflict && "ring-2 ring-destructive",
+                  highlightId === ev.id && "planning-event-highlight",
                 )}
                 style={style}
               >
