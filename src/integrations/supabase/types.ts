@@ -3322,6 +3322,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      dossier_blocking_items: { Args: { _state: Json }; Returns: string }
       driver_available_between: {
         Args: { _driver: string; _end: string; _start: string }
         Returns: boolean
