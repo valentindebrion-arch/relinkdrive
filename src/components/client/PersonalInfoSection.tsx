@@ -169,14 +169,44 @@ export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
             )}
           </div>
 
-          <div className="flex gap-2">
-            <Button onClick={() => void save()} disabled={busy} className="min-h-11">
-              {busy ? "Enregistrement…" : "Enregistrer"}
-            </Button>
-            <Button variant="ghost" className="min-h-11" onClick={() => setEditing(false)}>
-              Annuler
-            </Button>
-          </div>
+          {confirmGender ? (
+            <div className="rounded-xl border border-warning/40 bg-warning/10 p-3">
+              <p className="text-sm font-semibold">Confirmer votre genre : {genderLabel(form.gender)}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{GENDER_LOCK_WARNING}</p>
+              <div className="mt-3 flex gap-2">
+                <Button className="min-h-11" disabled={busy} onClick={() => void save()}>
+                  {busy ? "Enregistrement…" : "Confirmer et enregistrer"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="min-h-11"
+                  onClick={() => setConfirmGender(false)}
+                >
+                  Revenir
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <Button
+                onClick={() => {
+                  if (!genderLocked && form.gender) {
+                    setConfirmGender(true);
+                    return;
+                  }
+                  void save();
+                }}
+                disabled={busy}
+                className="min-h-11"
+              >
+                {busy ? "Enregistrement…" : "Enregistrer"}
+              </Button>
+              <Button variant="ghost" className="min-h-11" onClick={() => setEditing(false)}>
+                Annuler
+              </Button>
+            </div>
+          )}
+
         </div>
       ) : (
         <dl className="mt-3 divide-y divide-border text-sm">
