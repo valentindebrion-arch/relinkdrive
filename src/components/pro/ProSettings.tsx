@@ -69,6 +69,8 @@ export function ProSettings() {
     facebook_url: "",
     tiktok_url: "",
     linkedin_url: "",
+    gender: "" as GenderValue | "",
+    woman_for_woman: false,
   });
   const [availability, setAvailability] = useState<string[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
