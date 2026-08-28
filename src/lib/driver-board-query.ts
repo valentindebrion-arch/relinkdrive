@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { getDriverBoard } from "@/lib/driver-board.functions";
@@ -75,7 +74,6 @@ export function useDriverBoard() {
     lastImminent.current = id;
     if (alreadyNotified(id)) return;
     const message = "Votre course programmée débute dans une heure.";
-    toast.info(message);
     try {
       if (typeof Notification !== "undefined" && Notification.permission === "granted") {
         new Notification("ReLink", { body: message });

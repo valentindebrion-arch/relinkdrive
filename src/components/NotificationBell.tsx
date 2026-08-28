@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, X } from "lucide-react";
-import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -25,6 +24,7 @@ export function NotificationBell({ className }: { className?: string }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [ring, setRing] = useState(false);
   const seen = useRef<Set<string>>(new Set());
   const primed = useRef(false);
   const bellRef = useRef<HTMLButtonElement>(null);
@@ -53,7 +53,8 @@ export function NotificationBell({ className }: { className?: string }) {
   const items = q.data ?? [];
   const unread = items.filter((n) => !n.read_at).length;
 
-  // Notifications push-up en direct
+  // Arrivée d'une notification : aucune popup, uniquement l'animation de la
+  // cloche et la mise à jour du badge.
   useEffect(() => {
     if (!items.length) return;
     if (!primed.current) {
@@ -61,18 +62,13 @@ export function NotificationBell({ className }: { className?: string }) {
       primed.current = true;
       return;
     }
-    items
-      .filter((n) => !seen.current.has(n.id))
-      .forEach((n) => {
-        seen.current.add(n.id);
-        toast(n.title, {
-          description: n.body ?? undefined,
-          action: n.link
-            ? { label: "Voir", onClick: () => navigate({ to: n.link! }) }
-            : undefined,
-        });
-      });
-  }, [items, navigate]);
+    const fresh = items.filter((n) => !seen.current.has(n.id));
+    if (!fresh.length) return;
+    fresh.forEach((n) => seen.current.add(n.id));
+    setRing(true);
+    const timer = window.setTimeout(() => setRing(false), 800);
+    return () => window.clearTimeout(timer);
+  }, [items]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -215,7 +211,7 @@ export function NotificationBell({ className }: { className?: string }) {
         }}
         className="relative flex size-9 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
       >
-        <Bell className="size-5" />
+        <Bell className={cn("size-5", ring && "bell-ring")} />
         {unread > 0 ? (
           <span key={unread} className="badge-pop absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
             {unread > 9 ? "9+" : unread}
