@@ -207,9 +207,16 @@ export function DriverApplicationReview({ driverId }: { driverId: string }) {
             <ShieldCheck className="size-5" /> Autoriser {name}
           </Button>
         ) : (
-          <p className="mt-4 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
-            Validez chaque élément obligatoire pour pouvoir autoriser ce chauffeur.
-          </p>
+          <div className="mt-4 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
+            <p>Autorisation bloquée par :</p>
+            <ul className="mt-1 list-disc pl-5">
+              {blocking.map((b) => (
+                <li key={b} className="text-destructive">
+                  {b}
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </header>
 
