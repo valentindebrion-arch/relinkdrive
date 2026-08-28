@@ -147,6 +147,9 @@ export function ProSettings() {
         facebook_url: pro.facebook_url || null,
         tiktok_url: pro.tiktok_url || null,
         linkedin_url: pro.linkedin_url || null,
+        gender: pro.gender || null,
+        // Sécurité : le serveur désactive de toute façon l'option si le genre change.
+        woman_for_woman: driverCanOfferWfw(pro.gender) && pro.woman_for_woman,
       })
       .eq("user_id", user!.id);
     if (e1 || e2) {
