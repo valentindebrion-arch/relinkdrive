@@ -753,6 +753,7 @@ export type Database = {
           driver_kind: string
           expiry_notified_at: string | null
           facebook_url: string | null
+          gender: string | null
           instagram_url: string | null
           languages: string[]
           linkedin_url: string | null
@@ -789,6 +790,7 @@ export type Database = {
           verification_status: Database["public"]["Enums"]["verification_status"]
           vtc_card_number: string | null
           whatsapp_number: string | null
+          woman_for_woman: boolean
           women_for_women_eligible: boolean
           women_for_women_verified_at: string | null
           women_for_women_verified_by: string | null
@@ -816,6 +818,7 @@ export type Database = {
           driver_kind?: string
           expiry_notified_at?: string | null
           facebook_url?: string | null
+          gender?: string | null
           instagram_url?: string | null
           languages?: string[]
           linkedin_url?: string | null
@@ -852,6 +855,7 @@ export type Database = {
           verification_status?: Database["public"]["Enums"]["verification_status"]
           vtc_card_number?: string | null
           whatsapp_number?: string | null
+          woman_for_woman?: boolean
           women_for_women_eligible?: boolean
           women_for_women_verified_at?: string | null
           women_for_women_verified_by?: string | null
@@ -879,6 +883,7 @@ export type Database = {
           driver_kind?: string
           expiry_notified_at?: string | null
           facebook_url?: string | null
+          gender?: string | null
           instagram_url?: string | null
           languages?: string[]
           linkedin_url?: string | null
@@ -915,6 +920,7 @@ export type Database = {
           verification_status?: Database["public"]["Enums"]["verification_status"]
           vtc_card_number?: string | null
           whatsapp_number?: string | null
+          woman_for_woman?: boolean
           women_for_women_eligible?: boolean
           women_for_women_verified_at?: string | null
           women_for_women_verified_by?: string | null
@@ -2125,6 +2131,7 @@ export type Database = {
           created_at: string
           email: string | null
           full_name: string
+          gender: string | null
           id: string
           location_enabled: boolean
           notification_prefs: Json
@@ -2138,6 +2145,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           full_name?: string
+          gender?: string | null
           id: string
           location_enabled?: boolean
           notification_prefs?: Json
@@ -2151,6 +2159,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           full_name?: string
+          gender?: string | null
           id?: string
           location_enabled?: boolean
           notification_prefs?: Json
@@ -2333,6 +2342,7 @@ export type Database = {
           trip_type: string | null
           updated_at: string
           vat_amount: number | null
+          woman_for_woman: boolean
         }
         Insert: {
           admin_cancellation_comment?: string | null
@@ -2384,6 +2394,7 @@ export type Database = {
           trip_type?: string | null
           updated_at?: string
           vat_amount?: number | null
+          woman_for_woman?: boolean
         }
         Update: {
           admin_cancellation_comment?: string | null
@@ -2435,6 +2446,7 @@ export type Database = {
           trip_type?: string | null
           updated_at?: string
           vat_amount?: number | null
+          woman_for_woman?: boolean
         }
         Relationships: []
       }
@@ -2582,6 +2594,7 @@ export type Database = {
           tax_vat_rate: number | null
           updated_at: string
           vat_amount: number | null
+          woman_for_woman: boolean
         }
         Insert: {
           admin_cancellation_comment?: string | null
@@ -2628,6 +2641,7 @@ export type Database = {
           tax_vat_rate?: number | null
           updated_at?: string
           vat_amount?: number | null
+          woman_for_woman?: boolean
         }
         Update: {
           admin_cancellation_comment?: string | null
@@ -2674,6 +2688,7 @@ export type Database = {
           tax_vat_rate?: number | null
           updated_at?: string
           vat_amount?: number | null
+          woman_for_woman?: boolean
         }
         Relationships: [
           {
@@ -3252,6 +3267,36 @@ export type Database = {
               reused: boolean
             }[]
           }
+        | {
+            Args: {
+              _cancellation_version: string
+              _cgu_version: string
+              _cgv_version: string
+              _comment: string
+              _distance_km: number
+              _driver: string
+              _dropoff: string
+              _idempotency_key: string
+              _immediate: boolean
+              _luggage: number
+              _passengers: number
+              _payment_method: string
+              _pickup: string
+              _proposed_price: number
+              _requirements: Json
+              _round_trip: boolean
+              _scheduled_at: string
+              _special_needs: string
+              _trip_type: string
+              _woman_for_woman: boolean
+            }
+            Returns: {
+              blocked: boolean
+              blocking_request_id: string
+              request_id: string
+              reused: boolean
+            }[]
+          }
       create_credit_note: {
         Args: { _amount_ttc?: number; _invoice_id: string; _reason: string }
         Returns: {
@@ -3398,6 +3443,7 @@ export type Database = {
           tiktok_url: string
           user_id: string
           whatsapp_number: string
+          woman_for_woman: boolean
           zone: string
         }[]
       }
@@ -3437,6 +3483,7 @@ export type Database = {
           vehicle_interior_photo_url: string
           vehicle_model: string
           vehicle_photo_url: string
+          woman_for_woman: boolean
           zone: string
         }[]
       }
@@ -3545,6 +3592,7 @@ export type Database = {
           verified_docs: string[]
           water: boolean
           whatsapp_number: string
+          woman_for_woman: boolean
           zone: string
         }[]
       }
@@ -3600,6 +3648,7 @@ export type Database = {
           vehicle_interior_photo_url: string
           vehicle_model: string
           vehicle_photo_url: string
+          woman_for_woman: boolean
           zone: string
         }[]
       }
@@ -3903,6 +3952,10 @@ export type Database = {
         Returns: undefined
       }
       track_driver_page_view: { Args: { _slug: string }; Returns: undefined }
+      woman_for_woman_eligible: {
+        Args: { _client: string; _driver: string }
+        Returns: boolean
+      }
     }
     Enums: {
       account_status:
