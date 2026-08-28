@@ -269,15 +269,22 @@ export function DossierPage() {
 
       {status !== "verified" && !readOnly ? (
         <div className="surface space-y-3 p-4">
-          {state?.complete ? (
+          {missingLabels.length === 0 ? (
             <p className="flex items-center gap-2 text-sm text-muted-foreground">
               <CheckCircle2 className="size-4 text-primary" /> Tous les éléments obligatoires sont
               fournis.
             </p>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              Il manque encore un ou plusieurs éléments obligatoires.
-            </p>
+            <div className="text-sm text-muted-foreground">
+              <p>Il manque :</p>
+              <ul className="mt-1 list-disc pl-5">
+                {missingLabels.map((label) => (
+                  <li key={label} className="text-destructive">
+                    {label}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
           <Button
             className="w-full"
