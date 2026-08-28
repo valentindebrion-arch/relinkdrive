@@ -17,7 +17,7 @@ import { ClientPageTransition } from "@/components/ClientPageTransition";
 import { useAuth } from "@/lib/auth";
 import { requireDriverAccess } from "@/lib/role-guard";
 import { useNewRequestsCount, useDriverProfile } from "@/lib/driver-queries";
-import { isDriverActive } from "@/lib/driver-dossier";
+import { isDriverActive, isDriverSubmitted } from "@/lib/driver-dossier";
 import { proOnlyPathFor, useMyPlan } from "@/lib/plan";
 import { ProUpsell } from "@/components/pro/ProUpsell";
 
@@ -43,8 +43,10 @@ function ProLayout() {
     if (!loading && !isDriver && !isAdmin) navigate({ to: "/espace", replace: true });
   }, [loading, isDriver, isAdmin, navigate]);
 
-  const active = isAdmin || isDriverActive(driver.data?.verification_status);
-  const badge = active ? newRequests.data || undefined : undefined;
+  const verified = isAdmin || isDriverActive(driver.data?.verification_status);
+  // L'espace complet s'ouvre dès l'envoi du dossier ; seule l'activité reste bridée.
+  const active = verified || isDriverSubmitted(driver.data?.verification_status);
+  const badge = verified ? newRequests.data || undefined : undefined;
   const lock = !isPro;
 
   // Compte non validé : menu réduit au dossier et aux informations obligatoires.

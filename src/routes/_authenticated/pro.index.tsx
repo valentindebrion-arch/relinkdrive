@@ -195,8 +195,9 @@ function ProOverview() {
   });
 
   const onDuty = !!driver.data?.on_duty;
+  const verified = driver.data?.verification_status === "verified";
   async function toggleDuty() {
-    if (!user?.id || dutyBusy) return;
+    if (!user?.id || dutyBusy || !verified) return;
     setDutyBusy(true);
     const { error } = await supabase.from("driver_profiles").update({ on_duty: !onDuty }).eq("user_id", user.id);
     setDutyBusy(false);
@@ -238,11 +239,12 @@ function ProOverview() {
       <button
         type="button"
         onClick={() => void toggleDuty()}
-        disabled={dutyBusy}
+        disabled={dutyBusy || !verified}
         aria-pressed={onDuty}
+        title={verified ? undefined : "Disponible après validation de votre dossier"}
         className={`surface grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 p-3 text-left transition-colors ${
           onDuty ? "border-primary/40 bg-primary/5" : ""
-        }`}
+        } ${verified ? "" : "opacity-60"}`}
       >
         <span
           className={`grid size-9 shrink-0 place-items-center rounded-full ${
@@ -257,9 +259,11 @@ function ProOverview() {
             {onDuty ? "Disponible" : "Indisponible"}
           </span>
           <span className="block text-[11px] text-muted-foreground">
-            {onDuty
-              ? "Vous pouvez recevoir de nouvelles demandes."
-              : "Vous ne recevez actuellement aucune nouvelle demande."}
+            {!verified
+              ? "Disponible après validation de votre dossier"
+              : onDuty
+                ? "Vous pouvez recevoir de nouvelles demandes."
+                : "Vous ne recevez actuellement aucune nouvelle demande."}
           </span>
         </span>
         <span
@@ -280,7 +284,9 @@ function ProOverview() {
                 <StatusBadge status={driver.data.verification_status} labels={VERIFICATION_LABELS} />
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Page publique activée après validation par un administrateur.
+                Votre dossier a bien été envoyé. Vous pouvez compléter votre profil pendant que
+                notre équipe vérifie vos documents. Vous pourrez vous mettre disponible dès
+                validation de votre dossier.
               </p>
             </div>
             <ChevronRight className="size-4 shrink-0 text-muted-foreground" />

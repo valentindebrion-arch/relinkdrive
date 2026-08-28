@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.guard_driver_on_duty() FROM PUBLIC, anon, authenticated;
