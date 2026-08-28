@@ -73,8 +73,10 @@ export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
         data: { full_name: form.full_name, phone: form.phone, gender: form.gender || null },
       });
       toast.success("Informations mises à jour");
+      setConfirmGender(false);
       setEditing(false);
       await refresh();
+
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Enregistrement impossible");
     } finally {
