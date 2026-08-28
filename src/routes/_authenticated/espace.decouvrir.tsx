@@ -14,6 +14,7 @@ import {
   type VehicleFilter,
 } from "@/lib/client-sector";
 import { searchSectors } from "@/lib/client-sector.functions";
+import { discoverDrivers } from "@/lib/driver-discovery.functions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/espace/decouvrir")({
@@ -38,31 +39,44 @@ export const Route = createFileRoute("/_authenticated/espace/decouvrir")({
 });
 
 type LocalDriver = DiscoverDriver & {
-  sector_match: boolean | null;
+  service_areas: string[] | null;
   quality_score: number | null;
+  distance_km: number | null;
 };
 
+type Scope = "nearby" | "all";
+
 const PREMIUM_COUNT = 3;
+const RADIUS_KM = 50;
 
 function DiscoverPage() {
   const { user } = useAuth();
-  const { sector, detecting, error, detect, setManual } = useClientSector();
+  const { sector, lat, lng, detecting, error, detect, setManual } = useClientSector();
   const [filter, setFilter] = useState<VehicleFilter>("all");
   const [pickerOpen, setPickerOpen] = useState(false);
 
+  const [scope, setScope] = useState<Scope>("nearby");
+
   const query = useQuery({
-    queryKey: ["local-drivers", user?.id, sector],
+    queryKey: ["discover-drivers", user?.id, scope, sector, lat, lng],
     enabled: !!user?.id,
     queryFn: async () => {
-      // Le secteur du client est prioritaire : il est appliqué côté base de données.
-      const args = sector ? { _sector: sector, _limit: 60 } : { _limit: 60 };
-      const { data, error: rpcError } = await supabase.rpc("get_local_drivers", args);
-      if (rpcError) throw rpcError;
-      return (data ?? []) as unknown as LocalDriver[];
+      // Le périmètre géographique est appliqué côté serveur (rayon réel en km).
+      return discoverDrivers({
+        data: {
+          scope,
+          sector: sector ?? null,
+          lat: lat ?? null,
+          lng: lng ?? null,
+          radiusKm: RADIUS_KM,
+        },
+      });
     },
   });
 
-  const all = useMemo(() => query.data ?? [], [query.data]);
+  const effectiveScope: Scope = query.data?.scope ?? scope;
+
+  const all = useMemo(() => (query.data?.drivers ?? []) as unknown as LocalDriver[], [query.data]);
   const filtered = useMemo(
     () => all.filter((d) => matchesVehicleFilter(filter, d.max_passengers, d.vehicle_category)),
     [all, filter],
@@ -98,6 +112,11 @@ function DiscoverPage() {
               ? `Autour de ${sector}`
               : "Choisir mon secteur"}
         </button>
+        {effectiveScope === "nearby" && sector ? (
+          <p className="mt-1 text-[12px] text-muted-foreground">
+            Autour d'{sector} · Rayon de {RADIUS_KM} km
+          </p>
+        ) : null}
         {error && !sector ? (
           <p className="mt-1 text-[12px] text-muted-foreground">
             {error} — choisissez votre secteur pour des résultats locaux.
@@ -107,8 +126,8 @@ function DiscoverPage() {
 
       {pickerOpen ? (
         <SectorPicker
-          onPick={(city) => {
-            setManual(city);
+          onPick={(city, la, ln) => {
+            setManual(city, la, ln);
             setPickerOpen(false);
           }}
           onDetect={() => {
@@ -118,7 +137,29 @@ function DiscoverPage() {
         />
       ) : null}
 
-      <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+      <div className="mt-3 grid grid-cols-2 gap-2 rounded-full border border-border bg-card p-1 shadow-card">
+        {([
+          { value: "nearby", label: "Autour de moi" },
+          { value: "all", label: "Tout afficher" },
+        ] as const).map((m) => (
+          <button
+            key={m.value}
+            type="button"
+            onClick={() => setScope(m.value)}
+            aria-pressed={scope === m.value}
+            className={cn(
+              "tap tap-active rounded-full px-3 py-2 text-[13px] font-bold transition",
+              scope === m.value
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground",
+            )}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
         {VEHICLE_FILTERS.map((f) => (
           <button
             key={f.value}
@@ -156,14 +197,20 @@ function DiscoverPage() {
         <EmptyState
           filter={filter}
           sector={sector}
+          scope={effectiveScope}
           hasOthers={all.length > 0}
           onReset={() => setFilter("all")}
+          onShowAll={() => setScope("all")}
         />
       ) : (
         <>
           <Section
             title="La crème de la crème"
-            subtitle="Une sélection de chauffeurs particulièrement appréciés dans votre secteur."
+            subtitle={
+              effectiveScope === "nearby"
+                ? "Une sélection de chauffeurs particulièrement appréciés dans votre secteur."
+                : "Les chauffeurs les plus appréciés du réseau ReLink."
+            }
           >
             {premium.map((d) => (
               <li key={d.user_id}>
@@ -174,8 +221,12 @@ function DiscoverPage() {
 
           {around.length ? (
             <Section
-              title="Chauffeurs autour de vous"
-              subtitle="Découvrez les chauffeurs ReLink qui interviennent dans votre secteur."
+              title={effectiveScope === "nearby" ? "Chauffeurs autour de vous" : "Tous les chauffeurs"}
+              subtitle={
+                effectiveScope === "nearby"
+                  ? `Les chauffeurs ReLink qui interviennent dans un rayon de ${RADIUS_KM} km.`
+                  : "Explorez l'ensemble du réseau ReLink, sans limite de distance."
+              }
             >
               {around.map((d) => (
                 <li key={d.user_id}>
@@ -211,13 +262,17 @@ function Section({
 function EmptyState({
   filter,
   sector,
+  scope,
   hasOthers,
   onReset,
+  onShowAll,
 }: {
   filter: VehicleFilter;
   sector: string | null;
+  scope: Scope;
   hasOthers: boolean;
   onReset: () => void;
+  onShowAll: () => void;
 }) {
   const vehicleLabel = filter === "van" ? "Van" : "Berline";
   return (
@@ -242,9 +297,18 @@ function EmptyState({
             moment
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            ReLink développe progressivement son réseau local. Revenez bientôt ou changez de
-            secteur.
+            ReLink développe progressivement son réseau local. Revenez bientôt, changez de secteur
+            ou explorez tout le réseau.
           </p>
+          {scope === "nearby" ? (
+            <button
+              type="button"
+              onClick={onShowAll}
+              className="tap tap-active mt-3 rounded-full bg-primary px-4 py-2 text-[13px] font-bold text-primary-foreground"
+            >
+              Tout afficher
+            </button>
+          ) : null}
         </>
       )}
     </div>
@@ -255,7 +319,7 @@ function SectorPicker({
   onPick,
   onDetect,
 }: {
-  onPick: (city: string) => void;
+  onPick: (city: string, lat: number, lng: number) => void;
   onDetect: () => void;
 }) {
   const [value, setValue] = useState("");
@@ -288,7 +352,7 @@ function SectorPicker({
             <li key={`${s.city}-${s.postcode}`}>
               <button
                 type="button"
-                onClick={() => onPick(s.city)}
+                onClick={() => onPick(s.city, s.lat, s.lng)}
                 className="tap w-full rounded-lg px-3 py-2 text-left text-sm font-semibold hover:bg-muted"
               >
                 {s.city}
