@@ -271,7 +271,11 @@ function DriverPublicPage() {
         void connQuery.refetch();
         return;
       }
-      toast.error(error.message);
+      toast.error(
+        /woman_for_woman_not_eligible/i.test(error.message)
+          ? WFW_CLIENT_BLOCKED_HELP
+          : error.message,
+      );
       return;
     }
     await supabase.from("analytics_events").insert({
