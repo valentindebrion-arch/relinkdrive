@@ -129,6 +129,23 @@ export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
               L'adresse e-mail est liée à votre connexion et ne peut pas être modifiée ici.
             </p>
           </div>
+          <div>
+            <Label htmlFor="pi-gender">{GENDER_FIELD_LABEL}</Label>
+            <select
+              id="pi-gender"
+              value={form.gender}
+              onChange={(e) => setForm({ ...form, gender: e.target.value as GenderValue | "" })}
+              className="mt-1 min-h-11 w-full rounded-xl border border-input bg-background px-3 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            >
+              <option value="">Non renseigné</option>
+              {GENDER_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-muted-foreground">{GENDER_HELP}</p>
+          </div>
           <div className="flex gap-2">
             <Button onClick={() => void save()} disabled={busy} className="min-h-11">
               {busy ? "Enregistrement…" : "Enregistrer"}
@@ -143,6 +160,7 @@ export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
           <Row label="Prénom et nom" value={profile?.full_name || "—"} />
           <Row label="E-mail" value={profile?.email || "—"} />
           <Row label="Téléphone" value={profile?.phone || "Non renseigné"} />
+          <Row label="Genre / sexe" value={genderLabel(profile?.gender)} />
         </dl>
       )}
 
