@@ -244,6 +244,15 @@ function DriverPublicPage() {
       toast.info("Seuls les comptes passagers peuvent ajouter un chauffeur à leur carnet.");
       return;
     }
+    // Woman for Woman : contrôle côté interface (le serveur refuse aussi la relation).
+    const access = wfwClientAccess(
+      (driverQuery.data as { woman_for_woman?: boolean } | null)?.woman_for_woman,
+      profile?.gender,
+    );
+    if (access !== "ok") {
+      toast.error(access === "incomplete" ? WFW_CLIENT_PROFILE_INCOMPLETE : WFW_CLIENT_BLOCKED_HELP);
+      return;
+    }
     setAdding(true);
     // Nombre de chauffeurs déjà au carnet : détermine la variante « premier chauffeur ».
     const { count: before } = await supabase
