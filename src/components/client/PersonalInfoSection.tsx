@@ -10,10 +10,13 @@ import { deleteMyAddress, saveMyAddress, updateMyProfile } from "@/lib/account.f
 import {
   GENDER_FIELD_LABEL,
   GENDER_HELP,
+  GENDER_LOCKED_HELP,
+  GENDER_LOCK_WARNING,
   GENDER_OPTIONS,
   genderLabel,
   type GenderValue,
 } from "@/lib/woman-for-woman";
+
 
 type Address = { id: string; label: string; address: string };
 
