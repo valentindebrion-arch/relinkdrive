@@ -709,6 +709,15 @@ function DriverPublicPage() {
                   : "Animaux non acceptés"}
             </Chip>
           </div>
+          {(d as { woman_for_woman?: boolean }).woman_for_woman ? (
+            <div className="mt-3 flex items-start gap-2 rounded-2xl border border-primary/25 bg-primary/5 px-3 py-2">
+              <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+              <p className="text-[12.5px] leading-snug">
+                <span className="font-semibold">{WFW_LABEL}</span>
+                <span className="block text-muted-foreground">{WFW_PUBLIC_DESCRIPTION}</span>
+              </p>
+            </div>
+          ) : null}
           {d.pets_conditions && d.pets_policy === "conditional" ? (
             <p className="mt-2 text-xs text-muted-foreground">{d.pets_conditions}</p>
           ) : null}
