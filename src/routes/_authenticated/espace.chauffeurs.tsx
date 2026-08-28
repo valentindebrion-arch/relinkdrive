@@ -10,6 +10,7 @@ import { ClientTopBar } from "@/components/client/ClientTopBar";
 import { saveRequestDraft } from "@/lib/request-draft";
 import { useSignedUrls } from "@/lib/storage";
 import { takeDriverCelebration, type DriverCelebration } from "@/lib/driver-celebration";
+import { WFW_LABEL } from "@/lib/woman-for-woman";
 
 export const Route = createFileRoute("/_authenticated/espace/chauffeurs")({
   component: ClientDrivers,
@@ -31,6 +32,7 @@ function ClientDrivers() {
   const navigate = useNavigate();
   const [addOpen, setAddOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [wfwOnly, setWfwOnly] = useState(false);
   const queryClient = useQueryClient();
 
   // Suite de l'animation d'ajout : la carte arrive dans la liste.
@@ -109,6 +111,8 @@ function ClientDrivers() {
             trips: (rides ?? []).filter((r) => r.driver_id === c.driver_id).length,
             ratingAvg,
             ratingCount,
+            womanForWoman:
+              (dp as { woman_for_woman?: boolean } | undefined)?.woman_for_woman ?? false,
           };
         }),
       );
@@ -123,11 +127,14 @@ function ClientDrivers() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return list;
-    return list.filter((d) =>
+    // Le filtre Woman for Woman s'applique dès les résultats : aucun chauffeur
+    // non compatible n'est proposé puis bloqué à la réservation.
+    const base = wfwOnly ? list.filter((d) => d.womanForWoman) : list;
+    if (!q) return base;
+    return base.filter((d) =>
       [d.name, d.vehicle, d.zone].filter(Boolean).join(" ").toLowerCase().includes(q),
     );
-  }, [list, search]);
+  }, [list, search, wfwOnly]);
 
   function book(driverId: string, mode: "now" | "later") {
     saveRequestDraft({
@@ -176,6 +183,22 @@ function ClientDrivers() {
             className="w-full bg-transparent text-sm font-semibold outline-none"
           />
         </label>
+      ) : null}
+
+      {list.some((d) => d.womanForWoman) ? (
+        <button
+          type="button"
+          aria-pressed={wfwOnly}
+          onClick={() => setWfwOnly((v) => !v)}
+          className={
+            "mt-3 inline-flex min-h-10 items-center gap-2 rounded-full border px-3.5 text-[13px] font-bold transition " +
+            (wfwOnly
+              ? "border-primary bg-primary/10 text-primary"
+              : "border-border bg-card text-muted-foreground")
+          }
+        >
+          {WFW_LABEL}
+        </button>
       ) : null}
 
       {celebration ? (
