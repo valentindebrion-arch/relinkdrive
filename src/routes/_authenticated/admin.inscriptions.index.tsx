@@ -101,6 +101,11 @@ function ApplicationsPage() {
                 <span className="block text-xs text-muted-foreground">
                   Envoyé le {formatDateTime(a.submittedAt)}
                 </span>
+                {a.status === "verified" && a.approvedAt ? (
+                  <span className="block text-xs text-primary">
+                    Validé le {formatDateTime(a.approvedAt)}
+                  </span>
+                ) : null}
               </span>
               <span className="flex shrink-0 items-center gap-2">
                 <span
