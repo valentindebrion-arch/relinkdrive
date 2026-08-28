@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, MapPin, Search } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { ClientTopBar } from "@/components/client/ClientTopBar";
 import { DiscoverDriverCard, type DiscoverDriver } from "@/components/client/DiscoverDriverCard";
@@ -138,10 +137,12 @@ function DiscoverPage() {
       ) : null}
 
       <div className="mt-3 grid grid-cols-2 gap-2 rounded-full border border-border bg-card p-1 shadow-card">
-        {([
-          { value: "nearby", label: "Autour de moi" },
-          { value: "all", label: "Tout afficher" },
-        ] as const).map((m) => (
+        {(
+          [
+            { value: "nearby", label: "Autour de moi" },
+            { value: "all", label: "Tout afficher" },
+          ] as const
+        ).map((m) => (
           <button
             key={m.value}
             type="button"
@@ -149,9 +150,7 @@ function DiscoverPage() {
             aria-pressed={scope === m.value}
             className={cn(
               "tap tap-active rounded-full px-3 py-2 text-[13px] font-bold transition",
-              scope === m.value
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground",
+              scope === m.value ? "bg-primary text-primary-foreground" : "text-muted-foreground",
             )}
           >
             {m.label}
@@ -221,7 +220,9 @@ function DiscoverPage() {
 
           {around.length ? (
             <Section
-              title={effectiveScope === "nearby" ? "Chauffeurs autour de vous" : "Tous les chauffeurs"}
+              title={
+                effectiveScope === "nearby" ? "Chauffeurs autour de vous" : "Tous les chauffeurs"
+              }
               subtitle={
                 effectiveScope === "nearby"
                   ? `Les chauffeurs ReLink qui interviennent dans un rayon de ${RADIUS_KM} km.`

@@ -29,16 +29,12 @@ export function haversineKm(a: GeoPoint, b: GeoPoint) {
   const dLng = toRad(b.lng - a.lng);
   const lat1 = toRad(a.lat);
   const lat2 = toRad(b.lat);
-  const h =
-    Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
   return Math.round(2 * R * Math.asin(Math.sqrt(h)) * 10) / 10;
 }
 
 /** Géocode une liste de libellés de lieux, avec cache partagé en base. */
-export async function geocodePlaces(
-  admin: any,
-  labels: string[],
-): Promise<Map<string, GeoPoint>> {
+export async function geocodePlaces(admin: any, labels: string[]): Promise<Map<string, GeoPoint>> {
   const wanted = new Map<string, string>();
   for (const raw of labels) {
     const norm = normalizePlace(raw ?? "");
