@@ -155,8 +155,12 @@ export function DossierPage() {
       toast.error(error.message);
       return;
     }
-    toast.success("Demande envoyée ✓");
+    toast.success("Demande envoyée ✓", {
+      description:
+        "Vous pouvez compléter votre profil pendant que notre équipe vérifie vos documents.",
+    });
     refresh();
+    void navigate({ to: "/pro" });
   }
 
   const missingLabels = (state?.sections ?? []).flatMap((s) =>
