@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Car, Compass, MapPin, Plus, Search, Users } from "lucide-react";
+import { Car, Check, Compass, MapPin, Plus, Search, UserMinus, Users } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchConnectedProfile, fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { useAuth } from "@/lib/auth";
@@ -9,8 +10,23 @@ import { AddDriverSheet } from "@/components/client/AddDriverSheet";
 import { ClientTopBar } from "@/components/client/ClientTopBar";
 import { saveRequestDraft } from "@/lib/request-draft";
 import { useSignedUrls } from "@/lib/storage";
-import { takeDriverCelebration, type DriverCelebration } from "@/lib/driver-celebration";
+import {
+  prefersReducedMotion,
+  takeDriverCelebration,
+  type DriverCelebration,
+} from "@/lib/driver-celebration";
 import { WFW_LABEL } from "@/lib/woman-for-woman";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
 
 export const Route = createFileRoute("/_authenticated/espace/chauffeurs")({
   component: ClientDrivers,
@@ -34,6 +50,9 @@ function ClientDrivers() {
   const [search, setSearch] = useState("");
   const [wfwOnly, setWfwOnly] = useState(false);
   const queryClient = useQueryClient();
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [toRemove, setToRemove] = useState<{ id: string; name: string } | null>(null);
+
 
   // Suite de l'animation d'ajout : la carte arrive dans la liste.
   const [celebration, setCelebration] = useState<DriverCelebration | null>(null);
@@ -153,6 +172,35 @@ function ClientDrivers() {
     void navigate({ to: "/espace/demandes" });
   }
 
+  /**
+   * Retrait du carnet : suppression backend d'abord, puis animation rouge de sortie.
+   * En cas d'échec, la carte reste en place et une erreur est affichée.
+   */
+  async function removeDriver(driverId: string, name: string) {
+    if (!user?.id || removingId) return;
+    const firstName = name.split(" ")[0] || "Le chauffeur";
+    const { error } = await supabase
+      .from("driver_client_connections")
+      .delete()
+      .eq("client_id", user.id)
+      .eq("driver_id", driverId);
+    if (error) {
+      toast.error("Le retrait a échoué. Réessayez dans un instant.");
+      return;
+    }
+    const finish = () => {
+      setRemovingId(null);
+      void queryClient.invalidateQueries({ queryKey: ["client-drivers", user.id] });
+      void queryClient.invalidateQueries({ queryKey: ["discover-drivers"] });
+      void queryClient.invalidateQueries({ queryKey: ["top10-drivers"] });
+      toast.success(`${firstName} a été retiré de vos chauffeurs`);
+    };
+    setRemovingId(driverId);
+    window.setTimeout(finish, prefersReducedMotion() ? 220 : 1500);
+  }
+
+
+
   return (
     <div className="w-full max-w-full pb-4">
       <ClientTopBar />
@@ -255,9 +303,10 @@ function ClientDrivers() {
           filtered.map((d) => {
             const photoUrl = d.photoPath ? (photos.data?.[d.photoPath] ?? null) : null;
             const justAdded = celebration?.driverId === d.id;
+            const leaving = removingId === d.id;
             const cardClassName = `group block overflow-hidden rounded-[1.25rem] border bg-card shadow-card transition active:scale-[0.985] ${
               justAdded ? "achievement-land border-primary/40" : "border-border"
-            }${d.womanForWoman ? " wfw-card" : ""}`;
+            }${leaving ? " removal-exit border-destructive/50" : ""}${d.womanForWoman ? " wfw-card" : ""}`;
             const cardBody = (
               <>
                 {/* Photo véhicule — pleine largeur, format identique aux cartes Top 10 */}
@@ -280,6 +329,9 @@ function ClientDrivers() {
                       <Car className="size-8" aria-hidden />
                     </span>
                   )}
+                  {leaving ? (
+                    <span className="removal-veil pointer-events-none absolute inset-0 bg-destructive/25" />
+                  ) : null}
                 </div>
 
                 {/* Informations compactes */}
@@ -301,17 +353,23 @@ function ClientDrivers() {
                       <p className="truncate text-[15px] leading-tight font-extrabold">{d.name}</p>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        book(d.id, "now");
-                      }}
-                      className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-[12px] font-bold text-primary-foreground transition active:scale-95"
-                    >
-                      Réserver
-                    </button>
+                    {leaving ? (
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-destructive px-3 py-1.5 text-[12px] font-bold text-destructive-foreground">
+                        <Check className="size-3.5" strokeWidth={3} /> Chauffeur retiré
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          book(d.id, "now");
+                        }}
+                        className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-[12px] font-bold text-primary-foreground transition active:scale-95"
+                      >
+                        Réserver
+                      </button>
+                    )}
                   </div>
 
                   <p className="mt-1 truncate text-[13px] font-semibold text-muted-foreground">
@@ -338,35 +396,78 @@ function ClientDrivers() {
                     </span>
                   </div>
 
-                  <p className="mt-2 text-[11px] font-semibold text-muted-foreground">
-                    {d.trips > 0
-                      ? `${d.trips} trajet${d.trips > 1 ? "s" : ""} ensemble`
-                      : "Aucun trajet ensemble"}
-                  </p>
+                  <div className="mt-2 flex items-center justify-between gap-3">
+                    <p className="text-[11px] font-semibold text-muted-foreground">
+                      {d.trips > 0
+                        ? `${d.trips} trajet${d.trips > 1 ? "s" : ""} ensemble`
+                        : "Aucun trajet ensemble"}
+                    </p>
+                    {leaving ? null : (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setToRemove({ id: d.id, name: d.name });
+                        }}
+                        className="inline-flex shrink-0 items-center gap-1 text-[11px] font-bold text-muted-foreground underline underline-offset-4 transition hover:text-destructive"
+                      >
+                        <UserMinus className="size-3.5" aria-hidden /> Retirer
+                      </button>
+                    )}
+                  </div>
                 </div>
               </>
             );
 
-            return d.slug ? (
-              <Link
-                key={d.id}
-                to="/chauffeur/$slug"
-                params={{ slug: d.slug }}
-                className={cardClassName}
-              >
-                {cardBody}
-              </Link>
-            ) : (
-              <div key={d.id} className={cardClassName}>
-                {cardBody}
+            const card =
+              d.slug && !leaving ? (
+                <Link to="/chauffeur/$slug" params={{ slug: d.slug }} className={cardClassName}>
+                  {cardBody}
+                </Link>
+              ) : (
+                <div className={cardClassName}>{cardBody}</div>
+              );
+
+            return (
+              <div key={d.id} className={leaving ? "removal-slot" : undefined}>
+                {card}
               </div>
             );
           })
         )}
+
       </div>
 
 
+      <AlertDialog open={!!toRemove} onOpenChange={(o) => !o && setToRemove(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Retirer {toRemove?.name.split(" ")[0] ?? "ce chauffeur"} de vos chauffeurs ?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Il ne figurera plus dans votre carnet et vous ne pourrez plus lui envoyer de demande
+              de trajet. Vous pourrez l'ajouter de nouveau à tout moment.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const target = toRemove;
+                setToRemove(null);
+                if (target) void removeDriver(target.id, target.name);
+              }}
+            >
+              Retirer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AddDriverSheet open={addOpen} onClose={() => setAddOpen(false)} />
+
     </div>
   );
 }
