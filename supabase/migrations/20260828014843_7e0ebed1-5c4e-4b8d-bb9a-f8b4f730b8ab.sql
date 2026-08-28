@@ -1,0 +1,1 @@
+ALTER FUNCTION public.is_service_role_call() SET search_path = public;
