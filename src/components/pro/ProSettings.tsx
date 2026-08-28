@@ -17,6 +17,8 @@ import {
   GENDER_HELP,
   GENDER_OPTIONS,
   WFW_DRIVER_DESCRIPTION,
+  WFW_DRIVER_OPT_IN_HELP,
+  WFW_DRIVER_OPT_IN_TITLE,
   WFW_DRIVER_PROFILE_REQUIRED,
   WFW_LABEL,
   driverCanOfferWfw,
@@ -165,6 +167,49 @@ export function ProSettings() {
     <>
       <PageHeader title="Paramètres" description="Votre profil chauffeur et votre page publique." />
       <div className="surface grid gap-4 p-5 sm:grid-cols-2">
+        {/* Woman for Woman : premier bloc des informations personnelles. */}
+        <div className="rounded-xl border border-border p-4 sm:col-span-2">
+          <p className="text-base font-semibold">{WFW_LABEL}</p>
+          <label className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2">
+            <span className="min-w-0 text-sm font-medium">{WFW_DRIVER_OPT_IN_TITLE}</span>
+            <Switch
+              checked={pro.woman_for_woman}
+              disabled={!driverCanOfferWfw(pro.gender)}
+              onCheckedChange={(v) => setPro((p) => ({ ...p, woman_for_woman: v }))}
+            />
+          </label>
+          <p className="mt-2 text-xs text-muted-foreground">{WFW_DRIVER_OPT_IN_HELP}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{WFW_DRIVER_DESCRIPTION}</p>
+
+          <div className="mt-4 border-t border-border pt-4">
+            <Label htmlFor="pro-gender">{GENDER_FIELD_LABEL}</Label>
+            <select
+              id="pro-gender"
+              value={pro.gender}
+              onChange={(e) => {
+                const gender = e.target.value as GenderValue | "";
+                setPro((p) => ({
+                  ...p,
+                  gender,
+                  woman_for_woman: driverCanOfferWfw(gender) ? p.woman_for_woman : false,
+                }));
+              }}
+              className="mt-1 min-h-11 w-full rounded-xl border border-input bg-background px-3 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            >
+              <option value="">Non renseigné</option>
+              {GENDER_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-muted-foreground">{GENDER_HELP}</p>
+            {!driverCanOfferWfw(pro.gender) ? (
+              <p className="mt-2 text-xs text-muted-foreground">{WFW_DRIVER_PROFILE_REQUIRED}</p>
+            ) : null}
+          </div>
+        </div>
+
         <div>
           <Label htmlFor="fn">Nom complet</Label>
           <Input id="fn" value={account.full_name} maxLength={80} onChange={(e) => setAccount({ ...account, full_name: e.target.value })} />
@@ -254,45 +299,6 @@ export function ProSettings() {
           ) : null}
         </div>
 
-        <div className="rounded-xl border border-border p-4 sm:col-span-2">
-          <Label htmlFor="pro-gender">{GENDER_FIELD_LABEL}</Label>
-          <select
-            id="pro-gender"
-            value={pro.gender}
-            onChange={(e) => {
-              const gender = e.target.value as GenderValue | "";
-              setPro((p) => ({
-                ...p,
-                gender,
-                woman_for_woman: driverCanOfferWfw(gender) ? p.woman_for_woman : false,
-              }));
-            }}
-            className="mt-1 min-h-11 w-full rounded-xl border border-input bg-background px-3 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-          >
-            <option value="">Non renseigné</option>
-            {GENDER_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-          <p className="mt-1 text-xs text-muted-foreground">{GENDER_HELP}</p>
-
-          <label className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2">
-            <span className="min-w-0">
-              <span className="block text-sm font-medium">{WFW_LABEL}</span>
-              <span className="block text-xs text-muted-foreground">{WFW_DRIVER_DESCRIPTION}</span>
-            </span>
-            <Switch
-              checked={pro.woman_for_woman}
-              disabled={!driverCanOfferWfw(pro.gender)}
-              onCheckedChange={(v) => setPro((p) => ({ ...p, woman_for_woman: v }))}
-            />
-          </label>
-          {!driverCanOfferWfw(pro.gender) ? (
-            <p className="mt-2 text-xs text-muted-foreground">{WFW_DRIVER_PROFILE_REQUIRED}</p>
-          ) : null}
-        </div>
 
 
 

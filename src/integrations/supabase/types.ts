@@ -3952,6 +3952,10 @@ export type Database = {
         Returns: undefined
       }
       track_driver_page_view: { Args: { _slug: string }; Returns: undefined }
+      wfw_relation_allowed: {
+        Args: { _client: string; _driver: string }
+        Returns: boolean
+      }
       woman_for_woman_eligible: {
         Args: { _client: string; _driver: string }
         Returns: boolean

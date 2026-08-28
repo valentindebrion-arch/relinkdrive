@@ -41,7 +41,15 @@ import { TripEstimator, type TripEstimate } from "@/components/driver/TripEstima
 import { saveRequestDraft } from "@/lib/request-draft";
 import { prefersReducedMotion, setDriverCelebration } from "@/lib/driver-celebration";
 import { DriverAddedOverlay } from "@/components/client/DriverAddedOverlay";
-import { WFW_LABEL, WFW_PUBLIC_DESCRIPTION } from "@/lib/woman-for-woman";
+import {
+  WFW_CLIENT_BLOCKED_HELP,
+  WFW_CLIENT_BLOCKED_TITLE,
+  WFW_CLIENT_PROFILE_INCOMPLETE,
+  WFW_LABEL,
+  WFW_PUBLIC_DESCRIPTION,
+  WFW_PUBLIC_HEADER_NOTICE,
+  wfwClientAccess,
+} from "@/lib/woman-for-woman";
 
 import { BRAND } from "@/lib/brand";
 import {
@@ -143,7 +151,7 @@ function Chip({ icon: Icon, children }: { icon?: typeof Car; children: React.Rea
 
 function DriverPublicPage() {
   const { slug } = Route.useParams();
-  const { session, user, isDriver, isAdmin } = useAuth();
+  const { session, user, profile, isDriver, isAdmin } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [adding, setAdding] = useState(false);
@@ -236,6 +244,15 @@ function DriverPublicPage() {
       toast.info("Seuls les comptes passagers peuvent ajouter un chauffeur à leur carnet.");
       return;
     }
+    // Woman for Woman : contrôle côté interface (le serveur refuse aussi la relation).
+    const access = wfwClientAccess(
+      (driverQuery.data as { woman_for_woman?: boolean } | null)?.woman_for_woman,
+      profile?.gender,
+    );
+    if (access !== "ok") {
+      toast.error(access === "incomplete" ? WFW_CLIENT_PROFILE_INCOMPLETE : WFW_CLIENT_BLOCKED_HELP);
+      return;
+    }
     setAdding(true);
     // Nombre de chauffeurs déjà au carnet : détermine la variante « premier chauffeur ».
     const { count: before } = await supabase
@@ -254,7 +271,11 @@ function DriverPublicPage() {
         void connQuery.refetch();
         return;
       }
-      toast.error(error.message);
+      toast.error(
+        /woman_for_woman_not_eligible/i.test(error.message)
+          ? WFW_CLIENT_BLOCKED_HELP
+          : error.message,
+      );
       return;
     }
     await supabase.from("analytics_events").insert({
@@ -340,6 +361,10 @@ function DriverPublicPage() {
   const firstName = (d.full_name ?? "").trim().split(" ")[0] || "Votre chauffeur";
   const lastInitial = (d.full_name ?? "").trim().split(" ")[1]?.charAt(0);
   const accepting = d.accepting_requests !== false;
+  // Woman for Woman : la relation n'est possible qu'avec une cliente compatible.
+  const womanForWoman = Boolean((d as { woman_for_woman?: boolean }).woman_for_woman);
+  const wfwAccess = wfwClientAccess(womanForWoman, profile?.gender);
+  const wfwLocked = !isDriver && !isAdmin && wfwAccess !== "ok";
   const verifiedDocs: string[] = d.verified_docs ?? [];
   const memberSince = d.member_since
     ? new Date(d.member_since).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
@@ -419,8 +444,32 @@ function DriverPublicPage() {
     void navigate({ to: "/espace/demandes", search: { driver: d!.user_id } });
   }
 
+  /** Message de blocage Woman for Woman (profil incompatible ou incomplet). */
+  const wfwGate = wfwLocked ? (
+    <div className="rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
+      {wfwAccess === "incomplete" ? (
+        <>
+          <p className="font-semibold">{WFW_LABEL}</p>
+          <p className="mt-1 text-[13px] text-muted-foreground">
+            {WFW_CLIENT_PROFILE_INCOMPLETE}
+          </p>
+          <Button asChild className="mt-3 h-11 w-full">
+            <Link to="/espace/parametres">Compléter mon profil</Link>
+          </Button>
+        </>
+      ) : (
+        <>
+          <p className="font-semibold">{WFW_CLIENT_BLOCKED_TITLE}</p>
+          <p className="mt-1 text-[13px] text-muted-foreground">{WFW_CLIENT_BLOCKED_HELP}</p>
+        </>
+      )}
+    </div>
+  ) : null;
+
   const bookAction =
-    isDriver || isAdmin ? (
+    wfwGate && !connected ? (
+      wfwGate
+    ) : isDriver || isAdmin ? (
       <p className="rounded-2xl border border-border bg-muted/40 px-4 py-3 text-center text-sm text-muted-foreground">
         Vous êtes connecté avec un compte professionnel : seuls les comptes passagers peuvent
         ajouter un chauffeur à leur carnet.
@@ -535,7 +584,17 @@ function DriverPublicPage() {
               <ShieldCheck className="size-3.5" /> Chauffeur vérifié {BRAND.name}
             </span>
             <span className="text-xs font-medium text-muted-foreground">{experienceLabel}</span>
+            {womanForWoman ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
+                <Sparkles className="size-3.5" /> {WFW_LABEL}
+              </span>
+            ) : null}
           </div>
+          {womanForWoman ? (
+            <p className="border-t border-border bg-primary/5 px-5 py-3 text-[12.5px] leading-snug text-muted-foreground">
+              {WFW_PUBLIC_HEADER_NOTICE}
+            </p>
+          ) : null}
           {d.public_intro || d.bio ? (
             <p className="flex gap-2 border-t border-border px-5 py-4 text-sm whitespace-pre-line text-muted-foreground">
               <Quote className="size-4 shrink-0 fill-primary text-primary" />
@@ -561,7 +620,9 @@ function DriverPublicPage() {
               Ajoutez d'abord {firstName} à mes chauffeurs pour estimer ou réserver une course avec
               lui.
             </p>
-            {isDriver || isAdmin ? (
+            {wfwGate ? (
+              <div className="mt-4">{wfwGate}</div>
+            ) : isDriver || isAdmin ? (
               <p className="mt-4 rounded-2xl border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
                 Seuls les comptes passagers peuvent ajouter un chauffeur à leur carnet.
               </p>

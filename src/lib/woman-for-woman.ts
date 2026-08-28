@@ -58,3 +58,37 @@ export function isWfwServerError(message: string) {
 
 export const WFW_SERVER_ERROR_MESSAGE =
   "Cette mise en relation Woman for Woman n'est pas possible : elle est réservée aux clientes et aux chauffeuses proposant ce service.";
+
+/** Bloc « Informations personnelles » du chauffeur. */
+export const WFW_DRIVER_OPT_IN_TITLE = "Je souhaite être éligible au service Woman for Woman";
+
+export const WFW_DRIVER_OPT_IN_HELP =
+  "Ce service permet d'être mise en relation uniquement avec des clientes compatibles avec Woman for Woman.";
+
+/** Explication affichée en haut de la fiche publique d'une chauffeuse WFW. */
+export const WFW_PUBLIC_HEADER_NOTICE =
+  "Cette chauffeuse propose exclusivement des trajets Woman for Woman avec des clientes compatibles avec ce service.";
+
+export const WFW_CLIENT_BLOCKED_TITLE = "Service réservé aux clientes Woman for Woman";
+
+export const WFW_CLIENT_BLOCKED_HELP =
+  "Cette chauffeuse propose uniquement des trajets Woman for Woman. Votre profil n'est pas compatible avec ce service.";
+
+export const WFW_CLIENT_PROFILE_INCOMPLETE =
+  "Pour ajouter cette chauffeuse, complétez d'abord votre profil afin de vérifier votre compatibilité avec Woman for Woman.";
+
+export type WfwAccess = "ok" | "blocked" | "incomplete";
+
+/**
+ * Accès d'un compte client à une chauffeuse Woman for Woman.
+ * Le contrôle définitif est refait côté base de données.
+ */
+export function wfwClientAccess(
+  driverWomanForWoman: boolean | null | undefined,
+  clientGender: string | null | undefined,
+): WfwAccess {
+  if (!driverWomanForWoman) return "ok";
+  if (clientGender === "female") return "ok";
+  if (!clientGender) return "incomplete";
+  return "blocked";
+}
