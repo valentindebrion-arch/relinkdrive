@@ -53,7 +53,8 @@ export function NotificationBell({ className }: { className?: string }) {
   const items = q.data ?? [];
   const unread = items.filter((n) => !n.read_at).length;
 
-  // Notifications push-up en direct
+  // Arrivée d'une notification : aucune popup, uniquement l'animation de la
+  // cloche et la mise à jour du badge.
   useEffect(() => {
     if (!items.length) return;
     if (!primed.current) {
@@ -61,18 +62,13 @@ export function NotificationBell({ className }: { className?: string }) {
       primed.current = true;
       return;
     }
-    items
-      .filter((n) => !seen.current.has(n.id))
-      .forEach((n) => {
-        seen.current.add(n.id);
-        toast(n.title, {
-          description: n.body ?? undefined,
-          action: n.link
-            ? { label: "Voir", onClick: () => navigate({ to: n.link! }) }
-            : undefined,
-        });
-      });
-  }, [items, navigate]);
+    const fresh = items.filter((n) => !seen.current.has(n.id));
+    if (!fresh.length) return;
+    fresh.forEach((n) => seen.current.add(n.id));
+    setRing(true);
+    const timer = window.setTimeout(() => setRing(false), 800);
+    return () => window.clearTimeout(timer);
+  }, [items]);
 
   useEffect(() => {
     if (!user?.id) return;
