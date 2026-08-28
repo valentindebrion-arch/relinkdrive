@@ -67,15 +67,23 @@ export const WFW_DRIVER_OPT_IN_HELP =
 
 /** Explication affichée en haut de la fiche publique d'une chauffeuse WFW. */
 export const WFW_PUBLIC_HEADER_NOTICE =
-  "Cette chauffeuse propose exclusivement des trajets Woman for Woman avec des clientes compatibles avec ce service.";
+  "Cette chauffeuse accepte uniquement les profils féminins pour être ajoutée à Mes chauffeurs et pour les trajets Woman for Woman.";
 
-export const WFW_CLIENT_BLOCKED_TITLE = "Service réservé aux clientes Woman for Woman";
+export const WFW_CLIENT_BLOCKED_TITLE = "Ajout réservé aux profils féminins";
 
 export const WFW_CLIENT_BLOCKED_HELP =
-  "Cette chauffeuse propose uniquement des trajets Woman for Woman. Votre profil n'est pas compatible avec ce service.";
+  "Cette chauffeuse accepte uniquement les profils féminins dans le cadre du service Woman for Woman. Vous pouvez consulter son profil, mais vous ne pouvez pas l'ajouter à vos chauffeurs.";
 
 export const WFW_CLIENT_PROFILE_INCOMPLETE =
   "Pour ajouter cette chauffeuse, complétez d'abord votre profil afin de vérifier votre compatibilité avec Woman for Woman.";
+
+/** Le genre est déclaré une seule fois : il devient définitif une fois enregistré. */
+export const GENDER_LOCK_WARNING =
+  "Cette information ne pourra plus être modifiée une fois enregistrée.";
+
+export const GENDER_LOCKED_HELP =
+  "Information définitive : votre genre a été enregistré et ne peut plus être modifié.";
+
 
 export type WfwAccess = "ok" | "blocked" | "incomplete";
 
