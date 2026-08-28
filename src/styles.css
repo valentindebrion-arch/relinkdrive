@@ -832,3 +832,28 @@
     animation: achievement-fade 0.18s ease-out reverse both !important;
   }
 }
+
+/* Deep link « Voir sur le planning » : mise en évidence discrète (1 à 2 s). */
+@keyframes planning-highlight {
+  0% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
+  }
+  15% {
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.45), 0 0 14px 2px hsl(var(--primary) / 0.35);
+  }
+  100% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
+  }
+}
+
+.planning-event-highlight {
+  border-color: hsl(var(--primary)) !important;
+  animation: planning-highlight 1.8s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .planning-event-highlight {
+    animation: none;
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.5);
+  }
+}
