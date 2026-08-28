@@ -58,11 +58,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
       setTimeout(() => void load(s?.user?.id), 0);
+      if (s?.user?.id) void syncPushSubscription(s.user.id);
     });
     supabase.auth.getSession().then(async ({ data }) => {
       setSession(data.session);
       await load(data.session?.user?.id);
       setLoading(false);
+      if (data.session?.user?.id) void syncPushSubscription(data.session.user.id);
     });
     return () => sub.subscription.unsubscribe();
   }, []);
