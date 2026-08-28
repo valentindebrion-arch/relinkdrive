@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.guard_profile_gender_immutable() FROM PUBLIC, anon, authenticated;

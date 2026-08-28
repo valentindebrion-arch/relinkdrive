@@ -38,6 +38,11 @@
   --color-warning-foreground: var(--warning-foreground);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
+  --color-wfw: var(--wfw);
+  --color-wfw-foreground: var(--wfw-foreground);
+  --color-wfw-surface: var(--wfw-surface);
+  --color-wfw-border: var(--wfw-border);
+
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -91,6 +96,12 @@
   --warning-foreground: oklch(0.26 0.05 75);
   --info: oklch(0.6 0.11 240);
   --info-foreground: oklch(0.99 0.01 240);
+  /* Woman for Woman : teinte violine discrète */
+  --wfw: oklch(0.52 0.14 315);
+  --wfw-foreground: oklch(0.99 0.01 315);
+  --wfw-surface: oklch(0.985 0.014 315);
+  --wfw-border: oklch(0.88 0.045 315);
+
   --border: oklch(0.91 0.008 165);
   --input: oklch(0.91 0.008 165);
   --ring: oklch(0.63 0.15 158);
@@ -132,6 +143,11 @@
   --warning-foreground: oklch(0.2 0.04 75);
   --info: oklch(0.68 0.11 240);
   --info-foreground: oklch(0.18 0.02 240);
+  --wfw: oklch(0.78 0.11 315);
+  --wfw-foreground: oklch(0.18 0.03 315);
+  --wfw-surface: oklch(0.26 0.035 315);
+  --wfw-border: oklch(0.78 0.11 315 / 32%);
+
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 16%);
   --ring: oklch(0.7 0.15 158);
@@ -192,6 +208,23 @@
   }
 
 }
+
+/* Woman for Woman : identité visuelle discrète (fond légèrement violine) */
+@utility wfw-card {
+  background-color: var(--color-wfw-surface);
+  border-color: var(--color-wfw-border);
+}
+
+@utility wfw-tint {
+  background-color: var(--color-wfw-surface);
+}
+
+@utility wfw-badge {
+  color: var(--color-wfw);
+  background-color: color-mix(in oklab, var(--color-wfw) 12%, transparent);
+  border: 1px solid var(--color-wfw-border);
+}
+
 
 @utility surface {
   background-color: var(--color-card);

@@ -446,7 +446,7 @@ function DriverPublicPage() {
 
   /** Message de blocage Woman for Woman (profil incompatible ou incomplet). */
   const wfwGate = wfwLocked ? (
-    <div className="rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
+    <div className="wfw-card rounded-2xl border px-4 py-3 text-sm">
       {wfwAccess === "incomplete" ? (
         <>
           <p className="font-semibold">{WFW_LABEL}</p>
@@ -531,7 +531,7 @@ function DriverPublicPage() {
         </Link>
 
         {/* 1 — Identité du chauffeur */}
-        <section className="surface overflow-hidden">
+        <section className={`surface overflow-hidden${womanForWoman ? " wfw-card" : ""}`}>
           <div className="flex items-center gap-3.5 p-5 pb-4">
             <div className="relative shrink-0">
               {d.avatar_url ? (
@@ -585,13 +585,13 @@ function DriverPublicPage() {
             </span>
             <span className="text-xs font-medium text-muted-foreground">{experienceLabel}</span>
             {womanForWoman ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
+              <span className="wfw-badge inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold">
                 <Sparkles className="size-3.5" /> {WFW_LABEL}
               </span>
             ) : null}
           </div>
           {womanForWoman ? (
-            <p className="border-t border-border bg-primary/5 px-5 py-3 text-[12.5px] leading-snug text-muted-foreground">
+            <p className="wfw-tint border-t border-border px-5 py-3 text-[12.5px] leading-snug text-muted-foreground">
               {WFW_PUBLIC_HEADER_NOTICE}
             </p>
           ) : null}
@@ -772,8 +772,8 @@ function DriverPublicPage() {
             </Chip>
           </div>
           {(d as { woman_for_woman?: boolean }).woman_for_woman ? (
-            <div className="mt-3 flex items-start gap-2 rounded-2xl border border-primary/25 bg-primary/5 px-3 py-2">
-              <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+            <div className="wfw-card mt-3 flex items-start gap-2 rounded-2xl border px-3 py-2">
+              <Sparkles className="mt-0.5 size-4 shrink-0 text-wfw" aria-hidden />
               <p className="text-[12.5px] leading-snug">
                 <span className="font-semibold">{WFW_LABEL}</span>
                 <span className="block text-muted-foreground">{WFW_PUBLIC_DESCRIPTION}</span>

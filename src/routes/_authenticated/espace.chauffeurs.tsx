@@ -253,11 +253,16 @@ function ClientDrivers() {
             const justAdded = celebration?.driverId === d.id;
             const cardClassName = `group block overflow-hidden rounded-[1.25rem] border bg-card shadow-card transition active:scale-[0.985] ${
               justAdded ? "achievement-land border-primary/40" : "border-border"
-            }`;
+            }${d.womanForWoman ? " wfw-card" : ""}`;
             const cardBody = (
               <>
                 {/* Photo véhicule — pleine largeur, format identique aux cartes Top 10 */}
                 <div className="relative aspect-video w-full bg-muted">
+                  {d.womanForWoman ? (
+                    <span className="wfw-badge absolute top-3 right-3 z-10 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-extrabold shadow-sm backdrop-blur-sm">
+                      {WFW_LABEL}
+                    </span>
+                  ) : null}
                   {photoUrl ? (
                     <img
                       src={photoUrl}

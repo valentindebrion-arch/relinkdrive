@@ -10,10 +10,13 @@ import { deleteMyAddress, saveMyAddress, updateMyProfile } from "@/lib/account.f
 import {
   GENDER_FIELD_LABEL,
   GENDER_HELP,
+  GENDER_LOCKED_HELP,
+  GENDER_LOCK_WARNING,
   GENDER_OPTIONS,
   genderLabel,
   type GenderValue,
 } from "@/lib/woman-for-woman";
+
 
 type Address = { id: string; label: string; address: string };
 
@@ -30,8 +33,13 @@ export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
   const [newAddress, setNewAddress] = useState({ label: "", address: "" });
   const [addingAddress, setAddingAddress] = useState(false);
 
+  // Le genre est une déclaration unique : une fois enregistré, il est définitif.
+  const genderLocked = !!profile?.gender;
+  const [confirmGender, setConfirmGender] = useState(false);
+
   useEffect(() => {
     if (profile)
+
       setForm({
         full_name: profile.full_name ?? "",
         phone: profile.phone ?? "",
@@ -65,8 +73,10 @@ export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
         data: { full_name: form.full_name, phone: form.phone, gender: form.gender || null },
       });
       toast.success("Informations mises à jour");
+      setConfirmGender(false);
       setEditing(false);
       await refresh();
+
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Enregistrement impossible");
     } finally {
@@ -133,29 +143,72 @@ export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
           </div>
           <div>
             <Label htmlFor="pi-gender">{GENDER_FIELD_LABEL}</Label>
-            <select
-              id="pi-gender"
-              value={form.gender}
-              onChange={(e) => setForm({ ...form, gender: e.target.value as GenderValue | "" })}
-              className="mt-1 min-h-11 w-full rounded-xl border border-input bg-background px-3 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-            >
-              <option value="">Non renseigné</option>
-              {GENDER_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-muted-foreground">{GENDER_HELP}</p>
+            {genderLocked ? (
+              <>
+                <Input id="pi-gender" value={genderLabel(profile?.gender)} disabled />
+                <p className="mt-1 text-xs text-muted-foreground">{GENDER_LOCKED_HELP}</p>
+              </>
+            ) : (
+              <>
+                <select
+                  id="pi-gender"
+                  value={form.gender}
+                  onChange={(e) => setForm({ ...form, gender: e.target.value as GenderValue | "" })}
+                  className="mt-1 min-h-11 w-full rounded-xl border border-input bg-background px-3 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                >
+                  <option value="">Non renseigné</option>
+                  {GENDER_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-muted-foreground">{GENDER_HELP}</p>
+                <p className="mt-1 text-xs font-semibold text-warning-foreground">
+                  {GENDER_LOCK_WARNING}
+                </p>
+              </>
+            )}
           </div>
-          <div className="flex gap-2">
-            <Button onClick={() => void save()} disabled={busy} className="min-h-11">
-              {busy ? "Enregistrement…" : "Enregistrer"}
-            </Button>
-            <Button variant="ghost" className="min-h-11" onClick={() => setEditing(false)}>
-              Annuler
-            </Button>
-          </div>
+
+          {confirmGender ? (
+            <div className="rounded-xl border border-warning/40 bg-warning/10 p-3">
+              <p className="text-sm font-semibold">Confirmer votre genre : {genderLabel(form.gender)}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{GENDER_LOCK_WARNING}</p>
+              <div className="mt-3 flex gap-2">
+                <Button className="min-h-11" disabled={busy} onClick={() => void save()}>
+                  {busy ? "Enregistrement…" : "Confirmer et enregistrer"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="min-h-11"
+                  onClick={() => setConfirmGender(false)}
+                >
+                  Revenir
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <Button
+                onClick={() => {
+                  if (!genderLocked && form.gender) {
+                    setConfirmGender(true);
+                    return;
+                  }
+                  void save();
+                }}
+                disabled={busy}
+                className="min-h-11"
+              >
+                {busy ? "Enregistrement…" : "Enregistrer"}
+              </Button>
+              <Button variant="ghost" className="min-h-11" onClick={() => setEditing(false)}>
+                Annuler
+              </Button>
+            </div>
+          )}
+
         </div>
       ) : (
         <dl className="mt-3 divide-y divide-border text-sm">

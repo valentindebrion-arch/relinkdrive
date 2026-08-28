@@ -20,17 +20,32 @@ export const updateMyProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => profileSchema.parse(input))
   .handler(async ({ data, context }) => {
+    // Le genre est définitif : on ne le transmet que s'il n'a jamais été renseigné.
+    const { data: current } = await context.supabase
+      .from("profiles")
+      .select("gender")
+      .eq("id", context.userId)
+      .maybeSingle();
+    const genderLocked = !!current?.gender;
     const { error } = await context.supabase
       .from("profiles")
       .update({
         full_name: data.full_name,
         phone: data.phone || null,
-        ...(data.gender !== undefined ? { gender: data.gender } : {}),
+        ...(!genderLocked && data.gender !== undefined && data.gender !== null
+          ? { gender: data.gender }
+          : {}),
       })
       .eq("id", context.userId);
-    if (error) throw new Error(error.message);
+    if (error) {
+      if (/gender_already_set/i.test(error.message)) {
+        throw new Error("Votre genre a déjà été enregistré et ne peut plus être modifié.");
+      }
+      throw new Error(error.message);
+    }
     return { ok: true as const };
   });
+
 
 /** Enregistre une adresse personnelle du client connecté. */
 export const saveMyAddress = createServerFn({ method: "POST" })
