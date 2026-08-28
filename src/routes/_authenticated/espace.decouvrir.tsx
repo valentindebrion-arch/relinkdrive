@@ -1,27 +1,34 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, Sparkles } from "lucide-react";
+import { Loader2, MapPin, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { ClientTopBar } from "@/components/client/ClientTopBar";
+import { DiscoverDriverCard, type DiscoverDriver } from "@/components/client/DiscoverDriverCard";
 import { useSignedUrls } from "@/lib/storage";
-import { WFW_LABEL } from "@/lib/woman-for-woman";
+import {
+  useClientSector,
+  matchesVehicleFilter,
+  VEHICLE_FILTERS,
+  type VehicleFilter,
+} from "@/lib/client-sector";
+import { searchSectors } from "@/lib/client-sector.functions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/espace/decouvrir")({
   head: () => ({
     meta: [
-      { title: "Trouver un chauffeur — ReLink" },
+      { title: "Trouver un chauffeur près de vous — ReLink" },
       {
         name: "description",
         content:
-          "Découvrez des chauffeurs VTC recommandés par ReLink et ajoutez-les à votre réseau personnel.",
+          "Découvrez les chauffeurs VTC ReLink qui interviennent réellement dans votre secteur et ajoutez-les à votre réseau.",
       },
-      { property: "og:title", content: "Trouver un chauffeur — ReLink" },
+      { property: "og:title", content: "Trouver un chauffeur près de vous — ReLink" },
       {
         property: "og:description",
-        content: "La crème de la crème : des chauffeurs de confiance à ajouter à votre carnet.",
+        content: "La crème de la crème locale et tous les chauffeurs qui couvrent votre secteur.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -30,63 +37,107 @@ export const Route = createFileRoute("/_authenticated/espace/decouvrir")({
   component: DiscoverPage,
 });
 
-type Discovered = {
-  rank_position: number;
-  already_connected: boolean;
-  on_duty: boolean | null;
-  accepting_requests: boolean | null;
-  price_per_km: number | null;
-  vehicle_interior_photo_url: string | null;
-  user_id: string;
-  slug: string | null;
-  display_name: string;
-  avatar_url: string | null;
-  city: string | null;
-  zone: string | null;
-  public_intro: string | null;
-  bio: string | null;
-  services: string[] | null;
-  long_distance: boolean | null;
-  airports: string[] | null;
-  vehicle_brand: string | null;
-  vehicle_model: string | null;
-  vehicle_category: string | null;
-  vehicle_photo_url: string | null;
-  max_passengers: number | null;
-  rating_avg: number | null;
-  rating_count: number;
-  woman_for_woman: boolean | null;
+type LocalDriver = DiscoverDriver & {
+  sector_match: boolean | null;
+  quality_score: number | null;
 };
+
+const PREMIUM_COUNT = 3;
 
 function DiscoverPage() {
   const { user } = useAuth();
+  const { sector, detecting, error, detect, setManual } = useClientSector();
+  const [filter, setFilter] = useState<VehicleFilter>("all");
+  const [pickerOpen, setPickerOpen] = useState(false);
+
   const query = useQuery({
-    queryKey: ["top10-drivers", user?.id],
+    queryKey: ["local-drivers", user?.id, sector],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_top10_drivers");
-      if (error) throw error;
-      return (data ?? []) as unknown as Discovered[];
+      // Le secteur du client est prioritaire : il est appliqué côté base de données.
+      const { data, error: rpcError } = await supabase.rpc("get_local_drivers", {
+        _sector: sector,
+        _limit: 60,
+      });
+      if (rpcError) throw rpcError;
+      return (data ?? []) as unknown as LocalDriver[];
     },
   });
 
-  const list = useMemo(() => query.data ?? [], [query.data]);
-  const exteriorPhotos = useMemo(
-    () => list.map((d) => d.vehicle_photo_url).filter((p): p is string => !!p),
-    [list],
+  const all = useMemo(() => query.data ?? [], [query.data]);
+  const filtered = useMemo(
+    () => all.filter((d) => matchesVehicleFilter(filter, d.max_passengers, d.vehicle_category)),
+    [all, filter],
   );
-  const photos = useSignedUrls("vehicles", exteriorPhotos);
+  const premium = useMemo(() => filtered.slice(0, PREMIUM_COUNT), [filtered]);
+  const around = useMemo(() => filtered.slice(PREMIUM_COUNT), [filtered]);
+
+  const photos = useSignedUrls(
+    "vehicles",
+    useMemo(
+      () => filtered.map((d) => d.vehicle_photo_url).filter((p): p is string => !!p),
+      [filtered],
+    ),
+  );
+  const photoOf = (d: LocalDriver) =>
+    d.vehicle_photo_url ? (photos.data?.[d.vehicle_photo_url] ?? null) : null;
 
   return (
     <div className="w-full max-w-full pb-6">
       <ClientTopBar />
 
       <header className="mt-1">
-        <h1 className="text-[22px] leading-tight font-black tracking-tight">La crème de la crème</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Les chauffeurs sélectionnés par ReLink.
-        </p>
+        <h1 className="text-[22px] leading-tight font-black tracking-tight">Trouver</h1>
+        <button
+          type="button"
+          onClick={() => setPickerOpen((v) => !v)}
+          className="tap mt-1.5 inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[13px] font-semibold shadow-card"
+        >
+          <MapPin className="size-3.5 text-primary" aria-hidden />
+          {detecting
+            ? "Détection de votre secteur…"
+            : sector
+              ? `Autour de ${sector}`
+              : "Choisir mon secteur"}
+        </button>
+        {error && !sector ? (
+          <p className="mt-1 text-[12px] text-muted-foreground">
+            {error} — choisissez votre secteur pour des résultats locaux.
+          </p>
+        ) : null}
       </header>
+
+      {pickerOpen ? (
+        <SectorPicker
+          onPick={(city) => {
+            setManual(city);
+            setPickerOpen(false);
+          }}
+          onDetect={() => {
+            detect();
+            setPickerOpen(false);
+          }}
+        />
+      ) : null}
+
+      <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+        {VEHICLE_FILTERS.map((f) => (
+          <button
+            key={f.value}
+            type="button"
+            onClick={() => setFilter(f.value)}
+            aria-pressed={filter === f.value}
+            className={cn(
+              "tap tap-active shrink-0 rounded-full border px-3.5 py-1.5 text-[13px] font-bold transition",
+              filter === f.value
+                ? "border-primary bg-primary text-primary-foreground shadow-card"
+                : "border-border bg-card text-foreground",
+            )}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
 
       {query.isLoading ? (
         <div className="mt-4 space-y-4">
@@ -103,124 +154,161 @@ function DiscoverPage() {
             </div>
           ))}
         </div>
-      ) : !list.length ? (
-        <div className="mt-4 rounded-[1.25rem] border border-border/70 bg-card p-6 text-center shadow-card">
-          <p className="text-sm font-bold">Aucune sélection disponible pour le moment</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Revenez plus tard pour découvrir les chauffeurs ReLink.
-          </p>
-        </div>
+      ) : !filtered.length ? (
+        <EmptyState
+          filter={filter}
+          sector={sector}
+          hasOthers={all.length > 0}
+          onReset={() => setFilter("all")}
+        />
       ) : (
-        <ul className="mt-4 space-y-4">
-          {list.map((driver) => {
-            const photoUrl = driver.vehicle_photo_url
-              ? (photos.data?.[driver.vehicle_photo_url] ?? null)
-              : null;
-            // Woman for Woman : identité visuelle légèrement violine, jamais masquée.
-            const wfw = !!driver.woman_for_woman;
-            const wfwBadge = wfw ? (
-              <span className="wfw-badge absolute top-3 right-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-extrabold shadow-sm backdrop-blur-sm">
-                <Sparkles className="size-3" aria-hidden /> {WFW_LABEL}
-              </span>
-            ) : null;
-            return (
-              <li key={driver.user_id}>
-                {driver.slug ? (
-                  <Link
-                    to="/chauffeur/$slug"
-                    params={{ slug: driver.slug }}
-                    className={cn(
-                      "group tap tap-active block overflow-hidden rounded-[1.25rem] border border-border bg-card shadow-card transition",
-                      wfw && "wfw-card",
-                    )}
-                  >
-                    <div className="relative aspect-video w-full bg-muted">
-                      {photoUrl ? (
-                        <img
-                          src={photoUrl}
-                          alt={`Véhicule de ${driver.display_name}`}
-                          className="size-full cursor-default object-cover"
-                          loading="lazy"
-                          draggable={false}
-                        />
-                      ) : null}
-                      <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-primary/92 px-2.5 py-1 text-[11px] font-extrabold text-primary-foreground shadow-sm backdrop-blur-sm">
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          aria-hidden
-                        >
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        Sélection ReLink
-                      </span>
-                      {wfwBadge}
-                    </div>
-                    <div className="flex items-center justify-between px-4 py-3.5">
-                      <span className="text-[15px] font-extrabold tracking-tight">
-                        {driver.display_name}
-                      </span>
-                      <span className="flex items-center gap-0.5 text-[13px] font-semibold text-primary">
-                        Voir le profil
-                        <ChevronRight
-                          className="size-4 transition group-hover:translate-x-0.5"
-                          aria-hidden
-                        />
-                      </span>
-                    </div>
-                  </Link>
-                ) : (
-                  <div
-                    className={cn(
-                      "group overflow-hidden rounded-[1.25rem] border border-border bg-card shadow-card",
-                      wfw && "wfw-card",
-                    )}
-                  >
-                    <div className="relative aspect-video w-full bg-muted">
-                      {photoUrl ? (
-                        <img
-                          src={photoUrl}
-                          alt={`Véhicule de ${driver.display_name}`}
-                          className="size-full object-cover"
-                          loading="lazy"
-                        />
-                      ) : null}
-                      <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-primary/92 px-2.5 py-1 text-[11px] font-extrabold text-primary-foreground shadow-sm backdrop-blur-sm">
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          aria-hidden
-                        >
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        Sélection ReLink
-                      </span>
-                      {wfwBadge}
-                    </div>
-                    <div className="px-4 py-3.5">
-                      <span className="text-[15px] font-extrabold tracking-tight">
-                        {driver.display_name}
-                      </span>
-                    </div>
-                  </div>
-                )}
+        <>
+          <Section
+            title="La crème de la crème"
+            subtitle="Une sélection de chauffeurs particulièrement appréciés dans votre secteur."
+          >
+            {premium.map((d) => (
+              <li key={d.user_id}>
+                <DiscoverDriverCard driver={d} photoUrl={photoOf(d)} premium />
               </li>
-            );
-          })}
-        </ul>
+            ))}
+          </Section>
+
+          {around.length ? (
+            <Section
+              title="Chauffeurs autour de vous"
+              subtitle="Découvrez les chauffeurs ReLink qui interviennent dans votre secteur."
+            >
+              {around.map((d) => (
+                <li key={d.user_id}>
+                  <DiscoverDriverCard driver={d} photoUrl={photoOf(d)} />
+                </li>
+              ))}
+            </Section>
+          ) : null}
+        </>
       )}
+    </div>
+  );
+}
+
+function Section({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="mt-6">
+      <h2 className="text-[17px] font-black tracking-tight">{title}</h2>
+      <p className="mt-0.5 text-[13px] text-muted-foreground">{subtitle}</p>
+      <ul className="mt-3 space-y-4">{children}</ul>
+    </section>
+  );
+}
+
+function EmptyState({
+  filter,
+  sector,
+  hasOthers,
+  onReset,
+}: {
+  filter: VehicleFilter;
+  sector: string | null;
+  hasOthers: boolean;
+  onReset: () => void;
+}) {
+  const vehicleLabel = filter === "van" ? "Van" : "Berline";
+  return (
+    <div className="mt-5 rounded-[1.25rem] border border-border/70 bg-card p-6 text-center shadow-card">
+      {filter !== "all" && hasOthers ? (
+        <>
+          <p className="text-sm font-bold">
+            Aucun {vehicleLabel} ReLink trouvé dans votre secteur pour le moment.
+          </p>
+          <button
+            type="button"
+            onClick={onReset}
+            className="tap tap-active mt-3 rounded-full bg-primary px-4 py-2 text-[13px] font-bold text-primary-foreground"
+          >
+            Voir tous les chauffeurs
+          </button>
+        </>
+      ) : (
+        <>
+          <p className="text-sm font-bold">
+            Aucun chauffeur ReLink {sector ? `autour de ${sector}` : "dans ce secteur"} pour le
+            moment
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            ReLink développe progressivement son réseau local. Revenez bientôt ou changez de
+            secteur.
+          </p>
+        </>
+      )}
+    </div>
+  );
+}
+
+function SectorPicker({
+  onPick,
+  onDetect,
+}: {
+  onPick: (city: string) => void;
+  onDetect: () => void;
+}) {
+  const [value, setValue] = useState("");
+  const suggestions = useQuery({
+    queryKey: ["sector-suggestions", value.trim()],
+    enabled: value.trim().length >= 2,
+    queryFn: async () => {
+      const res = await searchSectors({ data: { query: value.trim() } });
+      return res.items;
+    },
+  });
+
+  return (
+    <div className="mt-3 rounded-[1.25rem] border border-border bg-card p-3 shadow-card">
+      <label className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
+        <Search className="size-4 text-muted-foreground" aria-hidden />
+        <input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="Votre ville (ex. Clermont-Ferrand)"
+          className="w-full bg-transparent text-sm outline-none"
+        />
+        {suggestions.isFetching ? (
+          <Loader2 className="size-4 animate-spin text-muted-foreground" aria-hidden />
+        ) : null}
+      </label>
+      {suggestions.data?.length ? (
+        <ul className="mt-2 space-y-1">
+          {suggestions.data.map((s) => (
+            <li key={`${s.city}-${s.postcode}`}>
+              <button
+                type="button"
+                onClick={() => onPick(s.city)}
+                className="tap w-full rounded-lg px-3 py-2 text-left text-sm font-semibold hover:bg-muted"
+              >
+                {s.city}
+                <span className="ml-2 text-[12px] font-normal text-muted-foreground">
+                  {s.postcode}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <button
+        type="button"
+        onClick={onDetect}
+        className="tap mt-2 inline-flex items-center gap-1.5 text-[13px] font-bold text-primary"
+      >
+        <MapPin className="size-3.5" aria-hidden /> Utiliser ma position
+      </button>
     </div>
   );
 }
