@@ -193,10 +193,17 @@ export function DriverApplicationReview({ driverId }: { driverId: string }) {
         </p>
 
         {verified ? (
-          <p className="mt-4 flex items-center gap-2 rounded-lg bg-primary/10 p-3 text-sm font-medium text-primary">
-            <CheckCircle2 className="size-4" /> Chauffeur autorisé
-            {driver?.approved_at ? ` le ${formatDateTime(driver.approved_at)}` : ""}
-          </p>
+          <div className="mt-4 rounded-lg bg-primary/10 p-3 text-sm text-primary">
+            <p className="flex items-center gap-2 font-medium">
+              <CheckCircle2 className="size-4" /> Dossier validé
+            </p>
+            {driver?.approved_at ? (
+              <p className="mt-1 text-xs">
+                Validé le {formatDateTime(driver.approved_at)}
+                {approver ? ` par ${approver}` : ""}
+              </p>
+            ) : null}
+          </div>
         ) : state?.all_approved ? (
           <Button
             size="lg"
@@ -204,11 +211,11 @@ export function DriverApplicationReview({ driverId }: { driverId: string }) {
             disabled={busy === "authorize"}
             onClick={() => setAuthorizeOpen(true)}
           >
-            <ShieldCheck className="size-5" /> Autoriser {name}
+            <ShieldCheck className="size-5" /> Valider le dossier
           </Button>
         ) : (
           <div className="mt-4 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
-            <p>Autorisation bloquée par :</p>
+            <p>Validation bloquée par :</p>
             <ul className="mt-1 list-disc pl-5">
               {blocking.map((b) => (
                 <li key={b} className="text-destructive">
