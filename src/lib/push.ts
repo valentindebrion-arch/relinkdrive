@@ -54,7 +54,7 @@ function keyToBase64(key: ArrayBuffer | null): string {
 }
 
 /** Version du service worker : à incrémenter à chaque modification de /sw-push.js. */
-export const SW_VERSION = "3";
+export const SW_VERSION = "4";
 const SW_VERSION_KEY = "relink:sw-version";
 
 export async function registerPushWorker(): Promise<ServiceWorkerRegistration> {
