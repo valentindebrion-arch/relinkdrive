@@ -405,6 +405,8 @@ function ClientRequests() {
           ...p,
           on_duty: profile?.on_duty ?? false,
           zone: profile?.zone ?? null,
+          woman_for_woman:
+            (profile as { woman_for_woman?: boolean } | undefined)?.woman_for_woman ?? false,
           vehicle,
           favorite: p.id === favoriteId,
         };
