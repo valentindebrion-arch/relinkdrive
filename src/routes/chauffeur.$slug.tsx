@@ -348,6 +348,10 @@ function DriverPublicPage() {
   const firstName = (d.full_name ?? "").trim().split(" ")[0] || "Votre chauffeur";
   const lastInitial = (d.full_name ?? "").trim().split(" ")[1]?.charAt(0);
   const accepting = d.accepting_requests !== false;
+  // Woman for Woman : la relation n'est possible qu'avec une cliente compatible.
+  const womanForWoman = Boolean((d as { woman_for_woman?: boolean }).woman_for_woman);
+  const wfwAccess = wfwClientAccess(womanForWoman, profile?.gender);
+  const wfwLocked = !isDriver && !isAdmin && wfwAccess !== "ok";
   const verifiedDocs: string[] = d.verified_docs ?? [];
   const memberSince = d.member_since
     ? new Date(d.member_since).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
