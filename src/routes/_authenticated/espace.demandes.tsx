@@ -723,6 +723,13 @@ function ClientRequests() {
         });
         return;
       }
+      if (isWfwServerError(error.message)) {
+        setWomanForWoman(false);
+        setStep(2);
+        setSubmitError(WFW_SERVER_ERROR_MESSAGE);
+        toast.error("Woman for Woman indisponible", { description: WFW_SERVER_ERROR_MESSAGE });
+        return;
+      }
       if (/payment_method/i.test(error.message)) {
         setPaymentMethod(null);
         setStep(1);
