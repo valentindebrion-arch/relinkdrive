@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { resolveSector } from "@/lib/client-sector.functions";
+import { departmentFromPostcode } from "@/lib/departments";
 
 const STORAGE_KEY = "relink.client-sector";
 
 export type SectorState = {
-  /** Secteur retenu (ville) — null tant qu'aucune source n'a abouti. */
+  /** Commune retenue — informative uniquement. */
   sector: string | null;
-  /** Coordonnées du secteur, utilisées pour le rayon « autour de moi ». */
+  /** Code département du client : c'est le vrai secteur de recherche. */
+  department: string | null;
+  /** Coordonnées de la commune (informatif). */
   lat: number | null;
   lng: number | null;
   /** Origine du secteur : position du navigateur ou choix manuel. */
@@ -15,7 +18,13 @@ export type SectorState = {
   error: string | null;
 };
 
-type Stored = { sector: string; source: "geo" | "manual"; lat: number | null; lng: number | null };
+type Stored = {
+  sector: string;
+  department: string | null;
+  source: "geo" | "manual";
+  lat: number | null;
+  lng: number | null;
+};
 
 function readStored(): Stored | null {
   if (typeof window === "undefined") return null;
@@ -26,6 +35,7 @@ function readStored(): Stored | null {
     if (!parsed.sector) return null;
     return {
       sector: parsed.sector,
+      department: typeof parsed.department === "string" ? parsed.department : null,
       source: parsed.source === "geo" ? "geo" : "manual",
       lat: typeof parsed.lat === "number" ? parsed.lat : null,
       lng: typeof parsed.lng === "number" ? parsed.lng : null,
@@ -35,13 +45,22 @@ function readStored(): Stored | null {
   }
 }
 
+function persist(stored: Stored) {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+  } catch {
+    /* stockage indisponible : le secteur reste valable pour la session */
+  }
+}
+
 /**
  * Secteur du client : géolocalisation si autorisée, sinon dernier secteur choisi,
- * sinon sélection manuelle. La page « Trouver » ne doit jamais être bloquée.
+ * sinon sélection manuelle. Le département déduit pilote la découverte.
  */
 export function useClientSector() {
   const [state, setState] = useState<SectorState>({
     sector: null,
+    department: null,
     lat: null,
     lng: null,
     source: null,
@@ -49,18 +68,21 @@ export function useClientSector() {
     error: null,
   });
 
-  const setManual = useCallback((city: string, lat?: number, lng?: number) => {
-    const point = { lat: lat ?? null, lng: lng ?? null };
-    setState({ sector: city, ...point, source: "manual", detecting: false, error: null });
-    try {
-      window.localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ sector: city, source: "manual", ...point }),
-      );
-    } catch {
-      /* stockage indisponible : le secteur reste valable pour la session */
-    }
-  }, []);
+  const setManual = useCallback(
+    (city: string, department: string | null, lat?: number, lng?: number) => {
+      const point = { lat: lat ?? null, lng: lng ?? null };
+      setState({
+        sector: city,
+        department,
+        ...point,
+        source: "manual",
+        detecting: false,
+        error: null,
+      });
+      persist({ sector: city, department, source: "manual", ...point });
+    },
+    [],
+  );
 
   const detect = useCallback(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
@@ -71,19 +93,20 @@ export function useClientSector() {
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
-          const { city } = await resolveSector({
+          const res = await resolveSector({
             data: { lat: pos.coords.latitude, lng: pos.coords.longitude },
           });
+          const department = res.department ?? departmentFromPostcode(res.postcode);
           const point = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          setState({ sector: city, ...point, source: "geo", detecting: false, error: null });
-          try {
-            window.localStorage.setItem(
-              STORAGE_KEY,
-              JSON.stringify({ sector: city, source: "geo", ...point }),
-            );
-          } catch {
-            /* ignore */
-          }
+          setState({
+            sector: res.city,
+            department,
+            ...point,
+            source: "geo",
+            detecting: false,
+            error: null,
+          });
+          persist({ sector: res.city, department, source: "geo", ...point });
         } catch {
           setState((s) => ({ ...s, detecting: false, error: "Secteur introuvable" }));
         }
@@ -98,6 +121,7 @@ export function useClientSector() {
     if (stored) {
       setState({
         sector: stored.sector,
+        department: stored.department,
         lat: stored.lat,
         lng: stored.lng,
         source: stored.source,
