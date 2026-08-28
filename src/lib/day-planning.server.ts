@@ -134,18 +134,20 @@ export async function buildDayPlan(
     ),
   );
   const names = new Map<string, string>();
+  const phones = new Map<string, string>();
   if (clientIds.length) {
-    const { data: clients } = await supabase
-      .from("profiles")
-      .select("id, full_name")
-      .in("id", clientIds);
+    // get_connected_profiles ne renvoie le téléphone qu'au chauffeur réellement lié au client.
+    const { data: clients } = await supabase.rpc("get_connected_profiles", { _ids: clientIds });
     ((clients ?? []) as any[]).forEach((c) => {
       const label = (c.full_name ?? "").trim();
       if (label) names.set(c.id, label);
+      const phone = (c.phone ?? "").trim();
+      if (phone) phones.set(c.id, phone);
     });
   }
   const clientName = (id: string | null, fallback: string | null) =>
     (id ? names.get(id) : null) ?? (fallback?.trim() || null) ?? "Client non renseigné";
+  const clientPhone = (id: string | null) => (id ? (phones.get(id) ?? null) : null);
 
   const events: DayEvent[] = [];
 
@@ -159,6 +161,7 @@ export async function buildDayPlan(
       clientLabel: r.is_block
         ? (r.client_label ?? "Indisponibilité")
         : clientName(r.client_id, r.client_label),
+      clientPhone: r.is_block ? null : clientPhone(r.client_id),
       pickup: r.pickup_address,
       dropoff: r.dropoff_address,
       status: r.status,
@@ -177,6 +180,7 @@ export async function buildDayPlan(
       startMin: parisMinutes(q.scheduled_at),
       durationMin: await duration(q.pickup_address, q.dropoff_address),
       clientLabel: clientName(q.client_id, null),
+      clientPhone: clientPhone(q.client_id),
       pickup: q.pickup_address,
       dropoff: q.dropoff_address,
       status: q.status,

@@ -11,6 +11,8 @@ import {
   ChevronRight,
   Coffee,
   CornerUpLeft,
+  MessageSquare,
+  Phone,
   Plus,
   Trash2,
 } from "lucide-react";
@@ -460,6 +462,12 @@ function Timeline({ plan, onPick }: { plan: DayPlan; onPick: (e: DayEvent) => vo
                 <p className="truncate text-muted-foreground">
                   {ev.pickup} → {ev.dropoff}
                 </p>
+                {ev.kind !== "block" ? (
+                  <p className="truncate">
+                    <span className="text-muted-foreground">Client : </span>
+                    <span className="font-medium">{ev.clientLabel ?? "Client non renseigné"}</span>
+                  </p>
+                ) : null}
                 <p className="truncate text-muted-foreground">
                   {ev.kind === "request" ? "Demande en attente" : ev.flash ? "Flash" : "Planifiée"}
                   {s.estimated ? " · fin non estimée" : ""}
@@ -702,6 +710,56 @@ function BreakSheet({
   );
 }
 
+function ClientLine({ event }: { event: DayEvent }) {
+  const [open, setOpen] = useState(false);
+  const name = event.clientLabel ?? "Client non renseigné";
+  const phone = event.clientPhone?.trim() ?? "";
+  const telHref = phone ? `tel:${phone.replace(/[^\d+]/g, "")}` : "";
+
+  if (!phone) {
+    return (
+      <p className="text-sm">
+        <span className="text-muted-foreground">Client : </span>
+        <span className="font-semibold">{name}</span>
+      </p>
+    );
+  }
+
+  return (
+    <>
+      <p className="text-sm">
+        <span className="text-muted-foreground">Client : </span>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="tap-active font-semibold text-primary underline underline-offset-4"
+        >
+          {name}
+        </button>
+      </p>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="bottom" className="space-y-3">
+          <SheetHeader>
+            <SheetTitle className="text-base">{name}</SheetTitle>
+          </SheetHeader>
+          <a
+            href={telHref}
+            className="tap-active flex w-full items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"
+          >
+            <Phone className="mr-2 size-4" /> Appeler le client
+          </a>
+          <a
+            href={`sms:${phone.replace(/[^\d+]/g, "")}`}
+            className="tap-active flex w-full items-center justify-center rounded-lg border border-border px-4 py-3 text-sm font-semibold"
+          >
+            <MessageSquare className="mr-2 size-4" /> Envoyer un SMS
+          </a>
+        </SheetContent>
+      </Sheet>
+    </>
+  );
+}
+
 function EventPanel({ event, onClose }: { event: DayEvent; onClose: () => void }) {
   return (
     <Sheet open onOpenChange={(v) => (!v ? onClose() : null)}>
@@ -714,6 +772,7 @@ function EventPanel({ event, onClose }: { event: DayEvent; onClose: () => void }
         <div className="space-y-2 text-sm">
           <p className="text-muted-foreground">{event.pickup}</p>
           <p className="text-muted-foreground">→ {event.dropoff}</p>
+          {event.kind !== "block" ? <ClientLine event={event} /> : null}
           <p>
             {event.kind === "request" ? "Demande en attente" : event.flash ? "Course flash" : "Course planifiée"} ·{" "}
             {event.durationMin !== null ? formatDuration(event.durationMin) : "Durée non estimée"}
