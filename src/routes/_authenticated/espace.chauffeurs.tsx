@@ -78,7 +78,11 @@ function ClientDrivers() {
         await Promise.all([
           fetchConnectedProfiles(ids).then((data) => ({ data })),
           supabase.rpc("get_connected_driver_profiles"),
-          supabase.from("vehicles").select("*").in("driver_id", ids),
+          // Le client ne reçoit que les champs affichés : jamais la plaque ni les données administratives.
+          supabase
+            .from("vehicles")
+            .select("driver_id, brand, model, is_primary, photo_url, photo_side_url")
+            .in("driver_id", ids),
           supabase.from("rides").select("driver_id").eq("client_id", user!.id),
         ]);
 
