@@ -6,20 +6,30 @@ const STORAGE_KEY = "relink.client-sector";
 export type SectorState = {
   /** Secteur retenu (ville) — null tant qu'aucune source n'a abouti. */
   sector: string | null;
+  /** Coordonnées du secteur, utilisées pour le rayon « autour de moi ». */
+  lat: number | null;
+  lng: number | null;
   /** Origine du secteur : position du navigateur ou choix manuel. */
   source: "geo" | "manual" | null;
   detecting: boolean;
   error: string | null;
 };
 
-function readStored(): { sector: string; source: "geo" | "manual" } | null {
+type Stored = { sector: string; source: "geo" | "manual"; lat: number | null; lng: number | null };
+
+function readStored(): Stored | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as { sector?: string; source?: string };
+    const parsed = JSON.parse(raw) as Partial<Stored>;
     if (!parsed.sector) return null;
-    return { sector: parsed.sector, source: parsed.source === "geo" ? "geo" : "manual" };
+    return {
+      sector: parsed.sector,
+      source: parsed.source === "geo" ? "geo" : "manual",
+      lat: typeof parsed.lat === "number" ? parsed.lat : null,
+      lng: typeof parsed.lng === "number" ? parsed.lng : null,
+    };
   } catch {
     return null;
   }
@@ -32,15 +42,21 @@ function readStored(): { sector: string; source: "geo" | "manual" } | null {
 export function useClientSector() {
   const [state, setState] = useState<SectorState>({
     sector: null,
+    lat: null,
+    lng: null,
     source: null,
     detecting: false,
     error: null,
   });
 
-  const setManual = useCallback((city: string) => {
-    setState({ sector: city, source: "manual", detecting: false, error: null });
+  const setManual = useCallback((city: string, lat?: number, lng?: number) => {
+    const point = { lat: lat ?? null, lng: lng ?? null };
+    setState({ sector: city, ...point, source: "manual", detecting: false, error: null });
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ sector: city, source: "manual" }));
+      window.localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ sector: city, source: "manual", ...point }),
+      );
     } catch {
       /* stockage indisponible : le secteur reste valable pour la session */
     }
@@ -58,11 +74,12 @@ export function useClientSector() {
           const { city } = await resolveSector({
             data: { lat: pos.coords.latitude, lng: pos.coords.longitude },
           });
-          setState({ sector: city, source: "geo", detecting: false, error: null });
+          const point = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          setState({ sector: city, ...point, source: "geo", detecting: false, error: null });
           try {
             window.localStorage.setItem(
               STORAGE_KEY,
-              JSON.stringify({ sector: city, source: "geo" }),
+              JSON.stringify({ sector: city, source: "geo", ...point }),
             );
           } catch {
             /* ignore */
@@ -79,7 +96,14 @@ export function useClientSector() {
   useEffect(() => {
     const stored = readStored();
     if (stored) {
-      setState({ sector: stored.sector, source: stored.source, detecting: false, error: null });
+      setState({
+        sector: stored.sector,
+        lat: stored.lat,
+        lng: stored.lng,
+        source: stored.source,
+        detecting: false,
+        error: null,
+      });
       return;
     }
     detect();

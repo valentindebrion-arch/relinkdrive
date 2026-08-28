@@ -10,7 +10,12 @@ export const resolveSector = createServerFn({ method: "POST" })
     const { reverseGeocodePoint } = await import("@/lib/geo/provider.server");
     const address = await reverseGeocodePoint({ lat: data.lat, lng: data.lng });
     if (!address?.city) throw new Error("Secteur introuvable à votre position");
-    return { city: address.city, postcode: address.postcode };
+    return {
+      city: address.city,
+      postcode: address.postcode,
+      lat: address.lat,
+      lng: address.lng,
+    };
   });
 
 /** Suggestions de secteurs (villes françaises) pour la sélection manuelle. */
@@ -22,12 +27,12 @@ export const searchSectors = createServerFn({ method: "POST" })
     const { searchAddresses } = await import("@/lib/geo/provider.server");
     const results = await searchAddresses(data.query, 8);
     const seen = new Set<string>();
-    const cities: { city: string; postcode: string }[] = [];
+    const cities: { city: string; postcode: string; lat: number; lng: number }[] = [];
     for (const a of results) {
       const key = a.city.toLowerCase();
       if (!a.city || seen.has(key)) continue;
       seen.add(key);
-      cities.push({ city: a.city, postcode: a.postcode });
+      cities.push({ city: a.city, postcode: a.postcode, lat: a.lat, lng: a.lng });
     }
     return { items: cities.slice(0, 6) };
   });
