@@ -12,6 +12,7 @@ const items: NavItem[] = [
   { to: "/admin", label: "Vue d'ensemble", icon: <LayoutDashboard /> },
   { to: "/admin/utilisateurs", label: "Utilisateurs", icon: <Users /> },
   { to: "/admin/chauffeurs", label: "Chauffeurs", icon: <IdCard /> },
+  { to: "/admin/inscriptions", label: "Demande inscription chauffeur", icon: <FileCheck2 /> },
   { to: "/admin/top10", label: "Top 10", icon: <Trophy /> },
   { to: "/admin/courses", label: "Courses", icon: <Car /> },
   { to: "/admin/signalements", label: "Signalements", icon: <Flag /> },
