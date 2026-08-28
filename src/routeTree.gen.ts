@@ -24,6 +24,7 @@ import { Route as AuthConfirmRouteImport } from './routes/auth_.confirm'
 import { Route as ChauffeurSlugRouteImport } from './routes/chauffeur.$slug'
 import { Route as LegalDocRouteImport } from './routes/legal.$doc'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as AuthenticatedAdminInscriptionsRouteImport } from './routes/_authenticated/admin.inscriptions'
 import { Route as AuthenticatedAdminSignalementsRouteImport } from './routes/_authenticated/admin.signalements'
 import { Route as AuthenticatedAdminTop10RouteImport } from './routes/_authenticated/admin.top10'
 import { Route as AuthenticatedAdminUtilisateursRouteImport } from './routes/_authenticated/admin.utilisateurs'
@@ -145,6 +146,12 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminInscriptionsRoute =
+  AuthenticatedAdminInscriptionsRouteImport.update({
+    id: '/inscriptions',
+    path: '/inscriptions',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminSignalementsRoute =
   AuthenticatedAdminSignalementsRouteImport.update({
     id: '/signalements',
@@ -320,15 +327,15 @@ const AuthenticatedAdminCoursesRideIdRoute =
   } as any)
 const AuthenticatedAdminInscriptionsIndexRoute =
   AuthenticatedAdminInscriptionsIndexRouteImport.update({
-    id: '/inscriptions/',
-    path: '/inscriptions/',
-    getParentRoute: () => AuthenticatedAdminRoute,
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAdminInscriptionsRoute,
   } as any)
 const AuthenticatedAdminInscriptionsDriverIdRoute =
   AuthenticatedAdminInscriptionsDriverIdRouteImport.update({
-    id: '/inscriptions/$driverId',
-    path: '/inscriptions/$driverId',
-    getParentRoute: () => AuthenticatedAdminRoute,
+    id: '/$driverId',
+    path: '/$driverId',
+    getParentRoute: () => AuthenticatedAdminInscriptionsRoute,
   } as any)
 const AuthenticatedEspaceCoursesIndexRoute =
   AuthenticatedEspaceCoursesIndexRouteImport.update({
@@ -429,6 +436,7 @@ export interface FileRoutesByFullPath {
   '/auth/confirm': typeof AuthConfirmRoute
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
   '/legal/$doc': typeof LegalDocRoute
+  '/admin/inscriptions': typeof AuthenticatedAdminInscriptionsRouteWithChildren
   '/admin/signalements': typeof AuthenticatedAdminSignalementsRoute
   '/admin/top10': typeof AuthenticatedAdminTop10Route
   '/admin/utilisateurs': typeof AuthenticatedAdminUtilisateursRoute
@@ -550,6 +558,7 @@ export interface FileRoutesById {
   '/auth_/confirm': typeof AuthConfirmRoute
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
   '/legal/$doc': typeof LegalDocRoute
+  '/_authenticated/admin/inscriptions': typeof AuthenticatedAdminInscriptionsRouteWithChildren
   '/_authenticated/admin/signalements': typeof AuthenticatedAdminSignalementsRoute
   '/_authenticated/admin/top10': typeof AuthenticatedAdminTop10Route
   '/_authenticated/admin/utilisateurs': typeof AuthenticatedAdminUtilisateursRoute
@@ -614,6 +623,7 @@ export interface FileRouteTypes {
     | '/auth/confirm'
     | '/chauffeur/$slug'
     | '/legal/$doc'
+    | '/admin/inscriptions'
     | '/admin/signalements'
     | '/admin/top10'
     | '/admin/utilisateurs'
@@ -734,6 +744,7 @@ export interface FileRouteTypes {
     | '/auth_/confirm'
     | '/chauffeur/$slug'
     | '/legal/$doc'
+    | '/_authenticated/admin/inscriptions'
     | '/_authenticated/admin/signalements'
     | '/_authenticated/admin/top10'
     | '/_authenticated/admin/utilisateurs'
@@ -903,6 +914,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/inscriptions': {
+      id: '/_authenticated/admin/inscriptions'
+      path: '/inscriptions'
+      fullPath: '/admin/inscriptions'
+      preLoaderRoute: typeof AuthenticatedAdminInscriptionsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/signalements': {
@@ -1117,17 +1135,17 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/admin/inscriptions/': {
       id: '/_authenticated/admin/inscriptions/'
-      path: '/inscriptions'
+      path: '/'
       fullPath: '/admin/inscriptions/'
       preLoaderRoute: typeof AuthenticatedAdminInscriptionsIndexRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
+      parentRoute: typeof AuthenticatedAdminInscriptionsRoute
     }
     '/_authenticated/admin/inscriptions/$driverId': {
       id: '/_authenticated/admin/inscriptions/$driverId'
-      path: '/inscriptions/$driverId'
+      path: '/$driverId'
       fullPath: '/admin/inscriptions/$driverId'
       preLoaderRoute: typeof AuthenticatedAdminInscriptionsDriverIdRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
+      parentRoute: typeof AuthenticatedAdminInscriptionsRoute
     }
     '/_authenticated/espace/courses/': {
       id: '/_authenticated/espace/courses/'
@@ -1230,20 +1248,39 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAdminInscriptionsRouteChildren {
+  AuthenticatedAdminInscriptionsDriverIdRoute: typeof AuthenticatedAdminInscriptionsDriverIdRoute
+  AuthenticatedAdminInscriptionsIndexRoute: typeof AuthenticatedAdminInscriptionsIndexRoute
+}
+
+const AuthenticatedAdminInscriptionsRouteChildren: AuthenticatedAdminInscriptionsRouteChildren =
+  {
+    AuthenticatedAdminInscriptionsDriverIdRoute:
+      AuthenticatedAdminInscriptionsDriverIdRoute,
+    AuthenticatedAdminInscriptionsIndexRoute:
+      AuthenticatedAdminInscriptionsIndexRoute,
+  }
+
+const AuthenticatedAdminInscriptionsRouteWithChildren =
+  AuthenticatedAdminInscriptionsRoute._addFileChildren(
+    AuthenticatedAdminInscriptionsRouteChildren,
+  )
+
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminInscriptionsRoute: typeof AuthenticatedAdminInscriptionsRouteWithChildren
   AuthenticatedAdminSignalementsRoute: typeof AuthenticatedAdminSignalementsRoute
   AuthenticatedAdminTop10Route: typeof AuthenticatedAdminTop10Route
   AuthenticatedAdminUtilisateursRoute: typeof AuthenticatedAdminUtilisateursRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminChauffeursDriverIdRoute: typeof AuthenticatedAdminChauffeursDriverIdRoute
   AuthenticatedAdminCoursesRideIdRoute: typeof AuthenticatedAdminCoursesRideIdRoute
-  AuthenticatedAdminInscriptionsDriverIdRoute: typeof AuthenticatedAdminInscriptionsDriverIdRoute
   AuthenticatedAdminChauffeursIndexRoute: typeof AuthenticatedAdminChauffeursIndexRoute
   AuthenticatedAdminCoursesIndexRoute: typeof AuthenticatedAdminCoursesIndexRoute
-  AuthenticatedAdminInscriptionsIndexRoute: typeof AuthenticatedAdminInscriptionsIndexRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminInscriptionsRoute:
+    AuthenticatedAdminInscriptionsRouteWithChildren,
   AuthenticatedAdminSignalementsRoute: AuthenticatedAdminSignalementsRoute,
   AuthenticatedAdminTop10Route: AuthenticatedAdminTop10Route,
   AuthenticatedAdminUtilisateursRoute: AuthenticatedAdminUtilisateursRoute,
@@ -1251,13 +1288,9 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminChauffeursDriverIdRoute:
     AuthenticatedAdminChauffeursDriverIdRoute,
   AuthenticatedAdminCoursesRideIdRoute: AuthenticatedAdminCoursesRideIdRoute,
-  AuthenticatedAdminInscriptionsDriverIdRoute:
-    AuthenticatedAdminInscriptionsDriverIdRoute,
   AuthenticatedAdminChauffeursIndexRoute:
     AuthenticatedAdminChauffeursIndexRoute,
   AuthenticatedAdminCoursesIndexRoute: AuthenticatedAdminCoursesIndexRoute,
-  AuthenticatedAdminInscriptionsIndexRoute:
-    AuthenticatedAdminInscriptionsIndexRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =

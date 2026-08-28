@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { LayoutDashboard, IdCard, Users, Car, Flag, Trophy } from "lucide-react";
+import { LayoutDashboard, IdCard, Users, Car, Flag, Trophy, FileCheck2 } from "lucide-react";
 import { DashboardShell, type NavItem } from "@/components/DashboardShell";
 import { requireRoles } from "@/lib/role-guard";
 
