@@ -55,10 +55,8 @@ function DiscoverPage() {
     enabled: !!user?.id,
     queryFn: async () => {
       // Le secteur du client est prioritaire : il est appliqué côté base de données.
-      const { data, error: rpcError } = await supabase.rpc("get_local_drivers", {
-        _sector: sector ?? undefined,
-        _limit: 60,
-      });
+      const args = sector ? { _sector: sector, _limit: 60 } : { _limit: 60 };
+      const { data, error: rpcError } = await supabase.rpc("get_local_drivers", args);
       if (rpcError) throw rpcError;
       return (data ?? []) as unknown as LocalDriver[];
     },
