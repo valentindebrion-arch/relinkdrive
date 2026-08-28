@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, X } from "lucide-react";
-import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -212,7 +211,7 @@ export function NotificationBell({ className }: { className?: string }) {
         }}
         className="relative flex size-9 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
       >
-        <Bell className="size-5" />
+        <Bell className={cn("size-5", ring && "bell-ring")} />
         {unread > 0 ? (
           <span key={unread} className="badge-pop absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
             {unread > 9 ? "9+" : unread}
