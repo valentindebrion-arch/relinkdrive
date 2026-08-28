@@ -1,11 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { ClientTopBar } from "@/components/client/ClientTopBar";
 import { useSignedUrls } from "@/lib/storage";
+import { WFW_LABEL } from "@/lib/woman-for-woman";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/espace/decouvrir")({
   head: () => ({
@@ -53,6 +55,7 @@ type Discovered = {
   max_passengers: number | null;
   rating_avg: number | null;
   rating_count: number;
+  woman_for_woman: boolean | null;
 };
 
 function DiscoverPage() {
@@ -113,13 +116,23 @@ function DiscoverPage() {
             const photoUrl = driver.vehicle_photo_url
               ? (photos.data?.[driver.vehicle_photo_url] ?? null)
               : null;
+            // Woman for Woman : identité visuelle légèrement violine, jamais masquée.
+            const wfw = !!driver.woman_for_woman;
+            const wfwBadge = wfw ? (
+              <span className="wfw-badge absolute top-3 right-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-extrabold shadow-sm backdrop-blur-sm">
+                <Sparkles className="size-3" aria-hidden /> {WFW_LABEL}
+              </span>
+            ) : null;
             return (
               <li key={driver.user_id}>
                 {driver.slug ? (
                   <Link
                     to="/chauffeur/$slug"
                     params={{ slug: driver.slug }}
-                    className="group tap tap-active block overflow-hidden rounded-[1.25rem] border border-border bg-card shadow-card transition"
+                    className={cn(
+                      "group tap tap-active block overflow-hidden rounded-[1.25rem] border border-border bg-card shadow-card transition",
+                      wfw && "wfw-card",
+                    )}
                   >
                     <div className="relative aspect-video w-full bg-muted">
                       {photoUrl ? (
@@ -147,6 +160,7 @@ function DiscoverPage() {
                         </svg>
                         Sélection ReLink
                       </span>
+                      {wfwBadge}
                     </div>
                     <div className="flex items-center justify-between px-4 py-3.5">
                       <span className="text-[15px] font-extrabold tracking-tight">
@@ -162,7 +176,12 @@ function DiscoverPage() {
                     </div>
                   </Link>
                 ) : (
-                  <div className="group overflow-hidden rounded-[1.25rem] border border-border bg-card shadow-card">
+                  <div
+                    className={cn(
+                      "group overflow-hidden rounded-[1.25rem] border border-border bg-card shadow-card",
+                      wfw && "wfw-card",
+                    )}
+                  >
                     <div className="relative aspect-video w-full bg-muted">
                       {photoUrl ? (
                         <img
@@ -188,6 +207,7 @@ function DiscoverPage() {
                         </svg>
                         Sélection ReLink
                       </span>
+                      {wfwBadge}
                     </div>
                     <div className="px-4 py-3.5">
                       <span className="text-[15px] font-extrabold tracking-tight">
