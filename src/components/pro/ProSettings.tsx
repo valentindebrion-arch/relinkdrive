@@ -12,6 +12,16 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { PushSettingsCard } from "@/components/PushSettingsCard";
 import { PAYMENT_METHOD_OPTIONS } from "@/lib/payment-methods";
+import {
+  GENDER_FIELD_LABEL,
+  GENDER_HELP,
+  GENDER_OPTIONS,
+  WFW_DRIVER_DESCRIPTION,
+  WFW_DRIVER_PROFILE_REQUIRED,
+  WFW_LABEL,
+  driverCanOfferWfw,
+  type GenderValue,
+} from "@/lib/woman-for-woman";
 
 
 const AVAILABILITY_OPTIONS = [
