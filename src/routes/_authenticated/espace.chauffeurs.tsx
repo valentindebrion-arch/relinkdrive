@@ -255,9 +255,10 @@ function ClientDrivers() {
           filtered.map((d) => {
             const photoUrl = d.photoPath ? (photos.data?.[d.photoPath] ?? null) : null;
             const justAdded = celebration?.driverId === d.id;
+            const leaving = removingId === d.id;
             const cardClassName = `group block overflow-hidden rounded-[1.25rem] border bg-card shadow-card transition active:scale-[0.985] ${
               justAdded ? "achievement-land border-primary/40" : "border-border"
-            }${d.womanForWoman ? " wfw-card" : ""}`;
+            }${leaving ? " removal-exit border-destructive/50" : ""}${d.womanForWoman ? " wfw-card" : ""}`;
             const cardBody = (
               <>
                 {/* Photo véhicule — pleine largeur, format identique aux cartes Top 10 */}
@@ -280,6 +281,9 @@ function ClientDrivers() {
                       <Car className="size-8" aria-hidden />
                     </span>
                   )}
+                  {leaving ? (
+                    <span className="removal-veil pointer-events-none absolute inset-0 bg-destructive/25" />
+                  ) : null}
                 </div>
 
                 {/* Informations compactes */}
@@ -301,17 +305,23 @@ function ClientDrivers() {
                       <p className="truncate text-[15px] leading-tight font-extrabold">{d.name}</p>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        book(d.id, "now");
-                      }}
-                      className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-[12px] font-bold text-primary-foreground transition active:scale-95"
-                    >
-                      Réserver
-                    </button>
+                    {leaving ? (
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-destructive px-3 py-1.5 text-[12px] font-bold text-destructive-foreground">
+                        <Check className="size-3.5" strokeWidth={3} /> Chauffeur retiré
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          book(d.id, "now");
+                        }}
+                        className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-[12px] font-bold text-primary-foreground transition active:scale-95"
+                      >
+                        Réserver
+                      </button>
+                    )}
                   </div>
 
                   <p className="mt-1 truncate text-[13px] font-semibold text-muted-foreground">
@@ -338,31 +348,47 @@ function ClientDrivers() {
                     </span>
                   </div>
 
-                  <p className="mt-2 text-[11px] font-semibold text-muted-foreground">
-                    {d.trips > 0
-                      ? `${d.trips} trajet${d.trips > 1 ? "s" : ""} ensemble`
-                      : "Aucun trajet ensemble"}
-                  </p>
+                  <div className="mt-2 flex items-center justify-between gap-3">
+                    <p className="text-[11px] font-semibold text-muted-foreground">
+                      {d.trips > 0
+                        ? `${d.trips} trajet${d.trips > 1 ? "s" : ""} ensemble`
+                        : "Aucun trajet ensemble"}
+                    </p>
+                    {leaving ? null : (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setToRemove({ id: d.id, name: d.name });
+                        }}
+                        className="inline-flex shrink-0 items-center gap-1 text-[11px] font-bold text-muted-foreground underline underline-offset-4 transition hover:text-destructive"
+                      >
+                        <UserMinus className="size-3.5" aria-hidden /> Retirer
+                      </button>
+                    )}
+                  </div>
                 </div>
               </>
             );
 
-            return d.slug ? (
-              <Link
-                key={d.id}
-                to="/chauffeur/$slug"
-                params={{ slug: d.slug }}
-                className={cardClassName}
-              >
-                {cardBody}
-              </Link>
-            ) : (
-              <div key={d.id} className={cardClassName}>
-                {cardBody}
+            const card =
+              d.slug && !leaving ? (
+                <Link to="/chauffeur/$slug" params={{ slug: d.slug }} className={cardClassName}>
+                  {cardBody}
+                </Link>
+              ) : (
+                <div className={cardClassName}>{cardBody}</div>
+              );
+
+            return (
+              <div key={d.id} className={leaving ? "removal-slot" : undefined}>
+                {card}
               </div>
             );
           })
         )}
+
       </div>
 
 
