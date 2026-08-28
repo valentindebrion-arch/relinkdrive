@@ -25,9 +25,17 @@ export type DossierState = {
   suspension_reason: string | null;
 };
 
-/** Un chauffeur ne peut utiliser ReLink que si l'administrateur a validé son dossier. */
+/** Un chauffeur ne peut exercer sur ReLink que si l'administrateur a validé son dossier. */
 export function isDriverActive(status?: string | null) {
   return status === "verified";
+}
+
+/**
+ * Le dossier a été envoyé : le chauffeur accède à tout son espace pour
+ * finaliser sa configuration pendant la vérification administrative.
+ */
+export function isDriverSubmitted(status?: string | null) {
+  return !!status && status !== "incomplete";
 }
 
 export const SECTION_STATE_LABELS: Record<SectionState, string> = {
