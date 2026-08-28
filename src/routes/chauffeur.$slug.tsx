@@ -571,7 +571,17 @@ function DriverPublicPage() {
               <ShieldCheck className="size-3.5" /> Chauffeur vérifié {BRAND.name}
             </span>
             <span className="text-xs font-medium text-muted-foreground">{experienceLabel}</span>
+            {womanForWoman ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
+                <Sparkles className="size-3.5" /> {WFW_LABEL}
+              </span>
+            ) : null}
           </div>
+          {womanForWoman ? (
+            <p className="border-t border-border bg-primary/5 px-5 py-3 text-[12.5px] leading-snug text-muted-foreground">
+              {WFW_PUBLIC_HEADER_NOTICE}
+            </p>
+          ) : null}
           {d.public_intro || d.bio ? (
             <p className="flex gap-2 border-t border-border px-5 py-4 text-sm whitespace-pre-line text-muted-foreground">
               <Quote className="size-4 shrink-0 fill-primary text-primary" />
