@@ -46,7 +46,7 @@ function ProLayout() {
   const verified = isAdmin || isDriverActive(driver.data?.verification_status);
   // L'espace complet s'ouvre dès l'envoi du dossier ; seule l'activité reste bridée.
   const active = verified || isDriverSubmitted(driver.data?.verification_status);
-  const badge = active ? newRequests.data || undefined : undefined;
+  const badge = verified ? newRequests.data || undefined : undefined;
   const lock = !isPro;
 
   // Compte non validé : menu réduit au dossier et aux informations obligatoires.
