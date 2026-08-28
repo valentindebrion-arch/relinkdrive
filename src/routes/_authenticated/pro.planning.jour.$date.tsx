@@ -111,6 +111,27 @@ function DayPage() {
 
   const data = plan.data;
 
+  // Deep link « Voir sur le planning » : la journée est déjà la bonne (paramètre
+  // de route), on positionne la vue sur le créneau et on met la course en
+  // évidence brièvement. Fonctionne aussi sans rechargement complet.
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+  const targetRide = search.ride ?? null;
+  useEffect(() => {
+    if (!targetRide || !data) return;
+    const exists = data.events.some((e) => e.id === targetRide);
+    if (!exists) return;
+    setHighlightId(targetRide);
+    const raf = requestAnimationFrame(() => {
+      const el = document.getElementById(`planning-event-${targetRide}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    const clear = setTimeout(() => setHighlightId(null), 2000);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(clear);
+    };
+  }, [targetRide, data]);
+
   return (
     <div className="client-page-enter space-y-4 pb-28">
       <header className="sticky top-0 z-20 -mx-4 border-b border-border bg-background/95 px-4 py-3 backdrop-blur">
@@ -167,7 +188,7 @@ function DayPage() {
             </Button>
           </div>
 
-          <Timeline plan={data} onPick={setSelected} />
+          <Timeline plan={data} onPick={setSelected} highlightId={highlightId} />
         </div>
       )}
 
