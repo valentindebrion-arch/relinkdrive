@@ -169,6 +169,35 @@ function ClientDrivers() {
     void navigate({ to: "/espace/demandes" });
   }
 
+  /**
+   * Retrait du carnet : suppression backend d'abord, puis animation rouge de sortie.
+   * En cas d'échec, la carte reste en place et une erreur est affichée.
+   */
+  async function removeDriver(driverId: string, name: string) {
+    if (!user?.id || removingId) return;
+    const firstName = name.split(" ")[0] || "Le chauffeur";
+    const { error } = await supabase
+      .from("driver_client_connections")
+      .delete()
+      .eq("client_id", user.id)
+      .eq("driver_id", driverId);
+    if (error) {
+      toast.error("Le retrait a échoué. Réessayez dans un instant.");
+      return;
+    }
+    const finish = () => {
+      setRemovingId(null);
+      void queryClient.invalidateQueries({ queryKey: ["client-drivers", user.id] });
+      void queryClient.invalidateQueries({ queryKey: ["discover-drivers"] });
+      void queryClient.invalidateQueries({ queryKey: ["top10-drivers"] });
+      toast.success(`${firstName} a été retiré de vos chauffeurs`);
+    };
+    setRemovingId(driverId);
+    window.setTimeout(finish, prefersReducedMotion() ? 220 : 1500);
+  }
+
+
+
   return (
     <div className="w-full max-w-full pb-4">
       <ClientTopBar />
