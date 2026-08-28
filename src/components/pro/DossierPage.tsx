@@ -7,7 +7,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useDriverProfile, useMyDocuments } from "@/lib/driver-queries";
 import { DOSSIER_STATUS_LABELS, useDossierState } from "@/lib/driver-dossier";
-import { APPLICATION_DOCS, type DriverKind } from "@/lib/driver-application";
+import {
+  APPLICATION_DOCS,
+  APPLICATION_DOC_LABELS,
+  type DriverKind,
+} from "@/lib/driver-application";
 import { DocumentUploader, type DriverDocument } from "@/components/pro/DocumentUploader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -155,8 +159,18 @@ export function DossierPage() {
     refresh();
   }
 
+  const missingLabels = (state?.sections ?? []).flatMap((s) =>
+    s.missing.map((m) =>
+      m === "fields"
+        ? "Statut professionnel (VTC ou Taxi) et numéro correspondant"
+        : (APPLICATION_DOC_LABELS[m] ?? m),
+    ),
+  );
+
   const canSubmit =
-    !!state?.complete && ["incomplete", "changes_requested", "expired_documents"].includes(status);
+    missingLabels.length === 0 &&
+    !!state &&
+    ["incomplete", "changes_requested", "expired_documents", "rejected"].includes(status);
 
   const documents = (docs.data ?? []) as DriverDocument[];
   const kind = ((driver.data as { driver_kind?: string } | null)?.driver_kind ?? "vtc") as DriverKind;
@@ -255,15 +269,22 @@ export function DossierPage() {
 
       {status !== "verified" && !readOnly ? (
         <div className="surface space-y-3 p-4">
-          {state?.complete ? (
+          {missingLabels.length === 0 ? (
             <p className="flex items-center gap-2 text-sm text-muted-foreground">
               <CheckCircle2 className="size-4 text-primary" /> Tous les éléments obligatoires sont
               fournis.
             </p>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              Il manque encore un ou plusieurs éléments obligatoires.
-            </p>
+            <div className="text-sm text-muted-foreground">
+              <p>Il manque :</p>
+              <ul className="mt-1 list-disc pl-5">
+                {missingLabels.map((label) => (
+                  <li key={label} className="text-destructive">
+                    {label}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
           <Button
             className="w-full"
