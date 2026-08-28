@@ -11,6 +11,8 @@ import {
   ChevronRight,
   Coffee,
   CornerUpLeft,
+  MessageSquare,
+  Phone,
   Plus,
   Trash2,
 } from "lucide-react";
@@ -460,6 +462,12 @@ function Timeline({ plan, onPick }: { plan: DayPlan; onPick: (e: DayEvent) => vo
                 <p className="truncate text-muted-foreground">
                   {ev.pickup} → {ev.dropoff}
                 </p>
+                {ev.kind !== "block" ? (
+                  <p className="truncate">
+                    <span className="text-muted-foreground">Client : </span>
+                    <span className="font-medium">{ev.clientLabel ?? "Client non renseigné"}</span>
+                  </p>
+                ) : null}
                 <p className="truncate text-muted-foreground">
                   {ev.kind === "request" ? "Demande en attente" : ev.flash ? "Flash" : "Planifiée"}
                   {s.estimated ? " · fin non estimée" : ""}
