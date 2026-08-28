@@ -10,6 +10,8 @@ import { EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { CompleteRideDialog } from "@/components/CompleteRideDialog";
 import { NotifyClientSmsButton, NotifyClientSmsDialog } from "@/components/NotifyClientSms";
+import { ClientContactLine } from "@/components/pro/ClientContactLine";
+import { parisDayKey } from "@/lib/driver-board";
 import type { SmsKind } from "@/lib/ride-sms";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -129,15 +131,26 @@ function DriverRideDetail() {
       if (error) throw error;
       if (!ride) return { ride: null, invoice: null, history: [] };
 
-      const [{ data: invoice }, { data: history }] = await Promise.all([
+      const [{ data: invoice }, { data: history }, { data: clients }] = await Promise.all([
         supabase.from("invoices").select("id, number, status").eq("ride_id", ride.id).maybeSingle(),
         supabase
           .from("ride_status_history")
           .select("status, created_at")
           .eq("ride_id", ride.id)
           .order("created_at", { ascending: true }),
+        // Nom et téléphone réels du client : même source que le planning.
+        ride.client_id
+          ? supabase.rpc("get_connected_profiles", { _ids: [ride.client_id] })
+          : Promise.resolve({ data: [] as any[] }),
       ]);
-      return { ride, invoice, history: history ?? [] };
+      const profile = ((clients ?? []) as any[])[0] ?? null;
+      return {
+        ride,
+        invoice,
+        history: history ?? [],
+        clientName: (profile?.full_name ?? "").trim() || (ride.client_label?.trim() ?? "") || null,
+        clientPhone: (profile?.phone ?? "").trim() || null,
+      };
     },
   });
 
@@ -322,7 +335,16 @@ function DriverRideDetail() {
         {ride.completed_at ? (
           <Row icon={Clock} label="Fin de course" value={formatDateTime(ride.completed_at)} />
         ) : null}
-        <Row icon={User} label="Client" value={`${ride.client_label ?? "Client"} · ${ride.passengers} passager(s)`} />
+        <Row
+          icon={User}
+          label="Client"
+          value={
+            <span className="inline-flex flex-wrap items-center gap-1">
+              <ClientContactLine name={q.data?.clientName ?? null} phone={q.data?.clientPhone ?? null} compact />
+              <span className="font-normal text-muted-foreground">· {ride.passengers} passager(s)</span>
+            </span>
+          }
+        />
         <Row
           icon={MapPin}
           label="Prix"
@@ -388,7 +410,13 @@ function DriverRideDetail() {
             {remaining ? ` (dans ${remaining})` : ""}.
           </p>
           <Button asChild variant="outline" className="w-full">
-            <Link to="/pro/planning">Voir dans mon planning</Link>
+            <Link
+              to="/pro/planning/jour/$date"
+              params={{ date: parisDayKey(new Date(ride.scheduled_at)) }}
+              search={{ ride: ride.id }}
+            >
+              Voir dans mon planning
+            </Link>
           </Button>
         </div>
       ) : nextStep ? (

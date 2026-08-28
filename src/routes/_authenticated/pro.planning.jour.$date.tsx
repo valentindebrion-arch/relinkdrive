@@ -44,6 +44,8 @@ import { RELINK_TZ } from "@/lib/schedule";
 const searchSchema = z.object({
   view: z.enum(["week", "month", "year"]).optional(),
   cursor: z.string().optional(),
+  /** Deep link : course à mettre en évidence dans la journée. */
+  ride: z.string().optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/pro/planning/jour/$date")({
@@ -109,6 +111,27 @@ function DayPage() {
 
   const data = plan.data;
 
+  // Deep link « Voir sur le planning » : la journée est déjà la bonne (paramètre
+  // de route), on positionne la vue sur le créneau et on met la course en
+  // évidence brièvement. Fonctionne aussi sans rechargement complet.
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+  const targetRide = search.ride ?? null;
+  useEffect(() => {
+    if (!targetRide || !data) return;
+    const exists = data.events.some((e) => e.id === targetRide);
+    if (!exists) return;
+    setHighlightId(targetRide);
+    const raf = requestAnimationFrame(() => {
+      const el = document.getElementById(`planning-event-${targetRide}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    const clear = setTimeout(() => setHighlightId(null), 2000);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(clear);
+    };
+  }, [targetRide, data]);
+
   return (
     <div className="client-page-enter space-y-4 pb-28">
       <header className="sticky top-0 z-20 -mx-4 border-b border-border bg-background/95 px-4 py-3 backdrop-blur">
@@ -165,7 +188,7 @@ function DayPage() {
             </Button>
           </div>
 
-          <Timeline plan={data} onPick={setSelected} />
+          <Timeline plan={data} onPick={setSelected} highlightId={highlightId} />
         </div>
       )}
 
@@ -307,7 +330,15 @@ function todayKey() {
   }).format(new Date());
 }
 
-function Timeline({ plan, onPick }: { plan: DayPlan; onPick: (e: DayEvent) => void }) {
+function Timeline({
+  plan,
+  onPick,
+  highlightId,
+}: {
+  plan: DayPlan;
+  onPick: (e: DayEvent) => void;
+  highlightId?: string | null;
+}) {
   const { slices } = useMemo(() => buildTimeline(plan), [plan]);
   const [nowMin, setNowMin] = useState(() => nowMinutes());
   useEffect(() => {
@@ -437,6 +468,8 @@ function Timeline({ plan, onPick }: { plan: DayPlan; onPick: (e: DayEvent) => vo
             return (
               <button
                 key={ev.id}
+                id={`planning-event-${ev.id}`}
+                data-event-id={ev.id}
                 onClick={() => onPick(ev)}
                 title={`${minutesToTime(ev.startMin)} — ${ev.clientLabel ?? "Client non renseigné"}`}
                 className={cn(
@@ -449,6 +482,7 @@ function Timeline({ plan, onPick }: { plan: DayPlan; onPick: (e: DayEvent) => vo
                         ? "border-primary bg-primary/20"
                         : "border-primary/40 bg-primary/10",
                   s.conflict && "ring-2 ring-destructive",
+                  highlightId === ev.id && "planning-event-highlight",
                 )}
                 style={style}
               >

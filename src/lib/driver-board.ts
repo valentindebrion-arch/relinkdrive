@@ -38,6 +38,8 @@ export type BoardRide = {
   pickup_address: string;
   dropoff_address: string;
   client_label: string | null;
+  /** Téléphone du client, uniquement si le chauffeur est réellement lié à la course. */
+  client_phone: string | null;
   client_id: string | null;
   price: number | null;
   passengers: number;
@@ -141,7 +143,7 @@ export function classifyDriverRides(
 
 const PARIS = "Europe/Paris";
 
-function parisDayKey(date: Date) {
+export function parisDayKey(date: Date) {
   return new Intl.DateTimeFormat("fr-CA", {
     timeZone: PARIS,
     year: "numeric",

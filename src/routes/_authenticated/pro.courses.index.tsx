@@ -95,7 +95,22 @@ function CompletedToday() {
         .eq("is_block", false)
         .order("scheduled_at", { ascending: false });
       if (error) throw error;
-      return data ?? [];
+      const list = data ?? [];
+      // Nom réel du client (même source que la Home et le planning).
+      const ids = Array.from(new Set(list.map((r: any) => r.client_id).filter(Boolean))) as string[];
+      if (ids.length) {
+        const { data: clients } = await supabase.rpc("get_connected_profiles", { _ids: ids });
+        const names = new Map<string, string>();
+        ((clients ?? []) as any[]).forEach((c) => {
+          const n = (c.full_name ?? "").trim();
+          if (n) names.set(c.id, n);
+        });
+        return list.map((r: any) => ({
+          ...r,
+          client_label: (r.client_id ? names.get(r.client_id) : null) ?? (r.client_label?.trim() || null),
+        }));
+      }
+      return list;
     },
   });
 
