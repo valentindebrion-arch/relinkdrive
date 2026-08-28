@@ -17,7 +17,7 @@ import { ClientPageTransition } from "@/components/ClientPageTransition";
 import { useAuth } from "@/lib/auth";
 import { requireDriverAccess } from "@/lib/role-guard";
 import { useNewRequestsCount, useDriverProfile } from "@/lib/driver-queries";
-import { isDriverActive } from "@/lib/driver-dossier";
+import { isDriverActive, isDriverSubmitted } from "@/lib/driver-dossier";
 import { proOnlyPathFor, useMyPlan } from "@/lib/plan";
 import { ProUpsell } from "@/components/pro/ProUpsell";
 
