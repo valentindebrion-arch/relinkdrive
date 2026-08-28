@@ -43,7 +43,9 @@ function ProLayout() {
     if (!loading && !isDriver && !isAdmin) navigate({ to: "/espace", replace: true });
   }, [loading, isDriver, isAdmin, navigate]);
 
-  const active = isAdmin || isDriverActive(driver.data?.verification_status);
+  const verified = isAdmin || isDriverActive(driver.data?.verification_status);
+  // L'espace complet s'ouvre dès l'envoi du dossier ; seule l'activité reste bridée.
+  const active = verified || isDriverSubmitted(driver.data?.verification_status);
   const badge = active ? newRequests.data || undefined : undefined;
   const lock = !isPro;
 
