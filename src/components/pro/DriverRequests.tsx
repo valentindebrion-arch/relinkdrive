@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "react";
+import { useSearch } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -117,7 +119,11 @@ function cleanComment(comment: string | null) {
 
 export function DriverRequests() {
   const { user } = useAuth();
+  // Deep link d'une notification push : /pro/courses?demande=<id>
+  const highlightId = useSearch({ strict: false, select: (s) => (s as { demande?: string }).demande });
   const qc = useQueryClient();
+
+  const highlightRef = useRef<HTMLElement | null>(null);
 
   const requests = useQuery({
     queryKey: ["driver-requests", user?.id],
@@ -196,6 +202,11 @@ export function DriverRequests() {
 
   const list = (requests.data?.list ?? []).filter((r) => PENDING.includes(r.status));
 
+  useEffect(() => {
+    if (!highlightId || !highlightRef.current) return;
+    highlightRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [highlightId, list.length]);
+
   if (list.length === 0) {
     return (
       <EmptyState
@@ -212,7 +223,12 @@ export function DriverRequests() {
         const note = cleanComment(r.comment);
         const flash = isFlash(r);
         return (
-          <article key={r.id} className="surface p-4">
+          <article
+            key={r.id}
+            id={`demande-${r.id}`}
+            ref={r.id === highlightId ? highlightRef : undefined}
+            className={`surface p-4 ${r.id === highlightId ? "ring-2 ring-primary" : ""}`}
+          >
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
               <div className="min-w-0">
                 <span
