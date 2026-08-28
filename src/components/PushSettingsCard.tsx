@@ -123,6 +123,89 @@ export function PushSettingsCard({ audience = "client" }: { audience?: "client" 
           alertes dans l'application lorsqu'elle est ouverte.
         </p>
       ) : null}
+
+      <NotificationPrefs audience={audience} />
+    </div>
+  );
+}
+
+const PREF_ITEMS: { key: PrefKey; label: string; hint: string; critical: boolean }[] = [
+  { key: "request", label: "Nouvelles demandes de course", hint: "Alerte immédiate à chaque demande.", critical: true },
+  { key: "ride", label: "Modifications et annulations", hint: "Changements sur vos courses.", critical: true },
+  { key: "connection", label: "Nouveaux contacts", hint: "Ajout d'un chauffeur ou d'un client.", critical: false },
+  { key: "invoice", label: "Facturation", hint: "Factures et encaissements.", critical: false },
+  { key: "info", label: "Informations Relink", hint: "Nouveautés et conseils (facultatif).", critical: false },
+];
+
+function NotificationPrefs({ audience }: { audience: "client" | "driver" }) {
+  const { user } = useAuth();
+  const [prefs, setPrefs] = useState<Prefs | null>(null);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    let active = true;
+    void (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("notification_prefs")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!active) return;
+      const raw = (data as { notification_prefs?: Prefs } | null)?.notification_prefs;
+      setPrefs({ ...DEFAULT_PREFS, ...(raw ?? {}) });
+    })();
+    return () => {
+      active = false;
+    };
+  }, [user?.id]);
+
+  async function update(key: PrefKey, value: boolean) {
+    if (!user?.id || !prefs) return;
+    const next = { ...prefs, [key]: value };
+    setPrefs(next);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ notification_prefs: next } as never)
+      .eq("id", user.id);
+    if (error) {
+      setPrefs(prefs);
+      toast.error("Réglage non enregistré");
+    }
+  }
+
+  if (!user) return null;
+
+  return (
+    <div className="grid gap-3 border-t border-border pt-4">
+      <div>
+        <p className="text-sm font-semibold">Ce que vous recevez</p>
+        <p className="text-xs text-muted-foreground">
+          {audience === "driver"
+            ? "Choisissez les alertes envoyées sur votre téléphone. Tout reste consultable dans l'onglet Notifications."
+            : "Choisissez les alertes envoyées sur votre téléphone. Tout reste consultable dans vos notifications."}
+        </p>
+      </div>
+      {PREF_ITEMS.map((item) => (
+        <div key={item.key} className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium">
+              {item.label}
+              {item.critical ? (
+                <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                  Essentiel
+                </span>
+              ) : null}
+            </p>
+            <p className="text-xs text-muted-foreground">{item.hint}</p>
+          </div>
+          <Switch
+            checked={prefs ? prefs[item.key] : false}
+            disabled={!prefs}
+            onCheckedChange={(v) => void update(item.key, v)}
+            aria-label={item.label}
+          />
+        </div>
+      ))}
     </div>
   );
 }
