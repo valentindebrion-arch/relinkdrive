@@ -157,6 +157,8 @@ function DriverPublicPage() {
   const [adding, setAdding] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [removeOpen, setRemoveOpen] = useState(false);
+  const [removal, setRemoval] = useState(false);
+
   const [celebration, setCelebration] = useState<{ first: boolean } | null>(null);
 
   const source =
