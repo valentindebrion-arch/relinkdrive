@@ -41,6 +41,7 @@ import { TripEstimator, type TripEstimate } from "@/components/driver/TripEstima
 import { saveRequestDraft } from "@/lib/request-draft";
 import { prefersReducedMotion, setDriverCelebration } from "@/lib/driver-celebration";
 import { DriverAddedOverlay } from "@/components/client/DriverAddedOverlay";
+import { WFW_LABEL, WFW_PUBLIC_DESCRIPTION } from "@/lib/woman-for-woman";
 
 import { BRAND } from "@/lib/brand";
 import {
