@@ -16,6 +16,8 @@ export type DayEvent = {
   /** Durée estimée en minutes, null si non estimable. */
   durationMin: number | null;
   clientLabel: string | null;
+  /** Téléphone du client, uniquement si le chauffeur est bien lié à la course. */
+  clientPhone: string | null;
   pickup: string;
   dropoff: string;
   status: string;

@@ -161,6 +161,7 @@ export async function buildDayPlan(
       clientLabel: r.is_block
         ? (r.client_label ?? "Indisponibilité")
         : clientName(r.client_id, r.client_label),
+      clientPhone: r.is_block ? null : clientPhone(r.client_id),
       pickup: r.pickup_address,
       dropoff: r.dropoff_address,
       status: r.status,
@@ -179,6 +180,7 @@ export async function buildDayPlan(
       startMin: parisMinutes(q.scheduled_at),
       durationMin: await duration(q.pickup_address, q.dropoff_address),
       clientLabel: clientName(q.client_id, null),
+      clientPhone: clientPhone(q.client_id),
       pickup: q.pickup_address,
       dropoff: q.dropoff_address,
       status: q.status,
