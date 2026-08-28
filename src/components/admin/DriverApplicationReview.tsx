@@ -383,14 +383,16 @@ export function DriverApplicationReview({ driverId }: { driverId: string }) {
       <AlertDialog open={authorizeOpen} onOpenChange={setAuthorizeOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmer l'autorisation de ce chauffeur sur ReLink ?</AlertDialogTitle>
+            <AlertDialogTitle>Confirmer la validation du dossier de {name} ?</AlertDialogTitle>
             <AlertDialogDescription>
-              {name} pourra recevoir des demandes et sa fiche publique deviendra visible.
+              Vous certifiez avoir contrôlé les documents obligatoires de ce chauffeur.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void authorize()}>Autoriser</AlertDialogAction>
+            <AlertDialogAction onClick={() => void authorize()}>
+              Confirmer la validation
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
