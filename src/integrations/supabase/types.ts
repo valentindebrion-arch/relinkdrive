@@ -1494,6 +1494,33 @@ export type Database = {
           },
         ]
       }
+      geo_place_cache: {
+        Row: {
+          created_at: string
+          label: string | null
+          lat: number | null
+          lng: number | null
+          name_norm: string
+          resolved: boolean
+        }
+        Insert: {
+          created_at?: string
+          label?: string | null
+          lat?: number | null
+          lng?: number | null
+          name_norm: string
+          resolved?: boolean
+        }
+        Update: {
+          created_at?: string
+          label?: string | null
+          lat?: number | null
+          lng?: number | null
+          name_norm?: string
+          resolved?: boolean
+        }
+        Relationships: []
+      }
       invoice_counters: {
         Row: {
           document_type: string
