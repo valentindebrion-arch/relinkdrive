@@ -209,6 +209,23 @@
 
 }
 
+/* Woman for Woman : identité visuelle discrète (fond légèrement violine) */
+@utility wfw-card {
+  background-color: var(--color-wfw-surface);
+  border-color: var(--color-wfw-border);
+}
+
+@utility wfw-tint {
+  background-color: var(--color-wfw-surface);
+}
+
+@utility wfw-badge {
+  color: var(--color-wfw);
+  background-color: color-mix(in oklab, var(--color-wfw) 12%, transparent);
+  border: 1px solid var(--color-wfw-border);
+}
+
+
 @utility surface {
   background-color: var(--color-card);
   border: 1px solid var(--color-border);
