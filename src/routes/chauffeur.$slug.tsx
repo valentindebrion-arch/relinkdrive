@@ -431,8 +431,32 @@ function DriverPublicPage() {
     void navigate({ to: "/espace/demandes", search: { driver: d!.user_id } });
   }
 
+  /** Message de blocage Woman for Woman (profil incompatible ou incomplet). */
+  const wfwGate = wfwLocked ? (
+    <div className="rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
+      {wfwAccess === "incomplete" ? (
+        <>
+          <p className="font-semibold">{WFW_LABEL}</p>
+          <p className="mt-1 text-[13px] text-muted-foreground">
+            {WFW_CLIENT_PROFILE_INCOMPLETE}
+          </p>
+          <Button asChild className="mt-3 h-11 w-full">
+            <Link to="/espace/parametres">Compléter mon profil</Link>
+          </Button>
+        </>
+      ) : (
+        <>
+          <p className="font-semibold">{WFW_CLIENT_BLOCKED_TITLE}</p>
+          <p className="mt-1 text-[13px] text-muted-foreground">{WFW_CLIENT_BLOCKED_HELP}</p>
+        </>
+      )}
+    </div>
+  ) : null;
+
   const bookAction =
-    isDriver || isAdmin ? (
+    wfwGate && !connected ? (
+      wfwGate
+    ) : isDriver || isAdmin ? (
       <p className="rounded-2xl border border-border bg-muted/40 px-4 py-3 text-center text-sm text-muted-foreground">
         Vous êtes connecté avec un compte professionnel : seuls les comptes passagers peuvent
         ajouter un chauffeur à leur carnet.
