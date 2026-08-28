@@ -41,6 +41,8 @@ import { TripEstimator, type TripEstimate } from "@/components/driver/TripEstima
 import { saveRequestDraft } from "@/lib/request-draft";
 import { prefersReducedMotion, setDriverCelebration } from "@/lib/driver-celebration";
 import { DriverAddedOverlay } from "@/components/client/DriverAddedOverlay";
+import { DriverRemovedOverlay } from "@/components/client/DriverRemovedOverlay";
+
 import {
   WFW_CLIENT_BLOCKED_HELP,
   WFW_CLIENT_BLOCKED_TITLE,
