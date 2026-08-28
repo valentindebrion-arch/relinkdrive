@@ -5,6 +5,18 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { disablePush, enablePush, getPushState, type PushState } from "@/lib/push";
+import { supabase } from "@/integrations/supabase/client";
+
+type PrefKey = "request" | "ride" | "connection" | "invoice" | "info";
+type Prefs = Record<PrefKey, boolean>;
+
+const DEFAULT_PREFS: Prefs = {
+  request: true,
+  ride: true,
+  connection: true,
+  invoice: true,
+  info: false,
+};
 
 const LABELS: Record<PushState, string> = {
   enabled: "Notifications activées",
