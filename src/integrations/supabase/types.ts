@@ -2118,6 +2118,7 @@ export type Database = {
           full_name: string
           id: string
           location_enabled: boolean
+          notification_prefs: Json
           phone: string | null
           push_enabled: boolean
           status: Database["public"]["Enums"]["account_status"]
@@ -2130,6 +2131,7 @@ export type Database = {
           full_name?: string
           id: string
           location_enabled?: boolean
+          notification_prefs?: Json
           phone?: string | null
           push_enabled?: boolean
           status?: Database["public"]["Enums"]["account_status"]
@@ -2142,6 +2144,7 @@ export type Database = {
           full_name?: string
           id?: string
           location_enabled?: boolean
+          notification_prefs?: Json
           phone?: string | null
           push_enabled?: boolean
           status?: Database["public"]["Enums"]["account_status"]
