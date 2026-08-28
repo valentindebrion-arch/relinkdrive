@@ -143,7 +143,7 @@ export function classifyDriverRides(
 
 const PARIS = "Europe/Paris";
 
-function parisDayKey(date: Date) {
+export function parisDayKey(date: Date) {
   return new Intl.DateTimeFormat("fr-CA", {
     timeZone: PARIS,
     year: "numeric",
