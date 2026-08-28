@@ -50,6 +50,9 @@ function ClientDrivers() {
   const [search, setSearch] = useState("");
   const [wfwOnly, setWfwOnly] = useState(false);
   const queryClient = useQueryClient();
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [toRemove, setToRemove] = useState<{ id: string; name: string } | null>(null);
+
 
   // Suite de l'animation d'ajout : la carte arrive dans la liste.
   const [celebration, setCelebration] = useState<DriverCelebration | null>(null);
