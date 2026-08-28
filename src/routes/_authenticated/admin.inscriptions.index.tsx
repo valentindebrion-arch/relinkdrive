@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { ChevronRight, Loader2 } from "lucide-react";
 import { listDriverApplications } from "@/lib/admin-dossier.functions";
@@ -39,6 +40,12 @@ function statusTone(status: string) {
 function ApplicationsPage() {
   const list = useServerFn(listDriverApplications);
   const q = useQuery({ queryKey: ["driver-applications"], queryFn: () => list({}) });
+  const [tab, setTab] = useState<"pending" | "validated">("pending");
+
+  const all = q.data ?? [];
+  const validated = all.filter((a) => a.status === "verified");
+  const pending = all.filter((a) => a.status !== "verified");
+  const rows = tab === "validated" ? validated : pending;
 
   return (
     <>
@@ -47,15 +54,37 @@ function ApplicationsPage() {
         description="Dossiers transmis par les chauffeurs pour vérification professionnelle."
       />
 
+      <div className="mb-3 grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
+        {([
+          ["pending", "En attente", pending.length],
+          ["validated", "Validé", validated.length],
+        ] as const).map(([key, label, count]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setTab(key)}
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+              tab === key ? "bg-background shadow-sm" : "text-muted-foreground"
+            }`}
+          >
+            {label} ({count})
+          </button>
+        ))}
+      </div>
+
       {q.isLoading ? (
         <div className="surface flex items-center justify-center p-10 text-muted-foreground">
           <Loader2 className="size-5 animate-spin" />
         </div>
-      ) : !q.data?.length ? (
-        <p className="surface p-6 text-sm text-muted-foreground">Aucune demande pour le moment.</p>
+      ) : !rows.length ? (
+        <p className="surface p-6 text-sm text-muted-foreground">
+          {tab === "validated"
+            ? "Aucun dossier validé pour le moment."
+            : "Aucune demande en attente."}
+        </p>
       ) : (
         <div className="space-y-2">
-          {q.data.map((a) => (
+          {rows.map((a) => (
             <Link
               key={a.driverId}
               to="/admin/inscriptions/$driverId"
@@ -72,6 +101,11 @@ function ApplicationsPage() {
                 <span className="block text-xs text-muted-foreground">
                   Envoyé le {formatDateTime(a.submittedAt)}
                 </span>
+                {a.status === "verified" && a.approvedAt ? (
+                  <span className="block text-xs text-primary">
+                    Validé le {formatDateTime(a.approvedAt)}
+                  </span>
+                ) : null}
               </span>
               <span className="flex shrink-0 items-center gap-2">
                 <span

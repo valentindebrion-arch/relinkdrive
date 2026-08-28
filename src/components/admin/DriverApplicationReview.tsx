@@ -56,6 +56,7 @@ export function DriverApplicationReview({ driverId }: { driverId: string }) {
     | null
     | undefined;
   const name = (dossier?.profile as { full_name?: string } | null)?.full_name ?? "ce chauffeur";
+  const approver = (dossier as { approver?: string | null } | undefined)?.approver ?? null;
   const state = dossier?.state as
     | {
         all_approved?: boolean;
@@ -157,7 +158,7 @@ export function DriverApplicationReview({ driverId }: { driverId: string }) {
       toast.error(error.message);
       return;
     }
-    toast.success(`${name} est désormais autorisé sur ReLink.`);
+    toast.success(`Dossier de ${name} validé.`);
     refresh();
   }
 
@@ -193,10 +194,17 @@ export function DriverApplicationReview({ driverId }: { driverId: string }) {
         </p>
 
         {verified ? (
-          <p className="mt-4 flex items-center gap-2 rounded-lg bg-primary/10 p-3 text-sm font-medium text-primary">
-            <CheckCircle2 className="size-4" /> Chauffeur autorisé
-            {driver?.approved_at ? ` le ${formatDateTime(driver.approved_at)}` : ""}
-          </p>
+          <div className="mt-4 rounded-lg bg-primary/10 p-3 text-sm text-primary">
+            <p className="flex items-center gap-2 font-medium">
+              <CheckCircle2 className="size-4" /> Dossier validé
+            </p>
+            {driver?.approved_at ? (
+              <p className="mt-1 text-xs">
+                Validé le {formatDateTime(driver.approved_at)}
+                {approver ? ` par ${approver}` : ""}
+              </p>
+            ) : null}
+          </div>
         ) : state?.all_approved ? (
           <Button
             size="lg"
@@ -204,11 +212,11 @@ export function DriverApplicationReview({ driverId }: { driverId: string }) {
             disabled={busy === "authorize"}
             onClick={() => setAuthorizeOpen(true)}
           >
-            <ShieldCheck className="size-5" /> Autoriser {name}
+            <ShieldCheck className="size-5" /> Valider le dossier
           </Button>
         ) : (
           <div className="mt-4 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
-            <p>Autorisation bloquée par :</p>
+            <p>Validation bloquée par :</p>
             <ul className="mt-1 list-disc pl-5">
               {blocking.map((b) => (
                 <li key={b} className="text-destructive">
@@ -375,14 +383,16 @@ export function DriverApplicationReview({ driverId }: { driverId: string }) {
       <AlertDialog open={authorizeOpen} onOpenChange={setAuthorizeOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmer l'autorisation de ce chauffeur sur ReLink ?</AlertDialogTitle>
+            <AlertDialogTitle>Confirmer la validation du dossier de {name} ?</AlertDialogTitle>
             <AlertDialogDescription>
-              {name} pourra recevoir des demandes et sa fiche publique deviendra visible.
+              Vous certifiez avoir contrôlé les documents obligatoires de ce chauffeur.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void authorize()}>Autoriser</AlertDialogAction>
+            <AlertDialogAction onClick={() => void authorize()}>
+              Confirmer la validation
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
