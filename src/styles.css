@@ -96,6 +96,12 @@
   --warning-foreground: oklch(0.26 0.05 75);
   --info: oklch(0.6 0.11 240);
   --info-foreground: oklch(0.99 0.01 240);
+  /* Woman for Woman : teinte violine discrète */
+  --wfw: oklch(0.52 0.14 315);
+  --wfw-foreground: oklch(0.99 0.01 315);
+  --wfw-surface: oklch(0.985 0.014 315);
+  --wfw-border: oklch(0.88 0.045 315);
+
   --border: oklch(0.91 0.008 165);
   --input: oklch(0.91 0.008 165);
   --ring: oklch(0.63 0.15 158);
