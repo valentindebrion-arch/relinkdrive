@@ -168,9 +168,16 @@ export async function loadDossier(driverId: string) {
 
   const state = await supabaseAdmin.rpc("driver_dossier_state", { _driver: driverId });
 
+  const approverId = (driver.data as { approved_by?: string | null } | null)?.approved_by ?? null;
+  const approver = approverId
+    ? (await supabaseAdmin.from("profiles").select("full_name").eq("id", approverId).maybeSingle())
+        .data?.full_name ?? null
+    : null;
+
   return {
     profile: profile.data ?? null,
     driver: driver.data ?? null,
+    approver,
     company: company.data?.[0] ?? null,
     vehicles: vehicles.data ?? [],
     details: details.data ?? null,
