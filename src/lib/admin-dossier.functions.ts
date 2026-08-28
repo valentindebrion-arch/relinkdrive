@@ -131,3 +131,42 @@ export const generateDossierPdf = createServerFn({ method: "POST" })
     });
     return { fileName, base64: Buffer.from(bytes).toString("base64") };
   });
+
+/** Liste des demandes d'inscription chauffeur transmises à ReLink. */
+export const listDriverApplications = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const mod = await import("@/lib/admin-dossier.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await mod.assertAdmin(context.userId);
+
+    const { data: drivers } = await supabaseAdmin
+      .from("driver_profiles")
+      .select(
+        "user_id, verification_status, driver_kind, vtc_card_number, taxi_license_number, submitted_at, approved_at, created_at",
+      )
+      .neq("verification_status", "incomplete")
+      .order("submitted_at", { ascending: false, nullsFirst: false });
+
+    const ids = (drivers ?? []).map((d) => d.user_id);
+    const profiles = ids.length
+      ? ((await supabaseAdmin.from("profiles").select("id, full_name, phone").in("id", ids)).data ?? [])
+      : [];
+
+    return (drivers ?? []).map((d) => {
+      const p = profiles.find((x) => x.id === d.user_id);
+      const full = (p?.full_name ?? "").trim();
+      const parts = full.split(/\s+/).filter(Boolean);
+      return {
+        driverId: d.user_id,
+        fullName: full || "Chauffeur ReLink",
+        firstName: parts[0] ?? "",
+        lastName: parts.slice(1).join(" "),
+        kind: d.driver_kind ?? "vtc",
+        number: (d.driver_kind === "taxi" ? d.taxi_license_number : d.vtc_card_number) ?? null,
+        status: d.verification_status as string,
+        submittedAt: d.submitted_at,
+        approvedAt: d.approved_at,
+      };
+    });
+  });
