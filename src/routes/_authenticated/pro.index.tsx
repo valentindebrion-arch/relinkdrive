@@ -284,7 +284,9 @@ function ProOverview() {
                 <StatusBadge status={driver.data.verification_status} labels={VERIFICATION_LABELS} />
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Page publique activée après validation par un administrateur.
+                Votre dossier a bien été envoyé. Vous pouvez compléter votre profil pendant que
+                notre équipe vérifie vos documents. Vous pourrez vous mettre disponible dès
+                validation de votre dossier.
               </p>
             </div>
             <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
