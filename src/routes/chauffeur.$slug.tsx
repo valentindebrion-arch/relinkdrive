@@ -41,6 +41,8 @@ import { TripEstimator, type TripEstimate } from "@/components/driver/TripEstima
 import { saveRequestDraft } from "@/lib/request-draft";
 import { prefersReducedMotion, setDriverCelebration } from "@/lib/driver-celebration";
 import { DriverAddedOverlay } from "@/components/client/DriverAddedOverlay";
+import { DriverRemovedOverlay } from "@/components/client/DriverRemovedOverlay";
+
 import {
   WFW_CLIENT_BLOCKED_HELP,
   WFW_CLIENT_BLOCKED_TITLE,
@@ -157,6 +159,8 @@ function DriverPublicPage() {
   const [adding, setAdding] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [removeOpen, setRemoveOpen] = useState(false);
+  const [removal, setRemoval] = useState(false);
+
   const [celebration, setCelebration] = useState<{ first: boolean } | null>(null);
 
   const source =
@@ -407,6 +411,7 @@ function DriverPublicPage() {
   async function removeFromBook() {
     if (!user?.id || !driverId) return;
     setAdding(true);
+    // Backend d'abord : la carte ne disparaît qu'après suppression confirmée.
     const { error } = await supabase
       .from("driver_client_connections")
       .delete()
@@ -417,9 +422,17 @@ function DriverPublicPage() {
       toast.error(error.message);
       return;
     }
-    toast.success(`${firstName} a été retiré de votre carnet`);
-    void connQuery.refetch();
+    void queryClient.invalidateQueries({ queryKey: ["client-drivers"] });
+    void queryClient.invalidateQueries({ queryKey: ["discover-drivers"] });
+    void queryClient.invalidateQueries({ queryKey: ["top10-drivers"] });
+    if (prefersReducedMotion()) {
+      toast.success(`${firstName} a été retiré de vos chauffeurs`);
+      void connQuery.refetch();
+      return;
+    }
+    setRemoval(true);
   }
+
 
   /** Envoie le client vers le formulaire existant, prérempli avec l'estimation. */
   function goToRequest(est: TripEstimate) {
@@ -476,17 +489,24 @@ function DriverPublicPage() {
       </p>
     ) : connected ? (
       <div className="space-y-2 text-center">
-        <p className="flex items-center justify-center gap-1.5 text-sm font-semibold text-primary">
-          <Check className="size-4" /> {firstName} est dans mes chauffeurs
+        <p
+          className={
+            "flex items-center justify-center gap-1.5 text-sm font-semibold transition-colors " +
+            (removal ? "text-destructive" : "text-primary")
+          }
+        >
+          <Check className="size-4" />{" "}
+          {removal ? "Chauffeur retiré" : `${firstName} est dans mes chauffeurs`}
         </p>
         <button
           type="button"
           onClick={() => setRemoveOpen(true)}
-          disabled={adding}
+          disabled={adding || removal}
           className="text-xs font-semibold text-muted-foreground underline underline-offset-4 transition hover:text-foreground"
         >
           Retirer {firstName} de mes chauffeurs
         </button>
+
       </div>
     ) : (
       <Button
@@ -1021,7 +1041,21 @@ function DriverPublicPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {removal ? (
+        <DriverRemovedOverlay
+          firstName={firstName}
+          name={d.full_name ?? firstName}
+          vehicleLabel={vehicleLabel}
+          photoUrl={sidePhoto ?? vehiclePhoto ?? frontPhoto}
+          onDone={() => {
+            setRemoval(false);
+            void connQuery.refetch();
+          }}
+        />
+      ) : null}
+
       {celebration ? (
+
         <DriverAddedOverlay
           firstName={firstName}
           name={d.full_name ?? firstName}

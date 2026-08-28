@@ -722,3 +722,75 @@
     animation: achievement-fade 0.2s ease-out both !important;
   }
 }
+
+/* ── Retrait d'un chauffeur du carnet : miroir rouge de l'achievement ── */
+@keyframes removal-recede {
+  0% { transform: perspective(900px) translate3d(0, 0, 0) scale(1) rotateX(0deg); opacity: 1; }
+  22% { transform: perspective(900px) translate3d(0, -8px, 0) scale(1.03) rotateX(-3deg); opacity: 1; }
+  55% { transform: perspective(900px) translate3d(0, 4px, 0) scale(0.95) rotateX(4deg) rotateZ(-0.6deg); opacity: 0.9; }
+  100% { transform: perspective(900px) translate3d(0, 34px, 0) scale(0.85) rotateX(9deg) rotateZ(-1.2deg); opacity: 0; }
+}
+
+@keyframes removal-glow {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--destructive) 45%, transparent); }
+  35% { box-shadow: 0 0 0 8px color-mix(in oklab, var(--destructive) 14%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--destructive) 0%, transparent); }
+}
+
+@keyframes removal-tint {
+  0% { opacity: 0; }
+  30% { opacity: 1; }
+  100% { opacity: 0.55; }
+}
+
+@keyframes removal-desaturate {
+  0% { filter: saturate(1); }
+  100% { filter: saturate(0.15) brightness(0.92); }
+}
+
+@keyframes removal-caption {
+  0% { transform: translateY(6px); opacity: 0; }
+  25% { transform: translateY(0); opacity: 1; }
+  80% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(6px); opacity: 0; }
+}
+
+.removal-overlay {
+  animation: achievement-fade 0.2s ease-out both;
+}
+
+.removal-card {
+  animation:
+    removal-recede 1.6s cubic-bezier(0.4, 0, 0.2, 1) both,
+    removal-glow 1.2s ease-out both;
+  box-shadow: 0 30px 60px -28px rgb(0 0 0 / 0.45);
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+
+.removal-tint {
+  animation: removal-tint 1.2s ease-out both;
+}
+
+.removal-photo {
+  animation: removal-desaturate 1.4s ease-out both;
+}
+
+.removal-check {
+  animation: achievement-check 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.removal-caption {
+  animation: removal-caption 1.7s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .removal-overlay,
+  .removal-card,
+  .removal-tint,
+  .removal-photo,
+  .removal-check,
+  .removal-caption {
+    animation: achievement-fade 0.18s ease-out both !important;
+  }
+}
