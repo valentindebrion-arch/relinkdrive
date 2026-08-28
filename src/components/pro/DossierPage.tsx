@@ -7,7 +7,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useDriverProfile, useMyDocuments } from "@/lib/driver-queries";
 import { DOSSIER_STATUS_LABELS, useDossierState } from "@/lib/driver-dossier";
-import { APPLICATION_DOCS, type DriverKind } from "@/lib/driver-application";
+import {
+  APPLICATION_DOCS,
+  APPLICATION_DOC_LABELS,
+  type DriverKind,
+} from "@/lib/driver-application";
 import { DocumentUploader, type DriverDocument } from "@/components/pro/DocumentUploader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
