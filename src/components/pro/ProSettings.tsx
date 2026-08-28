@@ -255,6 +255,48 @@ export function ProSettings() {
         </div>
 
         <div className="rounded-xl border border-border p-4 sm:col-span-2">
+          <Label htmlFor="pro-gender">{GENDER_FIELD_LABEL}</Label>
+          <select
+            id="pro-gender"
+            value={pro.gender}
+            onChange={(e) => {
+              const gender = e.target.value as GenderValue | "";
+              setPro((p) => ({
+                ...p,
+                gender,
+                woman_for_woman: driverCanOfferWfw(gender) ? p.woman_for_woman : false,
+              }));
+            }}
+            className="mt-1 min-h-11 w-full rounded-xl border border-input bg-background px-3 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          >
+            <option value="">Non renseigné</option>
+            {GENDER_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-muted-foreground">{GENDER_HELP}</p>
+
+          <label className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2">
+            <span className="min-w-0">
+              <span className="block text-sm font-medium">{WFW_LABEL}</span>
+              <span className="block text-xs text-muted-foreground">{WFW_DRIVER_DESCRIPTION}</span>
+            </span>
+            <Switch
+              checked={pro.woman_for_woman}
+              disabled={!driverCanOfferWfw(pro.gender)}
+              onCheckedChange={(v) => setPro((p) => ({ ...p, woman_for_woman: v }))}
+            />
+          </label>
+          {!driverCanOfferWfw(pro.gender) ? (
+            <p className="mt-2 text-xs text-muted-foreground">{WFW_DRIVER_PROFILE_REQUIRED}</p>
+          ) : null}
+        </div>
+
+
+
+        <div className="rounded-xl border border-border p-4 sm:col-span-2">
           <p className="text-sm font-semibold">Coordonnées publiques (facultatives)</p>
           <p className="mt-1 text-xs text-muted-foreground">
             Rien n'est affiché par défaut. Votre numéro personnel de compte n'est jamais publié : seul le
