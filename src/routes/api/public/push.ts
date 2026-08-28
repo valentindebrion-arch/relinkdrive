@@ -50,8 +50,12 @@ export const Route = createFileRoute("/api/public/push")({
             tag: notification.id,
             at: notification.created_at,
           }),
-          options: { ttl: 600 },
+          // TTL long + urgence haute : le message réveille l'appareil verrouillé
+          // et reste en file d'attente si le téléphone est hors ligne.
+          options: { ttl: 86400, urgency: "high" as const },
         };
+
+        console.log(`[push] notification ${notification.id} → ${subs.length} appareil(s)`);
 
         let sent = 0;
         await Promise.all(
@@ -65,11 +69,13 @@ export const Route = createFileRoute("/api/public/push")({
               const payload = await buildPushPayload(message, subscription, vapid);
               const res = await fetch(s.endpoint, payload as unknown as RequestInit);
               if (res.status === 404 || res.status === 410) {
+                console.warn(`[push] abonnement expiré (${res.status}), suppression`);
                 await supabaseAdmin.from("push_subscriptions").delete().eq("endpoint", s.endpoint);
               } else if (res.ok) {
                 sent += 1;
+                console.log(`[push] envoyé (${res.status})`);
               } else {
-                console.error(`[push] ${res.status} ${await res.text()}`);
+                console.error(`[push] refus fournisseur ${res.status} ${await res.text()}`);
               }
             } catch (error) {
               console.error("[push] send failed", error);
@@ -77,7 +83,8 @@ export const Route = createFileRoute("/api/public/push")({
           }),
         );
 
-        return Response.json({ sent });
+        console.log(`[push] notification ${notification.id} : ${sent}/${subs.length} envoyée(s)`);
+        return Response.json({ sent, total: subs.length });
       },
     },
   },

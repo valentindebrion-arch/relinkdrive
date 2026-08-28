@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { cleanupPushOnSignOut } from "@/lib/push";
+import { cleanupPushOnSignOut, syncPushSubscription } from "@/lib/push";
 
 export type AppRole = "client" | "driver" | "admin" | "superadmin";
 
@@ -58,11 +58,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
       setTimeout(() => void load(s?.user?.id), 0);
+      if (s?.user?.id) void syncPushSubscription(s.user.id);
     });
     supabase.auth.getSession().then(async ({ data }) => {
       setSession(data.session);
       await load(data.session?.user?.id);
       setLoading(false);
+      if (data.session?.user?.id) void syncPushSubscription(data.session.user.id);
     });
     return () => sub.subscription.unsubscribe();
   }, []);
