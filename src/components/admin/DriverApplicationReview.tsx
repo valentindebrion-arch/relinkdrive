@@ -158,7 +158,7 @@ export function DriverApplicationReview({ driverId }: { driverId: string }) {
       toast.error(error.message);
       return;
     }
-    toast.success(`${name} est désormais autorisé sur ReLink.`);
+    toast.success(`Dossier de ${name} validé.`);
     refresh();
   }
 
