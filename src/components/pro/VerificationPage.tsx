@@ -40,8 +40,6 @@ export function VerificationPage() {
       doc_type: docType,
       file_path: path,
       expires_at: expiresAt || null,
-      status: "pending" as const,
-      review_note: null,
     };
     const { error } = existing
       ? await supabase.from("verification_documents").update(payload).eq("id", existing.id)
