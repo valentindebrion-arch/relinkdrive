@@ -386,12 +386,61 @@ function DriverPublicPage() {
 
   const publicPhone: string | null = d.public_phone ?? null;
   const whatsapp: string | null = d.whatsapp_number ?? null;
-  const socials: { label: string; url: string; icon: typeof Car }[] = [
-    { label: "Instagram", url: d.instagram_url, icon: Instagram },
-    { label: "Facebook", url: d.facebook_url, icon: Facebook },
-    { label: "TikTok", url: d.tiktok_url, icon: Music2 },
-    { label: "LinkedIn", url: d.linkedin_url, icon: Linkedin },
-  ].filter((s): s is { label: string; url: string; icon: typeof Car } => !!s.url);
+  const website: string | null = (d as { website_url?: string | null }).website_url ?? null;
+
+  type ContactLink = {
+    kind: string;
+    label: string;
+    href: string;
+    icon: typeof Car;
+    external?: boolean;
+    primary?: boolean;
+  };
+
+  /** Moyens de contact publiés par le chauffeur, dans l'ordre d'utilité. */
+  const contactLinks: ContactLink[] = [
+    publicPhone
+      ? {
+          kind: "phone",
+          label: `Appeler ${publicPhone}`,
+          href: `tel:${publicPhone.replace(/\s/g, "")}`,
+          icon: Phone,
+          primary: true,
+        }
+      : null,
+    publicPhone
+      ? {
+          kind: "sms",
+          label: "Envoyer un SMS",
+          href: `sms:${publicPhone.replace(/\s/g, "")}`,
+          icon: MessageCircle,
+        }
+      : null,
+    whatsapp
+      ? {
+          kind: "whatsapp",
+          label: "Écrire sur WhatsApp",
+          href: `https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}`,
+          icon: MessageCircle,
+          external: true,
+        }
+      : null,
+    website
+      ? { kind: "website", label: "Site internet", href: website, icon: Globe, external: true }
+      : null,
+    d.instagram_url
+      ? { kind: "instagram", label: "Instagram", href: d.instagram_url, icon: Instagram, external: true }
+      : null,
+    d.facebook_url
+      ? { kind: "facebook", label: "Facebook", href: d.facebook_url, icon: Facebook, external: true }
+      : null,
+    d.tiktok_url
+      ? { kind: "tiktok", label: "TikTok", href: d.tiktok_url, icon: Music2, external: true }
+      : null,
+    d.linkedin_url
+      ? { kind: "linkedin", label: "LinkedIn", href: d.linkedin_url, icon: Linkedin, external: true }
+      : null,
+  ].filter((c): c is ContactLink => !!c);
 
   function startAdd(mode: "signin" | "signup" = "signup") {
     void supabase.rpc("track_driver_event", { _slug: slug, _event: "driver_add_click" });
@@ -404,8 +453,9 @@ function DriverPublicPage() {
     setConfirmOpen(true);
   }
 
-  function trackRequest() {
-    void supabase.rpc("track_driver_event", { _slug: slug, _event: "driver_request_click" });
+  /** Statistique de visibilité : clic sur un moyen de contact. */
+  function trackContact(kind: string) {
+    void supabase.rpc("track_driver_event", { _slug: slug, _event: `contact_click:${kind}` });
   }
 
   async function removeFromBook() {
