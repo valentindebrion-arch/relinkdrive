@@ -44,6 +44,7 @@ import { Route as AuthenticatedProDossierRouteImport } from './routes/_authentic
 import { Route as AuthenticatedProEinvoicingRouteImport } from './routes/_authenticated/pro.einvoicing'
 import { Route as AuthenticatedProEntrepriseRouteImport } from './routes/_authenticated/pro.entreprise'
 import { Route as AuthenticatedProFacturesRouteImport } from './routes/_authenticated/pro.factures'
+import { Route as AuthenticatedProLiensRouteImport } from './routes/_authenticated/pro.liens'
 import { Route as AuthenticatedProParametresRouteImport } from './routes/_authenticated/pro.parametres'
 import { Route as AuthenticatedProPersonnalisationRouteImport } from './routes/_authenticated/pro.personnalisation'
 import { Route as AuthenticatedProProfilRouteImport } from './routes/_authenticated/pro.profil'
@@ -262,6 +263,11 @@ const AuthenticatedProFacturesRoute =
     path: '/factures',
     getParentRoute: () => AuthenticatedProRoute,
   } as any)
+const AuthenticatedProLiensRoute = AuthenticatedProLiensRouteImport.update({
+  id: '/liens',
+  path: '/liens',
+  getParentRoute: () => AuthenticatedProRoute,
+} as any)
 const AuthenticatedProParametresRoute =
   AuthenticatedProParametresRouteImport.update({
     id: '/parametres',
@@ -460,6 +466,7 @@ export interface FileRoutesByFullPath {
   '/pro/einvoicing': typeof AuthenticatedProEinvoicingRoute
   '/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/pro/factures': typeof AuthenticatedProFacturesRoute
+  '/pro/liens': typeof AuthenticatedProLiensRoute
   '/pro/parametres': typeof AuthenticatedProParametresRoute
   '/pro/personnalisation': typeof AuthenticatedProPersonnalisationRoute
   '/pro/profil': typeof AuthenticatedProProfilRoute
@@ -518,6 +525,7 @@ export interface FileRoutesByTo {
   '/pro/einvoicing': typeof AuthenticatedProEinvoicingRoute
   '/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/pro/factures': typeof AuthenticatedProFacturesRoute
+  '/pro/liens': typeof AuthenticatedProLiensRoute
   '/pro/parametres': typeof AuthenticatedProParametresRoute
   '/pro/personnalisation': typeof AuthenticatedProPersonnalisationRoute
   '/pro/profil': typeof AuthenticatedProProfilRoute
@@ -584,6 +592,7 @@ export interface FileRoutesById {
   '/_authenticated/pro/einvoicing': typeof AuthenticatedProEinvoicingRoute
   '/_authenticated/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/_authenticated/pro/factures': typeof AuthenticatedProFacturesRoute
+  '/_authenticated/pro/liens': typeof AuthenticatedProLiensRoute
   '/_authenticated/pro/parametres': typeof AuthenticatedProParametresRoute
   '/_authenticated/pro/personnalisation': typeof AuthenticatedProPersonnalisationRoute
   '/_authenticated/pro/profil': typeof AuthenticatedProProfilRoute
@@ -650,6 +659,7 @@ export interface FileRouteTypes {
     | '/pro/einvoicing'
     | '/pro/entreprise'
     | '/pro/factures'
+    | '/pro/liens'
     | '/pro/parametres'
     | '/pro/personnalisation'
     | '/pro/profil'
@@ -708,6 +718,7 @@ export interface FileRouteTypes {
     | '/pro/einvoicing'
     | '/pro/entreprise'
     | '/pro/factures'
+    | '/pro/liens'
     | '/pro/parametres'
     | '/pro/personnalisation'
     | '/pro/profil'
@@ -773,6 +784,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pro/einvoicing'
     | '/_authenticated/pro/entreprise'
     | '/_authenticated/pro/factures'
+    | '/_authenticated/pro/liens'
     | '/_authenticated/pro/parametres'
     | '/_authenticated/pro/personnalisation'
     | '/_authenticated/pro/profil'
@@ -1067,6 +1079,13 @@ declare module '@tanstack/react-router' {
       path: '/factures'
       fullPath: '/pro/factures'
       preLoaderRoute: typeof AuthenticatedProFacturesRouteImport
+      parentRoute: typeof AuthenticatedProRoute
+    }
+    '/_authenticated/pro/liens': {
+      id: '/_authenticated/pro/liens'
+      path: '/liens'
+      fullPath: '/pro/liens'
+      preLoaderRoute: typeof AuthenticatedProLiensRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
     '/_authenticated/pro/parametres': {
@@ -1393,6 +1412,7 @@ interface AuthenticatedProRouteChildren {
   AuthenticatedProEinvoicingRoute: typeof AuthenticatedProEinvoicingRoute
   AuthenticatedProEntrepriseRoute: typeof AuthenticatedProEntrepriseRoute
   AuthenticatedProFacturesRoute: typeof AuthenticatedProFacturesRoute
+  AuthenticatedProLiensRoute: typeof AuthenticatedProLiensRoute
   AuthenticatedProParametresRoute: typeof AuthenticatedProParametresRoute
   AuthenticatedProPersonnalisationRoute: typeof AuthenticatedProPersonnalisationRoute
   AuthenticatedProProfilRoute: typeof AuthenticatedProProfilRoute
@@ -1417,6 +1437,7 @@ const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
   AuthenticatedProEinvoicingRoute: AuthenticatedProEinvoicingRoute,
   AuthenticatedProEntrepriseRoute: AuthenticatedProEntrepriseRoute,
   AuthenticatedProFacturesRoute: AuthenticatedProFacturesRoute,
+  AuthenticatedProLiensRoute: AuthenticatedProLiensRoute,
   AuthenticatedProParametresRoute: AuthenticatedProParametresRoute,
   AuthenticatedProPersonnalisationRoute: AuthenticatedProPersonnalisationRoute,
   AuthenticatedProProfilRoute: AuthenticatedProProfilRoute,
