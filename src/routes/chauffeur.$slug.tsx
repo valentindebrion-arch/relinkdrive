@@ -440,7 +440,7 @@ function DriverPublicPage() {
     d.linkedin_url
       ? { kind: "linkedin", label: "LinkedIn", href: d.linkedin_url, icon: Linkedin, external: true }
       : null,
-  ].filter((c): c is ContactLink => !!c);
+  ] as (ContactLink | null)[]).filter((c): c is ContactLink => !!c);
 
   function startAdd(mode: "signin" | "signup" = "signup") {
     void supabase.rpc("track_driver_event", { _slug: slug, _event: "driver_add_click" });
