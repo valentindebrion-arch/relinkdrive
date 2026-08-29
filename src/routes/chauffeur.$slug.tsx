@@ -398,7 +398,7 @@ function DriverPublicPage() {
   };
 
   /** Moyens de contact publiés par le chauffeur, dans l'ordre d'utilité. */
-  const contactLinks: ContactLink[] = [
+  const contactLinks: ContactLink[] = ([
     publicPhone
       ? {
           kind: "phone",
