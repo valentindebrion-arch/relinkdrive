@@ -938,7 +938,7 @@ function DriverPublicPage() {
         <Section title="Comment ça fonctionne ?">
           <ol className="space-y-2">
             {[
-              "Consultez la vitrine de ${name} : véhicules, prestations, zones desservies.".replace("${name}", firstName),
+              `Consultez la vitrine de ${firstName} : véhicules, prestations, zones desservies.`,
               "Ajoutez-le à vos chauffeurs pour le retrouver plus tard.",
               "Contactez-le directement pour convenir de votre trajet.",
             ].map((step, i) => (
@@ -951,8 +951,9 @@ function DriverPublicPage() {
             ))}
           </ol>
           <p className="mt-3 text-xs text-muted-foreground">
-            {BRAND.name} vous permet de conserver les coordonnées des chauffeurs que vous avez
-            réellement rencontrés et ne prélève aucune commission sur les courses.
+            {BRAND.name} met les chauffeurs en visibilité et vous donne accès à leurs coordonnées
+            professionnelles. La prestation, son tarif et ses conditions se conviennent directement
+            avec le chauffeur.
           </p>
         </Section>
 
@@ -961,14 +962,11 @@ function DriverPublicPage() {
 
         <div className="space-y-1 pb-2 text-center text-xs text-muted-foreground">
           <p>
-            {BRAND.name} — carnet privé de chauffeurs. Seules les informations que le chauffeur a
-            choisi de publier sont visibles ici : aucune coordonnée personnelle n'est diffusée
-            automatiquement.
+            {BRAND.name} — le réseau des chauffeurs VTC. Seules les informations que le chauffeur a
+            choisi de publier sont visibles ici.
           </p>
           <p>
-            Mentions légales · Confidentialité — {BRAND.name} n'organise aucune mise en relation
-            publique et ne prélève aucune commission. Les données des passagers ne sont utilisées
-            que pour la relation avec les chauffeurs de leur carnet.
+            {BRAND.name} n'organise, ne gère et n'exécute aucune course.
           </p>
         </div>
         <PoweredByRelink />
@@ -979,8 +977,7 @@ function DriverPublicPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Ajouter {firstName} à vos chauffeurs ?</AlertDialogTitle>
             <AlertDialogDescription>
-              {firstName} sera enregistré dans votre carnet privé et pourra recevoir vos demandes de
-              trajet. Vous pouvez le retirer à tout moment.
+  
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
