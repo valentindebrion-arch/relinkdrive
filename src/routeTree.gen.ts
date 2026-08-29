@@ -16,6 +16,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ChauffeursRouteImport } from './routes/chauffeurs'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as VerificationRouteImport } from './routes/verification'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedEspaceRouteImport } from './routes/_authenticated/espace'
 import { Route as AuthenticatedProRouteImport } from './routes/_authenticated/pro'
@@ -104,6 +105,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerificationRoute = VerificationRouteImport.update({
+  id: '/verification',
+  path: '/verification',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -429,6 +435,7 @@ export interface FileRoutesByFullPath {
   '/chauffeurs': typeof ChauffeursRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/verification': typeof VerificationRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/espace': typeof AuthenticatedEspaceRouteWithChildren
   '/pro': typeof AuthenticatedProRouteWithChildren
@@ -492,6 +499,7 @@ export interface FileRoutesByTo {
   '/chauffeurs': typeof ChauffeursRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/verification': typeof VerificationRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/confirm': typeof AuthConfirmRoute
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
@@ -551,6 +559,7 @@ export interface FileRoutesById {
   '/chauffeurs': typeof ChauffeursRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/verification': typeof VerificationRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/espace': typeof AuthenticatedEspaceRouteWithChildren
   '/_authenticated/pro': typeof AuthenticatedProRouteWithChildren
@@ -616,6 +625,7 @@ export interface FileRouteTypes {
     | '/chauffeurs'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/verification'
     | '/admin'
     | '/espace'
     | '/pro'
@@ -679,6 +689,7 @@ export interface FileRouteTypes {
     | '/chauffeurs'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/verification'
     | '/auth/callback'
     | '/auth/confirm'
     | '/chauffeur/$slug'
@@ -737,6 +748,7 @@ export interface FileRouteTypes {
     | '/chauffeurs'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/verification'
     | '/_authenticated/admin'
     | '/_authenticated/espace'
     | '/_authenticated/pro'
@@ -802,6 +814,7 @@ export interface RootRouteChildren {
   ChauffeursRoute: typeof ChauffeursRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  VerificationRoute: typeof VerificationRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthConfirmRoute: typeof AuthConfirmRoute
   ChauffeurSlugRoute: typeof ChauffeurSlugRoute
@@ -858,6 +871,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verification': {
+      id: '/verification'
+      path: '/verification'
+      fullPath: '/verification'
+      preLoaderRoute: typeof VerificationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -1437,6 +1457,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChauffeursRoute: ChauffeursRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  VerificationRoute: VerificationRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   AuthConfirmRoute: AuthConfirmRoute,
   ChauffeurSlugRoute: ChauffeurSlugRoute,
