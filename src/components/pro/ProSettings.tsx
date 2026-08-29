@@ -11,7 +11,6 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { PushSettingsCard } from "@/components/PushSettingsCard";
-import { PAYMENT_METHOD_OPTIONS } from "@/lib/payment-methods";
 import {
   GENDER_FIELD_LABEL,
   GENDER_HELP,
@@ -24,7 +23,6 @@ import {
   driverCanOfferWfw,
   type GenderValue,
 } from "@/lib/woman-for-woman";
-
 
 const AVAILABILITY_OPTIONS = [
   ["advance", "Sur réservation à l'avance"],
@@ -76,7 +74,6 @@ export function ProSettings() {
     woman_for_woman: false,
   });
   const [availability, setAvailability] = useState<string[]>([]);
-  const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
 
   useEffect(() => {
     if (profile) setAccount({ full_name: profile.full_name ?? "", phone: profile.phone ?? "" });
@@ -92,7 +89,9 @@ export function ProSettings() {
       city: d.city ?? "",
       zone: d.zone ?? "",
       service_areas: (d.service_areas ?? []).join(", "),
-      service_departments: ((d as { service_departments?: string[] | null }).service_departments ?? []).join(", "),
+      service_departments: (
+        (d as { service_departments?: string[] | null }).service_departments ?? []
+      ).join(", "),
       stations: (d.stations ?? []).join(", "),
       airports: (d.airports ?? []).join(", "),
       booking_notice: d.booking_notice ?? "",
@@ -116,7 +115,6 @@ export function ProSettings() {
       woman_for_woman: (d as { woman_for_woman?: boolean }).woman_for_woman ?? false,
     });
     setAvailability(d.availability ?? []);
-    setPaymentMethods(d.payment_methods ?? []);
   }, [driver.data]);
 
   async function save() {
@@ -142,7 +140,6 @@ export function ProSettings() {
         services: toList(pro.services),
         long_distance: pro.long_distance,
         availability,
-        payment_methods: paymentMethods,
         accepting_requests: pro.accepting_requests,
         on_duty: pro.on_duty,
         page_published: pro.page_published,
@@ -217,106 +214,139 @@ export function ProSettings() {
 
         <div>
           <Label htmlFor="fn">Nom complet</Label>
-          <Input id="fn" value={account.full_name} maxLength={80} onChange={(e) => setAccount({ ...account, full_name: e.target.value })} />
+          <Input
+            id="fn"
+            value={account.full_name}
+            maxLength={80}
+            onChange={(e) => setAccount({ ...account, full_name: e.target.value })}
+          />
         </div>
         <div>
           <Label htmlFor="ph">Téléphone</Label>
-          <Input id="ph" value={account.phone} maxLength={20} onChange={(e) => setAccount({ ...account, phone: e.target.value })} />
+          <Input
+            id="ph"
+            value={account.phone}
+            maxLength={20}
+            onChange={(e) => setAccount({ ...account, phone: e.target.value })}
+          />
         </div>
         <div>
           <Label htmlFor="bn">Nom commercial</Label>
-          <Input id="bn" value={pro.business_name} maxLength={80} onChange={(e) => setPro({ ...pro, business_name: e.target.value })} />
+          <Input
+            id="bn"
+            value={pro.business_name}
+            maxLength={80}
+            onChange={(e) => setPro({ ...pro, business_name: e.target.value })}
+          />
         </div>
         <div>
           <Label htmlFor="vtc">Numéro de carte VTC</Label>
-          <Input id="vtc" value={pro.vtc_card_number} maxLength={40} onChange={(e) => setPro({ ...pro, vtc_card_number: e.target.value })} />
+          <Input
+            id="vtc"
+            value={pro.vtc_card_number}
+            maxLength={40}
+            onChange={(e) => setPro({ ...pro, vtc_card_number: e.target.value })}
+          />
         </div>
         <div>
           <Label htmlFor="city">Ville principale</Label>
-          <Input id="city" value={pro.city} maxLength={60} onChange={(e) => setPro({ ...pro, city: e.target.value })} />
+          <Input
+            id="city"
+            value={pro.city}
+            maxLength={60}
+            onChange={(e) => setPro({ ...pro, city: e.target.value })}
+          />
         </div>
         <div>
           <Label htmlFor="zone">Agglomération / zone</Label>
-          <Input id="zone" value={pro.zone} maxLength={80} onChange={(e) => setPro({ ...pro, zone: e.target.value })} />
+          <Input
+            id="zone"
+            value={pro.zone}
+            maxLength={80}
+            onChange={(e) => setPro({ ...pro, zone: e.target.value })}
+          />
         </div>
         <div>
           <Label htmlFor="areas">Départements / zones couverts (virgules)</Label>
-          <Input id="areas" value={pro.service_areas} maxLength={200} onChange={(e) => setPro({ ...pro, service_areas: e.target.value })} />
+          <Input
+            id="areas"
+            value={pro.service_areas}
+            maxLength={200}
+            onChange={(e) => setPro({ ...pro, service_areas: e.target.value })}
+          />
         </div>
         <div>
           <Label htmlFor="deps">Départements d'intervention (codes, virgules — ex. 63, 03)</Label>
-          <Input id="deps" value={pro.service_departments} maxLength={120} onChange={(e) => setPro({ ...pro, service_departments: e.target.value })} />
-          <p className="mt-1 text-[12px] text-muted-foreground">Vous apparaissez dans la page Trouver des clients situés dans ces départements.</p>
+          <Input
+            id="deps"
+            value={pro.service_departments}
+            maxLength={120}
+            onChange={(e) => setPro({ ...pro, service_departments: e.target.value })}
+          />
+          <p className="mt-1 text-[12px] text-muted-foreground">
+            Vous apparaissez dans la page Trouver des clients situés dans ces départements.
+          </p>
         </div>
         <div>
           <Label htmlFor="stations">Gares desservies (virgules)</Label>
-          <Input id="stations" value={pro.stations} maxLength={200} onChange={(e) => setPro({ ...pro, stations: e.target.value })} />
+          <Input
+            id="stations"
+            value={pro.stations}
+            maxLength={200}
+            onChange={(e) => setPro({ ...pro, stations: e.target.value })}
+          />
         </div>
         <div>
           <Label htmlFor="airports">Aéroports desservis (virgules)</Label>
-          <Input id="airports" value={pro.airports} maxLength={200} onChange={(e) => setPro({ ...pro, airports: e.target.value })} />
+          <Input
+            id="airports"
+            value={pro.airports}
+            maxLength={200}
+            onChange={(e) => setPro({ ...pro, airports: e.target.value })}
+          />
         </div>
         <div>
-          <Label htmlFor="notice">Délai de réservation conseillé</Label>
-          <Input id="notice" value={pro.booking_notice} maxLength={160} onChange={(e) => setPro({ ...pro, booking_notice: e.target.value })} />
+          <Label htmlFor="notice">Délai de prévenance conseillé</Label>
+          <Input
+            id="notice"
+            value={pro.booking_notice}
+            maxLength={160}
+            onChange={(e) => setPro({ ...pro, booking_notice: e.target.value })}
+          />
         </div>
         <div className="sm:col-span-2">
           <Label htmlFor="addr">Adresse professionnelle (jamais publique)</Label>
-          <Input id="addr" value={pro.professional_address} maxLength={160} onChange={(e) => setPro({ ...pro, professional_address: e.target.value })} />
+          <Input
+            id="addr"
+            value={pro.professional_address}
+            maxLength={160}
+            onChange={(e) => setPro({ ...pro, professional_address: e.target.value })}
+          />
         </div>
         <div>
           <Label htmlFor="lang">Langues parlées (virgules)</Label>
-          <Input id="lang" value={pro.languages} maxLength={120} onChange={(e) => setPro({ ...pro, languages: e.target.value })} />
+          <Input
+            id="lang"
+            value={pro.languages}
+            maxLength={120}
+            onChange={(e) => setPro({ ...pro, languages: e.target.value })}
+          />
         </div>
         <div>
           <Label htmlFor="serv">Services (virgules)</Label>
-          <Input id="serv" value={pro.services} maxLength={200} onChange={(e) => setPro({ ...pro, services: e.target.value })} />
+          <Input
+            id="serv"
+            value={pro.services}
+            maxLength={200}
+            onChange={(e) => setPro({ ...pro, services: e.target.value })}
+          />
         </div>
-        <div className="rounded-xl border border-border p-4 sm:col-span-2">
-          <p className="text-sm font-semibold">Modes de règlement acceptés</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Le client doit choisir l'un de ces modes pour envoyer une demande. Sans mode activé,
-            aucune réservation ne peut vous être adressée.
-          </p>
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            {PAYMENT_METHOD_OPTIONS.map((o) => {
-              const on = paymentMethods.includes(o.key);
-              return (
-                <label
-                  key={o.key}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2"
-                >
-                  <span className="min-w-0">
-                    <span className="block text-sm font-medium">{o.label}</span>
-                    <span className="block text-xs text-muted-foreground">{o.description}</span>
-                  </span>
-                  <Switch
-                    checked={on}
-                    onCheckedChange={(v) =>
-                      setPaymentMethods((prev) =>
-                        v ? [...new Set([...prev, o.key])] : prev.filter((k) => k !== o.key),
-                      )
-                    }
-                  />
-                </label>
-              );
-            })}
-          </div>
-          {paymentMethods.length === 0 ? (
-            <p className="mt-2 text-xs font-medium text-destructive">
-              Activez au moins un mode de règlement pour recevoir des demandes.
-            </p>
-          ) : null}
-        </div>
-
-
-
 
         <div className="rounded-xl border border-border p-4 sm:col-span-2">
           <p className="text-sm font-semibold">Coordonnées publiques (facultatives)</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Rien n'est affiché par défaut. Votre numéro personnel de compte n'est jamais publié : seul le
-            numéro professionnel ci-dessous peut l'être, si vous l'activez.
+            Rien n'est affiché par défaut. Votre numéro personnel de compte n'est jamais publié :
+            seul le numéro professionnel ci-dessous peut l'être, si vous l'activez.
           </p>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
@@ -357,19 +387,39 @@ export function ProSettings() {
             </div>
             <div>
               <Label htmlFor="ig">Instagram (lien)</Label>
-              <Input id="ig" value={pro.instagram_url} maxLength={200} onChange={(e) => setPro({ ...pro, instagram_url: e.target.value })} />
+              <Input
+                id="ig"
+                value={pro.instagram_url}
+                maxLength={200}
+                onChange={(e) => setPro({ ...pro, instagram_url: e.target.value })}
+              />
             </div>
             <div>
               <Label htmlFor="fb">Facebook (lien)</Label>
-              <Input id="fb" value={pro.facebook_url} maxLength={200} onChange={(e) => setPro({ ...pro, facebook_url: e.target.value })} />
+              <Input
+                id="fb"
+                value={pro.facebook_url}
+                maxLength={200}
+                onChange={(e) => setPro({ ...pro, facebook_url: e.target.value })}
+              />
             </div>
             <div>
               <Label htmlFor="tt">TikTok (lien)</Label>
-              <Input id="tt" value={pro.tiktok_url} maxLength={200} onChange={(e) => setPro({ ...pro, tiktok_url: e.target.value })} />
+              <Input
+                id="tt"
+                value={pro.tiktok_url}
+                maxLength={200}
+                onChange={(e) => setPro({ ...pro, tiktok_url: e.target.value })}
+              />
             </div>
             <div>
               <Label htmlFor="li">LinkedIn (lien)</Label>
-              <Input id="li" value={pro.linkedin_url} maxLength={200} onChange={(e) => setPro({ ...pro, linkedin_url: e.target.value })} />
+              <Input
+                id="li"
+                value={pro.linkedin_url}
+                maxLength={200}
+                onChange={(e) => setPro({ ...pro, linkedin_url: e.target.value })}
+              />
             </div>
           </div>
         </div>
@@ -386,7 +436,12 @@ export function ProSettings() {
         </div>
         <div className="sm:col-span-2">
           <Label htmlFor="bio">Présentation courte (interne)</Label>
-          <Textarea id="bio" value={pro.bio} maxLength={600} onChange={(e) => setPro({ ...pro, bio: e.target.value })} />
+          <Textarea
+            id="bio"
+            value={pro.bio}
+            maxLength={600}
+            onChange={(e) => setPro({ ...pro, bio: e.target.value })}
+          />
         </div>
         <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2">
           {AVAILABILITY_OPTIONS.map(([key, label]) => (
@@ -402,19 +457,35 @@ export function ProSettings() {
             </div>
           ))}
           <div className="flex items-center gap-3">
-            <Switch id="ld" checked={pro.long_distance} onCheckedChange={(v) => setPro({ ...pro, long_distance: v })} />
+            <Switch
+              id="ld"
+              checked={pro.long_distance}
+              onCheckedChange={(v) => setPro({ ...pro, long_distance: v })}
+            />
             <Label htmlFor="ld">Longue distance</Label>
           </div>
           <div className="flex items-center gap-3">
-            <Switch id="acc" checked={pro.accepting_requests} onCheckedChange={(v) => setPro({ ...pro, accepting_requests: v })} />
+            <Switch
+              id="acc"
+              checked={pro.accepting_requests}
+              onCheckedChange={(v) => setPro({ ...pro, accepting_requests: v })}
+            />
             <Label htmlFor="acc">J'accepte de nouvelles demandes</Label>
           </div>
           <div className="flex items-center gap-3">
-            <Switch id="duty" checked={pro.on_duty} onCheckedChange={(v) => setPro({ ...pro, on_duty: v })} />
+            <Switch
+              id="duty"
+              checked={pro.on_duty}
+              onCheckedChange={(v) => setPro({ ...pro, on_duty: v })}
+            />
             <Label htmlFor="duty">En service</Label>
           </div>
           <div className="flex items-center gap-3">
-            <Switch id="pub" checked={pro.page_published} onCheckedChange={(v) => setPro({ ...pro, page_published: v })} />
+            <Switch
+              id="pub"
+              checked={pro.page_published}
+              onCheckedChange={(v) => setPro({ ...pro, page_published: v })}
+            />
             <Label htmlFor="pub">Page publique visible</Label>
           </div>
         </div>

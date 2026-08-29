@@ -112,7 +112,13 @@ export const BOOKING_THEMES: BookingTheme[] = [
     description:
       "L'univers ReLink d'origine : vert naturel, blanc et gris très clair. Moderne, écologique et accessible.",
     mood: "Moderne · écologique · accessible",
-    swatches: ["oklch(0.63 0.15 158)", "oklch(0.86 0.09 160)", "#ffffff", "oklch(0.96 0.006 160)", "oklch(0.26 0.015 220)"],
+    swatches: [
+      "oklch(0.63 0.15 158)",
+      "oklch(0.86 0.09 160)",
+      "#ffffff",
+      "oklch(0.96 0.006 160)",
+      "oklch(0.26 0.015 220)",
+    ],
     dark: false,
     banner: "linear-gradient(135deg, oklch(0.63 0.15 158), oklch(0.55 0.13 165))",
     vars: makeVars({
@@ -139,9 +145,16 @@ export const BOOKING_THEMES: BookingTheme[] = [
     description:
       "Noir profond, anthracite et blanc cassé, rehaussés d'un doré discret sur les contours, icônes et boutons.",
     mood: "Premium · sobre · élégant",
-    swatches: ["oklch(0.17 0.005 80)", "oklch(0.26 0.008 80)", "oklch(0.78 0.11 85)", "oklch(0.95 0.01 85)", "oklch(0.42 0.03 85)"],
+    swatches: [
+      "oklch(0.17 0.005 80)",
+      "oklch(0.26 0.008 80)",
+      "oklch(0.78 0.11 85)",
+      "oklch(0.95 0.01 85)",
+      "oklch(0.42 0.03 85)",
+    ],
     dark: true,
-    banner: "linear-gradient(135deg, oklch(0.17 0.005 80), oklch(0.26 0.01 85) 70%, oklch(0.4 0.06 85))",
+    banner:
+      "linear-gradient(135deg, oklch(0.17 0.005 80), oklch(0.26 0.01 85) 70%, oklch(0.4 0.06 85))",
     vars: makeVars({
       primary: "oklch(0.78 0.1 85)",
       primaryHover: "oklch(0.72 0.1 85)",
@@ -167,7 +180,13 @@ export const BOOKING_THEMES: BookingTheme[] = [
     description:
       "Rouge profond et blanc, ponctués d'anthracite. Une identité dynamique et affirmée, légèrement sportive.",
     mood: "Dynamique · énergique · sportif",
-    swatches: ["oklch(0.45 0.17 22)", "oklch(0.92 0.05 22)", "#ffffff", "oklch(0.27 0.015 25)", "oklch(0.96 0.005 25)"],
+    swatches: [
+      "oklch(0.45 0.17 22)",
+      "oklch(0.92 0.05 22)",
+      "#ffffff",
+      "oklch(0.27 0.015 25)",
+      "oklch(0.96 0.005 25)",
+    ],
     dark: false,
     banner: "linear-gradient(135deg, oklch(0.45 0.17 22), oklch(0.38 0.14 18))",
     vars: makeVars({
@@ -196,7 +215,13 @@ export const BOOKING_THEMES: BookingTheme[] = [
     description:
       "Bleu nuit et bleu clair sur fond blanc et gris froid. Une image professionnelle, fiable et rassurante.",
     mood: "Professionnel · fiable · corporate",
-    swatches: ["oklch(0.32 0.09 255)", "oklch(0.55 0.15 255)", "oklch(0.94 0.03 250)", "#ffffff", "oklch(0.55 0.02 250)"],
+    swatches: [
+      "oklch(0.32 0.09 255)",
+      "oklch(0.55 0.15 255)",
+      "oklch(0.94 0.03 250)",
+      "#ffffff",
+      "oklch(0.55 0.02 250)",
+    ],
     dark: false,
     banner: "linear-gradient(135deg, oklch(0.32 0.09 255), oklch(0.5 0.14 255))",
     vars: makeVars({
@@ -223,7 +248,13 @@ export const BOOKING_THEMES: BookingTheme[] = [
     description:
       "Violet profond, violine et rose poudré. Une identité chaleureuse, élégante et rassurante, sans stéréotype.",
     mood: "Chaleureux · élégant · sécurisant",
-    swatches: ["oklch(0.38 0.13 315)", "oklch(0.55 0.17 330)", "oklch(0.92 0.04 350)", "#ffffff", "oklch(0.96 0.008 340)"],
+    swatches: [
+      "oklch(0.38 0.13 315)",
+      "oklch(0.55 0.17 330)",
+      "oklch(0.92 0.04 350)",
+      "#ffffff",
+      "oklch(0.96 0.008 340)",
+    ],
     dark: false,
     restricted: "women_for_women",
     banner: "linear-gradient(135deg, oklch(0.38 0.13 315), oklch(0.55 0.16 335))",

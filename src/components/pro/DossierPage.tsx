@@ -177,7 +177,8 @@ export function DossierPage() {
     ["incomplete", "changes_requested", "expired_documents", "rejected"].includes(status);
 
   const documents = (docs.data ?? []) as DriverDocument[];
-  const kind = ((driver.data as { driver_kind?: string } | null)?.driver_kind ?? "vtc") as DriverKind;
+  const kind = ((driver.data as { driver_kind?: string } | null)?.driver_kind ??
+    "vtc") as DriverKind;
   const proNumber =
     (kind === "taxi"
       ? (driver.data as { taxi_license_number?: string } | null)?.taxi_license_number
@@ -239,7 +240,12 @@ export function DossierPage() {
         ) : null}
 
         {status === "verified" ? (
-          <Button type="button" size="lg" className="mt-4 h-12 w-full text-base" onClick={() => void navigate({ to: "/pro" })}>
+          <Button
+            type="button"
+            size="lg"
+            className="mt-4 h-12 w-full text-base"
+            onClick={() => void navigate({ to: "/pro" })}
+          >
             Accéder à mon espace professionnel
           </Button>
         ) : null}

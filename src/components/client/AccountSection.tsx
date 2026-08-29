@@ -30,21 +30,17 @@ export function AccountSection() {
     if (!user?.id) return;
     setBusy("export");
     try {
-      const [rides, requests, invoices, addresses, connections] = await Promise.all([
-        supabase.from("rides").select("*").eq("client_id", user.id),
-        supabase.from("ride_requests").select("*").eq("client_id", user.id),
-        supabase.from("invoices").select("*").eq("client_id", user.id),
+      const [addresses, connections, views] = await Promise.all([
         supabase.from("client_addresses").select("*").eq("client_id", user.id),
         supabase.from("driver_client_connections").select("*").eq("client_id", user.id),
+        supabase.from("driver_profile_views").select("*").eq("client_id", user.id),
       ]);
       const payload = {
         exported_at: new Date().toISOString(),
         profile,
-        rides: rides.data ?? [],
-        ride_requests: requests.data ?? [],
-        invoices: invoices.data ?? [],
         addresses: addresses.data ?? [],
         drivers: connections.data ?? [],
+        profils_consultes: views.data ?? [],
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);

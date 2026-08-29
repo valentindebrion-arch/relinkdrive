@@ -92,7 +92,9 @@ function DiscoverPage() {
       <ClientTopBar />
 
       <header className="mt-1">
-        <h1 className="text-[22px] leading-tight font-black tracking-tight">Trouver un Chauffeur </h1>
+        <h1 className="text-[22px] leading-tight font-black tracking-tight">
+          Trouver un Chauffeur 
+        </h1>
         <button
           type="button"
           onClick={() => setPickerOpen((v) => !v)}

@@ -79,7 +79,8 @@ export function SubscriptionAdminCard({ driverId }: { driverId: string }) {
     if (target !== "pro") return null;
     if (duration === "7") return daysFromNowIso(7);
     if (duration === "30") return daysFromNowIso(30);
-    if (duration === "custom" && customDate) return new Date(`${customDate}T23:59:00`).toISOString();
+    if (duration === "custom" && customDate)
+      return new Date(`${customDate}T23:59:00`).toISOString();
     return null;
   }
 
@@ -168,13 +169,15 @@ export function SubscriptionAdminCard({ driverId }: { driverId: string }) {
               <li key={h.id} className="rounded-lg bg-muted/50 px-3 py-2 text-xs">
                 <p className="font-medium">{formatPlanDateTime(h.created_at)}</p>
                 <p className="mt-0.5">
-                  {h.old_plan === "pro" ? "Pro" : "Gratuit"} → {h.new_plan === "pro" ? "Pro" : "Gratuit"}
+                  {h.old_plan === "pro" ? "Pro" : "Gratuit"} →{" "}
+                  {h.new_plan === "pro" ? "Pro" : "Gratuit"}
                   {h.new_billing_status
                     ? ` · ${BILLING_STATUS_LABELS[h.new_billing_status as BillingStatus] ?? h.new_billing_status}`
                     : ""}
                 </p>
                 <p className="text-muted-foreground">
-                  Motif : {h.reason || "Non précisé"} · Effectué par : {h.actor_name ?? "Administrateur"}
+                  Motif : {h.reason || "Non précisé"} · Effectué par :{" "}
+                  {h.actor_name ?? "Administrateur"}
                   {h.expires_at ? ` · Expire le ${formatPlanDateTime(h.expires_at)}` : ""}
                 </p>
               </li>

@@ -41,10 +41,13 @@ export const Route = createFileRoute("/auth_/confirm")({
 type State = "pending" | "success" | "expired" | "invalid" | "network" | "already";
 
 const MESSAGES: Record<Exclude<State, "pending" | "success">, string> = {
-  expired: "Ce lien de confirmation n'est plus valide. Demandez un nouvel e-mail pour confirmer votre compte.",
-  invalid: "Ce lien de confirmation n'est plus valide. Demandez un nouvel e-mail pour confirmer votre compte.",
+  expired:
+    "Ce lien de confirmation n'est plus valide. Demandez un nouvel e-mail pour confirmer votre compte.",
+  invalid:
+    "Ce lien de confirmation n'est plus valide. Demandez un nouvel e-mail pour confirmer votre compte.",
   already: "Cette adresse e-mail est déjà confirmée. Vous pouvez vous connecter.",
-  network: "Impossible de vérifier votre lien pour le moment. Vérifiez votre connexion puis réessayez.",
+  network:
+    "Impossible de vérifier votre lien pour le moment. Vérifiez votre connexion puis réessayez.",
 };
 
 /** Récupère les paramètres présents dans le fragment (#) pour l'ancien flux implicite. */

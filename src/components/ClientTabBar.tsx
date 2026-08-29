@@ -1,13 +1,14 @@
 import { useRef } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Compass, Home, Users } from "lucide-react";
+import { Clock, Compass, Home, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/** Trois univers : Mes chauffeurs ← Accueil → Trouver un chauffeur. */
+/** Quatre univers : Accueil · Mes chauffeurs · Trouver · Consultés. */
 const TABS = [
-  { to: "/espace/chauffeurs", label: "Mes chauffeurs", icon: Users },
   { to: "/espace", label: "Accueil", icon: Home },
+  { to: "/espace/chauffeurs", label: "Mes chauffeurs", icon: Users },
   { to: "/espace/decouvrir", label: "Trouver", icon: Compass },
+  { to: "/espace/consultes", label: "Consultés", icon: Clock },
 ] as const;
 
 /** Navigation principale fixe de l'espace client. */

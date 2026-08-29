@@ -162,20 +162,8 @@ function sectionFields(key: string, d: Dossier) {
       ] as const;
     case "tax":
       return [
-        [
-          "Régime de TVA",
-          d.tax?.regime === "liable"
-            ? "Redevable"
-            : d.tax?.regime === "franchise"
-              ? "Franchise en base"
-              : null,
-        ],
-        ["Taux", d.tax?.rate_label ?? (d.tax?.vat_rate != null ? `${d.tax.vat_rate} %` : null)],
-        ["Numéro de TVA", d.tax?.vat_number ?? d.company?.vat_number],
-        ["Applicable depuis", formatDate(d.tax?.effective_from)],
-        ["Tarif au km HT", d.tariffs[0]?.price_per_km_ht],
-        ["Minimum de course HT", d.tariffs[0]?.minimum_ht],
-        ["Mention légale", d.tax?.legal_mention],
+        ["Tarif au km", d.tariffs[0]?.price_per_km_ht],
+        ["Course minimum", d.tariffs[0]?.minimum_ht],
       ] as const;
     default:
       return [] as const;
@@ -336,7 +324,9 @@ export function DossierReview({ driverId }: { driverId: string }) {
   const sections = state?.sections ?? [];
   const allSectionsValidated =
     sections.length > 0 &&
-    sections.every((s) => data.sectionReviews.find((r) => r.section === s.key)?.status === "approved");
+    sections.every(
+      (s) => data.sectionReviews.find((r) => r.section === s.key)?.status === "approved",
+    );
 
   // Raison précise du blocage, calculée sur les données réelles du dossier.
   const rejectedDoc = (data.documents ?? []).some((d) => d.status === "rejected");
@@ -344,17 +334,16 @@ export function DossierReview({ driverId }: { driverId: string }) {
   const approveBlockedReason = !data.driver
     ? "Profil chauffeur introuvable."
     : (state?.percent ?? 0) < 100
-        ? `Dossier complété à ${state?.percent ?? 0} % : des informations ou des pièces obligatoires manquent.`
-        : rejectedDoc
-          ? "Un document a été refusé : le chauffeur doit le renvoyer."
-          : pendingDoc
-            ? "Des documents sont encore en attente de contrôle."
-            : !state?.all_approved
-              ? "Toutes les pièces obligatoires doivent être validées."
-              : !allSectionsValidated
-                ? "Chaque catégorie doit être validée avant l'approbation finale."
-                : null;
-
+      ? `Dossier complété à ${state?.percent ?? 0} % : des informations ou des pièces obligatoires manquent.`
+      : rejectedDoc
+        ? "Un document a été refusé : le chauffeur doit le renvoyer."
+        : pendingDoc
+          ? "Des documents sont encore en attente de contrôle."
+          : !state?.all_approved
+            ? "Toutes les pièces obligatoires doivent être validées."
+            : !allSectionsValidated
+              ? "Chaque catégorie doit être validée avant l'approbation finale."
+              : null;
 
   const renderSection = (s: { key: string; label: string; state: string }) => {
     const docs = docsBySection.get(s.key) ?? [];
@@ -381,7 +370,8 @@ export function DossierReview({ driverId }: { driverId: string }) {
                     </span>
                     <span className="text-muted-foreground">
                       {" "}
-                      · déposé le {formatDate(doc.created_at)} · échéance {formatDate(doc.expires_at)}
+                      · déposé le {formatDate(doc.created_at)} · échéance{" "}
+                      {formatDate(doc.expires_at)}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -398,7 +388,10 @@ export function DossierReview({ driverId }: { driverId: string }) {
                     onChange={(e) => setDocNotes((n) => ({ ...n, [doc.id]: e.target.value }))}
                     className="h-9 max-w-xs"
                   />
-                  <Button size="sm" onClick={() => reviewDoc.mutate({ id: doc.id, decision: "approved" })}>
+                  <Button
+                    size="sm"
+                    onClick={() => reviewDoc.mutate({ id: doc.id, decision: "approved" })}
+                  >
                     <Check className="size-4" /> Valider
                   </Button>
                   <Button
@@ -419,7 +412,9 @@ export function DossierReview({ driverId }: { driverId: string }) {
                   </Button>
                 </div>
                 {doc.review_note ? (
-                  <p className="mt-2 text-xs text-muted-foreground">Motif actuel : {doc.review_note}</p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Motif actuel : {doc.review_note}
+                  </p>
                 ) : null}
               </div>
             ))}
@@ -434,7 +429,9 @@ export function DossierReview({ driverId }: { driverId: string }) {
                 <div
                   key={type}
                   className={`flex items-center gap-2 rounded-lg border border-dashed px-3 py-2 text-sm ${
-                    required ? "border-destructive/50 text-destructive" : "border-border text-muted-foreground"
+                    required
+                      ? "border-destructive/50 text-destructive"
+                      : "border-border text-muted-foreground"
                   }`}
                 >
                   <AlertTriangle className="size-4 shrink-0" />
@@ -476,7 +473,9 @@ export function DossierReview({ driverId }: { driverId: string }) {
               size="sm"
               disabled={s.state !== "approved" || reviewSection.isPending}
               title={
-                s.state === "approved" ? undefined : "Toutes les pièces obligatoires doivent être validées"
+                s.state === "approved"
+                  ? undefined
+                  : "Toutes les pièces obligatoires doivent être validées"
               }
               onClick={() => reviewSection.mutate({ section: s.key, decision: "approve" })}
             >
@@ -512,7 +511,11 @@ export function DossierReview({ driverId }: { driverId: string }) {
   };
 
   const stateColor = (value: string) =>
-    value === "approved" ? "text-primary" : value === "todo" ? "text-muted-foreground" : "text-destructive";
+    value === "approved"
+      ? "text-primary"
+      : value === "todo"
+        ? "text-muted-foreground"
+        : "text-destructive";
 
   return (
     <div className="pb-16">
@@ -540,7 +543,8 @@ export function DossierReview({ driverId }: { driverId: string }) {
             </span>
           </div>
           <p className="text-xs text-muted-foreground">
-            Dernière modification : {formatDateTime(data.driver?.updated_at)} · dossier {driverId.slice(0, 8)}
+            Dernière modification : {formatDateTime(data.driver?.updated_at)} · dossier{" "}
+            {driverId.slice(0, 8)}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -662,7 +666,12 @@ export function DossierReview({ driverId }: { driverId: string }) {
           <Button size="sm" variant="outline" onClick={() => decide.mutate("changes")}>
             Demander une correction
           </Button>
-          <Button size="sm" variant="ghost" className="text-destructive" onClick={() => decide.mutate("reject")}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-destructive"
+            onClick={() => decide.mutate("reject")}
+          >
             Refuser
           </Button>
           <Button size="sm" variant="ghost" onClick={() => decide.mutate("suspend")}>
@@ -684,7 +693,8 @@ export function DossierReview({ driverId }: { driverId: string }) {
           <AlertDialogHeader>
             <AlertDialogTitle>Valider définitivement ce chauffeur ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Le chauffeur aura immédiatement accès à l'ensemble des fonctionnalités professionnelles de ReLink.
+              Le chauffeur aura immédiatement accès à l'ensemble des fonctionnalités
+              professionnelles de ReLink.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -702,8 +712,11 @@ export function DossierReview({ driverId }: { driverId: string }) {
         </AlertDialogContent>
       </AlertDialog>
 
-
-      <DocumentViewer document={viewer} open={!!viewer} onOpenChange={(v) => !v && setViewer(null)} />
+      <DocumentViewer
+        document={viewer}
+        open={!!viewer}
+        onOpenChange={(v) => !v && setViewer(null)}
+      />
 
       <AlertDialog open={exportOpen} onOpenChange={setExportOpen}>
         <AlertDialogContent>
@@ -712,8 +725,8 @@ export function DossierReview({ driverId }: { driverId: string }) {
               <Lock className="size-4" /> Télécharger les documents originaux
             </AlertDialogTitle>
             <AlertDialogDescription>
-              L'archive contient des données personnelles sensibles. Le téléchargement est journalisé et
-              nominatif. Confirmez votre mot de passe administrateur pour continuer.
+              L'archive contient des données personnelles sensibles. Le téléchargement est
+              journalisé et nominatif. Confirmez votre mot de passe administrateur pour continuer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <Input

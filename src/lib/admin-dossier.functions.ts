@@ -63,12 +63,14 @@ export const confirmAdminReauth = createServerFn({ method: "POST" })
     const url = process.env["SUPABASE_URL"]!;
     const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
     const check = createClient(url, key, {
-      global: { fetch: (input, init) => {
-        const headers = new Headers(init?.headers);
-        headers.delete("Authorization");
-        headers.set("apikey", key);
-        return fetch(input, { ...init, headers });
-      } },
+      global: {
+        fetch: (input, init) => {
+          const headers = new Headers(init?.headers);
+          headers.delete("Authorization");
+          headers.set("apikey", key);
+          return fetch(input, { ...init, headers });
+        },
+      },
       auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
     });
     const { error } = await check.auth.signInWithPassword({ email, password: data.password });
@@ -125,10 +127,16 @@ export const generateDossierPdf = createServerFn({ method: "POST" })
     await mod.assertAdmin(context.userId);
     const { buildDossierPdf } = await import("@/lib/dossier-pdf.server");
     const { bytes, fileName } = await buildDossierPdf(data.driverId);
-    await mod.logAdminAction(context.userId, "dossier_pdf_generated", "driver_profiles", data.driverId, {
-      file_name: fileName,
-      bytes: bytes.byteLength,
-    });
+    await mod.logAdminAction(
+      context.userId,
+      "dossier_pdf_generated",
+      "driver_profiles",
+      data.driverId,
+      {
+        file_name: fileName,
+        bytes: bytes.byteLength,
+      },
+    );
     return { fileName, base64: Buffer.from(bytes).toString("base64") };
   });
 
@@ -150,7 +158,8 @@ export const listDriverApplications = createServerFn({ method: "GET" })
 
     const ids = (drivers ?? []).map((d) => d.user_id);
     const profiles = ids.length
-      ? ((await supabaseAdmin.from("profiles").select("id, full_name, phone").in("id", ids)).data ?? [])
+      ? ((await supabaseAdmin.from("profiles").select("id, full_name, phone").in("id", ids)).data ??
+        [])
       : [];
 
     return (drivers ?? []).map((d) => {

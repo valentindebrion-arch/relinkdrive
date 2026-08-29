@@ -169,7 +169,6 @@ function InteriorPhoto({
   );
 }
 
-
 function Fact({ icon: Icon, main, sub }: { icon: typeof Users; main: string; sub?: string }) {
   return (
     <div className="flex min-w-0 items-center gap-1.5">
@@ -225,68 +224,65 @@ export function VehicleFacts({
         />
 
         <div className="flex min-w-0 flex-col gap-2 rounded-2xl border border-primary/25 bg-card p-3 shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]">
+          <div className="grid min-w-0 grid-cols-2 gap-x-3 gap-y-2 [overflow-wrap:anywhere] max-[300px]:grid-cols-1">
+            <Fact
+              icon={Users}
+              main={facts?.maxPassengers != null ? `${facts.maxPassengers} places` : UNKNOWN}
+              sub={facts?.maxPassengers != null ? "maximum" : "Passagers"}
+            />
+            <Fact
+              icon={Luggage}
+              main={facts?.largeLuggage != null ? `${facts.largeLuggage} grands` : UNKNOWN}
+              sub="bagages"
+            />
+            <Fact
+              icon={Briefcase}
+              main={facts?.cabinLuggage != null ? `${facts.cabinLuggage} bagages` : UNKNOWN}
+              sub="cabine"
+            />
+            <Fact icon={Dog} main={petsLabel(facts?.petsPolicy ?? null)} />
+          </div>
 
-            <div className="grid min-w-0 grid-cols-2 gap-x-3 gap-y-2 [overflow-wrap:anywhere] max-[300px]:grid-cols-1">
-              <Fact
-                icon={Users}
-                main={facts?.maxPassengers != null ? `${facts.maxPassengers} places` : UNKNOWN}
-                sub={facts?.maxPassengers != null ? "maximum" : "Passagers"}
-              />
-              <Fact
-                icon={Luggage}
-                main={facts?.largeLuggage != null ? `${facts.largeLuggage} grands` : UNKNOWN}
-                sub="bagages"
-              />
-              <Fact
-                icon={Briefcase}
-                main={facts?.cabinLuggage != null ? `${facts.cabinLuggage} bagages` : UNKNOWN}
-                sub="cabine"
-              />
-              <Fact icon={Dog} main={petsLabel(facts?.petsPolicy ?? null)} />
-            </div>
-
-            {visible.length ? (
-              <div className="flex min-w-0 flex-wrap items-center gap-1">
-                {visible.map((label) => (
-                  <span
-                    key={label}
-                    className="rounded-full border border-primary/25 bg-primary/5 px-2 py-0.5 text-[11px] leading-tight font-semibold text-primary"
-                  >
-                    {label}
-                  </span>
-                ))}
-                {extra > 0 ? (
-                  <span className="text-[11px] font-semibold text-muted-foreground">
-                    + {extra} équipement{extra > 1 ? "s" : ""}
-                  </span>
-                ) : null}
-              </div>
-            ) : null}
-
-            <div className="flex min-w-0 flex-wrap items-center justify-between gap-1">
-              {facts && facts.maxPassengers == null ? (
-                <p className="min-w-0 text-[11px] leading-tight text-muted-foreground">
-                  Fiche véhicule à compléter par le chauffeur.
-                </p>
-              ) : (
-                <span />
-              )}
-              {driverSlug ? (
-                <Link
-                  to="/chauffeur/$slug"
-                  params={{ slug: driverSlug }}
-                  className="shrink-0 text-[12px] font-bold text-primary underline underline-offset-2"
+          {visible.length ? (
+            <div className="flex min-w-0 flex-wrap items-center gap-1">
+              {visible.map((label) => (
+                <span
+                  key={label}
+                  className="rounded-full border border-primary/25 bg-primary/5 px-2 py-0.5 text-[11px] leading-tight font-semibold text-primary"
                 >
-                  Voir les détails
-                </Link>
+                  {label}
+                </span>
+              ))}
+              {extra > 0 ? (
+                <span className="text-[11px] font-semibold text-muted-foreground">
+                  + {extra} équipement{extra > 1 ? "s" : ""}
+                </span>
               ) : null}
             </div>
+          ) : null}
+
+          <div className="flex min-w-0 flex-wrap items-center justify-between gap-1">
+            {facts && facts.maxPassengers == null ? (
+              <p className="min-w-0 text-[11px] leading-tight text-muted-foreground">
+                Fiche véhicule à compléter par le chauffeur.
+              </p>
+            ) : (
+              <span />
+            )}
+            {driverSlug ? (
+              <Link
+                to="/chauffeur/$slug"
+                params={{ slug: driverSlug }}
+                className="shrink-0 text-[12px] font-bold text-primary underline underline-offset-2"
+              >
+                Voir les détails
+              </Link>
+            ) : null}
+          </div>
         </div>
       </div>
-
     </section>
   );
-
 }
 
 /** Libellés d'équipements réellement renseignés sur le véhicule actif. */

@@ -84,7 +84,6 @@ export const GENDER_LOCK_WARNING =
 export const GENDER_LOCKED_HELP =
   "Information définitive : votre genre a été enregistré et ne peut plus être modifié.";
 
-
 export type WfwAccess = "ok" | "blocked" | "incomplete";
 
 /**

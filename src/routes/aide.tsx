@@ -16,12 +16,13 @@ export const Route = createFileRoute("/aide")({
       {
         name: "description",
         content:
-          "Questions fréquentes sur l'utilisation de Relink, l'outil de réservation utilisé par votre chauffeur, et support technique du logiciel.",
+          "Questions fréquentes sur ReLink, le réseau des chauffeurs VTC : ajouter un chauffeur, comprendre l'estimation indicative, contacter un professionnel.",
       },
       { property: "og:title", content: `Centre d'aide — ${BRAND.name}` },
       {
         property: "og:description",
-        content: "Aide sur le logiciel Relink ; les questions liées à la course vont à votre chauffeur.",
+        content:
+          "Aide sur ReLink ; toute question liée à une prestation se traite directement avec le chauffeur.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -32,24 +33,24 @@ export const Route = createFileRoute("/aide")({
 
 const FAQ = [
   {
-    q: "Comment ajouter un chauffeur ?",
-    a: "Scannez le QR code de votre chauffeur ou ouvrez le lien personnel qu'il vous a partagé, puis appuyez sur « Ajouter à mes chauffeurs ». Il apparaît ensuite dans l'onglet Chauffeurs. Seuls les chauffeurs que vous ajoutez vous-même apparaissent : aucun chauffeur inconnu ne vous est proposé.",
+    q: "Comment ajouter un chauffeur à mon réseau ?",
+    a: "Scannez son QR code ReLink, ouvrez son lien personnel ou trouvez-le dans l'annuaire, puis appuyez sur « Ajouter à mes chauffeurs ». Il apparaît ensuite dans l'onglet Mes chauffeurs.",
   },
   {
-    q: "Comment envoyer une demande de réservation ?",
-    a: "Depuis l'accueil, sélectionnez votre chauffeur, indiquez votre trajet puis choisissez « Maintenant » ou « Planifier ». La demande est envoyée directement à votre chauffeur, qui l'accepte ou la refuse lui-même et vous répond avec son horaire et son tarif.",
+    q: "Puis-je réserver une course sur ReLink ?",
+    a: "Non. ReLink est un annuaire : il vous permet de découvrir des chauffeurs et d'accéder à leurs coordonnées professionnelles. La course, son tarif et ses conditions se conviennent directement avec le chauffeur.",
   },
   {
-    q: "Qui fixe le tarif ?",
-    a: "Le tarif est celui de votre chauffeur : il définit ses prix, ses conditions et ses modalités de paiement. Relink se contente d'afficher et de transmettre ces informations.",
+    q: "À quoi correspond l'estimation indicative ?",
+    a: "Elle est calculée à partir des informations tarifaires renseignées par le chauffeur et s'affiche sous forme de fourchette. Aucune demande n'est envoyée : le tarif définitif, la disponibilité et les conditions sont à convenir avec le chauffeur.",
   },
   {
-    q: "Comment obtenir ma facture ?",
-    a: "La facture est émise par votre chauffeur à la fin de la course. Retrouvez-la dans Courses → Terminées.",
+    q: "Que signifie le badge « Profil vérifié » ?",
+    a: "Notre équipe a contrôlé les informations professionnelles du chauffeur : identité, carte professionnelle, entreprise, assurance et véhicule. Ce n'est pas une garantie de la qualité de la prestation.",
   },
   {
-    q: "Comment annuler ou modifier une réservation ?",
-    a: "Ouvrez la course concernée depuis l'onglet Courses et utilisez le bouton d'annulation ; votre chauffeur en est immédiatement informé. Pour un changement d'horaire ou de lieu, contactez-le directement.",
+    q: "Comment contacter un chauffeur ?",
+    a: "Depuis son profil, le bloc « Contacter le chauffeur » regroupe les moyens qu'il a publiés : téléphone, SMS, WhatsApp, site internet et réseaux sociaux.",
   },
   {
     q: "Je me connecte avec Google, ai-je un mot de passe ?",
@@ -72,18 +73,17 @@ function HelpPage() {
 
       <h1 className="text-2xl font-bold">Centre d'aide</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        {BRAND.name} est l'outil de réservation utilisé par votre chauffeur. Voici comment
-        l'utiliser, et qui contacter selon votre question.
+        {BRAND.name} est le réseau des chauffeurs VTC. Voici comment l'utiliser, et qui contacter
+        selon votre question.
       </p>
 
       <section className="surface mt-6 border-primary/30 p-5">
         <h2 className="flex items-center gap-2 text-base font-semibold">
-          <Car className="size-4 text-primary" /> Une question sur votre course
+          <Car className="size-4 text-primary" /> Une question sur une prestation
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Horaire, lieu de rendez-vous, retard, véhicule, tarif, modification, annulation, objet
-          oublié : cette demande concerne votre course. Contactez directement votre chauffeur, seul
-          responsable de la prestation.
+          Horaire, lieu de rendez-vous, véhicule, tarif, disponibilité, objet oublié : ces questions
+          concernent la prestation. Contactez directement le chauffeur, seul responsable.
         </p>
         <Link
           to="/espace/chauffeurs"
@@ -99,7 +99,9 @@ function HelpPage() {
           {FAQ.map((item, i) => (
             <AccordionItem key={item.q} value={`q${i}`}>
               <AccordionTrigger className="text-left text-sm">{item.q}</AccordionTrigger>
-              <AccordionContent className="text-sm text-muted-foreground">{item.a}</AccordionContent>
+              <AccordionContent className="text-sm text-muted-foreground">
+                {item.a}
+              </AccordionContent>
             </AccordionItem>
           ))}
         </Accordion>
@@ -109,9 +111,8 @@ function HelpPage() {
         <h2 className="text-base font-semibold">Signaler un problème technique</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           Page inaccessible, erreur d'affichage, bouton sans effet, problème de connexion,
-          notification non reçue, réservation qui ne s'enregistre pas : l'équipe {BRAND.name}
-          {" "}intervient uniquement sur le fonctionnement du logiciel, du lundi au vendredi de 9h à
-          18h.
+          notification non reçue : l'équipe {BRAND.name} intervient uniquement sur le fonctionnement
+          du logiciel, du lundi au vendredi de 9h à 18h.
         </p>
         <a
           href="mailto:support@relink.app"
@@ -129,4 +130,3 @@ function HelpPage() {
     </div>
   );
 }
-

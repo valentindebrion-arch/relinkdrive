@@ -80,7 +80,11 @@ export function PushSettingsCard({ audience = "client" }: { audience?: "client" 
             </p>
             <p
               className={`mt-2 text-xs font-medium ${
-                enabled ? "text-primary" : state === "denied" ? "text-destructive" : "text-muted-foreground"
+                enabled
+                  ? "text-primary"
+                  : state === "denied"
+                    ? "text-destructive"
+                    : "text-muted-foreground"
               }`}
             >
               {state ? LABELS[state] : "Vérification en cours…"}
@@ -106,8 +110,8 @@ export function PushSettingsCard({ audience = "client" }: { audience?: "client" 
           <ShieldAlert className="mt-0.5 size-4 shrink-0" />
           <p>
             Les notifications ont été refusées pour Relink. Réactivez-les dans les réglages de votre
-            téléphone (Notifications → Relink), puis revenez sur cette page. Pensez également à vérifier
-            un éventuel mode Concentration.
+            téléphone (Notifications → Relink), puis revenez sur cette page. Pensez également à
+            vérifier un éventuel mode Concentration.
           </p>
         </div>
       ) : null}
@@ -131,8 +135,8 @@ export function PushSettingsCard({ audience = "client" }: { audience?: "client" 
 
       {state === "unsupported" ? (
         <p className="rounded-xl bg-muted p-3 text-xs text-muted-foreground">
-          Ce navigateur ne permet pas les notifications en arrière-plan. Vous continuerez à recevoir les
-          alertes dans l'application lorsqu'elle est ouverte.
+          Ce navigateur ne permet pas les notifications en arrière-plan. Vous continuerez à recevoir
+          les alertes dans l'application lorsqu'elle est ouverte.
         </p>
       ) : null}
 
@@ -142,11 +146,31 @@ export function PushSettingsCard({ audience = "client" }: { audience?: "client" 
 }
 
 const PREF_ITEMS: { key: PrefKey; label: string; hint: string; critical: boolean }[] = [
-  { key: "request", label: "Nouvelles demandes de course", hint: "Alerte immédiate à chaque demande.", critical: true },
-  { key: "ride", label: "Modifications et annulations", hint: "Changements sur vos courses.", critical: true },
-  { key: "connection", label: "Nouveaux contacts", hint: "Ajout d'un chauffeur ou d'un client.", critical: false },
+  {
+    key: "request",
+    label: "Nouvelles demandes de course",
+    hint: "Alerte immédiate à chaque demande.",
+    critical: true,
+  },
+  {
+    key: "ride",
+    label: "Modifications et annulations",
+    hint: "Changements sur vos courses.",
+    critical: true,
+  },
+  {
+    key: "connection",
+    label: "Nouveaux contacts",
+    hint: "Ajout d'un chauffeur ou d'un client.",
+    critical: false,
+  },
   { key: "invoice", label: "Facturation", hint: "Factures et encaissements.", critical: false },
-  { key: "info", label: "Informations Relink", hint: "Nouveautés et conseils (facultatif).", critical: false },
+  {
+    key: "info",
+    label: "Informations Relink",
+    hint: "Nouveautés et conseils (facultatif).",
+    critical: false,
+  },
 ];
 
 function NotificationPrefs({ audience }: { audience: "client" | "driver" }) {

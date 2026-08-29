@@ -32,9 +32,7 @@ export async function fetchConnectedProfiles(
   return data ?? [];
 }
 
-export async function fetchConnectedProfile(
-  id?: string | null,
-): Promise<ConnectedProfile | null> {
+export async function fetchConnectedProfile(id?: string | null): Promise<ConnectedProfile | null> {
   if (!id) return null;
   const [first] = await fetchConnectedProfiles([id]);
   return first ?? null;

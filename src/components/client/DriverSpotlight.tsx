@@ -111,7 +111,6 @@ function VehicleHero({
   );
 }
 
-
 const SWIPE_MIN = 48;
 export const ANIM_MS = 260;
 
@@ -259,7 +258,6 @@ export function DriverSpotlight({
             ) : null}
           </div>
 
-
           <p className="text-[11px] font-bold tracking-wide text-muted-foreground uppercase">
             Votre chauffeur sélectionné
           </p>
@@ -334,7 +332,6 @@ export function DriverSpotlight({
       {multiple ? (
         <>
           <div className="mt-1 flex items-center justify-center gap-2">
-
             <span className="flex items-center gap-1">
               {drivers.map((d, i) => (
                 <span

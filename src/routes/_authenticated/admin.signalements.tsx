@@ -22,15 +22,30 @@ function AdminReports() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "reports"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("reports").select("*").order("created_at", { ascending: false }).limit(200);
+      const { data, error } = await supabase
+        .from("reports")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(200);
       if (error) throw error;
       return data ?? [];
     },
   });
 
   const update = useMutation({
-    mutationFn: async ({ id, status, text }: { id: string; status: (typeof STATUSES)[number]; text?: string | undefined }) => {
-      const { error } = await supabase.from("reports").update({ status, resolution: text ?? null }).eq("id", id);
+    mutationFn: async ({
+      id,
+      status,
+      text,
+    }: {
+      id: string;
+      status: (typeof STATUSES)[number];
+      text?: string | undefined;
+    }) => {
+      const { error } = await supabase
+        .from("reports")
+        .update({ status, resolution: text ?? null })
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -42,7 +57,10 @@ function AdminReports() {
 
   return (
     <div>
-      <PageHeader title="Signalements" description="Incidents remontés par les chauffeurs et les passagers." />
+      <PageHeader
+        title="Signalements"
+        description="Incidents remontés par les chauffeurs et les passagers."
+      />
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Chargement…</p>
       ) : !data?.length ? (
@@ -69,7 +87,12 @@ function AdminReports() {
                   className="max-w-xs"
                 />
                 {STATUSES.filter((s) => s !== r.status).map((s) => (
-                  <Button key={s} size="sm" variant="ghost" onClick={() => update.mutate({ id: r.id, status: s, text: resolution[r.id] })}>
+                  <Button
+                    key={s}
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => update.mutate({ id: r.id, status: s, text: resolution[r.id] })}
+                  >
                     {REPORT_LABELS[s]}
                   </Button>
                 ))}

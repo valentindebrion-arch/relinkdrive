@@ -7,10 +7,8 @@ import { PageHeader } from "@/components/Ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TaxSection } from "@/components/pro/TaxSection";
 import { TariffSection } from "@/components/pro/TariffSection";
-import { isValidSiren } from "@/lib/billing-customers";
-
+import { isValidSiren } from "@/lib/einvoicing-siren";
 
 export function CompanyPage() {
   const { user } = useAuth();
@@ -20,7 +18,11 @@ export function CompanyPage() {
     queryKey: ["company", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data } = await supabase.from("companies").select("*").eq("driver_id", user!.id).maybeSingle();
+      const { data } = await supabase
+        .from("companies")
+        .select("*")
+        .eq("driver_id", user!.id)
+        .maybeSingle();
       return data;
     },
   });
@@ -77,13 +79,21 @@ export function CompanyPage() {
   const field = (key: keyof typeof form, label: string) => (
     <div>
       <Label htmlFor={key}>{label}</Label>
-      <Input id={key} value={form[key]} maxLength={120} onChange={(e) => setForm({ ...form, [key]: e.target.value })} />
+      <Input
+        id={key}
+        value={form[key]}
+        maxLength={120}
+        onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+      />
     </div>
   );
 
   return (
     <>
-      <PageHeader title="Mon entreprise" description="Informations légales utilisées sur vos factures." />
+      <PageHeader
+        title="Mon entreprise"
+        description="Informations légales utilisées sur vos factures."
+      />
       <div className="surface grid gap-4 p-5 sm:grid-cols-2">
         {field("legal_name", "Raison sociale")}
         {field("legal_form", "Forme juridique")}
@@ -98,11 +108,11 @@ export function CompanyPage() {
       </div>
 
       <p className="mt-2 text-xs text-muted-foreground">
-        Le SIREN, la raison sociale et l'adresse sont obligatoires pour émettre une facture conforme.
+        Le SIREN, la raison sociale et l'adresse sont obligatoires pour émettre une facture
+        conforme.
       </p>
 
       <div className="mt-4 space-y-4">
-        <TaxSection />
         <TariffSection />
       </div>
     </>

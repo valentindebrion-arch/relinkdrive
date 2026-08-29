@@ -44,5 +44,7 @@ export function driverNumber(driver: {
   vtc_card_number?: string | null;
   taxi_license_number?: string | null;
 }) {
-  return (driver.driver_kind === "taxi" ? driver.taxi_license_number : driver.vtc_card_number) ?? null;
+  return (
+    (driver.driver_kind === "taxi" ? driver.taxi_license_number : driver.vtc_card_number) ?? null
+  );
 }

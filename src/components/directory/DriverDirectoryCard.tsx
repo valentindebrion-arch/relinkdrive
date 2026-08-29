@@ -92,7 +92,9 @@ export function DriverDirectoryCard({ driver }: { driver: DirectoryDriver }) {
 
         <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-1">
           {category ? (
-            <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium">{category}</span>
+            <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium">
+              {category}
+            </span>
           ) : null}
           {driver.max_passengers ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium">
@@ -100,7 +102,10 @@ export function DriverDirectoryCard({ driver }: { driver: DirectoryDriver }) {
             </span>
           ) : null}
           {services.map((s) => (
-            <span key={s} className="rounded-full bg-accent px-2 py-0.5 text-[11px] font-medium text-accent-foreground">
+            <span
+              key={s}
+              className="rounded-full bg-accent px-2 py-0.5 text-[11px] font-medium text-accent-foreground"
+            >
               {serviceLabel(s)}
             </span>
           ))}

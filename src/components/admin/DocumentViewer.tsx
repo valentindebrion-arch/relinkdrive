@@ -18,7 +18,6 @@ export type ReviewDocument = {
   driverName?: string | null;
 };
 
-
 function isPdf(path?: string | null) {
   return !!path && path.toLowerCase().endsWith(".pdf");
 }
@@ -76,12 +75,15 @@ export function DocumentViewer({
           <span>· Échéance {formatDate(doc?.expires_at)}</span>
         </div>
 
-
         <div className="flex flex-wrap gap-2">
           <Button size="sm" variant="outline" onClick={() => setZoom((z) => Math.min(4, z + 0.25))}>
             <ZoomIn className="size-4" /> Agrandir
           </Button>
-          <Button size="sm" variant="outline" onClick={() => setZoom((z) => Math.max(0.5, z - 0.25))}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setZoom((z) => Math.max(0.5, z - 0.25))}
+          >
             <ZoomOut className="size-4" /> Réduire
           </Button>
           <Button size="sm" variant="outline" onClick={() => setRotation((r) => (r + 90) % 360)}>
@@ -98,9 +100,15 @@ export function DocumentViewer({
               <Loader2 className="size-5 animate-spin" />
             </div>
           ) : !url ? (
-            <p className="py-10 text-center text-sm text-muted-foreground">Aucun fichier disponible.</p>
+            <p className="py-10 text-center text-sm text-muted-foreground">
+              Aucun fichier disponible.
+            </p>
           ) : isPdf(doc?.file_path) ? (
-            <iframe title="Document" src={url} className="h-[55vh] w-full rounded-lg bg-background" />
+            <iframe
+              title="Document"
+              src={url}
+              className="h-[55vh] w-full rounded-lg bg-background"
+            />
           ) : (
             <div className="flex justify-center">
               <img

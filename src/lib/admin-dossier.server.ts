@@ -35,7 +35,7 @@ export const SECTION_LABELS: Record<SectionKey, string> = {
   company: "Entreprise",
   insurance: "Assurances",
   vehicle: "Véhicule",
-  tax: "Fiscalité",
+  tax: "Tarifs",
 };
 
 /** Documents rattachés à chaque section (obligatoires en premier). */
@@ -147,31 +147,51 @@ export async function loadDossier(driverId: string) {
     await Promise.all([
       supabaseAdmin.from("profiles").select("*").eq("id", driverId).maybeSingle(),
       supabaseAdmin.from("driver_profiles").select("*").eq("user_id", driverId).maybeSingle(),
-      supabaseAdmin.from("companies").select("*").eq("driver_id", driverId).order("created_at").limit(1),
-      supabaseAdmin.from("vehicles").select("*").eq("driver_id", driverId).order("is_primary", { ascending: false }),
-      supabaseAdmin.from("driver_dossier_details").select("*").eq("driver_id", driverId).maybeSingle(),
+      supabaseAdmin
+        .from("companies")
+        .select("*")
+        .eq("driver_id", driverId)
+        .order("created_at")
+        .limit(1),
+      supabaseAdmin
+        .from("vehicles")
+        .select("*")
+        .eq("driver_id", driverId)
+        .order("is_primary", { ascending: false }),
+      supabaseAdmin
+        .from("driver_dossier_details")
+        .select("*")
+        .eq("driver_id", driverId)
+        .maybeSingle(),
       supabaseAdmin
         .from("verification_documents")
         .select("*")
         .eq("driver_id", driverId)
         .order("updated_at", { ascending: false }),
-      supabaseAdmin.from("dossier_admin_notes").select("*").eq("driver_id", driverId).order("created_at", { ascending: false }),
+      supabaseAdmin
+        .from("dossier_admin_notes")
+        .select("*")
+        .eq("driver_id", driverId)
+        .order("created_at", { ascending: false }),
       supabaseAdmin.from("dossier_section_reviews").select("*").eq("driver_id", driverId),
-      supabaseAdmin.from("driver_tax_profiles").select("*").eq("driver_id", driverId).maybeSingle(),
+      Promise.resolve({ data: null as null }),
       supabaseAdmin.from("driver_tariffs").select("*").eq("driver_id", driverId),
     ]);
 
-  const noteAuthors = [...new Set((reviews.data ?? []).map((n) => n.admin_id).filter(Boolean))] as string[];
+  const noteAuthors = [
+    ...new Set((reviews.data ?? []).map((n) => n.admin_id).filter(Boolean)),
+  ] as string[];
   const authors = noteAuthors.length
-    ? (await supabaseAdmin.from("profiles").select("id, full_name").in("id", noteAuthors)).data ?? []
+    ? ((await supabaseAdmin.from("profiles").select("id, full_name").in("id", noteAuthors)).data ??
+      [])
     : [];
 
   const state = await supabaseAdmin.rpc("driver_dossier_state", { _driver: driverId });
 
   const approverId = (driver.data as { approved_by?: string | null } | null)?.approved_by ?? null;
   const approver = approverId
-    ? (await supabaseAdmin.from("profiles").select("full_name").eq("id", approverId).maybeSingle())
-        .data?.full_name ?? null
+    ? ((await supabaseAdmin.from("profiles").select("full_name").eq("id", approverId).maybeSingle())
+        .data?.full_name ?? null)
     : null;
 
   return {
@@ -214,7 +234,10 @@ const TYPOGRAPHIC: Record<string, string> = {
 };
 
 function normalizeText(text: string) {
-  return text.replace(/[\u2013\u2014\u2018\u2019\u201c\u201d\u2026\u00a0\u20ac]/g, (c) => TYPOGRAPHIC[c] ?? c);
+  return text.replace(
+    /[\u2013\u2014\u2018\u2019\u201c\u201d\u2026\u00a0\u20ac]/g,
+    (c) => TYPOGRAPHIC[c] ?? c,
+  );
 }
 
 function latin1(text: string) {
@@ -366,7 +389,7 @@ export async function buildDossierArchive(driverId: string) {
       : ["Aucun véhicule enregistré"]),
     "",
     "== Fiscalité",
-    `Régime TVA : ${data.tax?.regime ?? "—"} ${data.tax?.rate_label ?? ""}`,
+    `Tarifs indicatifs renseignés par le chauffeur`,
     `Numéro de TVA : ${data.company?.vat_number ?? "—"}`,
     "",
     "== Statut des sections",
@@ -375,7 +398,8 @@ export async function buildDossierArchive(driverId: string) {
     "== Documents présents dans l'archive",
     ...(manifestFiles.length
       ? manifestFiles.map(
-          (f) => `${f["path"]} — statut ${f["status"]} — échéance ${fr(f["expires_at"] as string | null)}`,
+          (f) =>
+            `${f["path"]} — statut ${f["status"]} — échéance ${fr(f["expires_at"] as string | null)}`,
         )
       : ["Aucun document déposé"]),
     "",
@@ -414,7 +438,9 @@ export async function cleanupOldExports() {
     (f) => Date.now() - new Date(f.created_at ?? Date.now()).getTime() > 60 * 60 * 1000,
   );
   for (const folder of data ?? []) {
-    const inner = await supabaseAdmin.storage.from(EXPORTS_BUCKET).list(folder.name, { limit: 100 });
+    const inner = await supabaseAdmin.storage
+      .from(EXPORTS_BUCKET)
+      .list(folder.name, { limit: 100 });
     const old = (inner.data ?? [])
       .filter((f) => Date.now() - new Date(f.created_at ?? Date.now()).getTime() > 60 * 60 * 1000)
       .map((f) => `${folder.name}/${f.name}`);

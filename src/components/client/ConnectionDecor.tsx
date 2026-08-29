@@ -23,11 +23,7 @@ export function ConnectionDecor() {
       className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
       style={{ contain: "paint" }}
     >
-      <svg
-        viewBox="0 0 320 600"
-        preserveAspectRatio="none"
-        className="h-full w-full text-primary"
-      >
+      <svg viewBox="0 0 320 600" preserveAspectRatio="none" className="h-full w-full text-primary">
         {LINES.map((l) => (
           <path
             key={l.d}

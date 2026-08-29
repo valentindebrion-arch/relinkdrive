@@ -39,14 +39,24 @@ export function PageHeader({
     <div className="mb-4 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
       <div className="min-w-0">
         <h1 className="truncate text-xl font-bold sm:text-2xl">{title}</h1>
-        {description ? <p className="truncate text-xs text-muted-foreground sm:text-sm">{description}</p> : null}
+        {description ? (
+          <p className="truncate text-xs text-muted-foreground sm:text-sm">{description}</p>
+        ) : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>
   );
 }
 
-export function EmptyState({ title, description, action }: { title: string; description?: string; action?: ReactNode }) {
+export function EmptyState({
+  title,
+  description,
+  action,
+}: {
+  title: string;
+  description?: string;
+  action?: ReactNode;
+}) {
   return (
     <div className="surface flex flex-col items-center gap-2 p-10 text-center">
       <p className="font-medium">{title}</p>

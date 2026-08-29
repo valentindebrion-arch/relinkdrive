@@ -14,10 +14,6 @@ function ClientLayout() {
   const [transitioning, setTransitioning] = useState(false);
   const handleTransitionChange = useCallback((running: boolean) => setTransitioning(running), []);
   const isHome = pathname === "/espace" || pathname === "/espace/";
-  // Formulaire de demande : parcours plein écran, sans logo ni onglets.
-  const isRequestFlow = pathname.startsWith("/espace/demandes");
-
-  if (isRequestFlow) return <Outlet />;
 
   return (
     <div className="relative min-h-[100dvh] overflow-x-hidden bg-background">

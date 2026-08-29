@@ -9,7 +9,10 @@ export function parseDriverCode(text: string): string | null {
   const raw = text.trim();
   if (!raw) return null;
   try {
-    const url = new URL(raw, typeof window === "undefined" ? "https://relink.app" : window.location.origin);
+    const url = new URL(
+      raw,
+      typeof window === "undefined" ? "https://relink.app" : window.location.origin,
+    );
     const match = url.pathname.match(/\/chauffeur\/([^/?#]+)/);
     if (match?.[1]) return match[1];
   } catch {

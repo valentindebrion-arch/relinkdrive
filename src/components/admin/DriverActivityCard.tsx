@@ -21,17 +21,16 @@ export function DriverActivityCard({ driverId }: { driverId: string }) {
   const q = useQuery({
     queryKey: ["admin", "driver-activity", driverId],
     queryFn: async () => {
-      const [clients, rides, completed, tariff, driver] = await Promise.all([
+      const [clients, views, tariff, driver] = await Promise.all([
         supabase
           .from("driver_client_connections")
           .select("id", { count: "exact", head: true })
           .eq("driver_id", driverId),
-        supabase.from("rides").select("id", { count: "exact", head: true }).eq("driver_id", driverId),
         supabase
-          .from("rides")
+          .from("analytics_events")
           .select("id", { count: "exact", head: true })
           .eq("driver_id", driverId)
-          .eq("status", "completed"),
+          .eq("event", "page_view"),
         supabase
           .from("driver_tariffs")
           .select("price_per_km_ht, minimum_ht, night_enabled, night_pct, pickup_pct")
@@ -45,8 +44,7 @@ export function DriverActivityCard({ driverId }: { driverId: string }) {
       ]);
       return {
         clients: clients.count ?? 0,
-        rides: rides.count ?? 0,
-        completed: completed.count ?? 0,
+        views: views.count ?? 0,
         tariff: tariff.data,
         driver: driver.data,
       };
@@ -61,16 +59,15 @@ export function DriverActivityCard({ driverId }: { driverId: string }) {
   return (
     <section className="surface mb-4 p-5">
       <p className="flex items-center gap-2 text-sm font-semibold">
-        <Activity className="size-4 text-muted-foreground" /> Activité ReLink
+        <Activity className="size-4 text-muted-foreground" /> Visibilité ReLink
       </p>
       {q.isLoading ? (
         <p className="mt-2 text-xs text-muted-foreground">Chargement…</p>
       ) : (
         <>
-          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <Stat label="Clients connectés" value={q.data?.clients ?? 0} />
-            <Stat label="Courses" value={q.data?.rides ?? 0} />
-            <Stat label="Courses terminées" value={q.data?.completed ?? 0} />
+            <Stat label="Vues du profil" value={q.data?.views ?? 0} />
           </div>
           <p className="mt-4 text-[12px] font-bold tracking-wide text-muted-foreground uppercase">
             Paramètres tarifaires

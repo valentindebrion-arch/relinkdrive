@@ -302,10 +302,7 @@ function AdminDrivers() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <StatusBadge
-                        status={d.verification_status}
-                        labels={VERIFICATION_LABELS}
-                      />
+                      <StatusBadge status={d.verification_status} labels={VERIFICATION_LABELS} />
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap justify-end gap-2">

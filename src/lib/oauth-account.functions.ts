@@ -10,9 +10,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const finalizeOAuthAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { intent?: "client" | "driver" } | undefined) =>
-    z
-      .object({ intent: z.enum(["client", "driver"]).optional() })
-      .parse(input ?? {}),
+    z.object({ intent: z.enum(["client", "driver"]).optional() }).parse(input ?? {}),
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -40,7 +38,10 @@ export const finalizeOAuthAccount = createServerFn({ method: "POST" })
     if (!profile) {
       const { error } = await supabaseAdmin
         .from("profiles")
-        .upsert({ id: userId, full_name: fullName, email, avatar_url: avatar }, { onConflict: "id" });
+        .upsert(
+          { id: userId, full_name: fullName, email, avatar_url: avatar },
+          { onConflict: "id" },
+        );
       if (error) throw new Error(error.message);
     } else {
       const patch: { full_name?: string; avatar_url?: string } = {};

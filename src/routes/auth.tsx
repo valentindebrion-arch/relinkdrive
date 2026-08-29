@@ -22,7 +22,10 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: `Connexion — ${BRAND.name}` },
-      { name: "description", content: "Connectez-vous ou créez votre compte chauffeur ou passager." },
+      {
+        name: "description",
+        content: "Connectez-vous ou créez votre compte chauffeur ou passager.",
+      },
       { property: "og:title", content: `Connexion — ${BRAND.name}` },
       { property: "og:description", content: "Accédez à votre espace chauffeur ou passager." },
     ],
@@ -52,7 +55,9 @@ function AuthPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
-    const loginEmail = email.includes("@") ? email.trim() : `${email.trim().toLowerCase()}@relink.app`;
+    const loginEmail = email.includes("@")
+      ? email.trim()
+      : `${email.trim().toLowerCase()}@relink.app`;
     try {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
@@ -65,7 +70,10 @@ function AuthPage() {
         });
         if (error) throw error;
         toast.success("Compte créé. Vous pouvez maintenant vous connecter.");
-        const { error: signInError } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: loginEmail,
+          password,
+        });
         if (signInError) {
           toast.info("Vérifiez votre e-mail pour confirmer votre compte.");
           setMode("signin");
@@ -131,22 +139,33 @@ function AuthPage() {
           </div>
 
           <form onSubmit={submit} className="space-y-4">
-
             {mode === "signup" ? (
               <>
-
                 <div>
                   <Label htmlFor="name">Prénom et nom</Label>
-                  <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} required maxLength={100} />
+                  <Input
+                    id="name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                    maxLength={100}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="phone">Téléphone</Label>
-                  <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={30} />
+                  <Input
+                    id="phone"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    maxLength={30}
+                  />
                 </div>
               </>
             ) : null}
             <div>
-              <Label htmlFor="email">{mode === "signin" ? "E-mail ou identifiant" : "E-mail"}</Label>
+              <Label htmlFor="email">
+                {mode === "signin" ? "E-mail ou identifiant" : "E-mail"}
+              </Label>
               <Input
                 id="email"
                 type={mode === "signin" ? "text" : "email"}
@@ -169,7 +188,11 @@ function AuthPage() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={busy}>
-              {busy ? "Veuillez patienter…" : mode === "signin" ? "Se connecter" : "Créer mon compte"}
+              {busy
+                ? "Veuillez patienter…"
+                : mode === "signin"
+                  ? "Se connecter"
+                  : "Créer mon compte"}
             </Button>
           </form>
         </div>

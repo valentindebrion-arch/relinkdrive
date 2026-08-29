@@ -10,14 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSignedUrls } from "@/lib/storage";
 
 export type VehiclePhotoKind =
-  | "exterior"
-  | "side"
-  | "front"
-  | "interior"
-  | "trunk"
-  | "childSeat"
-  | "access"
-  | "pet";
+  "exterior" | "side" | "front" | "interior" | "trunk" | "childSeat" | "access" | "pet";
 
 export type VehicleMediaRow = {
   id: string;

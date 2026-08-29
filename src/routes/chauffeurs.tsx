@@ -1,14 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Search, SlidersHorizontal, Loader2 } from "lucide-react";
 import { BRAND, POSITIONING } from "@/lib/brand";
 import { BrandLogo } from "@/components/BrandLogo";
 import { useAuth, homeForRoles } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { DriverDirectoryCard, type DirectoryDriver } from "@/components/directory/DriverDirectoryCard";
+import {
+  DriverDirectoryCard,
+  type DirectoryDriver,
+} from "@/components/directory/DriverDirectoryCard";
 import { SERVICES, VEHICLE_CATEGORIES, LANGUAGES } from "@/lib/showcase";
 import { EmptyState } from "@/components/Ui";
+import { useSignedUrls } from "@/lib/storage";
 
 export const Route = createFileRoute("/chauffeurs")({
   head: () => ({
@@ -22,7 +26,8 @@ export const Route = createFileRoute("/chauffeurs")({
       { property: "og:title", content: `Annuaire des chauffeurs VTC — ${BRAND.name}` },
       {
         property: "og:description",
-        content: "Trouvez un chauffeur VTC professionnel dans votre secteur et gardez-le dans votre réseau.",
+        content:
+          "Trouvez un chauffeur VTC professionnel dans votre secteur et gardez-le dans votre réseau.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -56,7 +61,21 @@ function DirectoryPage() {
     },
   });
 
-  const list = drivers.data ?? [];
+  const rawList = useMemo(() => drivers.data ?? [], [drivers.data]);
+  const photos = useSignedUrls(
+    "vehicles",
+    rawList.map((d) => d.vehicle_photo_url),
+  );
+  const list = useMemo(
+    () =>
+      rawList.map((d) => ({
+        ...d,
+        vehicle_photo_url: d.vehicle_photo_url
+          ? (photos.data?.[d.vehicle_photo_url] ?? null)
+          : null,
+      })),
+    [rawList, photos.data],
+  );
   const hasFilters = !!(service || category || minPassengers || language);
 
   return (
@@ -95,7 +114,8 @@ function DirectoryPage() {
       <main className="mx-auto max-w-6xl px-4 pb-16 sm:px-5">
         <h1 className="text-2xl font-semibold text-balance sm:text-3xl">Trouver un chauffeur</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Explorez le réseau des chauffeurs VTC professionnels et découvrez ceux qui interviennent dans votre secteur.
+          Explorez le réseau des chauffeurs VTC professionnels et découvrez ceux qui interviennent
+          dans votre secteur.
         </p>
 
         <form
@@ -115,7 +135,10 @@ function DirectoryPage() {
               className="w-full rounded-xl border border-border bg-card py-3 pr-3 pl-9 text-sm"
             />
           </div>
-          <button type="submit" className="rounded-xl bg-primary px-5 py-3 text-sm font-medium text-primary-foreground">
+          <button
+            type="submit"
+            className="rounded-xl bg-primary px-5 py-3 text-sm font-medium text-primary-foreground"
+          >
             Rechercher
           </button>
           <button
@@ -132,7 +155,9 @@ function DirectoryPage() {
         {showFilters ? (
           <div className="surface mt-3 grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
             <label className="text-sm">
-              <span className="mb-1 block text-xs font-medium text-muted-foreground">Prestation</span>
+              <span className="mb-1 block text-xs font-medium text-muted-foreground">
+                Prestation
+              </span>
               <select
                 value={service}
                 onChange={(e) => setService(e.target.value)}
@@ -147,7 +172,9 @@ function DirectoryPage() {
               </select>
             </label>
             <label className="text-sm">
-              <span className="mb-1 block text-xs font-medium text-muted-foreground">Type de véhicule</span>
+              <span className="mb-1 block text-xs font-medium text-muted-foreground">
+                Type de véhicule
+              </span>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
@@ -162,7 +189,9 @@ function DirectoryPage() {
               </select>
             </label>
             <label className="text-sm">
-              <span className="mb-1 block text-xs font-medium text-muted-foreground">Passagers minimum</span>
+              <span className="mb-1 block text-xs font-medium text-muted-foreground">
+                Passagers minimum
+              </span>
               <select
                 value={minPassengers}
                 onChange={(e) => setMinPassengers(e.target.value)}
@@ -177,7 +206,9 @@ function DirectoryPage() {
               </select>
             </label>
             <label className="text-sm">
-              <span className="mb-1 block text-xs font-medium text-muted-foreground">Langue parlée</span>
+              <span className="mb-1 block text-xs font-medium text-muted-foreground">
+                Langue parlée
+              </span>
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}

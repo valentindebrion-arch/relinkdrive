@@ -8,7 +8,11 @@ import { useAuth } from "@/lib/auth";
 import { ClientTopBar } from "@/components/client/ClientTopBar";
 import { ConnectionDecor } from "@/components/client/ConnectionDecor";
 import { HomeDriverCard, type HomeCardDriver } from "@/components/client/HomeDriverCard";
-import { EQUIPMENT_LABELS, VehicleFacts, type VehicleFactsData } from "@/components/client/VehicleFacts";
+import {
+  EQUIPMENT_LABELS,
+  VehicleFacts,
+  type VehicleFactsData,
+} from "@/components/client/VehicleFacts";
 import { useSignedUrls } from "@/lib/storage";
 import emptyDriverStateAsset from "@/assets/empty-driver-state.png.asset.json";
 
@@ -95,7 +99,9 @@ function ClientHome() {
               cabinLuggage: car?.cabin_luggage_capacity ?? null,
               petsPolicy: (car?.pets_policy as VehicleFactsData["petsPolicy"]) ?? null,
               equipment: car
-                ? EQUIPMENT_LABELS.filter((e) => (car as Record<string, unknown>)[e.key] === true).map((e) => e.label)
+                ? EQUIPMENT_LABELS.filter(
+                    (e) => (car as Record<string, unknown>)[e.key] === true,
+                  ).map((e) => e.label)
                 : [],
             } satisfies VehicleFactsData,
           } as HomeDriver;
@@ -110,10 +116,14 @@ function ClientHome() {
     if (!user?.id) return;
     const channel = supabase
       .channel("client-home-network")
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "driver_profiles" }, () => {
-        void queryClient.invalidateQueries({ queryKey: ["client-home", user.id] });
-        void queryClient.invalidateQueries({ queryKey: ["client-drivers", user.id] });
-      })
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "driver_profiles" },
+        () => {
+          void queryClient.invalidateQueries({ queryKey: ["client-home", user.id] });
+          void queryClient.invalidateQueries({ queryKey: ["client-drivers", user.id] });
+        },
+      )
       .subscribe();
     return () => {
       void supabase.removeChannel(channel);
@@ -123,14 +133,21 @@ function ClientHome() {
   const rawDrivers = useMemo(() => data.data?.drivers ?? [], [data.data?.drivers]);
   const photos = useSignedUrls(
     "vehicles",
-    rawDrivers.flatMap((d) => [d.vehiclePhotoPath, d.frontPhotoPath, d.exteriorPhotoPath, d.facts.interiorPhotoPath]),
+    rawDrivers.flatMap((d) => [
+      d.vehiclePhotoPath,
+      d.frontPhotoPath,
+      d.exteriorPhotoPath,
+      d.facts.interiorPhotoPath,
+    ]),
     rawDrivers.map((d) => d.vehiclePhotoVersion),
   );
   const photoUrls = photos.data;
   const drivers = useMemo(
     () =>
       rawDrivers.map((d) => {
-        const interiorUrl = d.facts.interiorPhotoPath ? (photoUrls?.[d.facts.interiorPhotoPath] ?? null) : null;
+        const interiorUrl = d.facts.interiorPhotoPath
+          ? (photoUrls?.[d.facts.interiorPhotoPath] ?? null)
+          : null;
         const exteriorUrl = d.exteriorPhotoPath ? (photoUrls?.[d.exteriorPhotoPath] ?? null) : null;
         return {
           ...d,
@@ -155,7 +172,9 @@ function ClientHome() {
     setSelectedDriverId(initial);
   }, [drivers, selectedDriverId]);
 
-  const restoredIndex = selectedDriverId ? drivers.findIndex((driver) => driver.id === selectedDriverId) : -1;
+  const restoredIndex = selectedDriverId
+    ? drivers.findIndex((driver) => driver.id === selectedDriverId)
+    : -1;
   const safeIndex = restoredIndex >= 0 ? restoredIndex : 0;
   const selectedDriver = drivers[safeIndex] ?? null;
 
@@ -185,7 +204,9 @@ function ClientHome() {
         <p className="mt-1 text-[13px] font-semibold text-muted-foreground">
           {firstName ? `Bonjour ${firstName} 👋` : "Bonjour 👋"}
         </p>
-        <h1 className="text-[22px] leading-tight font-black tracking-tight">Mon réseau de chauffeurs</h1>
+        <h1 className="text-[22px] leading-tight font-black tracking-tight">
+          Mon réseau de chauffeurs
+        </h1>
       </div>
 
       <main className="flex w-full min-w-0 flex-col gap-[var(--home-gap)] px-4 pt-[var(--home-gap)] pb-[calc(var(--home-tabbar-h)+env(safe-area-inset-bottom)+24px)]">
@@ -207,7 +228,8 @@ function ClientHome() {
             <div className="p-5 text-center">
               <p className="text-sm font-bold">Votre réseau est vide</p>
               <p className="mt-1 text-[13px] text-muted-foreground">
-                Scannez le QR code d'un chauffeur ou explorez l'annuaire pour ajouter vos premiers professionnels.
+                Scannez le QR code d'un chauffeur ou explorez l'annuaire pour ajouter vos premiers
+                professionnels.
               </p>
             </div>
           </div>
@@ -265,7 +287,9 @@ function ClientHome() {
             facts={selectedDriver?.facts ?? null}
             driverSlug={selectedDriver?.slug ?? null}
             driverKey={selectedDriver?.id ?? (data.isLoading ? "loading" : "empty")}
-            anim={dir === "right" ? "driver-card-in-right" : dir === "left" ? "driver-card-in-left" : ""}
+            anim={
+              dir === "right" ? "driver-card-in-right" : dir === "left" ? "driver-card-in-left" : ""
+            }
             loading={data.isLoading || photosPending}
             locked={false}
           />

@@ -17,11 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 type PhotoField =
-  | "photo_url"
-  | "photo_interior_url"
-  | "photo_front_url"
-  | "photo_side_url"
-  | "photo_trunk_url";
+  "photo_url" | "photo_interior_url" | "photo_front_url" | "photo_side_url" | "photo_trunk_url";
 
 const MAX_BYTES = 8 * 1024 * 1024;
 const ACCEPTED = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
@@ -48,7 +44,9 @@ function useDriverVehicle(driverId: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("vehicles")
-        .select("id, photo_url, photo_interior_url, photo_front_url, photo_side_url, photo_trunk_url")
+        .select(
+          "id, photo_url, photo_interior_url, photo_front_url, photo_side_url, photo_trunk_url",
+        )
         .eq("driver_id", driverId)
         .order("is_primary", { ascending: false })
         .order("created_at")
@@ -169,8 +167,7 @@ function PhotoHistory({ driverId }: { driverId: string }) {
           <li key={row.id}>
             {new Date(row.created_at).toLocaleDateString("fr-FR")} —{" "}
             {FIELD_LABEL[(row.resource as PhotoField) ?? "photo_url"] ?? "Photo"}{" "}
-            {row.action === "vehicle_photo_deleted" ? "supprimée" : "modifiée"} par
-            l'administration
+            {row.action === "vehicle_photo_deleted" ? "supprimée" : "modifiée"} par l'administration
           </li>
         ))}
       </ul>

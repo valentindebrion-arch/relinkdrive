@@ -77,10 +77,7 @@ export function DiscoverDriverCard({
           {driver.slug ? (
             <span className="flex shrink-0 items-center gap-0.5 text-[13px] font-semibold text-primary">
               Voir le profil
-              <ChevronRight
-                className="size-4 transition group-hover:translate-x-0.5"
-                aria-hidden
-              />
+              <ChevronRight className="size-4 transition group-hover:translate-x-0.5" aria-hidden />
             </span>
           ) : null}
         </div>
@@ -95,9 +92,7 @@ export function DiscoverDriverCard({
           <span
             className={cn(
               "inline-flex items-center gap-1 rounded-full px-2 py-0.5",
-              driver.on_duty
-                ? "bg-primary/10 text-primary"
-                : "bg-muted text-muted-foreground",
+              driver.on_duty ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
             )}
           >
             <span

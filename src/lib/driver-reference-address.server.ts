@@ -30,8 +30,7 @@ export async function getDriverReference(
       .maybeSingle(),
   ]);
 
-  const precise =
-    clean(profile?.professional_address) ?? clean(dossier?.postal_address) ?? null;
+  const precise = clean(profile?.professional_address) ?? clean(dossier?.postal_address) ?? null;
   const city = clean(profile?.city);
 
   if (precise) return { address: precise, label: city ?? shortLabel(precise), precise: true };
@@ -47,7 +46,10 @@ function clean(value: unknown): string | null {
 
 /** Dernier segment lisible d'une adresse ("12 rue X, 63170 Aubière" → "Aubière"). */
 function shortLabel(address: string) {
-  const parts = address.split(",").map((p) => p.trim()).filter(Boolean);
+  const parts = address
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean);
   const last = parts[parts.length - 1] ?? address;
   return last.replace(/^\d{4,5}\s*/, "") || last;
 }

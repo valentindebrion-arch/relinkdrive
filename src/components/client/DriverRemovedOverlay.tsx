@@ -13,13 +13,7 @@ type Props = {
  * Miroir « inverse » de l'animation d'ajout : le chauffeur quitte le réseau.
  * Identité rouge, mouvement de recul, disparition propre (~1,8 s).
  */
-export function DriverRemovedOverlay({
-  firstName,
-  name,
-  vehicleLabel,
-  photoUrl,
-  onDone,
-}: Props) {
+export function DriverRemovedOverlay({ firstName, name, vehicleLabel, photoUrl, onDone }: Props) {
   useEffect(() => {
     const t = window.setTimeout(onDone, 1800);
     return () => window.clearTimeout(t);
