@@ -623,67 +623,54 @@ function DriverPublicPage() {
           ) : null}
         </section>
 
-        {/* 2 — Estimer mon trajet : réservé aux chauffeurs de mon réseau */}
-        {connected ? (
-          <TripEstimator
-            driverId={d.user_id}
-            firstName={firstName}
-            onRequest={goToRequest}
-            autoLocate
-          />
-        ) : (
-          <section id="estimation" className="surface scroll-mt-4 border-primary/30 p-5 shadow-sm">
-            <h2 className="flex items-center gap-2 text-lg font-black tracking-tight">
-              <Lock className="size-4 text-primary" aria-hidden /> Estimer mon trajet
-            </h2>
-            <p className="mt-1 text-[13px] text-muted-foreground">
-              Ajoutez d'abord {firstName} à mes chauffeurs pour estimer ou réserver une course avec
-              lui.
-            </p>
-            {wfwGate ? (
-              <div className="mt-4">{wfwGate}</div>
-            ) : isDriver || isAdmin ? (
-              <p className="mt-4 rounded-2xl border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-                Seuls les comptes passagers peuvent ajouter un chauffeur à leur carnet.
-              </p>
+        {/* 2 — Contacter le chauffeur */}
+        <section className="surface p-5">
+          <h2 className="text-lg font-black tracking-tight">Contacter {firstName}</h2>
+          <p className="mt-1 text-[13px] text-muted-foreground">
+            {BRAND.name} ne gère ni la réservation ni la course : vous échangez directement avec le chauffeur.
+          </p>
+          <div className="mt-4 space-y-2">
+            {contactLinks.length ? (
+              contactLinks.map((c) => (
+                <Button
+                  key={c.label}
+                  asChild
+                  variant={c.primary ? "default" : "outline"}
+                  className="h-12 w-full justify-start text-base"
+                >
+                  <a
+                    href={c.href}
+                    {...(c.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                    onClick={() => trackContact(c.kind)}
+                  >
+                    <c.icon className="size-4" /> {c.label}
+                  </a>
+                </Button>
+              ))
             ) : (
-              <Button
-                className="mt-4 h-12 w-full text-base"
-                onClick={() => startAdd("signup")}
-                disabled={adding || !accepting}
-              >
-                <UserPlus className="size-4" /> Ajouter {firstName} à mes chauffeurs
-              </Button>
+              <p className="rounded-2xl border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+                {firstName} n'a pas encore publié de moyen de contact.
+              </p>
             )}
-          </section>
-        )}
+          </div>
+        </section>
 
-        {/* 3 — Disponibilités */}
-        <Section title="Disponibilités">
-          <p
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${accepting ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}
-          >
-            <span
-              className={`size-2 rounded-full ${accepting ? "bg-primary" : "bg-muted-foreground"}`}
-            />
-            {accepting ? "Accepte des demandes" : "Ne prend pas de demande actuellement"}
-          </p>
-          {availabilityChips.length ? (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {availabilityChips.map((a) => {
-                const item = AVAILABILITY_LABELS[a];
-                return item ? (
-                  <Chip key={a} icon={item.icon}>
-                    {item.label}
-                  </Chip>
-                ) : null;
-              })}
+        {/* 3 — Estimation indicative */}
+        <TripEstimator slug={slug} firstName={firstName} autoLocate />
+
+        {/* 4 — Prestations proposées */}
+        {(d.services ?? []).length ? (
+          <Section title="Prestations">
+            <div className="flex flex-wrap gap-2">
+              {((d.services ?? []) as string[]).map((s) => (
+                <Chip key={s} icon={Briefcase}>
+                  {serviceLabel(s)}
+                </Chip>
+              ))}
+              {d.long_distance ? <Chip icon={MapPin}>Longue distance</Chip> : null}
             </div>
-          ) : null}
-          <p className="mt-3 text-muted-foreground">
-            {d.booking_notice ?? "Disponible principalement sur réservation, selon mon planning."}
-          </p>
-        </Section>
+          </Section>
+        ) : null}
 
         {/* 4 — Zone d'activité */}
         {zoneChips.length || d.stations?.length || d.airports?.length ? (
