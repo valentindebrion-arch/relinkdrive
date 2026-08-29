@@ -730,6 +730,33 @@ export type Database = {
         }
         Relationships: []
       }
+      driver_profile_views: {
+        Row: {
+          client_id: string
+          created_at: string
+          driver_id: string
+          id: string
+          updated_at: string
+          viewed_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          driver_id: string
+          id?: string
+          updated_at?: string
+          viewed_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          driver_id?: string
+          id?: string
+          updated_at?: string
+          viewed_at?: string
+        }
+        Relationships: []
+      }
       driver_profiles: {
         Row: {
           accepting_requests: boolean
@@ -751,6 +778,7 @@ export type Database = {
           city: string | null
           created_at: string
           driver_kind: string
+          experience_years: number | null
           expiry_notified_at: string | null
           facebook_url: string | null
           gender: string | null
@@ -790,6 +818,7 @@ export type Database = {
           vat_applicable: boolean
           verification_status: Database["public"]["Enums"]["verification_status"]
           vtc_card_number: string | null
+          website_url: string | null
           whatsapp_number: string | null
           woman_for_woman: boolean
           women_for_women_eligible: boolean
@@ -817,6 +846,7 @@ export type Database = {
           city?: string | null
           created_at?: string
           driver_kind?: string
+          experience_years?: number | null
           expiry_notified_at?: string | null
           facebook_url?: string | null
           gender?: string | null
@@ -856,6 +886,7 @@ export type Database = {
           vat_applicable?: boolean
           verification_status?: Database["public"]["Enums"]["verification_status"]
           vtc_card_number?: string | null
+          website_url?: string | null
           whatsapp_number?: string | null
           woman_for_woman?: boolean
           women_for_women_eligible?: boolean
@@ -883,6 +914,7 @@ export type Database = {
           city?: string | null
           created_at?: string
           driver_kind?: string
+          experience_years?: number | null
           expiry_notified_at?: string | null
           facebook_url?: string | null
           gender?: string | null
@@ -922,6 +954,7 @@ export type Database = {
           vat_applicable?: boolean
           verification_status?: Database["public"]["Enums"]["verification_status"]
           vtc_card_number?: string | null
+          website_url?: string | null
           whatsapp_number?: string | null
           woman_for_woman?: boolean
           women_for_women_eligible?: boolean
@@ -3553,6 +3586,15 @@ export type Database = {
           vehicle_id: string
         }[]
       }
+      get_driver_visibility_stats: {
+        Args: { _days?: number }
+        Returns: {
+          contact_clicks: number
+          network_adds: number
+          profile_views: number
+          search_appearances: number
+        }[]
+      }
       get_invoice_issuer: {
         Args: { _driver: string }
         Returns: {
@@ -3661,6 +3703,16 @@ export type Database = {
           whatsapp_number: string
           woman_for_woman: boolean
           zone: string
+        }[]
+      }
+      get_public_driver_pricing: {
+        Args: { _slug: string }
+        Returns: {
+          basis: string
+          driver_id: string
+          minimum: number
+          pickup_pct: number
+          price_per_km: number
         }[]
       }
       get_public_driver_rating: {
