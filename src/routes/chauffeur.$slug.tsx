@@ -818,45 +818,6 @@ function DriverPublicPage() {
           {d.pets_conditions && d.pets_policy === "conditional" ? (
             <p className="mt-2 text-xs text-muted-foreground">{d.pets_conditions}</p>
           ) : null}
-
-          {publicPhone || whatsapp || socials.length ? (
-            <div className="mt-4 space-y-2 border-t border-border pt-4">
-              {publicPhone ? (
-                <Button asChild variant="outline" className="w-full justify-start">
-                  <a href={`tel:${publicPhone.replace(/\s/g, "")}`}>
-                    <Phone className="size-4" /> Appeler {publicPhone}
-                  </a>
-                </Button>
-              ) : null}
-              {whatsapp ? (
-                <Button asChild variant="outline" className="w-full justify-start">
-                  <a
-                    href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <MessageCircle className="size-4" /> Écrire sur WhatsApp
-                  </a>
-                </Button>
-              ) : null}
-              {socials.length ? (
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {socials.map((s) => (
-                    <Button key={s.label} asChild variant="secondary" size="sm">
-                      <a
-                        href={s.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={s.label}
-                      >
-                        <s.icon className="size-4" /> {s.label}
-                      </a>
-                    </Button>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          ) : null}
         </Section>
 
         {/* 7 — Avis passagers */}
