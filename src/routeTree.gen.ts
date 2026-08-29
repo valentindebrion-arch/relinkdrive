@@ -31,7 +31,6 @@ import { Route as AuthenticatedAdminTop10RouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminUtilisateursRouteImport } from './routes/_authenticated/admin.utilisateurs'
 import { Route as AuthenticatedEspaceIndexRouteImport } from './routes/_authenticated/espace.index'
 import { Route as AuthenticatedEspaceChauffeursRouteImport } from './routes/_authenticated/espace.chauffeurs'
-import { Route as AuthenticatedEspaceConsultesRouteImport } from './routes/_authenticated/espace.consultes'
 import { Route as AuthenticatedEspaceDecouvrirRouteImport } from './routes/_authenticated/espace.decouvrir'
 import { Route as AuthenticatedEspaceParametresRouteImport } from './routes/_authenticated/espace.parametres'
 import { Route as AuthenticatedProIndexRouteImport } from './routes/_authenticated/pro.index'
@@ -165,12 +164,6 @@ const AuthenticatedEspaceChauffeursRoute =
   AuthenticatedEspaceChauffeursRouteImport.update({
     id: '/chauffeurs',
     path: '/chauffeurs',
-    getParentRoute: () => AuthenticatedEspaceRoute,
-  } as any)
-const AuthenticatedEspaceConsultesRoute =
-  AuthenticatedEspaceConsultesRouteImport.update({
-    id: '/consultes',
-    path: '/consultes',
     getParentRoute: () => AuthenticatedEspaceRoute,
   } as any)
 const AuthenticatedEspaceDecouvrirRoute =
@@ -308,7 +301,6 @@ export interface FileRoutesByFullPath {
   '/admin/top10': typeof AuthenticatedAdminTop10Route
   '/admin/utilisateurs': typeof AuthenticatedAdminUtilisateursRoute
   '/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
-  '/espace/consultes': typeof AuthenticatedEspaceConsultesRoute
   '/espace/decouvrir': typeof AuthenticatedEspaceDecouvrirRoute
   '/espace/parametres': typeof AuthenticatedEspaceParametresRoute
   '/pro/dossier': typeof AuthenticatedProDossierRouteWithChildren
@@ -348,7 +340,6 @@ export interface FileRoutesByTo {
   '/admin/top10': typeof AuthenticatedAdminTop10Route
   '/admin/utilisateurs': typeof AuthenticatedAdminUtilisateursRoute
   '/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
-  '/espace/consultes': typeof AuthenticatedEspaceConsultesRoute
   '/espace/decouvrir': typeof AuthenticatedEspaceDecouvrirRoute
   '/espace/parametres': typeof AuthenticatedEspaceParametresRoute
   '/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
@@ -393,7 +384,6 @@ export interface FileRoutesById {
   '/_authenticated/admin/top10': typeof AuthenticatedAdminTop10Route
   '/_authenticated/admin/utilisateurs': typeof AuthenticatedAdminUtilisateursRoute
   '/_authenticated/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
-  '/_authenticated/espace/consultes': typeof AuthenticatedEspaceConsultesRoute
   '/_authenticated/espace/decouvrir': typeof AuthenticatedEspaceDecouvrirRoute
   '/_authenticated/espace/parametres': typeof AuthenticatedEspaceParametresRoute
   '/_authenticated/pro/dossier': typeof AuthenticatedProDossierRouteWithChildren
@@ -439,7 +429,6 @@ export interface FileRouteTypes {
     | '/admin/top10'
     | '/admin/utilisateurs'
     | '/espace/chauffeurs'
-    | '/espace/consultes'
     | '/espace/decouvrir'
     | '/espace/parametres'
     | '/pro/dossier'
@@ -479,7 +468,6 @@ export interface FileRouteTypes {
     | '/admin/top10'
     | '/admin/utilisateurs'
     | '/espace/chauffeurs'
-    | '/espace/consultes'
     | '/espace/decouvrir'
     | '/espace/parametres'
     | '/pro/entreprise'
@@ -523,7 +511,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/top10'
     | '/_authenticated/admin/utilisateurs'
     | '/_authenticated/espace/chauffeurs'
-    | '/_authenticated/espace/consultes'
     | '/_authenticated/espace/decouvrir'
     | '/_authenticated/espace/parametres'
     | '/_authenticated/pro/dossier'
@@ -720,13 +707,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEspaceChauffeursRouteImport
       parentRoute: typeof AuthenticatedEspaceRoute
     }
-    '/_authenticated/espace/consultes': {
-      id: '/_authenticated/espace/consultes'
-      path: '/consultes'
-      fullPath: '/espace/consultes'
-      preLoaderRoute: typeof AuthenticatedEspaceConsultesRouteImport
-      parentRoute: typeof AuthenticatedEspaceRoute
-    }
     '/_authenticated/espace/decouvrir': {
       id: '/_authenticated/espace/decouvrir'
       path: '/decouvrir'
@@ -916,7 +896,6 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedEspaceRouteChildren {
   AuthenticatedEspaceChauffeursRoute: typeof AuthenticatedEspaceChauffeursRoute
-  AuthenticatedEspaceConsultesRoute: typeof AuthenticatedEspaceConsultesRoute
   AuthenticatedEspaceDecouvrirRoute: typeof AuthenticatedEspaceDecouvrirRoute
   AuthenticatedEspaceParametresRoute: typeof AuthenticatedEspaceParametresRoute
   AuthenticatedEspaceIndexRoute: typeof AuthenticatedEspaceIndexRoute
@@ -924,7 +903,6 @@ interface AuthenticatedEspaceRouteChildren {
 
 const AuthenticatedEspaceRouteChildren: AuthenticatedEspaceRouteChildren = {
   AuthenticatedEspaceChauffeursRoute: AuthenticatedEspaceChauffeursRoute,
-  AuthenticatedEspaceConsultesRoute: AuthenticatedEspaceConsultesRoute,
   AuthenticatedEspaceDecouvrirRoute: AuthenticatedEspaceDecouvrirRoute,
   AuthenticatedEspaceParametresRoute: AuthenticatedEspaceParametresRoute,
   AuthenticatedEspaceIndexRoute: AuthenticatedEspaceIndexRoute,
