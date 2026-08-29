@@ -1,13 +1,12 @@
-import { createFileRoute, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import {
   Home,
   Car,
-  Users,
-  Receipt,
+  Link2,
   SlidersHorizontal,
   UserRound,
-  CalendarDays,
+  QrCode,
   ShieldCheck,
   Building2,
   HelpCircle,
@@ -16,14 +15,12 @@ import { DashboardShell, type NavItem } from "@/components/DashboardShell";
 import { ClientPageTransition } from "@/components/ClientPageTransition";
 import { useAuth } from "@/lib/auth";
 import { requireDriverAccess } from "@/lib/role-guard";
-import { useNewRequestsCount, useDriverProfile } from "@/lib/driver-queries";
+import { useDriverProfile } from "@/lib/driver-queries";
 import { isDriverActive, isDriverSubmitted } from "@/lib/driver-dossier";
-import { proOnlyPathFor, useMyPlan } from "@/lib/plan";
-import { ProUpsell } from "@/components/pro/ProUpsell";
 
-// Ordre réel des onglets de la barre inférieure chauffeur (index 0 = Accueil).
-const PRO_TAB_ORDER = ["/pro", "/pro/courses", "/pro/clients", "/pro/planning", "/pro/profil"];
-const PRO_TAB_KEYS = ["pro-home", "pro-rides", "pro-clients", "pro-planning", "pro-profile"];
+// Ordre réel des onglets de la barre inférieure chauffeur (index 0 = Ma vitrine).
+const PRO_TAB_ORDER = ["/pro", "/pro/profil", "/pro/vehicule", "/pro/qr", "/pro/parametres"];
+const PRO_TAB_KEYS = ["pro-home", "pro-profile", "pro-vehicles", "pro-qr", "pro-account"];
 
 export const Route = createFileRoute("/_authenticated/pro")({
   beforeLoad: ({ location }) => requireDriverAccess(location.pathname),
@@ -33,50 +30,44 @@ export const Route = createFileRoute("/_authenticated/pro")({
 function ProLayout() {
   const { isDriver, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
-  const newRequests = useNewRequestsCount();
   const driver = useDriverProfile();
-  const { isPro } = useMyPlan();
-  const { pathname } = useLocation();
-  const blocked = !isPro ? proOnlyPathFor(pathname) : null;
 
   useEffect(() => {
     if (!loading && !isDriver && !isAdmin) navigate({ to: "/espace", replace: true });
   }, [loading, isDriver, isAdmin, navigate]);
 
   const verified = isAdmin || isDriverActive(driver.data?.verification_status);
-  // L'espace complet s'ouvre dès l'envoi du dossier ; seule l'activité reste bridée.
+  // L'espace complet s'ouvre dès l'envoi du dossier ; la vitrine reste privée tant
+  // que la vérification n'est pas terminée.
   const active = verified || isDriverSubmitted(driver.data?.verification_status);
-  const badge = verified ? newRequests.data || undefined : undefined;
-  const lock = !isPro;
 
   // Compte non validé : menu réduit au dossier et aux informations obligatoires.
   const restrictedItems: NavItem[] = [
     { to: "/pro/dossier", label: "Mon dossier", icon: <ShieldCheck /> },
     { to: "/pro/entreprise", label: "Mon entreprise", icon: <Building2 /> },
-    { to: "/pro/vehicule", label: "Mon véhicule", icon: <Car /> },
+    { to: "/pro/vehicule", label: "Mes véhicules", icon: <Car /> },
     { to: "/pro/parametres", label: "Mon compte", icon: <UserRound /> },
     { to: "/aide", label: "Aide", icon: <HelpCircle /> },
   ];
 
-  // Les outils professionnels restent visibles en offre Standard, mais
-  // verrouillés : ils montrent la valeur de ReLink Pro sans jamais charger
-  // le moindre contenu Pro.
+  // Espace chauffeur : uniquement la gestion de la présence sur ReLink.
   const items: NavItem[] = [
-    { to: "/pro", label: "Accueil", icon: <Home /> },
-    { to: "/pro/courses", label: "Mes courses", icon: <Car />, badge },
-    { to: "/pro/planning", label: "Planning", icon: <CalendarDays />, locked: lock },
-    { to: "/pro/clients", label: "Mes clients", icon: <Users />, locked: lock },
-    { to: "/pro/factures", label: "Facturation", icon: <Receipt /> },
-    { to: "/pro/tarification", label: "Tarification", icon: <SlidersHorizontal /> },
+    { to: "/pro", label: "Ma vitrine", icon: <Home /> },
     { to: "/pro/profil", label: "Mon profil", icon: <UserRound /> },
+    { to: "/pro/vehicule", label: "Mes véhicules", icon: <Car /> },
+    { to: "/pro/tarification", label: "Mes tarifs", icon: <SlidersHorizontal /> },
+    { to: "/pro/liens", label: "Mes liens", icon: <Link2 /> },
+    { to: "/pro/qr", label: "Mon QR code", icon: <QrCode /> },
+    { to: "/pro/dossier", label: "Vérification", icon: <ShieldCheck /> },
+    { to: "/pro/entreprise", label: "Mon entreprise", icon: <Building2 /> },
   ];
 
   const bottomItems: NavItem[] = [
-    { to: "/pro", label: "Accueil", icon: <Home /> },
-    { to: "/pro/courses", label: "Courses", icon: <Car />, badge },
-    { to: "/pro/clients", label: "Clients", icon: <Users />, locked: lock },
-    { to: "/pro/planning", label: "Planning", icon: <CalendarDays />, locked: lock },
+    { to: "/pro", label: "Vitrine", icon: <Home /> },
     { to: "/pro/profil", label: "Profil", icon: <UserRound /> },
+    { to: "/pro/vehicule", label: "Véhicules", icon: <Car /> },
+    { to: "/pro/qr", label: "QR code", icon: <QrCode /> },
+    { to: "/pro/parametres", label: "Compte", icon: <UserRound /> },
   ];
 
   const restrictedBottom: NavItem[] = [
@@ -86,17 +77,16 @@ function ProLayout() {
     { to: "/pro/parametres", label: "Compte", icon: <UserRound /> },
   ];
 
-
   return (
     <DashboardShell
       items={active ? items : restrictedItems}
       bottomItems={active ? bottomItems : restrictedBottom}
       area="Espace chauffeur"
-      settingsTo={active ? "/pro/profil" : "/pro/parametres"}
+      settingsTo={active ? "/pro/parametres" : "/pro/parametres"}
       brandTo={active ? "/pro" : "/pro/dossier"}
     >
       <ClientPageTransition tabOrder={PRO_TAB_ORDER} tabKeys={PRO_TAB_KEYS} bottomOffset="5.5rem">
-        {blocked ? <ProUpsell feature={blocked.label} /> : <Outlet />}
+        <Outlet />
       </ClientPageTransition>
     </DashboardShell>
   );

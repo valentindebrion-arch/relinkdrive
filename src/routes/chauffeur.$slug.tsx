@@ -12,10 +12,10 @@ import {
   Dog,
   Droplets,
   Facebook,
+  Globe,
   Instagram,
   Languages,
   Linkedin,
-  Lock,
   Luggage,
   MapPin,
   MessageCircle,
@@ -25,7 +25,6 @@ import {
   PlugZap,
   Quote,
   Star as StarIcon,
-  ThumbsUp,
   ShieldCheck,
   Snowflake,
   Sparkles,
@@ -37,8 +36,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useSignedUrl } from "@/lib/storage";
 import { VehicleShowcase } from "@/components/VehicleShowcase";
-import { TripEstimator, type TripEstimate } from "@/components/driver/TripEstimator";
-import { saveRequestDraft } from "@/lib/request-draft";
+import { TripEstimator } from "@/components/driver/TripEstimator";
+import { serviceLabel } from "@/lib/showcase";
 import { prefersReducedMotion, setDriverCelebration } from "@/lib/driver-celebration";
 import { DriverAddedOverlay } from "@/components/client/DriverAddedOverlay";
 import { DriverRemovedOverlay } from "@/components/client/DriverRemovedOverlay";
@@ -84,7 +83,7 @@ export const Route = createFileRoute("/chauffeur/$slug")({
     const displayName = driverNameFromSlug(params.slug);
     const url = `https://relinkdriver.lovable.app/chauffeur/${params.slug}`;
     const title = `${displayName}, chauffeur VTC — ${BRAND.name}`;
-    const description = `Découvrez le profil de ${displayName}, chauffeur VTC indépendant : véhicule, services, zone d'intervention et disponibilités. Ajoutez-le à votre carnet de confiance.`;
+    const description = `Découvrez le profil de ${displayName}, chauffeur VTC indépendant sur ReLink : véhicule, prestations, zones desservies et coordonnées professionnelles. Ajoutez-le à votre réseau.`;
     return {
       meta: [
         { title },
@@ -115,14 +114,6 @@ export const Route = createFileRoute("/chauffeur/$slug")({
   },
   component: DriverPublicPage,
 });
-
-const AVAILABILITY_LABELS: Record<string, { label: string; icon: typeof Sun }> = {
-  advance: { label: "Sur réservation à l'avance", icon: Clock },
-  day: { label: "Service de jour", icon: Sun },
-  night: { label: "Service de nuit", icon: Moon },
-  weekend: { label: "Disponible le week-end", icon: Sparkles },
-  long_distance: { label: "Longue distance", icon: MapPin },
-};
 
 const VERIFICATION_BADGES: { doc: string; label: string }[] = [
   { doc: "identity", label: "Identité vérifiée" },
@@ -364,7 +355,6 @@ function DriverPublicPage() {
   const connected = !!connQuery.data;
   const firstName = (d.full_name ?? "").trim().split(" ")[0] || "Votre chauffeur";
   const lastInitial = (d.full_name ?? "").trim().split(" ")[1]?.charAt(0);
-  const accepting = d.accepting_requests !== false;
   // Woman for Woman : la relation n'est possible qu'avec une cliente compatible.
   const womanForWoman = Boolean((d as { woman_for_woman?: boolean }).woman_for_woman);
   const wfwAccess = wfwClientAccess(womanForWoman, profile?.gender);
@@ -386,12 +376,61 @@ function DriverPublicPage() {
 
   const publicPhone: string | null = d.public_phone ?? null;
   const whatsapp: string | null = d.whatsapp_number ?? null;
-  const socials: { label: string; url: string; icon: typeof Car }[] = [
-    { label: "Instagram", url: d.instagram_url, icon: Instagram },
-    { label: "Facebook", url: d.facebook_url, icon: Facebook },
-    { label: "TikTok", url: d.tiktok_url, icon: Music2 },
-    { label: "LinkedIn", url: d.linkedin_url, icon: Linkedin },
-  ].filter((s): s is { label: string; url: string; icon: typeof Car } => !!s.url);
+  const website: string | null = (d as { website_url?: string | null }).website_url ?? null;
+
+  type ContactLink = {
+    kind: string;
+    label: string;
+    href: string;
+    icon: typeof Car;
+    external?: boolean;
+    primary?: boolean;
+  };
+
+  /** Moyens de contact publiés par le chauffeur, dans l'ordre d'utilité. */
+  const contactLinks: ContactLink[] = ([
+    publicPhone
+      ? {
+          kind: "phone",
+          label: `Appeler ${publicPhone}`,
+          href: `tel:${publicPhone.replace(/\s/g, "")}`,
+          icon: Phone,
+          primary: true,
+        }
+      : null,
+    publicPhone
+      ? {
+          kind: "sms",
+          label: "Envoyer un SMS",
+          href: `sms:${publicPhone.replace(/\s/g, "")}`,
+          icon: MessageCircle,
+        }
+      : null,
+    whatsapp
+      ? {
+          kind: "whatsapp",
+          label: "Écrire sur WhatsApp",
+          href: `https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}`,
+          icon: MessageCircle,
+          external: true,
+        }
+      : null,
+    website
+      ? { kind: "website", label: "Site internet", href: website, icon: Globe, external: true }
+      : null,
+    d.instagram_url
+      ? { kind: "instagram", label: "Instagram", href: d.instagram_url, icon: Instagram, external: true }
+      : null,
+    d.facebook_url
+      ? { kind: "facebook", label: "Facebook", href: d.facebook_url, icon: Facebook, external: true }
+      : null,
+    d.tiktok_url
+      ? { kind: "tiktok", label: "TikTok", href: d.tiktok_url, icon: Music2, external: true }
+      : null,
+    d.linkedin_url
+      ? { kind: "linkedin", label: "LinkedIn", href: d.linkedin_url, icon: Linkedin, external: true }
+      : null,
+  ] as (ContactLink | null)[]).filter((c): c is ContactLink => !!c);
 
   function startAdd(mode: "signin" | "signup" = "signup") {
     void supabase.rpc("track_driver_event", { _slug: slug, _event: "driver_add_click" });
@@ -404,8 +443,9 @@ function DriverPublicPage() {
     setConfirmOpen(true);
   }
 
-  function trackRequest() {
-    void supabase.rpc("track_driver_event", { _slug: slug, _event: "driver_request_click" });
+  /** Statistique de visibilité : clic sur un moyen de contact. */
+  function trackContact(kind: string) {
+    void supabase.rpc("track_driver_event", { _slug: slug, _event: `contact_click:${kind}` });
   }
 
   async function removeFromBook() {
@@ -434,28 +474,6 @@ function DriverPublicPage() {
   }
 
 
-  /** Envoie le client vers le formulaire existant, prérempli avec l'estimation. */
-  function goToRequest(est: TripEstimate) {
-    trackRequest();
-    saveRequestDraft({
-      driver_id: d!.user_id,
-      pickup_address: est.pickup,
-      dropoff_address: est.dropoff,
-      scheduled_at: "",
-      whenMode: "now",
-      pickupOk: true,
-      dropoffOk: true,
-    });
-    if (!session) {
-      sessionStorage.setItem("relink:pending-driver", slug);
-      navigate({
-        to: "/auth",
-        search: { mode: "signup", role: "client", next: "/espace/demandes" },
-      });
-      return;
-    }
-    void navigate({ to: "/espace/demandes", search: { driver: d!.user_id } });
-  }
 
   /** Message de blocage Woman for Woman (profil incompatible ou incomplet). */
   const wfwGate = wfwLocked ? (
@@ -512,7 +530,7 @@ function DriverPublicPage() {
       <Button
         className="h-12 w-full text-base"
         onClick={() => startAdd("signup")}
-        disabled={adding || !accepting}
+        disabled={adding}
       >
         <UserPlus className="size-4" /> Ajouter {firstName} à mes chauffeurs
       </Button>
@@ -533,7 +551,6 @@ function DriverPublicPage() {
     ),
   }));
 
-  const availabilityChips = (d.availability ?? []) as string[];
   const zoneChips = [
     ...(d.city ? [d.city] : []),
     ...(d.zone ? [d.zone] : []),
@@ -566,7 +583,7 @@ function DriverPublicPage() {
                 </div>
               )}
               <span
-                className={`absolute right-1 bottom-1 size-3.5 rounded-full border-2 border-background ${accepting ? "bg-primary" : "bg-muted-foreground"}`}
+                className={`absolute right-1 bottom-1 size-3.5 rounded-full border-2 border-background bg-primary`}
               />
             </div>
             <div className="min-w-0 flex-1">
@@ -623,67 +640,54 @@ function DriverPublicPage() {
           ) : null}
         </section>
 
-        {/* 2 — Estimer mon trajet : réservé aux chauffeurs de mon réseau */}
-        {connected ? (
-          <TripEstimator
-            driverId={d.user_id}
-            firstName={firstName}
-            onRequest={goToRequest}
-            autoLocate
-          />
-        ) : (
-          <section id="estimation" className="surface scroll-mt-4 border-primary/30 p-5 shadow-sm">
-            <h2 className="flex items-center gap-2 text-lg font-black tracking-tight">
-              <Lock className="size-4 text-primary" aria-hidden /> Estimer mon trajet
-            </h2>
-            <p className="mt-1 text-[13px] text-muted-foreground">
-              Ajoutez d'abord {firstName} à mes chauffeurs pour estimer ou réserver une course avec
-              lui.
-            </p>
-            {wfwGate ? (
-              <div className="mt-4">{wfwGate}</div>
-            ) : isDriver || isAdmin ? (
-              <p className="mt-4 rounded-2xl border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-                Seuls les comptes passagers peuvent ajouter un chauffeur à leur carnet.
-              </p>
+        {/* 2 — Contacter le chauffeur */}
+        <section className="surface p-5">
+          <h2 className="text-lg font-black tracking-tight">Contacter {firstName}</h2>
+          <p className="mt-1 text-[13px] text-muted-foreground">
+            {BRAND.name} ne gère ni la réservation ni la course : vous échangez directement avec le chauffeur.
+          </p>
+          <div className="mt-4 space-y-2">
+            {contactLinks.length ? (
+              contactLinks.map((c) => (
+                <Button
+                  key={c.label}
+                  asChild
+                  variant={c.primary ? "default" : "outline"}
+                  className="h-12 w-full justify-start text-base"
+                >
+                  <a
+                    href={c.href}
+                    {...(c.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                    onClick={() => trackContact(c.kind)}
+                  >
+                    <c.icon className="size-4" /> {c.label}
+                  </a>
+                </Button>
+              ))
             ) : (
-              <Button
-                className="mt-4 h-12 w-full text-base"
-                onClick={() => startAdd("signup")}
-                disabled={adding || !accepting}
-              >
-                <UserPlus className="size-4" /> Ajouter {firstName} à mes chauffeurs
-              </Button>
+              <p className="rounded-2xl border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+                {firstName} n'a pas encore publié de moyen de contact.
+              </p>
             )}
-          </section>
-        )}
+          </div>
+        </section>
 
-        {/* 3 — Disponibilités */}
-        <Section title="Disponibilités">
-          <p
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${accepting ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}
-          >
-            <span
-              className={`size-2 rounded-full ${accepting ? "bg-primary" : "bg-muted-foreground"}`}
-            />
-            {accepting ? "Accepte des demandes" : "Ne prend pas de demande actuellement"}
-          </p>
-          {availabilityChips.length ? (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {availabilityChips.map((a) => {
-                const item = AVAILABILITY_LABELS[a];
-                return item ? (
-                  <Chip key={a} icon={item.icon}>
-                    {item.label}
-                  </Chip>
-                ) : null;
-              })}
+        {/* 3 — Estimation indicative */}
+        <TripEstimator slug={slug} firstName={firstName} autoLocate />
+
+        {/* 4 — Prestations proposées */}
+        {(d.services ?? []).length ? (
+          <Section title="Prestations">
+            <div className="flex flex-wrap gap-2">
+              {((d.services ?? []) as string[]).map((s) => (
+                <Chip key={s} icon={Briefcase}>
+                  {serviceLabel(s)}
+                </Chip>
+              ))}
+              {d.long_distance ? <Chip icon={MapPin}>Longue distance</Chip> : null}
             </div>
-          ) : null}
-          <p className="mt-3 text-muted-foreground">
-            {d.booking_notice ?? "Disponible principalement sur réservation, selon mon planning."}
-          </p>
-        </Section>
+          </Section>
+        ) : null}
 
         {/* 4 — Zone d'activité */}
         {zoneChips.length || d.stations?.length || d.airports?.length ? (
@@ -768,7 +772,7 @@ function DriverPublicPage() {
         </section>
 
         {/* 6 — Votre trajet avec [prénom] */}
-        <Section title={`Votre trajet avec ${firstName}`}>
+        <Section title={`À bord avec ${firstName}`}>
           <div className="flex flex-wrap gap-2">
             {((d.languages ?? []) as string[]).map((l) => (
               <Chip key={l} icon={Languages}>
@@ -802,45 +806,6 @@ function DriverPublicPage() {
           ) : null}
           {d.pets_conditions && d.pets_policy === "conditional" ? (
             <p className="mt-2 text-xs text-muted-foreground">{d.pets_conditions}</p>
-          ) : null}
-
-          {publicPhone || whatsapp || socials.length ? (
-            <div className="mt-4 space-y-2 border-t border-border pt-4">
-              {publicPhone ? (
-                <Button asChild variant="outline" className="w-full justify-start">
-                  <a href={`tel:${publicPhone.replace(/\s/g, "")}`}>
-                    <Phone className="size-4" /> Appeler {publicPhone}
-                  </a>
-                </Button>
-              ) : null}
-              {whatsapp ? (
-                <Button asChild variant="outline" className="w-full justify-start">
-                  <a
-                    href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <MessageCircle className="size-4" /> Écrire sur WhatsApp
-                  </a>
-                </Button>
-              ) : null}
-              {socials.length ? (
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {socials.map((s) => (
-                    <Button key={s.label} asChild variant="secondary" size="sm">
-                      <a
-                        href={s.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={s.label}
-                      >
-                        <s.icon className="size-4" /> {s.label}
-                      </a>
-                    </Button>
-                  ))}
-                </div>
-              ) : null}
-            </div>
           ) : null}
         </Section>
 
@@ -973,9 +938,9 @@ function DriverPublicPage() {
         <Section title="Comment ça fonctionne ?">
           <ol className="space-y-2">
             {[
-              "Estimez votre trajet en quelques secondes.",
-              `Envoyez votre demande directement à ${firstName}.`,
-              "Échangez avec lui et organisez votre trajet.",
+              `Consultez la vitrine de ${firstName} : véhicules, prestations, zones desservies.`,
+              "Ajoutez-le à vos chauffeurs pour le retrouver plus tard.",
+              "Contactez-le directement pour convenir de votre trajet.",
             ].map((step, i) => (
               <li key={step} className="flex gap-3">
                 <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
@@ -986,8 +951,9 @@ function DriverPublicPage() {
             ))}
           </ol>
           <p className="mt-3 text-xs text-muted-foreground">
-            {BRAND.name} vous permet de conserver les coordonnées des chauffeurs que vous avez
-            réellement rencontrés et ne prélève aucune commission sur les courses.
+            {BRAND.name} met les chauffeurs en visibilité et vous donne accès à leurs coordonnées
+            professionnelles. La prestation, son tarif et ses conditions se conviennent directement
+            avec le chauffeur.
           </p>
         </Section>
 
@@ -996,14 +962,11 @@ function DriverPublicPage() {
 
         <div className="space-y-1 pb-2 text-center text-xs text-muted-foreground">
           <p>
-            {BRAND.name} — carnet privé de chauffeurs. Seules les informations que le chauffeur a
-            choisi de publier sont visibles ici : aucune coordonnée personnelle n'est diffusée
-            automatiquement.
+            {BRAND.name} — le réseau des chauffeurs VTC. Seules les informations que le chauffeur a
+            choisi de publier sont visibles ici.
           </p>
           <p>
-            Mentions légales · Confidentialité — {BRAND.name} n'organise aucune mise en relation
-            publique et ne prélève aucune commission. Les données des passagers ne sont utilisées
-            que pour la relation avec les chauffeurs de leur carnet.
+            {BRAND.name} n'organise, ne gère et n'exécute aucune course.
           </p>
         </div>
         <PoweredByRelink />
@@ -1014,8 +977,7 @@ function DriverPublicPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Ajouter {firstName} à vos chauffeurs ?</AlertDialogTitle>
             <AlertDialogDescription>
-              {firstName} sera enregistré dans votre carnet privé et pourra recevoir vos demandes de
-              trajet. Vous pouvez le retirer à tout moment.
+  
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1031,7 +993,7 @@ function DriverPublicPage() {
             <AlertDialogTitle>Retirer {firstName} de vos chauffeurs ?</AlertDialogTitle>
             <AlertDialogDescription>
               {firstName} ne figurera plus dans votre carnet et vous ne pourrez plus lui envoyer de
-              demande de trajet. Vous pourrez l'ajouter de nouveau à tout moment.
+              chauffeurs. Vous pourrez l'ajouter de nouveau à tout moment.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

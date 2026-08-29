@@ -1,199 +1,226 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  QrCode,
-  ShieldCheck,
-  Users,
-  Receipt,
-  CalendarClock,
-  Car,
-  SlidersHorizontal,
-  BadgeEuro,
-} from "lucide-react";
-import { BRAND } from "@/lib/brand";
-import { useAuth } from "@/lib/auth";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { Search, SlidersHorizontal, Loader2 } from "lucide-react";
+import { BRAND, POSITIONING } from "@/lib/brand";
+import { BrandLogo } from "@/components/BrandLogo";
+import { useAuth, homeForRoles } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
+import { DriverDirectoryCard, type DirectoryDriver } from "@/components/directory/DriverDirectoryCard";
+import { SERVICES, VEHICLE_CATEGORIES, LANGUAGES } from "@/lib/showcase";
+import { EmptyState } from "@/components/Ui";
 
 export const Route = createFileRoute("/chauffeurs")({
   head: () => ({
     meta: [
-      { title: `Espace chauffeurs VTC — ${BRAND.name}` },
+      { title: `Annuaire des chauffeurs VTC — ${BRAND.name}` },
       {
         name: "description",
         content:
-          "L'espace dédié aux chauffeurs VTC indépendants : QR code de fidélisation, demandes clients, planning, CRM et facturation, sans commission.",
+          "Explorez l'annuaire ReLink des chauffeurs VTC indépendants : recherchez par ville, prestation, type de véhicule ou capacité, et découvrez leur vitrine professionnelle.",
       },
-      { property: "og:title", content: `Espace chauffeurs VTC — ${BRAND.name}` },
+      { property: "og:title", content: `Annuaire des chauffeurs VTC — ${BRAND.name}` },
       {
         property: "og:description",
-        content:
-          "QR code, demandes, planning, CRM et factures : tout votre suivi post-course au même endroit.",
+        content: "Trouvez un chauffeur VTC professionnel dans votre secteur et gardez-le dans votre réseau.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: DriversPage,
+  component: DirectoryPage,
 });
 
-const features = [
-  {
-    icon: QrCode,
-    title: "QR code de fidélisation",
-    text: "Votre page personnelle que le client scanne en fin de course pour vous ajouter à son carnet.",
-  },
-  {
-    icon: Users,
-    title: "CRM clients",
-    text: "Historique, statut de fidélité et notes privées invisibles pour vos clients.",
-  },
-  {
-    icon: CalendarClock,
-    title: "Planning hebdomadaire",
-    text: "Vos courses confirmées et vos créneaux d'indisponibilité en un coup d'œil.",
-  },
-  {
-    icon: Receipt,
-    title: "Facturation",
-    text: "Factures numérotées avec TVA calculée automatiquement à la fin de la course.",
-  },
-  {
-    icon: Car,
-    title: "Véhicule & documents",
-    text: "Assurance, contrôle technique et carte VTC suivis avec alertes d'expiration.",
-  },
-  {
-    icon: SlidersHorizontal,
-    title: "Tarification",
-    text: "Réglez votre prix au kilomètre, la prise en charge et le tarif de nuit en quelques secondes.",
-  },
-];
+function DirectoryPage() {
+  const { session, roles, loading } = useAuth();
+  const [q, setQ] = useState("");
+  const [query, setQuery] = useState("");
+  const [service, setService] = useState("");
+  const [category, setCategory] = useState("");
+  const [minPassengers, setMinPassengers] = useState("");
+  const [language, setLanguage] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
 
-const steps = [
-  "Créez votre compte chauffeur et complétez votre entreprise et votre véhicule.",
-  "Déposez vos documents : notre équipe vérifie votre dossier.",
-  "Publiez votre page et présentez votre QR code après chaque course.",
-  "Recevez les demandes, confirmez vos tarifs, facturez.",
-];
+  const drivers = useQuery({
+    queryKey: ["directory", query, service, category, minPassengers, language],
+    queryFn: async () => {
+      const args: Record<string, string | number> = { _limit: 40 };
+      if (query) args["_q"] = query;
+      if (service) args["_service"] = service;
+      if (category) args["_category"] = category;
+      if (minPassengers) args["_min_passengers"] = Number(minPassengers);
+      if (language) args["_language"] = language;
+      const { data, error } = await supabase.rpc("search_public_drivers", args);
+      if (error) throw error;
+      return (data ?? []) as DirectoryDriver[];
+    },
+  });
 
-function DriversPage() {
-  const { session, isDriver, loading } = useAuth();
-  const signedInDriver = !loading && session && isDriver;
+  const list = drivers.data ?? [];
+  const hasFilters = !!(service || category || minPassengers || language);
 
   return (
-    <div className="min-h-screen">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
-        <Link to="/" className="text-lg font-semibold tracking-tight">
-          {BRAND.name}
-        </Link>
-        <nav className="flex items-center gap-2 text-sm">
-          {signedInDriver ? (
+    <div className="min-h-screen overflow-x-hidden">
+      <header className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-4 sm:px-5">
+        <BrandLogo to="/" size="md" />
+        <nav className="flex shrink-0 items-center gap-1.5 text-sm">
+          {!loading && session ? (
             <Link
-              to="/pro"
-              className="rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground"
+              to={homeForRoles(roles)}
+              className="rounded-lg bg-primary px-3 py-2 font-medium text-primary-foreground sm:px-4"
             >
-              Mon espace chauffeur
+              Mon espace
             </Link>
           ) : (
             <>
               <Link
                 to="/auth"
                 search={{ mode: "signin" }}
-                className="rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground"
+                className="rounded-lg px-2.5 py-2 text-muted-foreground hover:text-foreground"
               >
                 Connexion
               </Link>
               <Link
                 to="/auth"
                 search={{ mode: "signup", role: "driver" }}
-                className="rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground"
+                className="rounded-lg bg-primary px-3 py-2 font-medium text-primary-foreground"
               >
-                Créer mon compte chauffeur
+                Je suis chauffeur
               </Link>
             </>
           )}
         </nav>
       </header>
 
-      <section className="mx-auto max-w-6xl px-5 pt-8 pb-14">
-        <p className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-accent px-3 py-1 text-xs font-medium text-accent-foreground">
-          <BadgeEuro className="size-3.5" /> 0 % de commission sur vos courses
+      <main className="mx-auto max-w-6xl px-4 pb-16 sm:px-5">
+        <h1 className="text-2xl font-semibold text-balance sm:text-3xl">Trouver un chauffeur</h1>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+          Explorez le réseau des chauffeurs VTC professionnels et découvrez ceux qui interviennent dans votre secteur.
         </p>
-        <h1 className="mt-5 max-w-3xl text-4xl leading-tight font-semibold sm:text-5xl">
-          L'espace dédié aux chauffeurs VTC indépendants
-        </h1>
-        <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-          {BRAND.name} ne vous met jamais en concurrence : vos clients vous ajoutent volontairement
-          après une première course, puis réservent directement auprès de vous.
-        </p>
-        <div className="mt-7 flex flex-wrap gap-3">
-          <Link
-            to={signedInDriver ? "/pro" : "/auth"}
-            search={signedInDriver ? {} : { mode: "signup", role: "driver" }}
-            className="rounded-xl bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-sm"
-          >
-            {signedInDriver ? "Ouvrir mon espace chauffeur" : "Créer mon compte chauffeur"}
-          </Link>
-          <Link
-            to="/"
-            className="rounded-xl border border-border bg-card px-5 py-3 text-sm font-medium"
-          >
-            Retour à l'accueil
-          </Link>
-        </div>
-      </section>
 
-      <section className="border-y border-border bg-card/60 py-14">
-        <div className="mx-auto max-w-6xl px-5">
-          <h2 className="text-2xl font-semibold">Tout votre suivi post-course</h2>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((f) => (
-              <div key={f.title} className="surface p-5">
-                <div className="flex size-9 items-center justify-center rounded-lg bg-accent text-accent-foreground">
-                  <f.icon className="size-4" />
-                </div>
-                <h3 className="mt-3 font-semibold">{f.title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{f.text}</p>
-              </div>
-            ))}
+        <form
+          className="mt-5 flex flex-col gap-2 sm:flex-row"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setQuery(q.trim());
+          }}
+        >
+          <div className="relative min-w-0 flex-1">
+            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Ville ou secteur — ex. Clermont-Ferrand"
+              aria-label="Rechercher une ville ou un secteur"
+              className="w-full rounded-xl border border-border bg-card py-3 pr-3 pl-9 text-sm"
+            />
           </div>
-        </div>
-      </section>
+          <button type="submit" className="rounded-xl bg-primary px-5 py-3 text-sm font-medium text-primary-foreground">
+            Rechercher
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowFilters((v) => !v)}
+            aria-expanded={showFilters}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-3 text-sm font-medium"
+          >
+            <SlidersHorizontal className="size-4" />
+            Filtres{hasFilters ? " ·" : ""}
+          </button>
+        </form>
 
-      <section className="mx-auto max-w-6xl px-5 py-14">
-        <h2 className="text-2xl font-semibold">Comment démarrer</h2>
-        <ol className="mt-6 grid gap-4 sm:grid-cols-2">
-          {steps.map((s, i) => (
-            <li key={s} className="surface flex gap-3 p-5">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-                {i + 1}
-              </span>
-              <p className="text-sm text-muted-foreground">{s}</p>
-            </li>
-          ))}
-        </ol>
+        {showFilters ? (
+          <div className="surface mt-3 grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
+            <label className="text-sm">
+              <span className="mb-1 block text-xs font-medium text-muted-foreground">Prestation</span>
+              <select
+                value={service}
+                onChange={(e) => setService(e.target.value)}
+                className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm"
+              >
+                <option value="">Toutes</option>
+                {SERVICES.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm">
+              <span className="mb-1 block text-xs font-medium text-muted-foreground">Type de véhicule</span>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm"
+              >
+                <option value="">Tous</option>
+                {VEHICLE_CATEGORIES.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm">
+              <span className="mb-1 block text-xs font-medium text-muted-foreground">Passagers minimum</span>
+              <select
+                value={minPassengers}
+                onChange={(e) => setMinPassengers(e.target.value)}
+                className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm"
+              >
+                <option value="">Indifférent</option>
+                {[2, 3, 4, 5, 6, 7, 8].map((n) => (
+                  <option key={n} value={n}>
+                    {n} passagers et +
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm">
+              <span className="mb-1 block text-xs font-medium text-muted-foreground">Langue parlée</span>
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm"
+              >
+                <option value="">Indifférent</option>
+                {LANGUAGES.map((l) => (
+                  <option key={l} value={l}>
+                    {l}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        ) : null}
 
-        <div className="surface mt-8 flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <ShieldCheck className="mt-0.5 size-5 text-primary" />
-            <div>
-              <p className="font-semibold">Dossier vérifié par notre équipe</p>
-              <p className="text-sm text-muted-foreground">
-                Carte VTC, assurance et documents contrôlés avant la publication de votre page
-                publique.
+        <div className="mt-6">
+          {drivers.isPending ? (
+            <p className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="size-4 animate-spin" /> Chargement de l'annuaire…
+            </p>
+          ) : list.length === 0 ? (
+            <EmptyState
+              title="Aucun chauffeur trouvé"
+              description="Élargissez votre recherche ou retirez certains filtres pour découvrir davantage de profils."
+            />
+          ) : (
+            <>
+              <p className="mb-3 text-sm text-muted-foreground">
+                {list.length} chauffeur{list.length > 1 ? "s" : ""} dans l'annuaire
               </p>
-            </div>
-          </div>
-          <Link
-            to={signedInDriver ? "/pro/dossier/completer" : "/auth"}
-            search={signedInDriver ? {} : { mode: "signup", role: "driver" }}
-            className="shrink-0 rounded-xl bg-primary px-5 py-3 text-center text-sm font-medium text-primary-foreground"
-          >
-            {signedInDriver ? "Compléter ma vérification" : "Commencer maintenant"}
-          </Link>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {list.map((d) => (
+                  <DriverDirectoryCard key={d.user_id} driver={d} />
+                ))}
+              </div>
+            </>
+          )}
         </div>
-      </section>
+      </main>
 
       <footer className="border-t border-border px-5 py-8 text-center text-xs text-muted-foreground">
-        {BRAND.name} — aucune commission sur les courses.
+        <p className="mx-auto max-w-2xl">{POSITIONING.responsibility}</p>
       </footer>
     </div>
   );
