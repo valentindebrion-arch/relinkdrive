@@ -10,8 +10,8 @@ import {
 
 import { useRouterState } from "@tanstack/react-router";
 
-const CLIENT_TAB_ORDER = ["/espace", "/espace/courses", "/espace/chauffeurs", "/espace/parametres"];
-const CLIENT_TAB_KEYS = ["home", "courses", "drivers", "profile"];
+const CLIENT_TAB_ORDER = ["/espace", "/espace/chauffeurs", "/espace/decouvrir"];
+const CLIENT_TAB_KEYS = ["home", "drivers", "discover"];
 const TRANSITION_MS = 380;
 
 function makeTabIndex(order: string[]) {
