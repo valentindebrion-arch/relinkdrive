@@ -144,17 +144,6 @@ function ClientProfile() {
           conviennent directement avec le chauffeur.
         </p>
         <ul className="mt-3 divide-y divide-border text-sm">
-          <li>
-            <Link
-              to="/espace/consultes"
-              className="flex min-h-12 items-center justify-between gap-3 font-medium"
-            >
-              <span className="flex items-center gap-2">
-                <Receipt className="size-4 text-primary" /> Chauffeurs récemment consultés
-              </span>
-              <ChevronRight className="size-4 text-muted-foreground" />
-            </Link>
-          </li>
           <li className="flex min-h-12 items-center gap-2 text-muted-foreground">
             <CreditCard className="size-4" />
             <span className="text-xs">Aucun paiement ne transite par ReLink.</span>
