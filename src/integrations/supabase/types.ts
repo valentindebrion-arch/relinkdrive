@@ -4028,6 +4028,41 @@ export type Database = {
       }
       relink_department_code: { Args: { _value: string }; Returns: string }
       relink_normalize: { Args: { _t: string }; Returns: string }
+      search_public_drivers: {
+        Args: {
+          _category?: string
+          _department?: string
+          _language?: string
+          _limit?: number
+          _min_passengers?: number
+          _offset?: number
+          _q?: string
+          _service?: string
+        }
+        Returns: {
+          avatar_url: string
+          city: string
+          display_name: string
+          experience_years: number
+          full_name: string
+          languages: string[]
+          luggage_capacity: number
+          max_passengers: number
+          member_since: string
+          public_intro: string
+          service_areas: string[]
+          service_departments: string[]
+          services: string[]
+          slug: string
+          user_id: string
+          vehicle_brand: string
+          vehicle_category: string
+          vehicle_model: string
+          vehicle_photo_url: string
+          woman_for_woman: boolean
+          zone: string
+        }[]
+      }
       start_invoice_submission: {
         Args: {
           _environment: string
