@@ -434,28 +434,6 @@ function DriverPublicPage() {
   }
 
 
-  /** Envoie le client vers le formulaire existant, prérempli avec l'estimation. */
-  function goToRequest(est: TripEstimate) {
-    trackRequest();
-    saveRequestDraft({
-      driver_id: d!.user_id,
-      pickup_address: est.pickup,
-      dropoff_address: est.dropoff,
-      scheduled_at: "",
-      whenMode: "now",
-      pickupOk: true,
-      dropoffOk: true,
-    });
-    if (!session) {
-      sessionStorage.setItem("relink:pending-driver", slug);
-      navigate({
-        to: "/auth",
-        search: { mode: "signup", role: "client", next: "/espace/demandes" },
-      });
-      return;
-    }
-    void navigate({ to: "/espace/demandes", search: { driver: d!.user_id } });
-  }
 
   /** Message de blocage Woman for Woman (profil incompatible ou incomplet). */
   const wfwGate = wfwLocked ? (
