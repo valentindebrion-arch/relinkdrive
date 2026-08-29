@@ -4,15 +4,14 @@ import {
   QrCode,
   ShieldCheck,
   Users,
-  Receipt,
-  CalendarClock,
+  Search,
   Sparkles,
   Car,
-  BadgeEuro,
-  Bell,
+  Heart,
   MapPin,
-  Star,
+  Phone,
   Check,
+  Eye,
 } from "lucide-react";
 import { BRAND, POSITIONING } from "@/lib/brand";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -21,17 +20,14 @@ import { useAuth, homeForRoles } from "@/lib/auth";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: `${BRAND.name} — Logiciel de réservation des chauffeurs indépendants` },
+      { title: `${BRAND.name} — Le réseau des chauffeurs VTC` },
       {
         name: "description",
         content:
-          "ReLink est le logiciel de planning, de réservation et de relation client des chauffeurs VTC indépendants. Chaque chauffeur partage son espace avec ses propres clients. Zéro commission.",
+          "ReLink est l'annuaire des chauffeurs VTC indépendants. Découvrez des chauffeurs professionnels dans votre secteur, consultez leur vitrine et gardez vos chauffeurs préférés dans votre réseau.",
       },
       { property: "og:title", content: `${BRAND.name} — ${BRAND.tagline}` },
-      {
-        property: "og:description",
-        content: BRAND.subline,
-      },
+      { property: "og:description", content: BRAND.subline },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -39,28 +35,26 @@ export const Route = createFileRoute("/")({
   component: Landing,
 });
 
-
 const steps = [
-  { icon: QrCode, title: "Le chauffeur partage son accès", text: "QR code ou lien personnel remis à ses clients à la fin de la course." },
-  { icon: Users, title: "Le client ajoute son chauffeur", text: "Il accède à l'espace de réservation de ce chauffeur, et de lui seul." },
-  { icon: CalendarClock, title: "Les demandes arrivent au chauffeur", text: "Le client consulte les disponibilités ; le chauffeur accepte ou refuse lui-même." },
-  { icon: Receipt, title: "Course, suivi et facture", text: "Suivi côté client, planning, facturation et statistiques côté chauffeur." },
+  { icon: Search, title: "Découvrir", text: "Explorez les chauffeurs professionnels présents dans votre secteur." },
+  { icon: Eye, title: "Consulter", text: "Vitrine complète : véhicules, prestations, zones desservies, tarifs indicatifs." },
+  { icon: Heart, title: "Garder", text: "Ajoutez un chauffeur à « Mes chauffeurs » et retrouvez-le en un instant." },
+  { icon: Phone, title: "Contacter", text: "Vous joignez le chauffeur directement. ReLink s'arrête là." },
 ];
 
 const driverPoints = [
-  { icon: BadgeEuro, title: "0 % de commission", text: "Vos tarifs, votre TVA, votre chiffre d'affaires. ReLink ne prend rien sur vos courses." },
-  { icon: Users, title: "Vos clients restent vos clients", text: "Aucune mise en concurrence, aucune attribution : ReLink ne vous envoie jamais de course." },
-  { icon: CalendarClock, title: "Votre planning, vos disponibilités", text: "Vos horaires, vos absences : vos clients ne réservent que sur vos créneaux libres." },
-  { icon: Receipt, title: "Facturation automatique", text: "Factures PDF conformes (franchise ou TVA), suivi clients et statistiques d'activité." },
+  { icon: Eye, title: "Faites-vous connaître au-delà des plateformes", text: "Une vitrine professionnelle publique, indexée et partageable." },
+  { icon: Car, title: "Présentez vos véhicules", text: "Photos, gamme, capacité, équipements : montrez ce que vous proposez vraiment." },
+  { icon: QrCode, title: "Un QR code personnel", text: "Dans votre véhicule, sur vos cartes de visite : vos clients vous retrouvent facilement." },
+  { icon: Users, title: "Développez votre réseau de clients directs", text: "Chaque client qui vous enregistre vous garde à portée de main." },
 ];
 
 const clientPoints = [
-  { icon: Car, title: "Réserver auprès de son chauffeur", text: "Vous accédez à l'espace de réservation des chauffeurs que vous avez ajoutés." },
-  { icon: MapPin, title: "Une demande en 3 étapes", text: "Adresse, options, confirmation. La demande part directement à votre chauffeur." },
-  { icon: Bell, title: "Réponse et suivi", text: "Vous savez quand votre chauffeur a répondu, et où en est votre trajet." },
-  { icon: Star, title: "Tarif indiqué par le chauffeur", text: "Le prix est celui de votre chauffeur ; la facture est émise par lui." },
+  { icon: MapPin, title: "Des chauffeurs près de chez vous", text: "Recherchez par ville, secteur, type de véhicule ou prestation." },
+  { icon: ShieldCheck, title: "Profils vérifiés", text: "Les informations professionnelles des chauffeurs sont contrôlées par ReLink." },
+  { icon: Heart, title: "Votre réseau personnel", text: "Constituez votre carnet de chauffeurs de confiance, trajet après trajet." },
+  { icon: Phone, title: "Contact direct", text: "Téléphone, SMS, WhatsApp, site : vous échangez directement avec le professionnel." },
 ];
-
 
 function Landing() {
   const { session, roles, loading } = useAuth();
@@ -83,7 +77,7 @@ function Landing() {
             to="/chauffeurs"
             className="hidden rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground sm:inline-flex"
           >
-            Chauffeurs
+            Annuaire
           </Link>
           {!loading && session ? (
             <Link
@@ -107,7 +101,7 @@ function Landing() {
                 className="rounded-lg bg-primary px-3 py-2 font-medium text-primary-foreground sm:px-4"
               >
                 <span className="sm:hidden">Inscription</span>
-                <span className="hidden sm:inline">Créer mon compte chauffeur</span>
+                <span className="hidden sm:inline">Je suis chauffeur</span>
               </Link>
             </>
           )}
@@ -117,56 +111,44 @@ function Landing() {
       <section className="mx-auto w-full max-w-6xl px-4 pt-6 pb-10 sm:px-5 sm:pt-10 sm:pb-14">
         <p className="inline-flex max-w-full items-center gap-2 rounded-full border border-primary/25 bg-accent px-3 py-1 text-[11px] font-medium text-accent-foreground sm:text-xs">
           <Sparkles className="size-3.5 shrink-0" />
-          <span className="truncate">Logiciel pour chauffeurs indépendants · sans commission</span>
+          <span className="truncate">Le réseau des chauffeurs VTC indépendants</span>
         </p>
         <h1 className="mt-4 max-w-3xl text-[1.75rem] leading-tight font-semibold text-balance sm:mt-5 sm:text-4xl lg:text-5xl">
           {BRAND.tagline}
         </h1>
-        <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:mt-4 sm:text-lg">
-          {BRAND.subline} Chaque chauffeur dispose de son propre espace de réservation : il partage
-          son lien ou son QR code avec ses clients, eux consultent ses disponibilités et lui
-          envoient leurs demandes directement. Le chauffeur accepte ou refuse lui-même, fixe ses
-          tarifs et garde la maîtrise de sa clientèle.
-        </p>
+        <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:mt-4 sm:text-lg">{BRAND.subline}</p>
         <div className="mt-5 grid gap-2 sm:mt-7 sm:flex sm:flex-wrap sm:gap-3">
+          <Link
+            to="/chauffeurs"
+            className="rounded-xl bg-primary px-5 py-3 text-center text-sm font-medium text-primary-foreground shadow-sm"
+          >
+            Trouver un chauffeur
+          </Link>
           <Link
             to="/auth"
             search={{ mode: "signup", role: "driver" }}
-            className="rounded-xl bg-primary px-5 py-3 text-center text-sm font-medium text-primary-foreground shadow-sm"
-          >
-            Je suis chauffeur VTC
-          </Link>
-          <Link
-            to="/auth"
-            search={{ mode: "signup", role: "client" }}
             className="rounded-xl border border-border bg-card px-5 py-3 text-center text-sm font-medium"
           >
-            Mon chauffeur m'a partagé son lien
+            Je suis chauffeur
           </Link>
         </div>
         <ul className="mt-5 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-muted-foreground sm:mt-6 sm:flex sm:flex-wrap sm:gap-x-6 sm:text-sm">
-          {["Sans commission", "Aucune attribution de course", "Réservation directe", "Factures conformes"].map((t) => (
+          {["Profils vérifiés", "Contact direct", "Aucune commission", "Aucune réservation"].map((t) => (
             <li key={t} className="inline-flex min-w-0 items-center gap-1.5">
               <Check className="size-4 shrink-0 text-primary" />
               <span className="truncate">{t}</span>
             </li>
           ))}
         </ul>
-
       </section>
 
-
-      {/* Deux publics, deux promesses */}
       <section className="border-y border-border bg-card/60 py-10 sm:py-14">
         <div className="mx-auto grid max-w-6xl gap-4 px-4 sm:gap-6 sm:px-5 lg:grid-cols-2">
           <div className="surface min-w-0 p-4 sm:p-6">
             <p className="text-xs font-semibold tracking-wide text-primary uppercase">Pour les chauffeurs</p>
-            <h2 className="mt-2 text-xl font-semibold text-balance sm:text-2xl">
-              Votre outil de réservation, pas une plateforme
-            </h2>
+            <h2 className="mt-2 text-xl font-semibold text-balance sm:text-2xl">Votre vitrine professionnelle</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Vous partagez votre lien ou votre QR code avec vos clients. Ils réservent auprès de
-              vous, jamais auprès de ReLink : vous restez seul décisionnaire de vos courses.
+              Être visible, présenter son activité, développer son réseau et être retrouvé facilement par ses clients.
             </p>
 
             <ul className="mt-5 grid gap-4">
@@ -192,13 +174,10 @@ function Landing() {
           </div>
 
           <div className="surface min-w-0 p-4 sm:p-6">
-            <p className="text-xs font-semibold tracking-wide text-primary uppercase">Pour les passagers</p>
-            <h2 className="mt-2 text-xl font-semibold text-balance sm:text-2xl">
-              L'espace de réservation de vos chauffeurs
-            </h2>
+            <p className="text-xs font-semibold tracking-wide text-primary uppercase">Pour les clients</p>
+            <h2 className="mt-2 text-xl font-semibold text-balance sm:text-2xl">Votre carnet de chauffeurs</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Vous ajoutez les chauffeurs que vous connaissez, consultez leurs disponibilités et
-              leur envoyez vos demandes directement. Aucun chauffeur inconnu ne vous est proposé.
+              Découvrez, comparez, enregistrez. Le jour où vous en avez besoin, vos chauffeurs sont déjà là.
             </p>
 
             <ul className="mt-5 grid gap-4">
@@ -215,20 +194,19 @@ function Landing() {
               ))}
             </ul>
             <Link
-              to="/auth"
-              search={{ mode: "signup", role: "client" }}
+              to="/chauffeurs"
               className="mt-6 block rounded-xl border border-border bg-card px-5 py-3 text-center text-sm font-medium sm:inline-block"
             >
-              Créer mon compte passager
+              Explorer l'annuaire
             </Link>
           </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-10 sm:px-5 sm:py-14">
-        <h2 className="text-xl font-semibold sm:text-2xl">Comment ça marche</h2>
+        <h2 className="text-xl font-semibold sm:text-2xl">Trouver. Découvrir. Garder. Contacter.</h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Le chauffeur ouvre son espace à ses clients ; la relation reste directe entre eux.
+          ReLink aide à trouver un chauffeur. ReLink ne gère pas la course.
         </p>
 
         <div className="mt-5 grid gap-3 sm:mt-6 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
@@ -250,31 +228,26 @@ function Landing() {
           <div className="flex min-w-0 items-start gap-3">
             <ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" />
             <div className="min-w-0">
-              <p className="font-semibold">Chauffeurs vérifiés, données protégées</p>
+              <p className="font-semibold">Profils vérifiés</p>
               <p className="text-sm text-muted-foreground">
-                Documents contrôlés par notre équipe, géolocalisation temporaire et uniquement pendant
-                une course, notes privées invisibles aux clients.
+                Les informations professionnelles des chauffeurs sont contrôlées par notre équipe avant l'attribution du
+                badge « Profil vérifié ».
               </p>
             </div>
           </div>
           <Link
-            to="/auth"
-            search={{ mode: "signin" }}
+            to="/verification"
             className="shrink-0 rounded-xl bg-primary px-5 py-3 text-center text-sm font-medium text-primary-foreground"
           >
-            Accéder à mon espace
+            Comprendre la vérification
           </Link>
         </div>
       </section>
 
-
       <footer className="border-t border-border px-5 py-8 text-center text-xs text-muted-foreground">
         <p className="mx-auto max-w-2xl">{POSITIONING.responsibility}</p>
-        <p className="mt-2">
-          {BRAND.name} — aucune commission sur les courses. Nom et identité provisoires.
-        </p>
+        <p className="mt-2">{BRAND.name} — le réseau des chauffeurs VTC.</p>
       </footer>
-
     </div>
   );
 }
