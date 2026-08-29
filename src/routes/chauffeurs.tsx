@@ -70,7 +70,9 @@ function DirectoryPage() {
     () =>
       rawList.map((d) => ({
         ...d,
-        vehicle_photo_url: d.vehicle_photo_url ? (photos.data?.[d.vehicle_photo_url] ?? null) : null,
+        vehicle_photo_url: d.vehicle_photo_url
+          ? (photos.data?.[d.vehicle_photo_url] ?? null)
+          : null,
       })),
     [rawList, photos.data],
   );

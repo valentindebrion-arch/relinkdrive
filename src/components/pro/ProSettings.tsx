@@ -306,7 +306,7 @@ export function ProSettings() {
           />
         </div>
         <div>
-          <Label htmlFor="notice">Délai de réservation conseillé</Label>
+          <Label htmlFor="notice">Délai de prévenance conseillé</Label>
           <Input
             id="notice"
             value={pro.booking_notice}

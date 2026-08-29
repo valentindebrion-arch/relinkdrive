@@ -334,7 +334,7 @@ function ProProfileHub() {
       <div className="space-y-3">
         <SectionCard
           icon={<Palette className="size-5" />}
-          title="Personnalisation — Thème de réservation"
+          title="Personnalisation — Thème de ma vitrine"
           badge={
             isPro ? (
               <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
