@@ -115,14 +115,6 @@ export const Route = createFileRoute("/chauffeur/$slug")({
   component: DriverPublicPage,
 });
 
-const AVAILABILITY_LABELS: Record<string, { label: string; icon: typeof Sun }> = {
-  advance: { label: "Sur réservation à l'avance", icon: Clock },
-  day: { label: "Service de jour", icon: Sun },
-  night: { label: "Service de nuit", icon: Moon },
-  weekend: { label: "Disponible le week-end", icon: Sparkles },
-  long_distance: { label: "Longue distance", icon: MapPin },
-};
-
 const VERIFICATION_BADGES: { doc: string; label: string }[] = [
   { doc: "identity", label: "Identité vérifiée" },
   { doc: "company_proof", label: "Entreprise vérifiée" },
@@ -363,7 +355,6 @@ function DriverPublicPage() {
   const connected = !!connQuery.data;
   const firstName = (d.full_name ?? "").trim().split(" ")[0] || "Votre chauffeur";
   const lastInitial = (d.full_name ?? "").trim().split(" ")[1]?.charAt(0);
-  const accepting = d.accepting_requests !== false;
   // Woman for Woman : la relation n'est possible qu'avec une cliente compatible.
   const womanForWoman = Boolean((d as { woman_for_woman?: boolean }).woman_for_woman);
   const wfwAccess = wfwClientAccess(womanForWoman, profile?.gender);
@@ -539,7 +530,7 @@ function DriverPublicPage() {
       <Button
         className="h-12 w-full text-base"
         onClick={() => startAdd("signup")}
-        disabled={adding || !accepting}
+        disabled={adding}
       >
         <UserPlus className="size-4" /> Ajouter {firstName} à mes chauffeurs
       </Button>
@@ -560,7 +551,6 @@ function DriverPublicPage() {
     ),
   }));
 
-  const availabilityChips = (d.availability ?? []) as string[];
   const zoneChips = [
     ...(d.city ? [d.city] : []),
     ...(d.zone ? [d.zone] : []),
@@ -593,7 +583,7 @@ function DriverPublicPage() {
                 </div>
               )}
               <span
-                className={`absolute right-1 bottom-1 size-3.5 rounded-full border-2 border-background ${accepting ? "bg-primary" : "bg-muted-foreground"}`}
+                className={`absolute right-1 bottom-1 size-3.5 rounded-full border-2 border-background bg-primary`}
               />
             </div>
             <div className="min-w-0 flex-1">
@@ -948,9 +938,9 @@ function DriverPublicPage() {
         <Section title="Comment ça fonctionne ?">
           <ol className="space-y-2">
             {[
-              "Estimez votre trajet en quelques secondes.",
-              `Envoyez votre demande directement à ${firstName}.`,
-              "Échangez avec lui et organisez votre trajet.",
+              "Consultez la vitrine de ${name} : véhicules, prestations, zones desservies.".replace("${name}", firstName),
+              "Ajoutez-le à vos chauffeurs pour le retrouver plus tard.",
+              "Contactez-le directement pour convenir de votre trajet.",
             ].map((step, i) => (
               <li key={step} className="flex gap-3">
                 <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
@@ -1006,7 +996,7 @@ function DriverPublicPage() {
             <AlertDialogTitle>Retirer {firstName} de vos chauffeurs ?</AlertDialogTitle>
             <AlertDialogDescription>
               {firstName} ne figurera plus dans votre carnet et vous ne pourrez plus lui envoyer de
-              demande de trajet. Vous pourrez l'ajouter de nouveau à tout moment.
+              chauffeurs. Vous pourrez l'ajouter de nouveau à tout moment.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
