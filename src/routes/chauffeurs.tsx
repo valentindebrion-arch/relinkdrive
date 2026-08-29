@@ -44,14 +44,13 @@ function DirectoryPage() {
   const drivers = useQuery({
     queryKey: ["directory", query, service, category, minPassengers, language],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("search_public_drivers", {
-        _q: query || undefined,
-        _service: service || undefined,
-        _category: category || undefined,
-        _min_passengers: minPassengers ? Number(minPassengers) : undefined,
-        _language: language || undefined,
-        _limit: 40,
-      });
+      const args: Record<string, string | number> = { _limit: 40 };
+      if (query) args["_q"] = query;
+      if (service) args["_service"] = service;
+      if (category) args["_category"] = category;
+      if (minPassengers) args["_min_passengers"] = Number(minPassengers);
+      if (language) args["_language"] = language;
+      const { data, error } = await supabase.rpc("search_public_drivers", args);
       if (error) throw error;
       return (data ?? []) as DirectoryDriver[];
     },
