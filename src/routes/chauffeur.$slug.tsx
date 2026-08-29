@@ -83,7 +83,7 @@ export const Route = createFileRoute("/chauffeur/$slug")({
     const displayName = driverNameFromSlug(params.slug);
     const url = `https://relinkdriver.lovable.app/chauffeur/${params.slug}`;
     const title = `${displayName}, chauffeur VTC — ${BRAND.name}`;
-    const description = `Découvrez le profil de ${displayName}, chauffeur VTC indépendant : véhicule, services, zone d'intervention et disponibilités. Ajoutez-le à votre carnet de confiance.`;
+    const description = `Découvrez le profil de ${displayName}, chauffeur VTC indépendant sur ReLink : véhicule, prestations, zones desservies et coordonnées professionnelles. Ajoutez-le à votre réseau.`;
     return {
       meta: [
         { title },
@@ -772,7 +772,7 @@ function DriverPublicPage() {
         </section>
 
         {/* 6 — Votre trajet avec [prénom] */}
-        <Section title={`Votre trajet avec ${firstName}`}>
+        <Section title={`À bord avec ${firstName}`}>
           <div className="flex flex-wrap gap-2">
             {((d.languages ?? []) as string[]).map((l) => (
               <Chip key={l} icon={Languages}>
