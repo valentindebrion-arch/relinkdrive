@@ -1,100 +1,103 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, Loader2, X } from "lucide-react";
+import { X, Camera } from "lucide-react";
 
-type Props = {
+type Detected = { rawValue: string };
+type DetectorLike = { detect: (source: CanvasImageSource) => Promise<Detected[]> };
+
+/**
+ * Lecteur de QR code ReLink.
+ *
+ * Utilise l'API navigateur BarcodeDetector lorsqu'elle est disponible ;
+ * sinon l'utilisateur saisit le code manuellement depuis la feuille appelante.
+ */
+export function QrScannerDialog({
+  open,
+  onClose,
+  onResult,
+}: {
   open: boolean;
   onClose: () => void;
   onResult: (text: string) => void;
-};
-
-const REGION_ID = "relink-qr-region";
-
-export function QrScannerDialog({ open, onClose, onResult }: Props) {
+}) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [starting, setStarting] = useState(true);
-  const handledRef = useRef(false);
 
   useEffect(() => {
     if (!open) return;
-    handledRef.current = false;
-    setError(null);
-    setStarting(true);
-
-    let scanner: { stop: () => Promise<void>; clear: () => void } | null = null;
+    let stream: MediaStream | null = null;
+    let raf = 0;
     let cancelled = false;
 
-    (async () => {
-      try {
-        const { Html5Qrcode } = await import("html5-qrcode");
-        if (cancelled) return;
-        const instance = new Html5Qrcode(REGION_ID, { verbose: false });
-        scanner = instance as unknown as { stop: () => Promise<void>; clear: () => void };
-        await instance.start(
-          { facingMode: "environment" },
-          { fps: 10, qrbox: { width: 240, height: 240 } },
-          (decoded) => {
-            if (handledRef.current) return;
-            handledRef.current = true;
-            onResult(decoded);
-          },
-          () => {},
-        );
-        if (!cancelled) setStarting(false);
-      } catch (e) {
-        if (cancelled) return;
-        setStarting(false);
+    const Ctor = (
+      window as unknown as { BarcodeDetector?: new (o: { formats: string[] }) => DetectorLike }
+    ).BarcodeDetector;
+
+    void (async () => {
+      if (!Ctor) {
         setError(
-          e instanceof Error && /permission|denied|NotAllowed/i.test(e.message)
-            ? "Accès à la caméra refusé. Autorisez la caméra dans votre navigateur."
-            : "Impossible d'ouvrir la caméra sur cet appareil.",
+          "La lecture automatique n'est pas disponible sur cet appareil. Saisissez le code du chauffeur.",
         );
+        return;
+      }
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" },
+        });
+        if (cancelled) return;
+        const video = videoRef.current;
+        if (!video) return;
+        video.srcObject = stream;
+        await video.play();
+
+        const detector = new Ctor({ formats: ["qr_code"] });
+        const tick = async () => {
+          if (cancelled || !videoRef.current) return;
+          try {
+            const codes = await detector.detect(videoRef.current);
+            const value = codes[0]?.rawValue;
+            if (value) {
+              onResult(value);
+              onClose();
+              return;
+            }
+          } catch {
+            /* image non exploitable, on réessaie */
+          }
+          raf = requestAnimationFrame(() => void tick());
+        };
+        raf = requestAnimationFrame(() => void tick());
+      } catch {
+        if (!cancelled)
+          setError("Accès à la caméra refusé. Saisissez le code du chauffeur à la place.");
       }
     })();
 
     return () => {
       cancelled = true;
-      if (scanner) {
-        scanner
-          .stop()
-          .then(() => scanner?.clear())
-          .catch(() => {});
-      }
+      cancelAnimationFrame(raf);
+      stream?.getTracks().forEach((t) => t.stop());
     };
-  }, [open, onResult]);
+  }, [open, onClose, onResult]);
 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-background/95 backdrop-blur-sm">
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <p className="flex items-center gap-2 font-semibold">
-          <Camera className="h-5 w-5 text-primary" /> Scanner le QR code
-        </p>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Fermer le scanner"
-          className="grid h-10 w-10 place-items-center rounded-full border border-border transition hover:bg-muted"
-        >
-          <X className="h-5 w-5" />
+    <div className="fixed inset-0 z-50 flex flex-col bg-foreground/90">
+      <div className="flex items-center justify-between px-4 py-3 text-background">
+        <p className="text-sm font-semibold">Scanner un QR code ReLink</p>
+        <button type="button" onClick={onClose} aria-label="Fermer le scanner">
+          <X className="size-5" />
         </button>
       </div>
-
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 p-4">
-        <div className="relative w-full max-w-sm overflow-hidden rounded-3xl bg-black">
-          <div id={REGION_ID} className="w-full [&_video]:w-full [&_video]:rounded-3xl" />
-          {starting ? (
-            <div className="absolute inset-0 grid place-items-center text-primary-foreground">
-              <Loader2 className="h-6 w-6 animate-spin" />
-            </div>
-          ) : null}
-        </div>
+      <div className="relative flex flex-1 items-center justify-center overflow-hidden">
+        <video ref={videoRef} playsInline muted className="size-full object-cover" />
         {error ? (
-          <p className="max-w-sm text-center text-sm text-destructive">{error}</p>
+          <div className="absolute inset-x-6 rounded-2xl bg-card p-4 text-center text-sm">
+            <Camera className="mx-auto mb-2 size-5 text-muted-foreground" />
+            {error}
+          </div>
         ) : (
-          <p className="max-w-sm text-center text-sm text-muted-foreground">
-            Placez le QR code de votre chauffeur dans le cadre pour ouvrir sa fiche.
-          </p>
+          <span className="pointer-events-none absolute size-56 rounded-3xl border-2 border-background/80" />
         )}
       </div>
     </div>

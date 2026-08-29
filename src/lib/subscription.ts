@@ -8,13 +8,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { DriverPlan } from "@/lib/plan";
 
-export type BillingStatus =
-  | "free"
-  | "active"
-  | "trial"
-  | "complimentary"
-  | "past_due"
-  | "canceled";
+export type BillingStatus = "free" | "active" | "trial" | "complimentary" | "past_due" | "canceled";
 
 export const BILLING_STATUS_LABELS: Record<BillingStatus, string> = {
   free: "Gratuit",
@@ -30,7 +24,11 @@ export const PRO_BILLING_CHOICES: { value: BillingStatus; label: string; hint: s
   { value: "active", label: "Abonnement payé", hint: "Facturation normale à 120 €/mois." },
   { value: "complimentary", label: "Abonnement offert", hint: "Aucun paiement généré." },
   { value: "trial", label: "Période d'essai", hint: "Accès Pro temporaire d'évaluation." },
-  { value: "past_due", label: "Paiement en anomalie", hint: "Accès maintenu, paiement à régulariser." },
+  {
+    value: "past_due",
+    label: "Paiement en anomalie",
+    hint: "Accès maintenu, paiement à régulariser.",
+  },
 ];
 
 /** Motifs proposés pour tracer la décision administrative. */
@@ -51,13 +49,7 @@ export function normalizeBillingStatus(value: unknown): BillingStatus {
 }
 
 export type PlanFilter =
-  | "all"
-  | "free"
-  | "pro"
-  | "complimentary"
-  | "trial"
-  | "canceled"
-  | "past_due";
+  "all" | "free" | "pro" | "complimentary" | "trial" | "canceled" | "past_due";
 
 export const PLAN_FILTER_LABELS: Record<PlanFilter, string> = {
   all: "Tous les chauffeurs",

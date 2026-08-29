@@ -36,24 +36,72 @@ export const Route = createFileRoute("/")({
 });
 
 const steps = [
-  { icon: Search, title: "Découvrir", text: "Explorez les chauffeurs professionnels présents dans votre secteur." },
-  { icon: Eye, title: "Consulter", text: "Vitrine complète : véhicules, prestations, zones desservies, tarifs indicatifs." },
-  { icon: Heart, title: "Garder", text: "Ajoutez un chauffeur à « Mes chauffeurs » et retrouvez-le en un instant." },
-  { icon: Phone, title: "Contacter", text: "Vous joignez le chauffeur directement. ReLink s'arrête là." },
+  {
+    icon: Search,
+    title: "Découvrir",
+    text: "Explorez les chauffeurs professionnels présents dans votre secteur.",
+  },
+  {
+    icon: Eye,
+    title: "Consulter",
+    text: "Vitrine complète : véhicules, prestations, zones desservies, tarifs indicatifs.",
+  },
+  {
+    icon: Heart,
+    title: "Garder",
+    text: "Ajoutez un chauffeur à « Mes chauffeurs » et retrouvez-le en un instant.",
+  },
+  {
+    icon: Phone,
+    title: "Contacter",
+    text: "Vous joignez le chauffeur directement. ReLink s'arrête là.",
+  },
 ];
 
 const driverPoints = [
-  { icon: Eye, title: "Faites-vous connaître au-delà des plateformes", text: "Une vitrine professionnelle publique, indexée et partageable." },
-  { icon: Car, title: "Présentez vos véhicules", text: "Photos, gamme, capacité, équipements : montrez ce que vous proposez vraiment." },
-  { icon: QrCode, title: "Un QR code personnel", text: "Dans votre véhicule, sur vos cartes de visite : vos clients vous retrouvent facilement." },
-  { icon: Users, title: "Développez votre réseau de clients directs", text: "Chaque client qui vous enregistre vous garde à portée de main." },
+  {
+    icon: Eye,
+    title: "Faites-vous connaître au-delà des plateformes",
+    text: "Une vitrine professionnelle publique, indexée et partageable.",
+  },
+  {
+    icon: Car,
+    title: "Présentez vos véhicules",
+    text: "Photos, gamme, capacité, équipements : montrez ce que vous proposez vraiment.",
+  },
+  {
+    icon: QrCode,
+    title: "Un QR code personnel",
+    text: "Dans votre véhicule, sur vos cartes de visite : vos clients vous retrouvent facilement.",
+  },
+  {
+    icon: Users,
+    title: "Développez votre réseau de clients directs",
+    text: "Chaque client qui vous enregistre vous garde à portée de main.",
+  },
 ];
 
 const clientPoints = [
-  { icon: MapPin, title: "Des chauffeurs près de chez vous", text: "Recherchez par ville, secteur, type de véhicule ou prestation." },
-  { icon: ShieldCheck, title: "Profils vérifiés", text: "Les informations professionnelles des chauffeurs sont contrôlées par ReLink." },
-  { icon: Heart, title: "Votre réseau personnel", text: "Constituez votre carnet de chauffeurs de confiance, trajet après trajet." },
-  { icon: Phone, title: "Contact direct", text: "Téléphone, SMS, WhatsApp, site : vous échangez directement avec le professionnel." },
+  {
+    icon: MapPin,
+    title: "Des chauffeurs près de chez vous",
+    text: "Recherchez par ville, secteur, type de véhicule ou prestation.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Profils vérifiés",
+    text: "Les informations professionnelles des chauffeurs sont contrôlées par ReLink.",
+  },
+  {
+    icon: Heart,
+    title: "Votre réseau personnel",
+    text: "Constituez votre carnet de chauffeurs de confiance, trajet après trajet.",
+  },
+  {
+    icon: Phone,
+    title: "Contact direct",
+    text: "Téléphone, SMS, WhatsApp, site : vous échangez directement avec le professionnel.",
+  },
 ];
 
 function Landing() {
@@ -116,7 +164,9 @@ function Landing() {
         <h1 className="mt-4 max-w-3xl text-[1.75rem] leading-tight font-semibold text-balance sm:mt-5 sm:text-4xl lg:text-5xl">
           {BRAND.tagline}
         </h1>
-        <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:mt-4 sm:text-lg">{BRAND.subline}</p>
+        <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:mt-4 sm:text-lg">
+          {BRAND.subline}
+        </p>
         <div className="mt-5 grid gap-2 sm:mt-7 sm:flex sm:flex-wrap sm:gap-3">
           <Link
             to="/chauffeurs"
@@ -133,22 +183,29 @@ function Landing() {
           </Link>
         </div>
         <ul className="mt-5 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-muted-foreground sm:mt-6 sm:flex sm:flex-wrap sm:gap-x-6 sm:text-sm">
-          {["Profils vérifiés", "Contact direct", "Aucune commission", "Aucune réservation"].map((t) => (
-            <li key={t} className="inline-flex min-w-0 items-center gap-1.5">
-              <Check className="size-4 shrink-0 text-primary" />
-              <span className="truncate">{t}</span>
-            </li>
-          ))}
+          {["Profils vérifiés", "Contact direct", "Aucune commission", "Aucune réservation"].map(
+            (t) => (
+              <li key={t} className="inline-flex min-w-0 items-center gap-1.5">
+                <Check className="size-4 shrink-0 text-primary" />
+                <span className="truncate">{t}</span>
+              </li>
+            ),
+          )}
         </ul>
       </section>
 
       <section className="border-y border-border bg-card/60 py-10 sm:py-14">
         <div className="mx-auto grid max-w-6xl gap-4 px-4 sm:gap-6 sm:px-5 lg:grid-cols-2">
           <div className="surface min-w-0 p-4 sm:p-6">
-            <p className="text-xs font-semibold tracking-wide text-primary uppercase">Pour les chauffeurs</p>
-            <h2 className="mt-2 text-xl font-semibold text-balance sm:text-2xl">Votre vitrine professionnelle</h2>
+            <p className="text-xs font-semibold tracking-wide text-primary uppercase">
+              Pour les chauffeurs
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-balance sm:text-2xl">
+              Votre vitrine professionnelle
+            </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Être visible, présenter son activité, développer son réseau et être retrouvé facilement par ses clients.
+              Être visible, présenter son activité, développer son réseau et être retrouvé
+              facilement par ses clients.
             </p>
 
             <ul className="mt-5 grid gap-4">
@@ -174,10 +231,15 @@ function Landing() {
           </div>
 
           <div className="surface min-w-0 p-4 sm:p-6">
-            <p className="text-xs font-semibold tracking-wide text-primary uppercase">Pour les clients</p>
-            <h2 className="mt-2 text-xl font-semibold text-balance sm:text-2xl">Votre carnet de chauffeurs</h2>
+            <p className="text-xs font-semibold tracking-wide text-primary uppercase">
+              Pour les clients
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-balance sm:text-2xl">
+              Votre carnet de chauffeurs
+            </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Découvrez, comparez, enregistrez. Le jour où vous en avez besoin, vos chauffeurs sont déjà là.
+              Découvrez, comparez, enregistrez. Le jour où vous en avez besoin, vos chauffeurs sont
+              déjà là.
             </p>
 
             <ul className="mt-5 grid gap-4">
@@ -204,7 +266,9 @@ function Landing() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-10 sm:px-5 sm:py-14">
-        <h2 className="text-xl font-semibold sm:text-2xl">Trouver. Découvrir. Garder. Contacter.</h2>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          Trouver. Découvrir. Garder. Contacter.
+        </h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           ReLink aide à trouver un chauffeur. ReLink ne gère pas la course.
         </p>
@@ -230,8 +294,8 @@ function Landing() {
             <div className="min-w-0">
               <p className="font-semibold">Profils vérifiés</p>
               <p className="text-sm text-muted-foreground">
-                Les informations professionnelles des chauffeurs sont contrôlées par notre équipe avant l'attribution du
-                badge « Profil vérifié ».
+                Les informations professionnelles des chauffeurs sont contrôlées par notre équipe
+                avant l'attribution du badge « Profil vérifié ».
               </p>
             </div>
           </div>

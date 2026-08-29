@@ -113,12 +113,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Relink relie les chauffeurs VTC indépendants à leurs clients après la course : carnet privé, QR code, demandes de trajet, planning et factures.",
+          "ReLink est le réseau des chauffeurs VTC indépendants : annuaire, vitrines professionnelles, QR code et contact direct.",
       },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: BRAND.name },
       { name: "twitter:card", content: "summary_large_image" },
-      
+
       { name: "theme-color", content: "#00b050" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
@@ -149,7 +149,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               url: "https://relinkdriver.lovable.app",
               slogan: BRAND.tagline,
               description:
-                "Plateforme post-course pour chauffeurs VTC indépendants : fidélisation client, demandes de trajet, planning et facturation.",
+                "Annuaire et réseau professionnel des chauffeurs VTC indépendants : vitrines, prestations, zones desservies et contact direct.",
             },
             {
               "@type": "WebSite",
@@ -194,8 +194,6 @@ function RootComponent() {
     }
   }, []);
 
-
-
   // Aspect application : bloque le pinch-to-zoom et le double-tap zoom (iOS ignore user-scalable=no)
   useEffect(() => {
     const preventGesture = (e: Event) => e.preventDefault();
@@ -230,7 +228,6 @@ function RootComponent() {
       document.removeEventListener("wheel", preventCtrlWheel);
     };
   }, []);
-
 
   return (
     <QueryClientProvider client={queryClient}>

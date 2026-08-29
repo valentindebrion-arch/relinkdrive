@@ -1,6 +1,15 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowRight, Clock, Flag, Info, Loader2, LocateFixed, MapPin, Route as RouteIcon } from "lucide-react";
+import {
+  ArrowRight,
+  Clock,
+  Flag,
+  Info,
+  Loader2,
+  LocateFixed,
+  MapPin,
+  Route as RouteIcon,
+} from "lucide-react";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { estimateRoute, priceForKm, reverseGeocode } from "@/lib/route-estimate.functions";
 import { supabase } from "@/integrations/supabase/client";
@@ -109,7 +118,9 @@ export function TripEstimator({
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
-          const res = await geocodeFn({ data: { lat: pos.coords.latitude, lng: pos.coords.longitude } });
+          const res = await geocodeFn({
+            data: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+          });
           setPickup(res.address);
           setPickupOk(true);
         } catch {
@@ -145,7 +156,8 @@ export function TripEstimator({
     <section id="estimation" className="surface scroll-mt-4 border-primary/30 p-5 shadow-sm">
       <h2 className="text-lg font-black tracking-tight">Estimation indicative</h2>
       <p className="mt-1 text-[13px] text-muted-foreground">
-        Indiquez un départ et une destination pour situer le positionnement tarifaire de {firstName}.
+        Indiquez un départ et une destination pour situer le positionnement tarifaire de {firstName}
+        .
       </p>
 
       <div className="mt-4 space-y-2">

@@ -10,23 +10,21 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
  */
 export const discoverDrivers = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
-    (input: { scope: "department" | "all"; department?: string | null }) =>
-      z
-        .object({
-          scope: z.enum(["department", "all"]),
-          department: z
-            .string()
-            .trim()
-            .regex(/^(2A|2B|\d{2,3})$/i)
-            .nullish(),
-        })
-        .parse(input),
+  .inputValidator((input: { scope: "department" | "all"; department?: string | null }) =>
+    z
+      .object({
+        scope: z.enum(["department", "all"]),
+        department: z
+          .string()
+          .trim()
+          .regex(/^(2A|2B|\d{2,3})$/i)
+          .nullish(),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { geocodePlaces, driverAreas, driverDepartments } = await import(
-      "@/lib/driver-discovery.server"
-    );
+    const { geocodePlaces, driverAreas, driverDepartments } =
+      await import("@/lib/driver-discovery.server");
 
     const { data: rows, error } = await context.supabase.rpc("get_local_drivers", {
       _limit: 100,

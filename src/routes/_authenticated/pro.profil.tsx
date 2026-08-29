@@ -49,7 +49,11 @@ const SECTION_TITLES: Record<SectionKey, string> = {
 
 function ratio(values: Array<unknown>) {
   const filled = values.filter((v) => (Array.isArray(v) ? v.length > 0 : !!v)).length;
-  return { filled, total: values.length, pct: Math.round((filled / Math.max(values.length, 1)) * 100) };
+  return {
+    filled,
+    total: values.length,
+    pct: Math.round((filled / Math.max(values.length, 1)) * 100),
+  };
 }
 
 function SectionBadge({ pct }: { pct: number }) {
@@ -135,12 +139,15 @@ function ProProfileHub() {
     void navigate({ to: "/pro/profil", search: { section: next ?? undefined } });
   }
 
-
   const company = useQuery({
     queryKey: ["company", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data } = await supabase.from("companies").select("*").eq("driver_id", user!.id).maybeSingle();
+      const { data } = await supabase
+        .from("companies")
+        .select("*")
+        .eq("driver_id", user!.id)
+        .maybeSingle();
       return data;
     },
   });
@@ -160,8 +167,23 @@ function ProProfileHub() {
   const c = company.data;
   const docList = docs.data ?? [];
 
-  const account = ratio([profile?.full_name, profile?.phone, d?.business_name, d?.city, d?.public_intro, d?.languages, d?.services]);
-  const companyPct = ratio([c?.legal_name, c?.legal_form, c?.siret, c?.address, c?.postal_code, c?.city]);
+  const account = ratio([
+    profile?.full_name,
+    profile?.phone,
+    d?.business_name,
+    d?.city,
+    d?.public_intro,
+    d?.languages,
+    d?.services,
+  ]);
+  const companyPct = ratio([
+    c?.legal_name,
+    c?.legal_form,
+    c?.siret,
+    c?.address,
+    c?.postal_code,
+    c?.city,
+  ]);
   const vehiclePct = ratio([v?.brand, v?.model, v?.plate, v?.color, v?.year, v?.photo_url]);
 
   const docStats = useMemo(() => {
@@ -182,10 +204,15 @@ function ProProfileHub() {
   }, [docList]);
 
   const globalPct = Math.round(
-    (account.pct + companyPct.pct + vehiclePct.pct + (docStats.approved / DOCUMENT_TYPES.length) * 100) / 4,
+    (account.pct +
+      companyPct.pct +
+      vehiclePct.pct +
+      (docStats.approved / DOCUMENT_TYPES.length) * 100) /
+      4,
   );
 
-  const soon = (date?: string | null) => !!date && new Date(date).getTime() - Date.now() < 1000 * 60 * 60 * 24 * 45;
+  const soon = (date?: string | null) =>
+    !!date && new Date(date).getTime() - Date.now() < 1000 * 60 * 60 * 24 * 45;
   const expired = (date?: string | null) => !!date && new Date(date).getTime() < Date.now();
 
   const sectionStatus: Record<Exclude<SectionKey, "qr">, "neutral" | "warning" | "danger"> = {
@@ -193,9 +220,13 @@ function ProProfileHub() {
     abonnement: "neutral",
     entreprise: "neutral",
     vehicule:
-      expired(v?.insurance_expires_at) || expired(v?.inspection_expires_at) || expired(v?.next_service_date)
+      expired(v?.insurance_expires_at) ||
+      expired(v?.inspection_expires_at) ||
+      expired(v?.next_service_date)
         ? "danger"
-        : soon(v?.insurance_expires_at) || soon(v?.inspection_expires_at) || soon(v?.next_service_date)
+        : soon(v?.insurance_expires_at) ||
+            soon(v?.inspection_expires_at) ||
+            soon(v?.next_service_date)
           ? "warning"
           : "neutral",
     verification:
@@ -215,7 +246,9 @@ function ProProfileHub() {
           <Button variant="ghost" size="sm" onClick={() => setSection(null)}>
             <ArrowLeft className="size-4" /> Retour
           </Button>
-          <span className="truncate text-sm font-medium text-muted-foreground">{SECTION_TITLES[section]}</span>
+          <span className="truncate text-sm font-medium text-muted-foreground">
+            {SECTION_TITLES[section]}
+          </span>
         </div>
         {section === "compte" ? <ProSettings /> : null}
         {section === "abonnement" ? <SubscriptionSection /> : null}
@@ -246,7 +279,11 @@ function ProProfileHub() {
       <div className="surface p-4">
         <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
           {profile?.avatar_url ? (
-            <img src={profile.avatar_url} alt="" className="size-14 shrink-0 rounded-2xl object-cover" />
+            <img
+              src={profile.avatar_url}
+              alt=""
+              className="size-14 shrink-0 rounded-2xl object-cover"
+            />
           ) : (
             <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-primary/10 text-lg font-bold text-primary">
               {initials}
@@ -258,7 +295,10 @@ function ProProfileHub() {
               <p className="truncate text-xs text-muted-foreground">{d.business_name}</p>
             ) : null}
             <div className="mt-1 flex flex-wrap items-center gap-2">
-              <StatusBadge status={d?.verification_status ?? "incomplete"} labels={VERIFICATION_LABELS} />
+              <StatusBadge
+                status={d?.verification_status ?? "incomplete"}
+                labels={VERIFICATION_LABELS}
+              />
               <StatusBadge
                 status={d?.page_published ? "verified" : "incomplete"}
                 labels={{ verified: "Page publiée", incomplete: "Page non publiée" }}
@@ -298,7 +338,11 @@ function ProProfileHub() {
           badge={
             isPro ? (
               <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
-                {getBookingTheme((d as Record<string, unknown> | null | undefined)?.["booking_theme"]).name}
+                {
+                  getBookingTheme(
+                    (d as Record<string, unknown> | null | undefined)?.["booking_theme"],
+                  ).name
+                }
               </span>
             ) : (
               <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
@@ -353,7 +397,9 @@ function ProProfileHub() {
           status={sectionStatus.vehicule}
           badge={<SectionBadge pct={vehiclePct.pct} />}
           lines={[
-            v?.brand || v?.model ? `${v?.brand ?? ""} ${v?.model ?? ""}`.trim() : "Véhicule à renseigner",
+            v?.brand || v?.model
+              ? `${v?.brand ?? ""} ${v?.model ?? ""}`.trim()
+              : "Véhicule à renseigner",
             v?.plate || "Immatriculation à renseigner",
             [v?.color, v?.category].filter(Boolean).join(" · "),
           ]}
@@ -398,7 +444,10 @@ function ProProfileHub() {
               labels={{ verified: "Publiée", incomplete: "Non publiée" }}
             />
           }
-          lines={[publicUrl || "Lien indisponible", "Partage, copie du lien et téléchargement du QR code"]}
+          lines={[
+            publicUrl || "Lien indisponible",
+            "Partage, copie du lien et téléchargement du QR code",
+          ]}
           onClick={() => setSection("qr")}
           extra={
             publicUrl ? (

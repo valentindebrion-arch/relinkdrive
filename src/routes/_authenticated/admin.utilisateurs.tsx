@@ -78,7 +78,10 @@ function AdminUsers() {
 
   return (
     <div>
-      <PageHeader title="Utilisateurs" description="Comptes passagers utilisant Relink. Les chauffeurs sont gérés dans l'onglet Chauffeurs." />
+      <PageHeader
+        title="Utilisateurs"
+        description="Comptes passagers utilisant Relink. Les chauffeurs sont gérés dans l'onglet Chauffeurs."
+      />
 
       <Input
         placeholder="Rechercher un nom, un e-mail, un téléphone…"
@@ -87,7 +90,6 @@ function AdminUsers() {
         className="mb-4 max-w-sm"
       />
 
-
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Chargement…</p>
       ) : filtered.length === 0 ? (
@@ -95,20 +97,30 @@ function AdminUsers() {
       ) : (
         <div className="space-y-3">
           {filtered.map((u) => (
-            <div key={u.id} className="surface flex flex-wrap items-center justify-between gap-3 p-4">
+            <div
+              key={u.id}
+              className="surface flex flex-wrap items-center justify-between gap-3 p-4"
+            >
               <div>
                 <p className="font-medium">{u.full_name || "Sans nom"}</p>
                 <p className="text-sm text-muted-foreground">
                   {u.email ?? "—"} · {u.phone ?? "—"} · inscrit le {formatDate(u.created_at)}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {u.roles.length ? u.roles.map((r) => ROLE_LABELS[r] ?? r).join(", ") : "Aucun rôle"}
+                  {u.roles.length
+                    ? u.roles.map((r) => ROLE_LABELS[r] ?? r).join(", ")
+                    : "Aucun rôle"}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <StatusBadge status={u.status} labels={STATUS_LABELS} />
                 {ACCOUNT_STATUSES.filter((s) => s !== u.status).map((s) => (
-                  <Button key={s} size="sm" variant={s === "active" ? "outline" : "ghost"} onClick={() => setStatus.mutate({ id: u.id, status: s })}>
+                  <Button
+                    key={s}
+                    size="sm"
+                    variant={s === "active" ? "outline" : "ghost"}
+                    onClick={() => setStatus.mutate({ id: u.id, status: s })}
+                  >
                     {STATUS_LABELS[s]}
                   </Button>
                 ))}

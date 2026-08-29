@@ -20,7 +20,6 @@ import {
 } from "@/lib/dossier-form";
 import { useDossierState } from "@/lib/driver-dossier";
 import { DocumentUploader, type DriverDocument } from "@/components/pro/DocumentUploader";
-import { TaxSection } from "@/components/pro/TaxSection";
 import { TariffSection } from "@/components/pro/TariffSection";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -134,7 +133,6 @@ export function DossierWizard() {
       () => setInitError(true),
     );
   }
-
 
   // Une ouverture directe reprend la première correction ou section incomplète.
   useEffect(() => {
@@ -474,9 +472,7 @@ export function DossierWizard() {
         </div>
         <header className="surface p-4">
           <h1 className="text-lg font-semibold">Compléter mon dossier</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Chargement de vos informations…
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">Chargement de vos informations…</p>
         </header>
         <div className="surface space-y-3 p-4">
           {[0, 1, 2, 3].map((i) => (
@@ -486,7 +482,6 @@ export function DossierWizard() {
       </div>
     );
   }
-
 
   return (
     <div className="space-y-4 pb-8">
@@ -515,8 +510,6 @@ export function DossierWizard() {
           </div>
         </div>
       ) : null}
-
-
 
       <header className="surface p-4">
         <h1 className="text-lg font-semibold">Compléter mon dossier</h1>
@@ -1110,7 +1103,6 @@ export function DossierWizard() {
         {step === "tax" ? (
           <>
             <h2 className="text-base font-semibold">Fiscalité</h2>
-            <TaxSection />
             <TariffSection />
           </>
         ) : null}

@@ -114,19 +114,18 @@ function AdminTop10() {
       if (error) throw error;
       const ids = (drivers ?? []).map((d) => d.user_id);
       if (!ids.length) return [];
-      const [{ data: profiles }, { data: vehicles }, { data: reviews }] = await Promise.all([
+      const [{ data: profiles }, { data: vehicles }] = await Promise.all([
         supabase.from("profiles").select("id, full_name, email, avatar_url").in("id", ids),
-        supabase.from("vehicles").select("driver_id, brand, model, photo_url, is_primary").in("driver_id", ids),
-        supabase.from("ride_reviews").select("driver_id, rating, status").in("driver_id", ids),
+        supabase
+          .from("vehicles")
+          .select("driver_id, brand, model, photo_url, is_primary")
+          .in("driver_id", ids),
       ]);
       return (drivers ?? []).map((d) => {
         const p = (profiles ?? []).find((x) => x.id === d.user_id);
         const car =
           (vehicles ?? []).find((v) => v.driver_id === d.user_id && v.is_primary) ??
           (vehicles ?? []).find((v) => v.driver_id === d.user_id);
-        const rs = (reviews ?? []).filter(
-          (r) => r.driver_id === d.user_id && r.status === "visible",
-        );
         return {
           user_id: d.user_id,
           slug: d.slug,
@@ -140,8 +139,8 @@ function AdminTop10() {
           verification_status: d.verification_status,
           vehicle: car ? [car.brand, car.model].filter(Boolean).join(" ") || null : null,
           vehiclePhotoPath: car?.photo_url ?? null,
-          ratingAvg: rs.length ? rs.reduce((a, r) => a + (r.rating ?? 0), 0) / rs.length : null,
-          ratingCount: rs.length,
+          ratingAvg: null,
+          ratingCount: 0,
         } satisfies Driver;
       });
     },
@@ -171,10 +170,10 @@ function AdminTop10() {
   const selectedIds = useMemo(() => new Set(selected.map((s) => s.driver_id)), [selected]);
   const full = selected.length >= MAX;
 
-  const photos = useSignedUrls(
-    "vehicles",
-    [...selected.map((s) => s.driver?.vehiclePhotoPath ?? null), ...drivers.map((d) => d.vehiclePhotoPath)],
-  );
+  const photos = useSignedUrls("vehicles", [
+    ...selected.map((s) => s.driver?.vehiclePhotoPath ?? null),
+    ...drivers.map((d) => d.vehiclePhotoPath),
+  ]);
 
   const reorder = useMutation({
     mutationFn: async (ids: string[]) => {
@@ -287,7 +286,9 @@ function AdminTop10() {
       </div>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-bold text-muted-foreground uppercase">Chauffeurs sélectionnés</h2>
+        <h2 className="text-sm font-bold text-muted-foreground uppercase">
+          Chauffeurs sélectionnés
+        </h2>
         {selection.isLoading || directory.isLoading ? (
           <div className="space-y-2">
             {[0, 1, 2].map((i) => (
@@ -315,13 +316,20 @@ function AdminTop10() {
                     dragId === d.user_id ? "opacity-60" : ""
                   }`}
                 >
-                  <GripVertical className="size-4 shrink-0 cursor-grab text-muted-foreground" aria-hidden />
+                  <GripVertical
+                    className="size-4 shrink-0 cursor-grab text-muted-foreground"
+                    aria-hidden
+                  />
                   <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary text-sm font-black text-primary-foreground">
                     {index + 1}
                   </span>
                   <div className="size-12 shrink-0 overflow-hidden rounded-lg bg-muted">
                     {photo ? (
-                      <img src={photo} alt={`Véhicule de ${d.full_name}`} className="size-full object-cover" />
+                      <img
+                        src={photo}
+                        alt={`Véhicule de ${d.full_name}`}
+                        className="size-full object-cover"
+                      />
                     ) : (
                       <span className="grid size-full place-items-center text-muted-foreground">
                         <Car className="size-5" aria-hidden />
@@ -344,10 +352,7 @@ function AdminTop10() {
                       </span>
                     ) : null}
                     <PlanBadge plan={d.plan} />
-                    <StatusBadge
-                      status={d.verification_status}
-                      labels={VERIFICATION_LABELS}
-                    />
+                    <StatusBadge status={d.verification_status} labels={VERIFICATION_LABELS} />
                   </div>
                   <div className="flex items-center gap-1">
                     <Button
@@ -400,7 +405,12 @@ function AdminTop10() {
                   {selected.length} / {MAX} sélectionnés
                 </p>
               </div>
-              <Button variant="ghost" size="icon" aria-label="Fermer" onClick={() => setPickerOpen(false)}>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Fermer"
+                onClick={() => setPickerOpen(false)}
+              >
                 <X className="size-4" />
               </Button>
             </header>
@@ -423,7 +433,9 @@ function AdminTop10() {
                   Le Top 10 est complet. Retirez d'abord un chauffeur pour en ajouter un nouveau.
                 </p>
               ) : pickable.length === 0 ? (
-                <p className="p-4 text-center text-sm text-muted-foreground">Aucun chauffeur trouvé.</p>
+                <p className="p-4 text-center text-sm text-muted-foreground">
+                  Aucun chauffeur trouvé.
+                </p>
               ) : (
                 <ul className="space-y-2">
                   {pickable.map((d) => {

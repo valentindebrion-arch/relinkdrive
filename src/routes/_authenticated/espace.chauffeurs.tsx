@@ -8,7 +8,6 @@ import { fetchConnectedProfile, fetchConnectedProfiles } from "@/lib/connected-p
 import { useAuth } from "@/lib/auth";
 import { AddDriverSheet } from "@/components/client/AddDriverSheet";
 import { ClientTopBar } from "@/components/client/ClientTopBar";
-import { saveRequestDraft } from "@/lib/request-draft";
 import { useSignedUrls } from "@/lib/storage";
 import {
   prefersReducedMotion,
@@ -26,7 +25,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
 
 export const Route = createFileRoute("/_authenticated/espace/chauffeurs")({
   component: ClientDrivers,
@@ -52,7 +50,6 @@ function ClientDrivers() {
   const queryClient = useQueryClient();
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [toRemove, setToRemove] = useState<{ id: string; name: string } | null>(null);
-
 
   // Suite de l'animation d'ajout : la carte arrive dans la liste.
   const [celebration, setCelebration] = useState<DriverCelebration | null>(null);
@@ -93,17 +90,15 @@ function ClientDrivers() {
         .order("created_at", { ascending: false });
       const ids = (conns ?? []).map((c) => c.driver_id);
       if (!ids.length) return [];
-      const [{ data: profiles }, { data: dprofiles }, { data: vehicles }, { data: rides }] =
-        await Promise.all([
-          fetchConnectedProfiles(ids).then((data) => ({ data })),
-          supabase.rpc("get_connected_driver_profiles"),
-          // Le client ne reçoit que les champs affichés : jamais la plaque ni les données administratives.
-          supabase
-            .from("vehicles")
-            .select("driver_id, brand, model, is_primary, photo_url, photo_side_url")
-            .in("driver_id", ids),
-          supabase.from("rides").select("driver_id").eq("client_id", user!.id),
-        ]);
+      const [{ data: profiles }, { data: dprofiles }, { data: vehicles }] = await Promise.all([
+        fetchConnectedProfiles(ids).then((data) => ({ data })),
+        supabase.rpc("get_connected_driver_profiles"),
+        // Le client ne reçoit que les champs affichés : jamais la plaque ni les données administratives.
+        supabase
+          .from("vehicles")
+          .select("driver_id, brand, model, is_primary, photo_url, photo_side_url")
+          .in("driver_id", ids),
+      ]);
 
       return Promise.all(
         (conns ?? []).map(async (c) => {
@@ -112,16 +107,7 @@ function ClientDrivers() {
           const car =
             (vehicles ?? []).find((v) => v.driver_id === c.driver_id && v.is_primary) ??
             (vehicles ?? []).find((v) => v.driver_id === c.driver_id);
-          let ratingAvg: number | null = null;
-          let ratingCount = 0;
-          if (dp?.slug) {
-            const { data: r } = await supabase.rpc("get_public_driver_rating", { _slug: dp.slug });
-            const row = r?.[0];
-            if (row) {
-              ratingAvg = row.rating_avg ?? null;
-              ratingCount = Number(row.rating_count ?? 0);
-            }
-          }
+          const ratingAvg: number | null = null;
           return {
             id: c.driver_id,
             name: dp?.business_name || profile?.full_name || "Chauffeur",
@@ -131,9 +117,9 @@ function ClientDrivers() {
             photoPath: car?.photo_side_url ?? car?.photo_url ?? null,
             zone: dp?.city || dp?.zone || null,
             slug: dp?.slug ?? null,
-            trips: (rides ?? []).filter((r) => r.driver_id === c.driver_id).length,
+            trips: 0,
             ratingAvg,
-            ratingCount,
+            ratingCount: 0,
             womanForWoman:
               (dp as { woman_for_woman?: boolean } | undefined)?.woman_for_woman ?? false,
           };
@@ -158,19 +144,6 @@ function ClientDrivers() {
       [d.name, d.vehicle, d.zone].filter(Boolean).join(" ").toLowerCase().includes(q),
     );
   }, [list, search, wfwOnly]);
-
-  function book(driverId: string, mode: "now" | "later") {
-    saveRequestDraft({
-      driver_id: driverId,
-      pickup_address: "",
-      dropoff_address: "",
-      scheduled_at: "",
-      whenMode: mode,
-      pickupOk: false,
-      dropoffOk: false,
-    });
-    void navigate({ to: "/espace/demandes" });
-  }
 
   /**
    * Retrait du carnet : suppression backend d'abord, puis animation rouge de sortie.
@@ -200,8 +173,6 @@ function ClientDrivers() {
     setRemovingId(driverId);
     window.setTimeout(finish, prefersReducedMotion() ? 220 : 1500);
   }
-
-
 
   return (
     <div className="w-full max-w-full pb-4">
@@ -360,17 +331,9 @@ function ClientDrivers() {
                         <Check className="size-3.5" strokeWidth={3} /> Chauffeur retiré
                       </span>
                     ) : (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          book(d.id, "now");
-                        }}
-                        className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-[12px] font-bold text-primary-foreground transition active:scale-95"
-                      >
-                        Réserver
-                      </button>
+                      <span className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-[12px] font-bold text-primary-foreground">
+                        Voir le profil
+                      </span>
                     )}
                   </div>
 
@@ -381,7 +344,9 @@ function ClientDrivers() {
                   <div className="mt-2 flex min-h-5 flex-wrap items-center gap-x-3 gap-y-1 text-[12px] font-semibold">
                     <span
                       className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-bold ${
-                        d.available ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                        d.available
+                          ? "bg-primary/10 text-primary"
+                          : "bg-muted text-muted-foreground"
                       }`}
                     >
                       <span
@@ -438,9 +403,7 @@ function ClientDrivers() {
             );
           })
         )}
-
       </div>
-
 
       <AlertDialog open={!!toRemove} onOpenChange={(o) => !o && setToRemove(null)}>
         <AlertDialogContent>
@@ -469,7 +432,6 @@ function ClientDrivers() {
       </AlertDialog>
 
       <AddDriverSheet open={addOpen} onClose={() => setAddOpen(false)} />
-
     </div>
   );
 }

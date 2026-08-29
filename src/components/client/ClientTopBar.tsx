@@ -7,7 +7,7 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { cn } from "@/lib/utils";
 
 const MENU = [
-  { to: "/espace/courses", label: "Mes trajets", icon: Car },
+  { to: "/espace/consultes", label: "Récemment consultés", icon: Car },
   { to: "/espace/parametres", label: "Mon profil", icon: CircleUserRound },
   { to: "/espace/parametres", label: "Paramètres", icon: Settings },
   { to: "/aide", label: "Aide", icon: HelpCircle },
@@ -99,7 +99,9 @@ export function ClientTopBar({ title, className }: { title?: string; className?:
         </div>
       </header>
 
-      {title ? <h1 className="text-[22px] leading-tight font-black tracking-tight">{title}</h1> : null}
+      {title ? (
+        <h1 className="text-[22px] leading-tight font-black tracking-tight">{title}</h1>
+      ) : null}
 
       {open && mounted ? createPortal(panel, document.body) : null}
     </>

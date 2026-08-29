@@ -17,7 +17,6 @@ import {
   type GenderValue,
 } from "@/lib/woman-for-woman";
 
-
 type Address = { id: string; label: string; address: string };
 
 export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
@@ -39,7 +38,6 @@ export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
 
   useEffect(() => {
     if (profile)
-
       setForm({
         full_name: profile.full_name ?? "",
         phone: profile.phone ?? "",
@@ -76,7 +74,6 @@ export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
       setConfirmGender(false);
       setEditing(false);
       await refresh();
-
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Enregistrement impossible");
     } finally {
@@ -173,7 +170,9 @@ export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
 
           {confirmGender ? (
             <div className="rounded-xl border border-warning/40 bg-warning/10 p-3">
-              <p className="text-sm font-semibold">Confirmer votre genre : {genderLabel(form.gender)}</p>
+              <p className="text-sm font-semibold">
+                Confirmer votre genre : {genderLabel(form.gender)}
+              </p>
               <p className="mt-1 text-xs text-muted-foreground">{GENDER_LOCK_WARNING}</p>
               <div className="mt-3 flex gap-2">
                 <Button className="min-h-11" disabled={busy} onClick={() => void save()}>
@@ -208,7 +207,6 @@ export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
               </Button>
             </div>
           )}
-
         </div>
       ) : (
         <dl className="mt-3 divide-y divide-border text-sm">
@@ -268,7 +266,9 @@ export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
                   <Home className="size-4 shrink-0 text-primary" />
                   <span className="min-w-0">
                     <span className="block text-sm font-medium">{a.label}</span>
-                    <span className="block truncate text-xs text-muted-foreground">{a.address}</span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {a.address}
+                    </span>
                   </span>
                 </span>
                 <button

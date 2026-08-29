@@ -60,9 +60,9 @@ function VerificationPage() {
           Ce que signifie la vérification {BRAND.name}
         </h1>
         <p className="mt-3 text-sm text-muted-foreground sm:text-base">
-          Avant d'attribuer le badge « Profil vérifié », notre équipe contrôle les informations professionnelles
-          transmises par le chauffeur. L'objectif est de limiter les faux profils et d'améliorer la confiance des
-          utilisateurs de l'annuaire.
+          Avant d'attribuer le badge « Profil vérifié », notre équipe contrôle les informations
+          professionnelles transmises par le chauffeur. L'objectif est de limiter les faux profils
+          et d'améliorer la confiance des utilisateurs de l'annuaire.
         </p>
 
         <ul className="mt-8 grid gap-4">
@@ -84,9 +84,10 @@ function VerificationPage() {
           <div className="min-w-0 text-sm">
             <p className="font-medium">Ce que le badge ne garantit pas</p>
             <p className="mt-1 text-muted-foreground">
-              « Profil vérifié » atteste uniquement du contrôle documentaire des informations professionnelles au moment
-              de la validation. Ce n'est pas une garantie de la qualité de la prestation, du prix pratiqué ni de la
-              disponibilité du chauffeur. ReLink n'organise, ne gère et n'exécute aucune course.
+              « Profil vérifié » atteste uniquement du contrôle documentaire des informations
+              professionnelles au moment de la validation. Ce n'est pas une garantie de la qualité
+              de la prestation, du prix pratiqué ni de la disponibilité du chauffeur. ReLink
+              n'organise, ne gère et n'exécute aucune course.
             </p>
           </div>
         </div>

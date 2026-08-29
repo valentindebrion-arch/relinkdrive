@@ -23,7 +23,10 @@ export const Route = createFileRoute("/_authenticated/espace/parametres")({
           "Gérez vos informations, votre sécurité, vos préférences et votre compte passager Relink.",
       },
       { property: "og:title", content: "Mon profil — Relink" },
-      { property: "og:description", content: "Le centre de gestion de votre compte passager Relink." },
+      {
+        property: "og:description",
+        content: "Le centre de gestion de votre compte passager Relink.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -135,29 +138,26 @@ function ClientProfile() {
 
       {/* Paiements et factures */}
       <section className="surface p-5">
-        <h2 className="text-base font-semibold">Paiements et factures</h2>
+        <h2 className="text-base font-semibold">Mon activité sur ReLink</h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Les courses Relink se règlent directement auprès de votre chauffeur (espèces, carte à
-          bord ou virement selon ce qu'il accepte). Aucune donnée bancaire n'est stockée dans
-          l'application.
+          ReLink n'organise ni ne facture aucune course. Le tarif, le règlement et les conditions se
+          conviennent directement avec le chauffeur.
         </p>
         <ul className="mt-3 divide-y divide-border text-sm">
           <li>
             <Link
-              to="/espace/courses/terminees"
+              to="/espace/consultes"
               className="flex min-h-12 items-center justify-between gap-3 font-medium"
             >
               <span className="flex items-center gap-2">
-                <Receipt className="size-4 text-primary" /> Mes factures et reçus
+                <Receipt className="size-4 text-primary" /> Chauffeurs récemment consultés
               </span>
               <ChevronRight className="size-4 text-muted-foreground" />
             </Link>
           </li>
           <li className="flex min-h-12 items-center gap-2 text-muted-foreground">
             <CreditCard className="size-4" />
-            <span className="text-xs">
-              Le paiement en ligne n'est pas encore disponible sur Relink.
-            </span>
+            <span className="text-xs">Aucun paiement ne transite par ReLink.</span>
           </li>
         </ul>
       </section>

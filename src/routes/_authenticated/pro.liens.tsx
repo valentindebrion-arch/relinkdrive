@@ -26,10 +26,20 @@ type LinkField = {
 
 const LINK_FIELDS: LinkField[] = [
   { key: "website_url", label: "Site internet", placeholder: "https://…", icon: Globe },
-  { key: "instagram_url", label: "Instagram", placeholder: "https://instagram.com/…", icon: Instagram },
+  {
+    key: "instagram_url",
+    label: "Instagram",
+    placeholder: "https://instagram.com/…",
+    icon: Instagram,
+  },
   { key: "facebook_url", label: "Facebook", placeholder: "https://facebook.com/…", icon: Facebook },
   { key: "tiktok_url", label: "TikTok", placeholder: "https://tiktok.com/@…", icon: Music2 },
-  { key: "linkedin_url", label: "LinkedIn", placeholder: "https://linkedin.com/in/…", icon: Linkedin },
+  {
+    key: "linkedin_url",
+    label: "LinkedIn",
+    placeholder: "https://linkedin.com/in/…",
+    icon: Linkedin,
+  },
 ];
 
 function ProLinksPage() {
@@ -133,7 +143,10 @@ function ProLinksPage() {
           />
           <label className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2">
             <span className="text-sm">Afficher sur ma vitrine</span>
-            <Switch checked={form.show_whatsapp} onCheckedChange={(v) => setForm({ ...form, show_whatsapp: v })} />
+            <Switch
+              checked={form.show_whatsapp}
+              onCheckedChange={(v) => setForm({ ...form, show_whatsapp: v })}
+            />
           </label>
         </div>
 
@@ -160,8 +173,9 @@ function ProLinksPage() {
       </div>
 
       <p className="mt-4 text-xs text-muted-foreground">
-        Ces coordonnées apparaissent dans le bloc « Contacter le chauffeur » de votre profil public. {BRAND.name} ne
-        reçoit ni ne transmet aucune réservation : vos clients vous joignent directement.
+        Ces coordonnées apparaissent dans le bloc « Contacter le chauffeur » de votre profil public.{" "}
+        {BRAND.name} ne reçoit ni ne transmet aucune réservation : vos clients vous joignent
+        directement.
       </p>
     </>
   );

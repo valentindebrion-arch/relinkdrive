@@ -86,8 +86,7 @@ function WomenProgramCard({ driverId }: { driverId: string }) {
           </p>
           {eligible && q.data?.women_for_women_verified_at ? (
             <p className="mt-1 text-xs text-muted-foreground">
-              Vérifié le{" "}
-              {new Date(q.data.women_for_women_verified_at).toLocaleDateString("fr-FR")}
+              Vérifié le {new Date(q.data.women_for_women_verified_at).toLocaleDateString("fr-FR")}
             </p>
           ) : null}
         </div>

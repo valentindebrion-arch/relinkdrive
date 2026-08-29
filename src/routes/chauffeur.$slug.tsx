@@ -187,48 +187,19 @@ function DriverPublicPage() {
   // Thème personnalisé du chauffeur (lien direct, QR code).
   const branding = useDriverBranding({ slug });
 
-  const [reviewsLimit, setReviewsLimit] = useState(3);
-
-  const reviewsQuery = useQuery({
-    queryKey: ["public-driver-reviews", slug, reviewsLimit],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_public_driver_reviews", {
-        _slug: slug,
-        _limit: reviewsLimit,
-      });
-      if (error) throw error;
-      return (data ?? []) as {
-        id: string;
-        rating: number;
-        comment: string | null;
-        created_at: string;
-        author_name: string;
-        author_avatar: string | null;
-      }[];
-    },
-  });
-
-  const ratingQuery = useQuery({
-    queryKey: ["public-driver-rating", slug],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_public_driver_rating", { _slug: slug });
-      if (error) throw error;
-      return (data?.[0] ?? null) as {
-        rating_avg: number | null;
-        rating_count: number;
-        stars5: number;
-        stars4: number;
-        stars3: number;
-        stars2: number;
-        stars1: number;
-      } | null;
-    },
-  });
-
   useEffect(() => {
-    if (d?.user_id)
-      void supabase.rpc("track_driver_event", { _slug: slug, _event: "driver_page_view" });
-  }, [d?.user_id, slug]);
+    if (!d?.user_id) return;
+    void supabase.rpc("track_driver_event", { _slug: slug, _event: "driver_page_view" });
+    // Historique « Récemment consultés » du client connecté.
+    if (user?.id && user.id !== d.user_id) {
+      void supabase
+        .from("driver_profile_views")
+        .upsert(
+          { client_id: user.id, driver_id: d.user_id, viewed_at: new Date().toISOString() },
+          { onConflict: "client_id,driver_id" },
+        );
+    }
+  }, [d?.user_id, slug, user?.id]);
 
   const driverId = d?.user_id;
   const driverCity = d?.city ?? null;
@@ -245,7 +216,9 @@ function DriverPublicPage() {
       profile?.gender,
     );
     if (access !== "ok") {
-      toast.error(access === "incomplete" ? WFW_CLIENT_PROFILE_INCOMPLETE : WFW_CLIENT_BLOCKED_HELP);
+      toast.error(
+        access === "incomplete" ? WFW_CLIENT_PROFILE_INCOMPLETE : WFW_CLIENT_BLOCKED_HELP,
+      );
       return;
     }
     setAdding(true);
@@ -288,8 +261,7 @@ function DriverPublicPage() {
 
     // Enregistrement réussi : on lance immédiatement l'expérience d'achievement.
     const first = (before ?? 0) === 0;
-    const name =
-      (driverQuery.data?.full_name ?? "").trim().split(" ")[0] || "Votre chauffeur";
+    const name = (driverQuery.data?.full_name ?? "").trim().split(" ")[0] || "Votre chauffeur";
     setDriverCelebration({ driverId, firstName: name, first });
     if (typeof navigator !== "undefined" && "vibrate" in navigator) {
       try {
@@ -388,49 +360,69 @@ function DriverPublicPage() {
   };
 
   /** Moyens de contact publiés par le chauffeur, dans l'ordre d'utilité. */
-  const contactLinks: ContactLink[] = ([
-    publicPhone
-      ? {
-          kind: "phone",
-          label: `Appeler ${publicPhone}`,
-          href: `tel:${publicPhone.replace(/\s/g, "")}`,
-          icon: Phone,
-          primary: true,
-        }
-      : null,
-    publicPhone
-      ? {
-          kind: "sms",
-          label: "Envoyer un SMS",
-          href: `sms:${publicPhone.replace(/\s/g, "")}`,
-          icon: MessageCircle,
-        }
-      : null,
-    whatsapp
-      ? {
-          kind: "whatsapp",
-          label: "Écrire sur WhatsApp",
-          href: `https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}`,
-          icon: MessageCircle,
-          external: true,
-        }
-      : null,
-    website
-      ? { kind: "website", label: "Site internet", href: website, icon: Globe, external: true }
-      : null,
-    d.instagram_url
-      ? { kind: "instagram", label: "Instagram", href: d.instagram_url, icon: Instagram, external: true }
-      : null,
-    d.facebook_url
-      ? { kind: "facebook", label: "Facebook", href: d.facebook_url, icon: Facebook, external: true }
-      : null,
-    d.tiktok_url
-      ? { kind: "tiktok", label: "TikTok", href: d.tiktok_url, icon: Music2, external: true }
-      : null,
-    d.linkedin_url
-      ? { kind: "linkedin", label: "LinkedIn", href: d.linkedin_url, icon: Linkedin, external: true }
-      : null,
-  ] as (ContactLink | null)[]).filter((c): c is ContactLink => !!c);
+  const contactLinks: ContactLink[] = (
+    [
+      publicPhone
+        ? {
+            kind: "phone",
+            label: `Appeler ${publicPhone}`,
+            href: `tel:${publicPhone.replace(/\s/g, "")}`,
+            icon: Phone,
+            primary: true,
+          }
+        : null,
+      publicPhone
+        ? {
+            kind: "sms",
+            label: "Envoyer un SMS",
+            href: `sms:${publicPhone.replace(/\s/g, "")}`,
+            icon: MessageCircle,
+          }
+        : null,
+      whatsapp
+        ? {
+            kind: "whatsapp",
+            label: "Écrire sur WhatsApp",
+            href: `https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}`,
+            icon: MessageCircle,
+            external: true,
+          }
+        : null,
+      website
+        ? { kind: "website", label: "Site internet", href: website, icon: Globe, external: true }
+        : null,
+      d.instagram_url
+        ? {
+            kind: "instagram",
+            label: "Instagram",
+            href: d.instagram_url,
+            icon: Instagram,
+            external: true,
+          }
+        : null,
+      d.facebook_url
+        ? {
+            kind: "facebook",
+            label: "Facebook",
+            href: d.facebook_url,
+            icon: Facebook,
+            external: true,
+          }
+        : null,
+      d.tiktok_url
+        ? { kind: "tiktok", label: "TikTok", href: d.tiktok_url, icon: Music2, external: true }
+        : null,
+      d.linkedin_url
+        ? {
+            kind: "linkedin",
+            label: "LinkedIn",
+            href: d.linkedin_url,
+            icon: Linkedin,
+            external: true,
+          }
+        : null,
+    ] as (ContactLink | null)[]
+  ).filter((c): c is ContactLink => !!c);
 
   function startAdd(mode: "signin" | "signup" = "signup") {
     void supabase.rpc("track_driver_event", { _slug: slug, _event: "driver_add_click" });
@@ -473,17 +465,13 @@ function DriverPublicPage() {
     setRemoval(true);
   }
 
-
-
   /** Message de blocage Woman for Woman (profil incompatible ou incomplet). */
   const wfwGate = wfwLocked ? (
     <div className="wfw-card rounded-2xl border px-4 py-3 text-sm">
       {wfwAccess === "incomplete" ? (
         <>
           <p className="font-semibold">{WFW_LABEL}</p>
-          <p className="mt-1 text-[13px] text-muted-foreground">
-            {WFW_CLIENT_PROFILE_INCOMPLETE}
-          </p>
+          <p className="mt-1 text-[13px] text-muted-foreground">{WFW_CLIENT_PROFILE_INCOMPLETE}</p>
           <Button asChild className="mt-3 h-11 w-full">
             <Link to="/espace/parametres">Compléter mon profil</Link>
           </Button>
@@ -524,7 +512,6 @@ function DriverPublicPage() {
         >
           Retirer {firstName} de mes chauffeurs
         </button>
-
       </div>
     ) : (
       <Button
@@ -539,17 +526,6 @@ function DriverPublicPage() {
   const experienceLabel = memberSince ? `Depuis ${memberSince}` : "Nouveau";
   const vehicleLabel = [d.vehicle_brand, d.vehicle_model].filter(Boolean).join(" ") || "Véhicule";
   const vehicleSub = [d.vehicle_color, d.vehicle_category].filter(Boolean).join(" • ") || "Berline";
-
-  const reviews = reviewsQuery.data ?? [];
-  const ratingAvg =
-    ratingQuery.data?.rating_avg != null ? Number(ratingQuery.data.rating_avg) : null;
-  const ratingCount = Number(ratingQuery.data?.rating_count ?? 0);
-  const distribution = [5, 4, 3, 2, 1].map((s) => ({
-    stars: s,
-    count: Number(
-      (ratingQuery.data as Record<string, number> | null | undefined)?.[`stars${s}`] ?? 0,
-    ),
-  }));
 
   const zoneChips = [
     ...(d.city ? [d.city] : []),
@@ -592,19 +568,9 @@ function DriverPublicPage() {
                   {firstName}
                   {lastInitial ? ` ${lastInitial}.` : ""}
                 </span>
-                <BadgeCheck
-                  className="size-5 shrink-0 text-primary"
-                  aria-label="Chauffeur vérifié"
-                />
+                <BadgeCheck className="size-5 shrink-0 text-primary" aria-label="Profil vérifié" />
               </h1>
               <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[13px] font-semibold text-muted-foreground">
-                <span className="inline-flex items-center gap-1">
-                  <StarIcon className="size-3.5 fill-warning text-warning" />
-                  <span className="text-foreground">
-                    {ratingAvg ? ratingAvg.toFixed(2) : "Nouveau"}
-                  </span>
-                  {ratingCount ? <span>({ratingCount} avis)</span> : null}
-                </span>
                 {d.city ? (
                   <span className="inline-flex min-w-0 items-center gap-1">
                     <MapPin className="size-3.5" /> <span className="truncate">{d.city}</span>
@@ -618,7 +584,7 @@ function DriverPublicPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2 border-t border-border px-5 py-3">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
-              <ShieldCheck className="size-3.5" /> Chauffeur vérifié {BRAND.name}
+              <ShieldCheck className="size-3.5" /> Profil vérifié
             </span>
             <span className="text-xs font-medium text-muted-foreground">{experienceLabel}</span>
             {womanForWoman ? (
@@ -644,7 +610,8 @@ function DriverPublicPage() {
         <section className="surface p-5">
           <h2 className="text-lg font-black tracking-tight">Contacter {firstName}</h2>
           <p className="mt-1 text-[13px] text-muted-foreground">
-            {BRAND.name} ne gère ni la réservation ni la course : vous échangez directement avec le chauffeur.
+            {BRAND.name} ne gère ni la réservation ni la course : vous échangez directement avec le
+            chauffeur.
           </p>
           <div className="mt-4 space-y-2">
             {contactLinks.length ? (
@@ -809,108 +776,11 @@ function DriverPublicPage() {
           ) : null}
         </Section>
 
-        {/* 7 — Avis passagers */}
-        <Section title={ratingCount ? `Avis des passagers (${ratingCount})` : "Avis des passagers"}>
-          {ratingCount ? (
-            <>
-              <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-5">
-                <div className="text-center">
-                  <p className="text-4xl font-black">
-                    {ratingAvg?.toFixed(2)}
-                    <span className="text-base font-medium text-muted-foreground"> /5</span>
-                  </p>
-                  <div className="mt-1 flex justify-center gap-0.5">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <StarIcon key={i} className="size-4 fill-primary text-primary" />
-                    ))}
-                  </div>
-                  <p className="mt-1 text-xs text-muted-foreground">Basé sur {ratingCount} avis</p>
-                </div>
-                <div className="space-y-1.5 border-l border-border pl-5">
-                  {distribution.map((r) => (
-                    <div key={r.stars} className="flex items-center gap-2 text-xs">
-                      <span className="w-8 shrink-0 text-muted-foreground">{r.stars} ★</span>
-                      <span className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-muted">
-                        <span
-                          className="block h-full rounded-full bg-primary"
-                          style={{ width: `${ratingCount ? (r.count / ratingCount) * 100 : 0}%` }}
-                        />
-                      </span>
-                      <span className="w-8 shrink-0 text-right text-muted-foreground">
-                        {r.count}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {reviews.map((r) => (
-                  <article key={r.id} className="rounded-2xl border border-border bg-card p-4">
-                    <div className="flex items-center gap-3">
-                      {r.author_avatar ? (
-                        <img
-                          src={r.author_avatar}
-                          alt=""
-                          loading="lazy"
-                          className="size-9 shrink-0 rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                          {r.author_name.charAt(0)}
-                        </span>
-                      )}
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold">{r.author_name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(r.created_at).toLocaleDateString("fr-FR", {
-                            month: "long",
-                            year: "numeric",
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-2 flex gap-0.5">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <StarIcon
-                          key={i}
-                          className={`size-3.5 ${i <= r.rating ? "fill-primary text-primary" : "text-muted-foreground/40"}`}
-                        />
-                      ))}
-                    </div>
-                    {r.comment ? (
-                      <p className="mt-2 line-clamp-5 text-sm text-muted-foreground">{r.comment}</p>
-                    ) : null}
-                  </article>
-                ))}
-              </div>
-              {ratingCount > reviews.length ? (
-                <Button
-                  variant="outline"
-                  className="mt-3 w-full"
-                  onClick={() => setReviewsLimit((n) => Math.min(n + 6, 20))}
-                >
-                  Voir tous les avis
-                </Button>
-              ) : null}
-            </>
-          ) : (
-            <div className="rounded-2xl bg-muted/60 p-5 text-center">
-              <div className="mx-auto grid size-10 place-items-center rounded-full bg-primary/10 text-primary">
-                <StarIcon className="size-5" />
-              </div>
-              <p className="mt-2 font-semibold">Pas encore d'avis</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Les avis apparaîtront ici après les premiers trajets réalisés avec {firstName}.
-              </p>
-            </div>
-          )}
-        </Section>
-
         {/* 8 — Votre chauffeur est vérifié */}
-        <Section title="Votre chauffeur est vérifié">
+        <Section title="Profil vérifié">
           <p className="text-muted-foreground">
-            {BRAND.name} vérifie les documents professionnels de {firstName} avant la publication de
-            cette page.
+            {BRAND.name} contrôle les informations professionnelles de {firstName} avant la
+            publication de cette vitrine. Ce badge n'est pas une garantie de la prestation.
           </p>
           <ul className="mt-3 space-y-2">
             {VERIFICATION_BADGES.filter((b) => verifiedDocs.includes(b.doc)).map((b) => (
@@ -924,7 +794,8 @@ function DriverPublicPage() {
               </li>
             ) : null}
             <li className="flex items-center gap-2">
-              <ShieldCheck className="size-4 text-primary" /> Profil validé par {BRAND.name}
+              <ShieldCheck className="size-4 text-primary" /> Informations professionnelles
+              contrôlées par {BRAND.name}
             </li>
             {memberSince ? (
               <li className="flex items-center gap-2 text-muted-foreground">
@@ -965,9 +836,7 @@ function DriverPublicPage() {
             {BRAND.name} — le réseau des chauffeurs VTC. Seules les informations que le chauffeur a
             choisi de publier sont visibles ici.
           </p>
-          <p>
-            {BRAND.name} n'organise, ne gère et n'exécute aucune course.
-          </p>
+          <p>{BRAND.name} n'organise, ne gère et n'exécute aucune course.</p>
         </div>
         <PoweredByRelink />
       </div>
@@ -976,9 +845,7 @@ function DriverPublicPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Ajouter {firstName} à vos chauffeurs ?</AlertDialogTitle>
-            <AlertDialogDescription>
-  
-            </AlertDialogDescription>
+            <AlertDialogDescription></AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
@@ -1017,7 +884,6 @@ function DriverPublicPage() {
       ) : null}
 
       {celebration ? (
-
         <DriverAddedOverlay
           firstName={firstName}
           name={d.full_name ?? firstName}
@@ -1030,16 +896,6 @@ function DriverPublicPage() {
           }}
         />
       ) : null}
-      {false && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] sm:hidden">
-          <a
-            href="#estimation"
-            className="pointer-events-auto mx-auto flex h-12 max-w-lg items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-bold text-primary-foreground shadow-lg"
-          >
-            Estimer mon trajet
-          </a>
-        </div>
-      )}
     </BookingThemeScope>
   );
 }

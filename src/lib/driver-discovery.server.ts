@@ -77,7 +77,14 @@ export async function geocodePlaces(
           resolved: true,
         });
       } else {
-        inserts.push({ name_norm: key, label, lat: null, lng: null, postcode: null, resolved: false });
+        inserts.push({
+          name_norm: key,
+          label,
+          lat: null,
+          lng: null,
+          postcode: null,
+          resolved: false,
+        });
       }
     } catch {
       /* service momentanément indisponible : on réessaiera plus tard */
@@ -112,10 +119,7 @@ export function driverAreas(driver: DriverGeo): string[] {
  *  2. sinon les codes lisibles dans ses zones (« 63 », « 63170 Aubière ») ;
  *  3. sinon le département des communes géocodées.
  */
-export function driverDepartments(
-  driver: DriverGeo,
-  places?: Map<string, CachedPlace>,
-): string[] {
+export function driverDepartments(driver: DriverGeo, places?: Map<string, CachedPlace>): string[] {
   const codes = new Set<string>();
   for (const raw of driver.service_departments ?? []) {
     const code = departmentFromText(raw);

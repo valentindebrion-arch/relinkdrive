@@ -15,33 +15,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-type RideOption = { id: string; label: string };
-
 export function SupportSection() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
-  const [rides, setRides] = useState<RideOption[]>([]);
-  const [rideId, setRideId] = useState<string>("none");
   const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    if (!user?.id || !open) return;
-    void supabase
-      .from("rides")
-      .select("id, pickup_address, dropoff_address, scheduled_at")
-      .eq("client_id", user.id)
-      .order("scheduled_at", { ascending: false })
-      .limit(20)
-      .then(({ data }) => {
-        setRides(
-          (data ?? []).map((r) => ({
-            id: r.id,
-            label: `${new Date(r.scheduled_at).toLocaleDateString("fr-FR")} — ${r.pickup_address} → ${r.dropoff_address}`,
-          })),
-        );
-      });
-  }, [user?.id, open]);
 
   async function submit() {
     const text = description.trim();
@@ -53,14 +31,12 @@ export function SupportSection() {
     try {
       const { error } = await supabase.from("reports").insert({
         reporter_id: user!.id,
-        ride_id: rideId === "none" ? null : rideId,
         type: "client_issue",
         priority: "normal",
         description: text.slice(0, 2000),
       });
       if (error) throw error;
       setDescription("");
-      setRideId("none");
       setOpen(false);
       toast.success("Signalement envoyé. Notre équipe vous répondra par e-mail.");
     } catch (err) {
@@ -78,13 +54,9 @@ export function SupportSection() {
         votre chauffeur. Le support Relink traite uniquement le fonctionnement de l'application.
       </p>
 
-
       <ul className="mt-3 divide-y divide-border text-sm">
         <li>
-          <Link
-            to="/aide"
-            className="flex min-h-12 items-center justify-between gap-3 font-medium"
-          >
+          <Link to="/aide" className="flex min-h-12 items-center justify-between gap-3 font-medium">
             <span className="flex items-center gap-2">
               <HelpCircle className="size-4 text-primary" /> Centre d'aide et questions fréquentes
             </span>
@@ -116,25 +88,8 @@ export function SupportSection() {
         </li>
       </ul>
 
-
       {open ? (
         <div className="mt-3 grid gap-3 rounded-xl border border-border p-3">
-          <div>
-            <Label htmlFor="rep-ride">Course concernée (facultatif)</Label>
-            <Select value={rideId} onValueChange={setRideId}>
-              <SelectTrigger id="rep-ride" className="mt-1">
-                <SelectValue placeholder="Aucune course" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Aucune course</SelectItem>
-                {rides.map((r) => (
-                  <SelectItem key={r.id} value={r.id}>
-                    {r.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
           <div>
             <Label htmlFor="rep-desc">Description</Label>
             <Textarea

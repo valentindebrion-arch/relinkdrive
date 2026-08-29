@@ -43,11 +43,11 @@ export function DashboardShell({
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-
   const nav = (
     <nav className="flex flex-col gap-1">
       {items.map((item) => {
-        const active = pathname === item.to || (item.to !== "/" && pathname.startsWith(item.to + "/"));
+        const active =
+          pathname === item.to || (item.to !== "/" && pathname.startsWith(item.to + "/"));
         return (
           <Link
             key={item.to}
@@ -119,22 +119,23 @@ export function DashboardShell({
         </button>
         <BrandLogo to={brandTo ?? "/"} size="sm" className="min-w-0" />
         <div className="flex items-center gap-1">
-        {hideNotifications ? null : <NotificationBell />}
-        {settingsTo ? (
-          <Link
-            to={settingsTo}
-            aria-label="Paramètres du compte"
-            className="flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground"
-          >
-            <UserRound className="size-3.5" />
-            {profile?.full_name?.split(" ")[0]}
-          </Link>
-        ) : (
-          <span className="text-xs text-muted-foreground">{profile?.full_name?.split(" ")[0]}</span>
-        )}
+          {hideNotifications ? null : <NotificationBell />}
+          {settingsTo ? (
+            <Link
+              to={settingsTo}
+              aria-label="Paramètres du compte"
+              className="flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground"
+            >
+              <UserRound className="size-3.5" />
+              {profile?.full_name?.split(" ")[0]}
+            </Link>
+          ) : (
+            <span className="text-xs text-muted-foreground">
+              {profile?.full_name?.split(" ")[0]}
+            </span>
+          )}
         </div>
       </header>
-
 
       {open ? (
         <div className="fixed inset-0 z-50 lg:hidden">
@@ -179,7 +180,8 @@ export function DashboardShell({
         >
           <ul className="flex items-stretch">
             {bottomItems.map((item) => {
-              const active = pathname === item.to || (item.to !== "/" && pathname.startsWith(item.to + "/"));
+              const active =
+                pathname === item.to || (item.to !== "/" && pathname.startsWith(item.to + "/"));
               return (
                 <li key={item.to} className="flex-1">
                   <Link
@@ -202,7 +204,9 @@ export function DashboardShell({
                         {item.badge}
                       </span>
                     ) : null}
-                    {active ? <span className="absolute inset-x-6 top-0 h-0.5 rounded-full bg-primary" /> : null}
+                    {active ? (
+                      <span className="absolute inset-x-6 top-0 h-0.5 rounded-full bg-primary" />
+                    ) : null}
                   </Link>
                 </li>
               );

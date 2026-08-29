@@ -7,12 +7,10 @@ import { useMyVehicle } from "@/lib/driver-queries";
 import { ensureVehicleRowId } from "@/lib/vehicle-row";
 import { useSignedUrl } from "@/lib/storage";
 import { PageHeader } from "@/components/Ui";
-import { evaluateCompatibility, type VehicleCapacity } from "@/lib/compatibility";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-
 
 const OPTIONS = [
   ["air_conditioning", "Climatisation"],
@@ -221,9 +219,7 @@ export function VehiclePage() {
       .eq("id", vehicleId)
       .maybeSingle();
     const storedPath = saved?.[field] ?? null;
-    const { data: check } = await supabase.storage
-      .from("vehicles")
-      .createSignedUrl(path, 60 * 60);
+    const { data: check } = await supabase.storage.from("vehicles").createSignedUrl(path, 60 * 60);
     setBusy(null);
     if (storedPath !== path || !check?.signedUrl) {
       toast.error("La photo n'a pas pu être vérifiée. Votre ancienne photo a été conservée.");
@@ -236,7 +232,6 @@ export function VehiclePage() {
     if (previous && previous !== path) await supabase.storage.from("vehicles").remove([previous]);
     toast.success("Photo enregistrée");
   }
-
 
   /** Suppression volontaire d'une seule photo, sans toucher à l'autre. */
   async function removePhoto(field: PhotoField) {
@@ -321,59 +316,6 @@ export function VehiclePage() {
     }
     toast.success("Véhicule enregistré");
     void qc.invalidateQueries({ queryKey: ["my-vehicle"] });
-    void warnAboutFutureRides({
-      vehicle_id: vehicle.data?.id ?? "",
-      brand: payload.brand,
-      model: payload.model,
-      max_passengers: payload.max_passengers,
-      luggage_capacity: payload.luggage_capacity,
-      large_luggage_capacity: payload.large_luggage_capacity,
-      cabin_luggage_capacity: payload.cabin_luggage_capacity,
-      pets_policy: payload.pets_policy as VehicleCapacity["pets_policy"],
-      pets_max: payload.pets_max,
-      pets_carrier_required: flags.pets_carrier_required,
-      pets_conditions: payload.pets_conditions,
-      child_seat: flags.child_seat,
-      booster_seat: flags.booster_seat,
-      stroller_space: flags.stroller_space,
-      accessible: flags.accessible,
-      large_trunk: flags.large_trunk,
-    });
-  }
-
-  /**
-   * Une modification des capacités ne touche jamais une réservation existante :
-   * le chauffeur est simplement informé des courses futures devenues incompatibles.
-   */
-  async function warnAboutFutureRides(capacity: VehicleCapacity) {
-    const { data } = await supabase
-      .from("ride_requests")
-      .select(
-        "id, scheduled_at, passengers, large_luggage, cabin_luggage, pets_count, pet_carrier, equipment_needs",
-      )
-      .eq("driver_id", user!.id)
-      .gte("scheduled_at", new Date().toISOString())
-      .in("status", ["new", "reviewing", "proposal_sent", "awaiting_client", "confirmed"]);
-    const impacted = (data ?? []).filter(
-      (r) =>
-        !evaluateCompatibility(capacity, {
-          passengers: r.passengers,
-          largeLuggage: r.large_luggage ?? 0,
-          cabinLuggage: r.cabin_luggage ?? 0,
-          petsCount: r.pets_count ?? 0,
-          petCarrier: r.pet_carrier ?? false,
-          equipmentNeeds: r.equipment_needs ?? [],
-        }).compatible,
-    );
-    if (!impacted.length) return;
-    toast.warning(
-      `${impacted.length} course(s) à venir ne correspondent plus aux capacités de votre véhicule.`,
-      {
-        description:
-          "Aucune réservation n'a été modifiée. Contactez les clients concernés depuis vos demandes.",
-        duration: 10000,
-      },
-    );
   }
 
   const photo = useSignedUrl("vehicles", form.photo_url);
@@ -399,7 +341,10 @@ export function VehiclePage() {
 
   return (
     <>
-      <PageHeader title="Mon véhicule" description="Ces informations sont affichées sur votre page publique." />
+      <PageHeader
+        title="Mon véhicule"
+        description="Ces informations sont affichées sur votre page publique."
+      />
       <div className="surface grid gap-4 p-5 sm:grid-cols-2">
         {text("brand", "Marque")}
         {text("model", "Modèle")}
@@ -544,7 +489,11 @@ export function VehiclePage() {
         <div className="grid gap-3 sm:col-span-2 sm:grid-cols-3">
           {OPTIONS.map(([key, label]) => (
             <div key={key} className="flex items-center gap-3">
-              <Switch id={key} checked={flags[key]} onCheckedChange={(v) => setFlags({ ...flags, [key]: v })} />
+              <Switch
+                id={key}
+                checked={flags[key]}
+                onCheckedChange={(v) => setFlags({ ...flags, [key]: v })}
+              />
               <Label htmlFor={key}>{label}</Label>
             </div>
           ))}

@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-
 export function VerificationPage() {
   const { user } = useAuth();
   const driver = useDriverProfile();
@@ -28,7 +27,9 @@ export function VerificationPage() {
   async function uploadDoc(docType: string, file: File, expiresAt: string) {
     setBusy(docType);
     const path = `${user!.id}/${docType}-${Date.now()}-${file.name}`;
-    const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { upsert: true });
+    const { error: upErr } = await supabase.storage
+      .from("documents")
+      .upload(path, file, { upsert: true });
     if (upErr) {
       setBusy(null);
       toast.error(upErr.message);
@@ -70,7 +71,10 @@ export function VerificationPage() {
 
   return (
     <>
-      <PageHeader title="Vérification" description="Envoyez vos justificatifs pour activer votre compte." />
+      <PageHeader
+        title="Vérification"
+        description="Envoyez vos justificatifs pour activer votre compte."
+      />
 
       <div className="surface mb-6 flex flex-wrap items-center justify-between gap-3 p-4">
         <div>
@@ -80,7 +84,9 @@ export function VerificationPage() {
             <p className="mt-2 text-sm text-destructive">Motif : {driver.data.rejection_reason}</p>
           ) : null}
         </div>
-        {status !== "verified" ? <Button onClick={submitForReview}>Envoyer pour vérification</Button> : null}
+        {status !== "verified" ? (
+          <Button onClick={submitForReview}>Envoyer pour vérification</Button>
+        ) : null}
       </div>
 
       <div className="space-y-3">
@@ -116,7 +122,9 @@ export function VerificationPage() {
                     disabled={busy === type}
                     onChange={(e) => {
                       const file = e.target.files?.[0];
-                      const exp = (document.getElementById(`exp-${type}`) as HTMLInputElement | null)?.value ?? "";
+                      const exp =
+                        (document.getElementById(`exp-${type}`) as HTMLInputElement | null)
+                          ?.value ?? "";
                       if (file) void uploadDoc(type, file, exp);
                     }}
                   />

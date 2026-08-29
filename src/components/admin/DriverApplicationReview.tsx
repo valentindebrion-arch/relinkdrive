@@ -52,7 +52,13 @@ export function DriverApplicationReview({ driverId }: { driverId: string }) {
 
   const dossier = q.data;
   const driver = dossier?.driver as
-    | { verification_status?: string; driver_kind?: string | null; vtc_card_number?: string | null; taxi_license_number?: string | null; approved_at?: string | null }
+    | {
+        verification_status?: string;
+        driver_kind?: string | null;
+        vtc_card_number?: string | null;
+        taxi_license_number?: string | null;
+        approved_at?: string | null;
+      }
     | null
     | undefined;
   const name = (dossier?.profile as { full_name?: string } | null)?.full_name ?? "ce chauffeur";
@@ -305,9 +311,7 @@ export function DriverApplicationReview({ driverId }: { driverId: string }) {
 
         <div className="surface p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm font-medium">
-              {kind === "taxi" ? "Licence Taxi" : "Numéro VTC"}
-            </p>
+            <p className="text-sm font-medium">{kind === "taxi" ? "Licence Taxi" : "Numéro VTC"}</p>
             <span
               className={`rounded-full px-2.5 py-1 text-xs font-medium ${
                 proSection?.state === "approved"
@@ -346,7 +350,11 @@ export function DriverApplicationReview({ driverId }: { driverId: string }) {
         </div>
       </section>
 
-      <DocumentViewer document={viewed} open={!!viewed} onOpenChange={(v) => !v && setViewed(null)} />
+      <DocumentViewer
+        document={viewed}
+        open={!!viewed}
+        onOpenChange={(v) => !v && setViewed(null)}
+      />
 
       <Dialog open={!!rejectTarget} onOpenChange={(v) => !v && setRejectTarget(null)}>
         <DialogContent>

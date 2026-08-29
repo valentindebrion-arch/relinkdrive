@@ -111,7 +111,6 @@ export function AddressAutocomplete({
         {action}
       </div>
 
-
       {open && !confirmed && items.length > 0 ? (
         <ul className="animate-fade-in absolute z-30 mt-2 w-full overflow-hidden rounded-2xl border border-border bg-popover shadow-[var(--shadow-pop)]">
           {items.map((s) => (
@@ -126,7 +125,9 @@ export function AddressAutocomplete({
                 }}
               >
                 <p className="text-sm font-medium">{s.main || s.full}</p>
-                {s.secondary ? <p className="text-xs text-muted-foreground">{s.secondary}</p> : null}
+                {s.secondary ? (
+                  <p className="text-xs text-muted-foreground">{s.secondary}</p>
+                ) : null}
               </button>
             </li>
           ))}

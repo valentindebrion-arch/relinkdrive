@@ -55,10 +55,12 @@ function ApplicationsPage() {
       />
 
       <div className="mb-3 grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
-        {([
-          ["pending", "En attente", pending.length],
-          ["validated", "Validé", validated.length],
-        ] as const).map(([key, label, count]) => (
+        {(
+          [
+            ["pending", "En attente", pending.length],
+            ["validated", "Validé", validated.length],
+          ] as const
+        ).map(([key, label, count]) => (
           <button
             key={key}
             type="button"

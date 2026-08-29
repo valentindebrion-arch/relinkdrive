@@ -29,7 +29,10 @@ export const Route = createFileRoute("/reset-password")({
         content: "Définissez un nouveau mot de passe pour votre compte Relink en toute sécurité.",
       },
       { property: "og:title", content: `Nouveau mot de passe — ${BRAND.name}` },
-      { property: "og:description", content: "Réinitialisation sécurisée de votre mot de passe Relink." },
+      {
+        property: "og:description",
+        content: "Réinitialisation sécurisée de votre mot de passe Relink.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -176,7 +179,10 @@ function ResetPasswordPage() {
               <p className="mt-3 text-sm text-muted-foreground">
                 Votre mot de passe a été mis à jour. Vous pouvez maintenant utiliser Relink.
               </p>
-              <Button className="mt-4 w-full" onClick={() => navigate({ to: "/espace", replace: true })}>
+              <Button
+                className="mt-4 w-full"
+                onClick={() => navigate({ to: "/espace", replace: true })}
+              >
                 Aller à mon espace
               </Button>
             </>

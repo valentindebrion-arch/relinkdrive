@@ -315,31 +315,18 @@ function sectionFields(key: SectionKey, d: Dossier): [string, string][] {
       ];
     case "tax":
       return [
-        [
-          "Régime de TVA",
-          d.tax?.regime === "liable"
-            ? `Redevable${d.tax.rate_label ? ` (${d.tax.rate_label})` : ""}`
-            : d.tax?.regime === "franchise"
-              ? "Franchise en base de TVA"
-              : "—",
-        ],
-        ["Taux de TVA", d.tax?.vat_rate != null ? `${d.tax.vat_rate} %` : "—"],
-        ["Numéro de TVA", val(d.tax?.vat_number ?? d.company?.vat_number)],
-        ["Mention légale", val(d.tax?.legal_mention)],
-        ["Applicable depuis", fr(d.tax?.effective_from)],
-        [
-          "Tarif au kilomètre (HT)",
-          d.tariffs[0] ? `${d.tariffs[0].price_per_km_ht} EUR` : "—",
-        ],
-        ["Course minimum (HT)", d.tariffs[0] ? `${d.tariffs[0].minimum_ht} EUR` : "—"],
+        ["Tarif au kilomètre", d.tariffs[0] ? `${d.tariffs[0].price_per_km_ht} EUR` : "—"],
+        ["Course minimum", d.tariffs[0] ? `${d.tariffs[0].minimum_ht} EUR` : "—"],
       ];
   }
 }
 
 function detectKind(bytes: Uint8Array): "pdf" | "jpg" | "png" | "unknown" {
-  if (bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46) return "pdf";
+  if (bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46)
+    return "pdf";
   if (bytes[0] === 0xff && bytes[1] === 0xd8) return "jpg";
-  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return "png";
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47)
+    return "png";
   return "unknown";
 }
 
@@ -358,9 +345,7 @@ export async function buildDossierPdf(driverId: string) {
 
   const fullName = data.profile?.full_name || data.driver?.business_name || "Chauffeur";
   const status = data.driver?.verification_status ?? "incomplete";
-  const sectionStates = new Map(
-    (data.state?.sections ?? []).map((s) => [s.key, s.state] as const),
-  );
+  const sectionStates = new Map((data.state?.sections ?? []).map((s) => [s.key, s.state] as const));
   const reviews = new Map(data.sectionReviews.map((r) => [r.section, r] as const));
 
   /* --- Page de couverture --- */
@@ -457,9 +442,7 @@ export async function buildDossierPdf(driverId: string) {
         );
         if (doc.review_note) layout.banner(`Motif : ${doc.review_note}`, LIGHT, RED);
 
-        const download = await supabaseAdmin.storage
-          .from(DOCUMENTS_BUCKET)
-          .download(doc.file_path);
+        const download = await supabaseAdmin.storage.from(DOCUMENTS_BUCKET).download(doc.file_path);
         if (download.error || !download.data) {
           layout.banner("Fichier introuvable ou illisible dans le coffre sécurisé.", LIGHT, RED);
           continue;
@@ -475,8 +458,7 @@ export async function buildDossierPdf(driverId: string) {
             layout.banner(`Justificatif PDF intégré (${pages.length} page(s)) à la suite.`);
             layout.newPage();
           } else if (kind === "jpg" || kind === "png") {
-            const image =
-              kind === "jpg" ? await pdf.embedJpg(bytes) : await pdf.embedPng(bytes);
+            const image = kind === "jpg" ? await pdf.embedJpg(bytes) : await pdf.embedPng(bytes);
             const maxW = layout.width;
             const maxH = 380;
             const scale = Math.min(maxW / image.width, maxH / image.height, 1);

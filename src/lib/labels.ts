@@ -107,12 +107,22 @@ export function statusTone(status: string): "success" | "warning" | "danger" | "
   if (["verified", "completed", "paid", "confirmed", "approved", "resolved"].includes(status))
     return "success";
   if (
-    ["pending", "reviewing", "proposal_sent", "awaiting_client", "changes_requested", "waiting", "sent", "in_progress", "new", "issued"].includes(
-      status,
-    )
+    [
+      "pending",
+      "reviewing",
+      "proposal_sent",
+      "awaiting_client",
+      "changes_requested",
+      "waiting",
+      "sent",
+      "in_progress",
+      "new",
+      "issued",
+    ].includes(status)
   )
     return "warning";
-  if (["cancelled", "refused", "rejected", "suspended", "expired", "overdue"].includes(status)) return "danger";
+  if (["cancelled", "refused", "rejected", "suspended", "expired", "overdue"].includes(status))
+    return "danger";
   if (["driver_enroute", "driver_arrived", "client_onboard"].includes(status)) return "info";
   return "neutral";
 }

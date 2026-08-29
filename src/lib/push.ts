@@ -22,7 +22,8 @@ export function isIOS(): boolean {
 /** L'app est ouverte depuis l'icône de l'écran d'accueil (mode standalone). */
 export function isStandalone(): boolean {
   if (typeof window === "undefined") return false;
-  const iosStandalone = (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+  const iosStandalone =
+    (window.navigator as unknown as { standalone?: boolean }).standalone === true;
   return iosStandalone || window.matchMedia("(display-mode: standalone)").matches;
 }
 
@@ -127,7 +128,10 @@ export async function getPushState(userId: string | undefined): Promise<PushStat
 }
 
 async function saveSubscription(userId: string, subscription: PushSubscription): Promise<void> {
-  const json = subscription.toJSON() as { endpoint?: string; keys?: { p256dh?: string; auth?: string } };
+  const json = subscription.toJSON() as {
+    endpoint?: string;
+    keys?: { p256dh?: string; auth?: string };
+  };
   const p256dh = json.keys?.p256dh ?? keyToBase64(subscription.getKey("p256dh"));
   const auth = json.keys?.auth ?? keyToBase64(subscription.getKey("auth"));
 
@@ -156,12 +160,16 @@ async function saveSubscription(userId: string, subscription: PushSubscription):
 /** Demande la permission, s'abonne au push et enregistre l'appareil. */
 export async function enablePush(userId: string): Promise<void> {
   if (isIOS() && !isStandalone()) {
-    throw new Error("Ajoutez d'abord Relink à votre écran d'accueil pour activer les notifications.");
+    throw new Error(
+      "Ajoutez d'abord Relink à votre écran d'accueil pour activer les notifications.",
+    );
   }
-  if (!pushSupported()) throw new Error("Les notifications ne sont pas supportées sur cet appareil.");
+  if (!pushSupported())
+    throw new Error("Les notifications ne sont pas supportées sur cet appareil.");
 
   const permission = await Notification.requestPermission();
-  if (permission !== "granted") throw new Error("Notifications refusées dans les réglages du navigateur.");
+  if (permission !== "granted")
+    throw new Error("Notifications refusées dans les réglages du navigateur.");
 
   const registration = await registerPushWorker();
   await navigator.serviceWorker.ready;
@@ -235,9 +243,13 @@ export async function requestLocation(): Promise<GeolocationPosition> {
       reject(new Error("La géolocalisation n'est pas disponible sur cet appareil."));
       return;
     }
-    navigator.geolocation.getCurrentPosition(resolve, () => reject(new Error("Position refusée.")), {
-      enableHighAccuracy: true,
-      timeout: 10000,
-    });
+    navigator.geolocation.getCurrentPosition(
+      resolve,
+      () => reject(new Error("Position refusée.")),
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+      },
+    );
   });
 }

@@ -1,6 +1,6 @@
 /**
  * Modèle d'offre chauffeur ReLink : Gratuit (tarif imposé, Courses Flash) et
- * Pro (tarification personnalisée, courses planifiées, outils professionnels).
+ * Pro (personnalisation de la vitrine, statistiques avancées).
  * Les règles ci-dessous ne sont qu'un miroir de celles appliquées côté serveur
  * (triggers SQL + compute_ride_quote) : l'interface ne fait jamais autorité.
  */
@@ -38,8 +38,8 @@ export const FREE_FEATURES = [
 ];
 
 export const PRO_FEATURES = [
-  "Courses Flash et courses planifiées",
-  "Agenda, planning et disponibilités",
+  "Vitrine personnalisée et thème de marque",
+  "Statistiques de visibilité détaillées",
   "Gestion de la clientèle ReLink",
   "Statistiques d'activité et chiffre d'affaires",
   "Suivi véhicule et analyse IA",
@@ -96,23 +96,18 @@ export function planAllows(plan: DriverPlan | null | undefined, feature: DriverP
 
 /** Chemins de l'espace chauffeur réservés à ReLink Pro. */
 export const PRO_ONLY_PATHS: { path: string; label: string; permission: DriverPermission }[] = [
-  { path: "/pro/planning", label: "Planning", permission: "canAccessPlanning" },
-  { path: "/pro/disponibilites", label: "Disponibilités", permission: "canAccessAvailability" },
-  { path: "/pro/clients", label: "Mes clients", permission: "canAccessClients" },
-  // La page Tarification reste accessible en version gratuite : seul le prix
-  // minimum y est modifiable, le reste est visible mais verrouillé.
-  { path: "/pro/activite", label: "Statistiques", permission: "canAccessAnalytics" },
   { path: "/pro/personnalisation", label: "Personnalisation", permission: "canAccessBranding" },
 ];
 
 export function proOnlyPathFor(pathname: string) {
-  return PRO_ONLY_PATHS.find((p) => pathname === p.path || pathname.startsWith(p.path + "/")) ?? null;
+  return (
+    PRO_ONLY_PATHS.find((p) => pathname === p.path || pathname.startsWith(p.path + "/")) ?? null
+  );
 }
 
 export function normalizePlan(value: unknown): DriverPlan {
   return value === "pro" ? "pro" : "free";
 }
-
 
 /** Offre du chauffeur connecté. */
 export function useMyPlan() {
@@ -136,21 +131,6 @@ export function useMyPlan() {
     },
   });
   return { ...query, plan: query.data?.plan ?? "free", isPro: query.data?.plan === "pro" };
-}
-
-/** Le chauffeur choisi accepte-t-il les courses planifiées ? (Pro uniquement) */
-export function useDriverSupportsScheduled(driverId: string | null | undefined) {
-  return useQuery({
-    queryKey: ["driver-supports-scheduled", driverId],
-    enabled: !!driverId,
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("driver_supports_scheduled", {
-        _driver: driverId,
-      } as never);
-      if (error) throw error;
-      return Boolean(data);
-    },
-  });
 }
 
 export type TariffSettings = {

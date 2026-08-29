@@ -30,7 +30,6 @@ function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-
 /**
  * Transition de chevauchement entre les pages de l'espace client.
  * - Onglets principaux : accent vert glissant + nouvelle page en chevauchement.
@@ -72,7 +71,6 @@ export function ClientPageTransition({
     [tabIndex, tabKeys],
   );
 
-
   useLayoutEffect(() => {
     const from = previous.current;
     previous.current = pathname;
@@ -109,7 +107,11 @@ export function ClientPageTransition({
     return () => window.clearTimeout(t);
   }, [onTransitionChange, state]);
 
-  const anim = state ? (state.dir === "right" ? "client-page-in-right" : "client-page-in-left") : "";
+  const anim = state
+    ? state.dir === "right"
+      ? "client-page-in-right"
+      : "client-page-in-left"
+    : "";
 
   return (
     <div

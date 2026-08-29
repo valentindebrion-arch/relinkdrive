@@ -103,7 +103,10 @@ function BookingPreview({
   const theme = getBookingTheme(themeId);
   return (
     <div className="mx-auto w-full" style={{ maxWidth: DEVICE_WIDTH[device] }}>
-      <BookingThemeScope theme={themeId} className="overflow-hidden rounded-2xl border border-border">
+      <BookingThemeScope
+        theme={themeId}
+        className="overflow-hidden rounded-2xl border border-border"
+      >
         {/* Bandeau supérieur */}
         <div className="relative" style={{ background: theme.banner }}>
           {coverUrl ? (
@@ -305,7 +308,10 @@ function PersonalisationPage() {
   return (
     <div className="space-y-4 pb-8">
       <div className="flex items-center gap-3">
-        <Link to="/pro/profil" className="grid size-10 place-items-center rounded-xl border border-border">
+        <Link
+          to="/pro/profil"
+          className="grid size-10 place-items-center rounded-xl border border-border"
+        >
           <ArrowLeft className="size-4" />
         </Link>
         <div>
@@ -343,12 +349,15 @@ function PersonalisationPage() {
           </div>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          {(
-            [
-              { kind: "logo" as const, label: "Logo professionnel", url: logoUrl, ref: logoInput },
-              { kind: "cover" as const, label: "Photo de couverture", url: coverUrl, ref: coverInput },
-            ]
-          ).map((item) => (
+          {[
+            { kind: "logo" as const, label: "Logo professionnel", url: logoUrl, ref: logoInput },
+            {
+              kind: "cover" as const,
+              label: "Photo de couverture",
+              url: coverUrl,
+              ref: coverInput,
+            },
+          ].map((item) => (
             <div key={item.kind} className="rounded-xl border border-border p-3">
               <p className="text-sm font-medium">{item.label}</p>
               <div className="mt-2 flex items-center gap-3">
@@ -384,7 +393,9 @@ function PersonalisationPage() {
                   Choisir
                 </Button>
               </div>
-              <p className="mt-2 text-xs text-muted-foreground">PNG, JPEG ou WebP · 2 Mo maximum.</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                PNG, JPEG ou WebP · 2 Mo maximum.
+              </p>
             </div>
           ))}
         </div>
@@ -436,7 +447,9 @@ function PersonalisationPage() {
                   <div className="h-10" style={{ background: theme.banner }} />
                   <div className="space-y-2 p-3">
                     <div className="h-2 w-24 rounded-full bg-muted" />
-                    <div className="surface p-2 text-xs text-muted-foreground">Adresse de départ</div>
+                    <div className="surface p-2 text-xs text-muted-foreground">
+                      Adresse de départ
+                    </div>
                     <div className="flex h-8 items-center justify-center rounded-lg bg-primary text-xs font-semibold text-primary-foreground">
                       Demander cette course
                     </div>

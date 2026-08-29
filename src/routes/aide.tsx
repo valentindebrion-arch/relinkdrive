@@ -21,7 +21,8 @@ export const Route = createFileRoute("/aide")({
       { property: "og:title", content: `Centre d'aide — ${BRAND.name}` },
       {
         property: "og:description",
-        content: "Aide sur le logiciel Relink ; les questions liées à la course vont à votre chauffeur.",
+        content:
+          "Aide sur le logiciel Relink ; les questions liées à la course vont à votre chauffeur.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -99,7 +100,9 @@ function HelpPage() {
           {FAQ.map((item, i) => (
             <AccordionItem key={item.q} value={`q${i}`}>
               <AccordionTrigger className="text-left text-sm">{item.q}</AccordionTrigger>
-              <AccordionContent className="text-sm text-muted-foreground">{item.a}</AccordionContent>
+              <AccordionContent className="text-sm text-muted-foreground">
+                {item.a}
+              </AccordionContent>
             </AccordionItem>
           ))}
         </Accordion>
@@ -109,9 +112,8 @@ function HelpPage() {
         <h2 className="text-base font-semibold">Signaler un problème technique</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           Page inaccessible, erreur d'affichage, bouton sans effet, problème de connexion,
-          notification non reçue, réservation qui ne s'enregistre pas : l'équipe {BRAND.name}
-          {" "}intervient uniquement sur le fonctionnement du logiciel, du lundi au vendredi de 9h à
-          18h.
+          notification non reçue, réservation qui ne s'enregistre pas : l'équipe {BRAND.name}{" "}
+          intervient uniquement sur le fonctionnement du logiciel, du lundi au vendredi de 9h à 18h.
         </p>
         <a
           href="mailto:support@relink.app"
@@ -129,4 +131,3 @@ function HelpPage() {
     </div>
   );
 }
-

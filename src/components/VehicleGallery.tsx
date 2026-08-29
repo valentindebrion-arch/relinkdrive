@@ -38,7 +38,11 @@ function Slide({ photo, loading }: { photo: VehiclePhoto; loading: boolean }) {
           <span className="absolute inset-0 animate-pulse bg-muted" aria-hidden />
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-muted-foreground">
-            {failed ? <ImageOff className="size-6" aria-hidden /> : <Car className="size-6" aria-hidden />}
+            {failed ? (
+              <ImageOff className="size-6" aria-hidden />
+            ) : (
+              <Car className="size-6" aria-hidden />
+            )}
             <p className="text-[11px] font-semibold">
               {failed ? "Photo indisponible" : "Bientôt disponible"}
             </p>
@@ -75,7 +79,9 @@ export function VehicleGallery({
       {!hasAny && !loading ? (
         <p className="mt-2 text-xs text-muted-foreground">Photos du véhicule bientôt disponibles</p>
       ) : (
-        <p className="mt-2 text-xs text-muted-foreground">Faites défiler pour voir toutes les photos.</p>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Faites défiler pour voir toutes les photos.
+        </p>
       )}
     </section>
   );

@@ -222,7 +222,9 @@ export function SecuritySection() {
           onClick={() => void sendReset()}
           disabled={busy || !email}
         >
-          {hasPassword ? "Réinitialiser mon mot de passe par e-mail" : "Créer un mot de passe par e-mail"}
+          {hasPassword
+            ? "Réinitialiser mon mot de passe par e-mail"
+            : "Créer un mot de passe par e-mail"}
         </Button>
       </div>
     </section>

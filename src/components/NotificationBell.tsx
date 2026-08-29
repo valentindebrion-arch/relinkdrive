@@ -7,7 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
-
 type Notif = {
   id: string;
   title: string;
@@ -49,7 +48,6 @@ export function NotificationBell({ className }: { className?: string }) {
     },
   });
 
-
   const items = q.data ?? [];
   const unread = items.filter((n) => !n.read_at).length;
 
@@ -76,7 +74,12 @@ export function NotificationBell({ className }: { className?: string }) {
       .channel(`notifications-${user.id}-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
         () => void qc.invalidateQueries({ queryKey: ["notifications", user.id] }),
       )
       .subscribe();
@@ -122,11 +125,7 @@ export function NotificationBell({ className }: { className?: string }) {
 
   const panel = (
     <>
-      <div
-        className="notif-overlay"
-        onClick={() => setOpen(false)}
-        aria-hidden="true"
-      />
+      <div className="notif-overlay" onClick={() => setOpen(false)} aria-hidden="true" />
       <div
         ref={panelRef}
         role="dialog"
@@ -213,7 +212,10 @@ export function NotificationBell({ className }: { className?: string }) {
       >
         <Bell className={cn("size-5", ring && "bell-ring")} />
         {unread > 0 ? (
-          <span key={unread} className="badge-pop absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+          <span
+            key={unread}
+            className="badge-pop absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground"
+          >
             {unread > 9 ? "9+" : unread}
           </span>
         ) : null}
@@ -221,6 +223,5 @@ export function NotificationBell({ className }: { className?: string }) {
 
       {open && mounted ? createPortal(panel, document.body) : null}
     </div>
-
   );
 }

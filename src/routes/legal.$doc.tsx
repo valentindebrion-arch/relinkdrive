@@ -105,7 +105,9 @@ const DOCS: Record<string, Doc> = {
     sections: [
       {
         heading: "Éditeur",
-        body: ["Relink — logiciel de gestion pour chauffeurs indépendants, structure en cours de constitution. Contact : contact@relink.app"],
+        body: [
+          "Relink — logiciel de gestion pour chauffeurs indépendants, structure en cours de constitution. Contact : contact@relink.app",
+        ],
       },
       {
         heading: "Hébergement",

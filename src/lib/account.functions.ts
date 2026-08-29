@@ -46,7 +46,6 @@ export const updateMyProfile = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
-
 /** Enregistre une adresse personnelle du client connecté. */
 export const saveMyAddress = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -96,9 +95,7 @@ export const requestAccountDeletion = createServerFn({ method: "POST" })
       .from("user_roles")
       .select("role")
       .eq("user_id", context.userId);
-    const isPrivileged = (roles ?? []).some(
-      (r) => r.role === "admin" || r.role === "superadmin",
-    );
+    const isPrivileged = (roles ?? []).some((r) => r.role === "admin" || r.role === "superadmin");
     if (isPrivileged) {
       throw new Error("Un compte d'administration ne peut pas être supprimé depuis l'application.");
     }

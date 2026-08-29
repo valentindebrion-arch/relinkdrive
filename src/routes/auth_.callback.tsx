@@ -22,7 +22,8 @@ export const Route = createFileRoute("/auth_/callback")({
 
 const MESSAGES: Record<string, string> = {
   access_denied: "Connexion Google annulée. Vous pouvez réessayer ou utiliser votre e-mail.",
-  no_email: "Aucune adresse e-mail n'a été transmise par Google. Utilisez une autre méthode de connexion.",
+  no_email:
+    "Aucune adresse e-mail n'a été transmise par Google. Utilisez une autre méthode de connexion.",
   invalid: "Le lien de connexion est invalide ou expiré. Merci de recommencer.",
   email_exists:
     "Un compte existe déjà avec cette adresse e-mail. Connectez-vous avec votre méthode habituelle pour associer Google à votre compte.",
@@ -51,7 +52,8 @@ function CallbackPage() {
 
       if (oauthError) {
         if (/denied|cancel/i.test(oauthError)) return setError(MESSAGES["access_denied"]!);
-        if (/email/i.test(desc) && /exist|registered/i.test(desc)) return setError(MESSAGES["email_exists"]!);
+        if (/email/i.test(desc) && /exist|registered/i.test(desc))
+          return setError(MESSAGES["email_exists"]!);
         return setError(MESSAGES["invalid"]!);
       }
 
@@ -107,7 +109,10 @@ function CallbackPage() {
         {error ? (
           <div className="surface space-y-4 p-6">
             <p className="text-sm text-foreground">{error}</p>
-            <Button className="w-full" onClick={() => navigate({ to: "/auth", search: { mode: "signin", role: "client" } })}>
+            <Button
+              className="w-full"
+              onClick={() => navigate({ to: "/auth", search: { mode: "signin", role: "client" } })}
+            >
               Revenir à la connexion
             </Button>
           </div>
