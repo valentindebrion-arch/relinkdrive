@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, HeartHandshake } from "lucide-react";
+import { ArrowLeft, ExternalLink, HeartHandshake } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   AdminGenderCard,
   AdminHistoryCard,
@@ -11,6 +12,7 @@ import {
 import {
   AdminDriverHoursCard,
   AdminDriverIdentityCard,
+  AdminDriverServicesCard,
   AdminDriverShowcaseCard,
   AdminDriverTariffCard,
 } from "@/components/admin/AdminDriverEditor";
@@ -112,6 +114,31 @@ function WomenProgramCard({ driverId }: { driverId: string }) {
   );
 }
 
+/** Raccourci vers la vitrine publique réellement servie aux clients. */
+function PublicShowcaseLink({ driverId }: { driverId: string }) {
+  const { data } = useQuery({
+    queryKey: ["admin", "driver-slug", driverId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("driver_profiles")
+        .select("slug")
+        .eq("user_id", driverId)
+        .maybeSingle();
+      return data;
+    },
+  });
+  if (!data?.slug) return null;
+  return (
+    <div className="mb-4">
+      <Button asChild size="sm" variant="outline">
+        <Link to="/chauffeur/$slug" params={{ slug: data.slug }} target="_blank">
+          <ExternalLink className="size-4" /> Voir la vitrine publique
+        </Link>
+      </Button>
+    </div>
+  );
+}
+
 function DossierDetailPage() {
   const { driverId } = Route.useParams();
   return (
@@ -122,10 +149,12 @@ function DossierDetailPage() {
       >
         <ArrowLeft className="size-4" /> Chauffeurs
       </Link>
+      <PublicShowcaseLink driverId={driverId} />
       <SubscriptionAdminCard driverId={driverId} />
       <AdminDriverIdentityCard driverId={driverId} />
       <AdminGenderCard userId={driverId} />
       <AdminDriverShowcaseCard driverId={driverId} />
+      <AdminDriverServicesCard driverId={driverId} />
       <AdminDriverHoursCard driverId={driverId} />
       <AdminDriverTariffCard driverId={driverId} />
       <DriverActivityCard driverId={driverId} />

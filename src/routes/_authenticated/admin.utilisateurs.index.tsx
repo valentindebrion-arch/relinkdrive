@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -34,7 +34,14 @@ const ROLE_LABELS: Record<string, string> = {
 
 function AdminUsers() {
   const qc = useQueryClient();
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(() =>
+    typeof window === "undefined" ? "" : (sessionStorage.getItem("admin-users-search") ?? ""),
+  );
+
+  function updateSearch(value: string) {
+    setSearch(value);
+    if (typeof window !== "undefined") sessionStorage.setItem("admin-users-search", value);
+  }
 
   const { data: users, isLoading } = useQuery({
     queryKey: ["admin", "users"],
@@ -86,7 +93,7 @@ function AdminUsers() {
       <Input
         placeholder="Rechercher un nom, un e-mail, un téléphone…"
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) => updateSearch(e.target.value)}
         className="mb-4 max-w-sm"
       />
 
@@ -99,11 +106,15 @@ function AdminUsers() {
           {filtered.map((u) => (
             <div
               key={u.id}
-              className="surface flex flex-wrap items-center justify-between gap-3 p-4"
+              className="surface flex flex-wrap items-center justify-between gap-3 p-4 transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
             >
-              <div>
+              <Link
+                to="/admin/utilisateurs/$clientId"
+                params={{ clientId: u.id }}
+                className="min-w-0 flex-1 cursor-pointer rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
                 <p className="font-medium">{u.full_name || "Sans nom"}</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="truncate text-sm text-muted-foreground">
                   {u.email ?? "—"} · {u.phone ?? "—"} · inscrit le {formatDate(u.created_at)}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -111,7 +122,7 @@ function AdminUsers() {
                     ? u.roles.map((r) => ROLE_LABELS[r] ?? r).join(", ")
                     : "Aucun rôle"}
                 </p>
-              </div>
+              </Link>
               <div className="flex flex-wrap items-center gap-2">
                 <StatusBadge status={u.status} labels={STATUS_LABELS} />
                 {ACCOUNT_STATUSES.filter((s) => s !== u.status).map((s) => (
@@ -119,7 +130,11 @@ function AdminUsers() {
                     key={s}
                     size="sm"
                     variant={s === "active" ? "outline" : "ghost"}
-                    onClick={() => setStatus.mutate({ id: u.id, status: s })}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setStatus.mutate({ id: u.id, status: s });
+                    }}
                   >
                     {STATUS_LABELS[s]}
                   </Button>
