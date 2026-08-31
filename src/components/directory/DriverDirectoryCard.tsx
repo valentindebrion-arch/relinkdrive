@@ -3,6 +3,8 @@ import { ShieldCheck, MapPin, Users, Car, Sparkles } from "lucide-react";
 import { serviceLabel, categoryLabel } from "@/lib/showcase";
 import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { cn } from "@/lib/utils";
+import { driverAccentVars } from "@/lib/booking-themes";
+import type { CSSProperties } from "react";
 
 export type DirectoryDriver = {
   user_id: string;
@@ -23,7 +25,14 @@ export type DirectoryDriver = {
   woman_for_woman: boolean | null;
 };
 
-export function DriverDirectoryCard({ driver }: { driver: DirectoryDriver }) {
+export function DriverDirectoryCard({
+  driver,
+  theme,
+}: {
+  driver: DirectoryDriver;
+  /** Identité visuelle choisie par le chauffeur (accents uniquement). */
+  theme?: string | null;
+}) {
   const services = (driver.services ?? []).slice(0, 3);
   const vehicle = [driver.vehicle_brand, driver.vehicle_model].filter(Boolean).join(" ");
   const category = categoryLabel(driver.vehicle_category);
@@ -32,6 +41,7 @@ export function DriverDirectoryCard({ driver }: { driver: DirectoryDriver }) {
     <Link
       to="/chauffeur/$slug"
       params={{ slug: driver.slug ?? "" }}
+      style={driverAccentVars(theme) as CSSProperties}
       className={cn(
         "surface group flex min-w-0 flex-col overflow-hidden transition-shadow hover:shadow-md",
         driver.woman_for_woman ? "border-[var(--wfw-border,var(--border))]" : "",
