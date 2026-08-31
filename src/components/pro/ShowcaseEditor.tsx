@@ -34,6 +34,14 @@ import { DEPARTMENT_NAMES } from "@/lib/departments";
 import { LANGUAGES, SERVICES, VEHICLE_CATEGORIES } from "@/lib/showcase";
 import { showcaseCompletion, showcaseFromOwnRows } from "@/lib/showcase-model";
 import { BRAND } from "@/lib/brand";
+import {
+  DEFAULT_BOOKING_THEME,
+  DRIVER_THEME_OPTIONS,
+  DRIVER_THEME_SHORT_LABEL,
+  normalizeBookingTheme,
+  type BookingThemeId,
+} from "@/lib/booking-themes";
+import { BookingThemeScope } from "@/components/BookingThemeScope";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -87,6 +95,7 @@ const SECTION_TITLES: Record<SectionKey, string> = {
 };
 
 type Draft = {
+  booking_theme: BookingThemeId;
   full_name: string;
   public_intro: string;
   city: string;
@@ -150,6 +159,7 @@ const numOrNull = (v: string) => {
 };
 
 const EMPTY_DRAFT: Draft = {
+  booking_theme: DEFAULT_BOOKING_THEME,
   full_name: "",
   public_intro: "",
   city: "",
@@ -236,6 +246,7 @@ export function ShowcaseEditor() {
     const v = (vehicle.data ?? {}) as Record<string, unknown>;
     const t = (tariff.data ?? {}) as Record<string, unknown>;
     const next: Draft = {
+      booking_theme: normalizeBookingTheme(d["booking_theme"]),
       full_name: profile?.full_name ?? "",
       public_intro: (d["public_intro"] as string) ?? "",
       city: (d["city"] as string) ?? "",
@@ -381,6 +392,7 @@ export function ShowcaseEditor() {
     const { error: driverError } = await supabase
       .from("driver_profiles")
       .update({
+        booking_theme: draft.booking_theme,
         public_intro: draft.public_intro || null,
         city: draft.city || null,
         zone: draft.zone || null,
