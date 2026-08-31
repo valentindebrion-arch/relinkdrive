@@ -26,3 +26,14 @@ export async function disableLegacyPush(): Promise<void> {
     /* nettoyage best-effort */
   }
 }
+
+/** Géolocalisation navigateur (indépendante des notifications). */
+export async function requestLocation(): Promise<GeolocationPosition> {
+  return new Promise((resolve, reject) => {
+    if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
+      reject(new Error("Géolocalisation indisponible sur cet appareil"));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
+  });
+}

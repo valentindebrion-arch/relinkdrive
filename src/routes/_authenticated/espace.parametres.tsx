@@ -8,7 +8,6 @@ import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { requestLocation } from "@/lib/push";
-import { PushSettingsCard } from "@/components/PushSettingsCard";
 import { PersonalInfoSection } from "@/components/client/PersonalInfoSection";
 import { SecuritySection } from "@/components/client/SecuritySection";
 import { SupportSection } from "@/components/client/SupportSection";
@@ -152,7 +151,6 @@ function ClientProfile() {
         <h2 className="text-base font-semibold">Préférences</h2>
 
         <div className="mt-3">
-          <PushSettingsCard audience="client" />
         </div>
 
         <div className="mt-4 flex items-start justify-between gap-4 border-t border-border pt-4">
