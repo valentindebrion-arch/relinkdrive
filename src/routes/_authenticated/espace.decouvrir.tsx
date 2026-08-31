@@ -196,7 +196,7 @@ function DiscoverPage() {
           departmentLabelText={depName}
           scope={effectiveScope}
           hasOthers={all.length > 0}
-          onReset={() => setFilter("all")}
+          onSwitch={() => setFilter(filter === "van" ? "sedan" : "van")}
           onShowAll={() => setScope("all")}
         />
       ) : (
