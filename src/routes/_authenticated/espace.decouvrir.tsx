@@ -85,6 +85,7 @@ function DiscoverPage() {
       [filtered],
     ),
   );
+  const themes = useDriverThemes(filtered.map((d) => d.user_id));
   const photoOf = (d: LocalDriver) =>
     d.vehicle_photo_url ? (photos.data?.[d.vehicle_photo_url] ?? null) : null;
 

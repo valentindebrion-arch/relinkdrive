@@ -77,6 +77,7 @@ function DirectoryPage() {
       })),
     [rawList, photos.data],
   );
+  const themes = useDriverThemes(rawList.map((d) => d.user_id));
   const hasFilters = !!(service || category || minPassengers || language);
 
   return (
