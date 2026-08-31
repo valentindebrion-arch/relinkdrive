@@ -464,7 +464,11 @@ export function ShowcaseEditor() {
     }
     setBaseline(draft);
     setSavedAt(Date.now());
-    toast.success("Votre vitrine a été mise à jour");
+    toast.success(
+      draft.booking_theme !== baseline.booking_theme
+        ? "✓ Votre style a été mis à jour"
+        : "Votre vitrine a été mise à jour",
+    );
     await refresh();
     void qc.invalidateQueries({ queryKey: ["driver-profile"] });
     void qc.invalidateQueries({ queryKey: ["my-vehicle"] });
