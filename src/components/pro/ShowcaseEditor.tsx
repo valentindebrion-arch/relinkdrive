@@ -801,9 +801,12 @@ export function ShowcaseEditor() {
             </p>
           )}
         </section>
+      </BookingThemeScope>
 
+      <div className="mt-3 space-y-3">
         {/* Visibilité */}
         {editing ? (
+
           <section className="surface p-5">
             <h2 className="text-base font-semibold">Ma visibilité · 30 derniers jours</h2>
             <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
