@@ -6,7 +6,17 @@
  * `onEdit`, le rendu est strictement public. Avec `onEdit`, un crayon discret
  * apparaît et les blocs vides deviennent des emplacements « + Ajouter … ».
  */
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import {
+  DAY_LABELS,
+  formatSlots,
+  hasWorkingHours,
+  isWithinWorkingHours,
+  nextOpeningLabel,
+  todaySlots,
+  WORKING_HOURS_DISCLAIMER,
+  type WorkingDay,
+} from "@/lib/working-hours";
 import {
   BadgeCheck,
   Briefcase,
@@ -603,6 +613,82 @@ export function ShowcaseLinksSection({
           </Button>
         ))}
       </div>
+    </ShowcaseSection>
+  );
+}
+
+/* ---------------------------------------------------------------- horaires */
+
+/**
+ * Horaires habituels de travail du chauffeur.
+ *
+ * Le badge « Disponible actuellement » est calculé automatiquement à partir de
+ * ces horaires (fuseau France métropolitaine) : il n'existe plus aucun statut
+ * manuel « Disponible / Indisponible ». Ces horaires ne garantissent pas que le
+ * chauffeur soit libre immédiatement.
+ */
+export function ShowcaseHours({
+  week,
+  onEdit,
+}: {
+  week: WorkingDay[];
+  onEdit?: (() => void) | undefined;
+}) {
+  const [openAll, setOpenAll] = useState(false);
+  const filled = hasWorkingHours(week);
+  const today = todaySlots(week);
+  const availableNow = isWithinWorkingHours(week);
+  const nextLabel = !availableNow ? nextOpeningLabel(week) : null;
+
+  return (
+    <ShowcaseSection
+      id="hours"
+      title="Mes horaires"
+      onEdit={onEdit}
+      isEmpty={!filled}
+      emptyHint="Indiquez vos horaires habituels de travail : ils permettent à vos clients de savoir quand vous joindre."
+      emptyCta="Ajouter mes horaires"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground">Aujourd'hui</p>
+          <p className="text-base font-semibold">{formatSlots(today)}</p>
+        </div>
+        {availableNow ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--driver-primary-soft,var(--accent))] px-3 py-1 text-xs font-bold text-[color:var(--driver-text-accent,var(--primary))]">
+            <span
+              className="size-1.5 rounded-full bg-[var(--driver-primary,var(--primary))]"
+              aria-hidden
+            />
+            Disponible actuellement
+          </span>
+        ) : nextLabel ? (
+          <span className="text-xs font-semibold text-muted-foreground">{nextLabel}</span>
+        ) : null}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setOpenAll((v) => !v)}
+        className="tap-active mt-3 text-sm font-semibold text-[color:var(--driver-text-accent,var(--primary))]"
+      >
+        {openAll ? "Masquer les horaires" : "Voir tous les horaires"}
+      </button>
+
+      {openAll ? (
+        <ul className="mt-2 divide-y divide-border rounded-xl border border-border">
+          {week.map((d) => (
+            <li key={d.day} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+              <span className="text-muted-foreground">{DAY_LABELS[d.day]}</span>
+              <span className="font-semibold">
+                {d.enabled ? formatSlots(d.slots.filter((s) => s.start && s.end)) : "Fermé"}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      <p className="mt-3 text-xs text-muted-foreground">{WORKING_HOURS_DISCLAIMER}</p>
     </ShowcaseSection>
   );
 }
