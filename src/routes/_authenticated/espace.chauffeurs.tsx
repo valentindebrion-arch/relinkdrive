@@ -376,7 +376,7 @@ function ClientDrivers() {
                           e.stopPropagation();
                           setToRemove({ id: d.id, name: d.name });
                         }}
-                        className="inline-flex shrink-0 items-center gap-1 text-[11px] font-bold text-muted-foreground underline underline-offset-4 transition hover:text-destructive"
+                        className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-[color:var(--driver-border,var(--border))] bg-[var(--driver-primary-soft,var(--accent))] px-2.5 py-1.5 text-[11px] font-bold text-[color:var(--driver-text-accent,var(--accent-foreground))] transition hover:brightness-95"
                       >
                         <UserMinus className="size-3.5" aria-hidden /> Retirer
                       </button>
