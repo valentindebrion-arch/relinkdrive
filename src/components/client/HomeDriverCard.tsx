@@ -13,8 +13,10 @@ export type HomeCardDriver = {
   frontPhotoUrl?: string | null;
   ratingAvg: number | null;
   ratingCount: number;
-  trips: number;
+  /** Calculé à partir des horaires habituels du chauffeur (aucun statut manuel). */
   available: boolean;
+  /** Indication sobre hors horaires (« Disponible à partir de 8h »). */
+  availabilityHint?: string | null;
   slug: string | null;
 };
 
@@ -139,6 +141,10 @@ export function HomeDriverCard({
                 <span className="status-dot-pulse size-1.5 rounded-full bg-primary" aria-hidden />
                 Disponible
               </span>
+            ) : driver?.availabilityHint ? (
+              <span className="absolute top-3 right-3 rounded-full bg-card/85 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground shadow-sm backdrop-blur">
+                {driver.availabilityHint}
+              </span>
             ) : null}
 
             {multiple ? (
@@ -196,11 +202,6 @@ export function HomeDriverCard({
                     ) : (
                       <span className="text-muted-foreground">Pas encore d'avis</span>
                     )}
-                    {driver.trips > 0 ? (
-                      <span className="text-muted-foreground">
-                        {driver.trips} trajet{driver.trips > 1 ? "s" : ""} ensemble
-                      </span>
-                    ) : null}
                   </div>
                 </div>
                 {driver.slug ? (
