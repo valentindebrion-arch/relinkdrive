@@ -53,7 +53,7 @@ const PREMIUM_COUNT = 3;
 function DiscoverPage() {
   const { user } = useAuth();
   const { sector, department, detecting, error, detect, setManual } = useClientSector();
-  const [filter, setFilter] = useState<VehicleFilter>("all");
+  const [filter, setFilter] = useState<VehicleFilter>("sedan");
   const [pickerOpen, setPickerOpen] = useState(false);
   const [scope, setScope] = useState<Scope>("department");
 
