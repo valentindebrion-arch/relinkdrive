@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Compass, QrCode, Users } from "lucide-react";
+import { Calculator, Compass, QrCode } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { useAuth } from "@/lib/auth";
@@ -15,6 +15,12 @@ import {
   type VehicleFactsData,
 } from "@/components/client/VehicleFacts";
 import { useSignedUrls } from "@/lib/storage";
+import {
+  isWithinWorkingHours,
+  nextOpeningLabel,
+  parseWorkingHours,
+  type WorkingDay,
+} from "@/lib/working-hours";
 import emptyDriverStateAsset from "@/assets/empty-driver-state.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/espace/")({
@@ -26,6 +32,8 @@ type HomeDriver = HomeCardDriver & {
   frontPhotoPath: string | null;
   exteriorPhotoPath: string | null;
   vehiclePhotoVersion: string | null;
+  /** Horaires habituels du chauffeur : ils déterminent le badge « Disponible ». */
+  hours: WorkingDay[];
   facts: VehicleFactsData;
 };
 
@@ -62,11 +70,18 @@ function ClientHome() {
       const ids = (conns ?? []).map((c) => c.driver_id);
       let drivers: HomeDriver[] = [];
       if (ids.length) {
-        const [{ data: profiles }, { data: dprofiles }, { data: vehicles }] = await Promise.all([
-          fetchConnectedProfiles(ids).then((d) => ({ data: d })),
-          supabase.rpc("get_connected_driver_profiles"),
-          supabase.from("vehicles").select("*").in("driver_id", ids),
-        ]);
+        const [{ data: profiles }, { data: dprofiles }, { data: vehicles }, { data: hours }] =
+          await Promise.all([
+            fetchConnectedProfiles(ids).then((d) => ({ data: d })),
+            supabase.rpc("get_connected_driver_profiles"),
+            supabase.from("vehicles").select("*").in("driver_id", ids),
+            (
+              supabase.rpc as unknown as (
+                fn: string,
+                args: Record<string, unknown>,
+              ) => Promise<{ data: { user_id: string; working_hours: unknown }[] | null }>
+            )("get_driver_working_hours", { _ids: ids }),
+          ]);
 
         drivers = ids.map((id) => {
           const profile = (profiles ?? []).find((p) => p.id === id);
@@ -78,7 +93,7 @@ function ClientHome() {
             id,
             name: dp?.business_name || profile?.full_name || "Chauffeur",
             avatarUrl: profile?.avatar_url ?? null,
-            available: true,
+            available: false,
             vehicle: car ? [car.brand, car.model].filter(Boolean).join(" ") || null : null,
             vehiclePhotoUrl: null,
             ratingAvg: null,
@@ -89,6 +104,9 @@ function ClientHome() {
             frontPhotoPath: car?.photo_front_url ?? null,
             exteriorPhotoPath: car?.photo_url ?? null,
             vehiclePhotoVersion: car?.updated_at ?? null,
+            hours: parseWorkingHours(
+              (hours ?? []).find((h) => h.user_id === id)?.working_hours ?? null,
+            ),
             facts: {
               vehicleId: car?.id ?? null,
               exteriorPhotoPath: car?.photo_url ?? null,
@@ -152,6 +170,9 @@ function ClientHome() {
         const exteriorUrl = d.exteriorPhotoPath ? (photoUrls?.[d.exteriorPhotoPath] ?? null) : null;
         return {
           ...d,
+          // Disponibilité déduite uniquement des horaires renseignés.
+          available: isWithinWorkingHours(d.hours),
+          availabilityHint: nextOpeningLabel(d.hours),
           vehiclePhotoUrl: d.vehiclePhotoPath ? (photoUrls?.[d.vehiclePhotoPath] ?? null) : null,
           frontPhotoUrl: d.frontPhotoPath ? (photoUrls?.[d.frontPhotoPath] ?? null) : null,
           exteriorPhotoUrl: exteriorUrl,
@@ -284,12 +305,18 @@ function ClientHome() {
                   </Link>
                 </DriverThemeScope>
               ) : null}
-              <Link
-                to="/espace/chauffeurs"
-                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-primary/35 bg-card px-3 text-[14px] font-bold text-primary transition active:scale-[0.985]"
-              >
-                <Users className="size-4" /> Tous mes chauffeurs ({connectionsCount})
-              </Link>
+              {selectedDriver?.slug ? (
+                <DriverThemeScope theme={selectedTheme}>
+                  <Link
+                    to="/chauffeur/$slug"
+                    params={{ slug: selectedDriver.slug }}
+                    hash="estimation"
+                    className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border-2 border-[var(--driver-primary,var(--primary))] bg-[var(--driver-primary-soft,var(--card))] px-3 text-[14px] font-bold text-[color:var(--driver-text-accent,var(--primary))] transition active:scale-[0.985]"
+                  >
+                    <Calculator className="size-4" /> Estimer un trajet
+                  </Link>
+                </DriverThemeScope>
+              ) : null}
             </>
           )}
         </section>
