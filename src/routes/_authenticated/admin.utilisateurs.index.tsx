@@ -9,7 +9,7 @@ import { formatDate } from "@/lib/labels";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export const Route = createFileRoute("/_authenticated/admin/utilisateurs")({
+export const Route = createFileRoute("/_authenticated/admin/utilisateurs/")({
   component: AdminUsers,
 });
 
