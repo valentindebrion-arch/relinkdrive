@@ -36,8 +36,6 @@ import { showcaseCompletion, showcaseFromOwnRows } from "@/lib/showcase-model";
 import { BRAND } from "@/lib/brand";
 import {
   DEFAULT_BOOKING_THEME,
-  DRIVER_THEME_OPTIONS,
-  DRIVER_THEME_SHORT_LABEL,
   normalizeBookingTheme,
   type BookingThemeId,
 } from "@/lib/booking-themes";
