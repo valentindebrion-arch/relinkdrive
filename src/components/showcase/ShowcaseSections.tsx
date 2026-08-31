@@ -451,8 +451,8 @@ export function ShowcaseTariffs({
         ) : null}
       </ul>
       <p className="mt-3 text-xs text-muted-foreground">
-        L'estimation affichée au client est une fourchette indicative. Le tarif définitif se convient
-        directement entre vous et votre client.
+        L'estimation affichée au client est une fourchette indicative. Le tarif définitif se
+        convient directement entre vous et votre client.
       </p>
       {locked && lockedHint ? (
         <p className="mt-2 rounded-xl bg-muted/60 px-3 py-2 text-xs text-muted-foreground">

@@ -224,7 +224,10 @@ export function ShowcaseEditor() {
     },
   });
 
-  const dirty = useMemo(() => JSON.stringify(draft) !== JSON.stringify(baseline), [draft, baseline]);
+  const dirty = useMemo(
+    () => JSON.stringify(draft) !== JSON.stringify(baseline),
+    [draft, baseline],
+  );
 
   // Chargement initial : le brouillon reflète exactement les données publiées.
   useEffect(() => {
@@ -400,13 +403,7 @@ export function ShowcaseEditor() {
       .eq("user_id", user.id);
 
     let vehicleError: { message: string } | null = null;
-    if (
-      draft.brand ||
-      draft.model ||
-      draft.category ||
-      draft.max_passengers ||
-      vehicle.data?.id
-    ) {
+    if (draft.brand || draft.model || draft.category || draft.max_passengers || vehicle.data?.id) {
       try {
         const vehicleId = await ensureVehicleRowId(user.id);
         const passengers = numOrNull(draft.max_passengers);
@@ -585,7 +582,9 @@ export function ShowcaseEditor() {
   const edit = (key: SectionKey) => (editing ? open(key) : undefined);
 
   function scrollToSection(id: string) {
-    document.getElementById(`vitrine-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document
+      .getElementById(`vitrine-${id}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   async function share() {
@@ -796,21 +795,13 @@ export function ShowcaseEditor() {
           <section className="surface p-5">
             <h2 className="text-base font-semibold">Ma visibilité · 30 derniers jours</h2>
             <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <MiniStat
-                icon={Eye}
-                label="Vues"
-                value={Number(stats.data?.profile_views ?? 0)}
-              />
+              <MiniStat icon={Eye} label="Vues" value={Number(stats.data?.profile_views ?? 0)} />
               <MiniStat
                 icon={ShieldCheck}
                 label="Apparitions"
                 value={Number(stats.data?.search_appearances ?? 0)}
               />
-              <MiniStat
-                icon={Heart}
-                label="Ajouts"
-                value={Number(stats.data?.network_adds ?? 0)}
-              />
+              <MiniStat icon={Heart} label="Ajouts" value={Number(stats.data?.network_adds ?? 0)} />
               <MiniStat
                 icon={MousePointerClick}
                 label="Clics contact"
@@ -894,16 +885,10 @@ export function ShowcaseEditor() {
                 onToggle={(code) => toggleIn("service_departments", code)}
               >
                 <Field label="Gares desservies (séparées par des virgules)">
-                  <Input
-                    value={draft.stations}
-                    onChange={(e) => set("stations", e.target.value)}
-                  />
+                  <Input value={draft.stations} onChange={(e) => set("stations", e.target.value)} />
                 </Field>
                 <Field label="Aéroports desservis (séparés par des virgules)">
-                  <Input
-                    value={draft.airports}
-                    onChange={(e) => set("airports", e.target.value)}
-                  />
+                  <Input value={draft.airports} onChange={(e) => set("airports", e.target.value)} />
                 </Field>
                 <ToggleRow
                   label="Je propose la longue distance"
