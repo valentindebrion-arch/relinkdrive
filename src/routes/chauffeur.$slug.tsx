@@ -37,7 +37,18 @@ import { useAuth } from "@/lib/auth";
 import { useSignedUrl } from "@/lib/storage";
 import { VehicleShowcase } from "@/components/VehicleShowcase";
 import { TripEstimator } from "@/components/driver/TripEstimator";
-import { serviceLabel } from "@/lib/showcase";
+import { useDisplayAvatar } from "@/components/AvatarPhoto";
+import { showcaseFromPublicRow, vehicleTitle } from "@/lib/showcase-model";
+import {
+  ShowcaseAbout,
+  ShowcaseContactSection,
+  ShowcaseHeader,
+  ShowcaseLanguages,
+  ShowcaseLinksSection,
+  ShowcaseSectors,
+  ShowcaseServices,
+  ShowcaseVehicleInfo,
+} from "@/components/showcase/ShowcaseSections";
 import { prefersReducedMotion, setDriverCelebration } from "@/lib/driver-celebration";
 import { DriverAddedOverlay } from "@/components/client/DriverAddedOverlay";
 import { DriverRemovedOverlay } from "@/components/client/DriverRemovedOverlay";
