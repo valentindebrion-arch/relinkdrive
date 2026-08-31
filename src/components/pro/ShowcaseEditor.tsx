@@ -467,9 +467,15 @@ export function ShowcaseEditor() {
 
   const ACCEPTED = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
 
-  async function uploadVehiclePhoto(file: File, field: PhotoField, kind: string) {
-    if (!ACCEPTED.includes(file.type)) return toast.error("Format d'image non pris en charge.");
-    if (file.size > 8 * 1024 * 1024) return toast.error("Photo trop lourde (8 Mo maximum).");
+  async function uploadVehiclePhoto(file: File, field: PhotoField, kind: string): Promise<void> {
+    if (!ACCEPTED.includes(file.type)) {
+      toast.error("Format d'image non pris en charge.");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("Photo trop lourde (8 Mo maximum).");
+      return;
+    }
     setBusyPhoto(field);
     const previous = ((vehicle.data ?? {}) as Record<string, string | null>)[field] ?? null;
     const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
@@ -478,7 +484,8 @@ export function ShowcaseEditor() {
       vehicleId = await ensureVehicleRowId(user!.id);
     } catch {
       setBusyPhoto(null);
-      return toast.error("La photo n'a pas pu être enregistrée.");
+      toast.error("La photo n'a pas pu être enregistrée.");
+      return;
     }
     const path = `${user!.id}/vehicles/${vehicleId}/${kind}/${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage
@@ -486,16 +493,18 @@ export function ShowcaseEditor() {
       .upload(path, file, { upsert: false, contentType: file.type });
     if (error) {
       setBusyPhoto(null);
-      return toast.error("La photo n'a pas pu être enregistrée. Votre ancienne photo est conservée.");
+      toast.error("La photo n'a pas pu être enregistrée. Votre ancienne photo est conservée.");
+      return;
     }
     const { error: dbError } = await supabase
       .from("vehicles")
-      .update({ [field]: path })
+      .update({ [field]: path } as Record<PhotoField, string>)
       .eq("id", vehicleId);
     setBusyPhoto(null);
     if (dbError) {
       await supabase.storage.from("vehicles").remove([path]);
-      return toast.error("La photo n'a pas pu être enregistrée. Votre ancienne photo est conservée.");
+      toast.error("La photo n'a pas pu être enregistrée. Votre ancienne photo est conservée.");
+      return;
     }
     await qc.invalidateQueries({ queryKey: ["my-vehicle"] });
     void qc.invalidateQueries({ queryKey: ["signed-urls", "vehicles"] });
@@ -505,25 +514,34 @@ export function ShowcaseEditor() {
     toast.success("Photo enregistrée");
   }
 
-  async function removeVehiclePhoto(field: PhotoField) {
+  async function removeVehiclePhoto(field: PhotoField): Promise<void> {
     const current = ((vehicle.data ?? {}) as Record<string, string | null>)[field];
     if (!current || !vehicle.data?.id) return;
     if (!window.confirm("Supprimer définitivement cette photo ?")) return;
     setBusyPhoto(field);
     const { error } = await supabase
       .from("vehicles")
-      .update({ [field]: null })
+      .update({ [field]: null } as Record<PhotoField, null>)
       .eq("id", vehicle.data.id);
     setBusyPhoto(null);
-    if (error) return toast.error("La suppression a échoué. Votre photo est conservée.");
+    if (error) {
+      toast.error("La suppression a échoué. Votre photo est conservée.");
+      return;
+    }
     await qc.invalidateQueries({ queryKey: ["my-vehicle"] });
     await supabase.storage.from("vehicles").remove([current]);
     toast.success("Photo supprimée");
   }
 
-  async function uploadAvatar(file: File) {
-    if (!ACCEPTED.includes(file.type)) return toast.error("Format d'image non pris en charge.");
-    if (file.size > 8 * 1024 * 1024) return toast.error("Photo trop lourde (8 Mo maximum).");
+  async function uploadAvatar(file: File): Promise<void> {
+    if (!ACCEPTED.includes(file.type)) {
+      toast.error("Format d'image non pris en charge.");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("Photo trop lourde (8 Mo maximum).");
+      return;
+    }
     setBusyPhoto("avatar");
     const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
     const path = `${user!.id}/avatar/${crypto.randomUUID()}.${ext}`;
@@ -532,7 +550,8 @@ export function ShowcaseEditor() {
       .upload(path, file, { upsert: false, contentType: file.type });
     if (error) {
       setBusyPhoto(null);
-      return toast.error("La photo n'a pas pu être enregistrée.");
+      toast.error("La photo n'a pas pu être enregistrée.");
+      return;
     }
     const previous = rawAvatar && !avatarIsUrl ? rawAvatar : null;
     const { error: dbError } = await supabase
@@ -542,7 +561,8 @@ export function ShowcaseEditor() {
     setBusyPhoto(null);
     if (dbError) {
       await supabase.storage.from("avatars").remove([path]);
-      return toast.error("La photo n'a pas pu être enregistrée.");
+      toast.error("La photo n'a pas pu être enregistrée.");
+      return;
     }
     await refresh();
     if (previous) await supabase.storage.from("avatars").remove([previous]);
