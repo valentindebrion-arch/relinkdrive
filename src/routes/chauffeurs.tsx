@@ -13,7 +13,6 @@ import {
 import { SERVICES, VEHICLE_CATEGORIES, LANGUAGES } from "@/lib/showcase";
 import { EmptyState } from "@/components/Ui";
 import { useSignedUrls } from "@/lib/storage";
-import { useDriverThemes } from "@/components/DriverThemeScope";
 
 export const Route = createFileRoute("/chauffeurs")({
   head: () => ({
@@ -77,7 +76,6 @@ function DirectoryPage() {
       })),
     [rawList, photos.data],
   );
-  const themes = useDriverThemes(rawList.map((d) => d.user_id));
   const hasFilters = !!(service || category || minPassengers || language);
 
   return (
@@ -244,11 +242,7 @@ function DirectoryPage() {
               </p>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {list.map((d) => (
-                  <DriverDirectoryCard
-                    key={d.user_id}
-                    driver={d}
-                    theme={themes.data?.[d.user_id] ?? null}
-                  />
+                  <DriverDirectoryCard key={d.user_id} driver={d} />
                 ))}
               </div>
             </>

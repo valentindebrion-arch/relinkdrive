@@ -7,6 +7,7 @@ import { fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { useAuth } from "@/lib/auth";
 import { ClientTopBar } from "@/components/client/ClientTopBar";
 import { ConnectionDecor } from "@/components/client/ConnectionDecor";
+import { DriverThemeScope, useDriverThemes } from "@/components/DriverThemeScope";
 import { HomeDriverCard, type HomeCardDriver } from "@/components/client/HomeDriverCard";
 import {
   EQUIPMENT_LABELS,
@@ -178,6 +179,11 @@ function ClientHome() {
   const safeIndex = restoredIndex >= 0 ? restoredIndex : 0;
   const selectedDriver = drivers[safeIndex] ?? null;
 
+  // Exception Accueil : seuls les éléments liés au chauffeur affiché reprennent
+  // son thème. La navigation et les actions ReLink restent vertes.
+  const themes = useDriverThemes(drivers.map((d) => d.id));
+  const selectedTheme = selectedDriver ? (themes.data?.[selectedDriver.id] ?? null) : null;
+
   function goToDriver(delta: number) {
     if (drivers.length < 2 || transitioning) return;
     const nextIndex = (safeIndex + delta + drivers.length) % drivers.length;
@@ -234,7 +240,11 @@ function ClientHome() {
             </div>
           </div>
         ) : (
-          <div className="home-rise" style={{ animationDelay: "40ms" }}>
+          <DriverThemeScope
+            theme={selectedTheme}
+            className="home-rise"
+            style={{ animationDelay: "40ms" }}
+          >
             <HomeDriverCard
               drivers={drivers}
               index={safeIndex}
@@ -242,7 +252,7 @@ function ClientHome() {
               dir={dir}
               loading={data.isLoading || photosPending}
             />
-          </div>
+          </DriverThemeScope>
         )}
 
         <section className="home-rise space-y-2" style={{ animationDelay: "90ms" }}>
@@ -264,13 +274,15 @@ function ClientHome() {
           ) : (
             <>
               {selectedDriver?.slug ? (
-                <Link
-                  to="/chauffeur/$slug"
-                  params={{ slug: selectedDriver.slug }}
-                  className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-3 text-[15px] font-extrabold text-primary-foreground transition active:scale-[0.985]"
-                >
-                  Voir le profil et contacter
-                </Link>
+                <DriverThemeScope theme={selectedTheme}>
+                  <Link
+                    to="/chauffeur/$slug"
+                    params={{ slug: selectedDriver.slug }}
+                    className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--driver-primary,var(--primary))] px-3 text-[15px] font-extrabold text-[color:var(--driver-foreground,var(--primary-foreground))] transition hover:bg-[var(--driver-primary-hover,var(--primary))] active:scale-[0.985]"
+                  >
+                    Voir le profil et contacter
+                  </Link>
+                </DriverThemeScope>
               ) : null}
               <Link
                 to="/espace/chauffeurs"
@@ -283,16 +295,22 @@ function ClientHome() {
         </section>
 
         {noDriver ? null : (
-          <VehicleFacts
-            facts={selectedDriver?.facts ?? null}
-            driverSlug={selectedDriver?.slug ?? null}
-            driverKey={selectedDriver?.id ?? (data.isLoading ? "loading" : "empty")}
-            anim={
-              dir === "right" ? "driver-card-in-right" : dir === "left" ? "driver-card-in-left" : ""
-            }
-            loading={data.isLoading || photosPending}
-            locked={false}
-          />
+          <DriverThemeScope theme={selectedTheme}>
+            <VehicleFacts
+              facts={selectedDriver?.facts ?? null}
+              driverSlug={selectedDriver?.slug ?? null}
+              driverKey={selectedDriver?.id ?? (data.isLoading ? "loading" : "empty")}
+              anim={
+                dir === "right"
+                  ? "driver-card-in-right"
+                  : dir === "left"
+                    ? "driver-card-in-left"
+                    : ""
+              }
+              loading={data.isLoading || photosPending}
+              locked={false}
+            />
+          </DriverThemeScope>
         )}
       </main>
     </div>
