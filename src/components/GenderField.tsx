@@ -6,6 +6,7 @@
  * strictement déclarative : elle n'est jamais déduite d'une autre donnée.
  */
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Lock, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -56,6 +57,7 @@ export function GenderField({
   const [step, setStep] = useState<"idle" | "notice" | "choose" | "confirm">("idle");
   const [value, setValue] = useState<GenderValue | "">((gender as GenderValue | null) ?? "");
   const [busy, setBusy] = useState(false);
+  const queryClient = useQueryClient();
 
   const declared = !!gender;
   const canEdit = !declared || !correctionUsed;
@@ -69,6 +71,8 @@ export function GenderField({
       if (error) throw new Error(error.message);
       setStep("idle");
       toast.success("Sexe mis à jour");
+      // Les droits Woman for Woman changent immédiatement, sans reconnexion.
+      await queryClient.invalidateQueries();
       await onSaved();
     } catch (err) {
       toast.error(readable(err instanceof Error ? err.message : "Enregistrement impossible"));
