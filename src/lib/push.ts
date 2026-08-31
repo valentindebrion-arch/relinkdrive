@@ -1,255 +1,28 @@
+/**
+ * Le système de notifications (internes et push) a été retiré de ReLink.
+ * Ce module ne sert plus qu'à nettoyer proprement les anciens abonnements
+ * push et l'ancien service worker de notification sur les appareils.
+ */
 import { supabase } from "@/integrations/supabase/client";
 
-export const VAPID_PUBLIC_KEY =
-  "BHcRfwqeF0iMIW15lSzrZp_GxT6xLKpZVK92Qo8Q02he8JRCf7UmGd_UyrCSmIr1nGzHbNjYuJzXVzzXaKUsuy4";
+let cleaned = false;
 
-export function pushSupported(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    "serviceWorker" in navigator &&
-    "PushManager" in window &&
-    "Notification" in window
-  );
-}
+export async function disableLegacyPush(): Promise<void> {
+  if (cleaned) return;
+  cleaned = true;
+  if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
 
-/** iPhone / iPad (y compris iPadOS qui se déclare « Macintosh » avec écran tactile). */
-export function isIOS(): boolean {
-  if (typeof navigator === "undefined") return false;
-  const ua = navigator.userAgent;
-  return /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
-}
-
-/** L'app est ouverte depuis l'icône de l'écran d'accueil (mode standalone). */
-export function isStandalone(): boolean {
-  if (typeof window === "undefined") return false;
-  const iosStandalone =
-    (window.navigator as unknown as { standalone?: boolean }).standalone === true;
-  return iosStandalone || window.matchMedia("(display-mode: standalone)").matches;
-}
-
-export type PushState =
-  | "unsupported" // navigateur/appareil incompatible
-  | "ios-needs-install" // iPhone/iPad hors écran d'accueil
-  | "denied" // autorisation refusée sur ce téléphone
-  | "prompt" // autorisation pas encore demandée
-  | "enabled" // abonnement réellement enregistré côté serveur
-  | "disabled"; // autorisation accordée mais pas d'abonnement actif
-
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const raw = atob(base64);
-  const output = new Uint8Array(raw.length);
-  for (let i = 0; i < raw.length; i += 1) output[i] = raw.charCodeAt(i);
-  return output;
-}
-
-function keyToBase64(key: ArrayBuffer | null): string {
-  if (!key) return "";
-  const bytes = new Uint8Array(key);
-  let binary = "";
-  bytes.forEach((b) => {
-    binary += String.fromCharCode(b);
-  });
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-/** Version du service worker : à incrémenter à chaque modification de /sw-push.js. */
-export const SW_VERSION = "4";
-const SW_VERSION_KEY = "relink:sw-version";
-
-export async function registerPushWorker(): Promise<ServiceWorkerRegistration> {
-  // Si la version enregistrée diffère, on purge l'ancien worker avant de réenregistrer.
-  let storedVersion: string | null = null;
   try {
-    storedVersion = window.localStorage.getItem(SW_VERSION_KEY);
-  } catch {
-    storedVersion = null;
-  }
-
-  if (storedVersion !== SW_VERSION) {
-    const previous = await navigator.serviceWorker.getRegistration("/sw-push.js");
-    if (previous) await previous.unregister().catch(() => undefined);
-    try {
-      window.localStorage.setItem(SW_VERSION_KEY, SW_VERSION);
-    } catch {
-      /* stockage indisponible */
+    const registration = await navigator.serviceWorker.getRegistration("/sw-push.js");
+    if (!registration) return;
+    const sub = await registration.pushManager?.getSubscription?.();
+    if (sub) {
+      const endpoint = sub.endpoint;
+      await sub.unsubscribe().catch(() => undefined);
+      await supabase.from("push_subscriptions").delete().eq("endpoint", endpoint);
     }
-  }
-
-  const registration = await navigator.serviceWorker.register(`/sw-push.js?v=${SW_VERSION}`, {
-    scope: "/",
-  });
-  await registration.update().catch(() => undefined);
-  return registration;
-}
-
-async function currentSubscription(): Promise<PushSubscription | null> {
-  if (!pushSupported()) return null;
-  const registration = await navigator.serviceWorker.getRegistration("/sw-push.js");
-  if (!registration) return null;
-  return (await registration.pushManager.getSubscription()) ?? null;
-}
-
-/**
- * État réel des notifications pour cet appareil : on ne déclare « activées »
- * que si l'abonnement existe côté navigateur ET côté serveur.
- */
-export async function getPushState(userId: string | undefined): Promise<PushState> {
-  if (!pushSupported()) {
-    return isIOS() && !isStandalone() ? "ios-needs-install" : "unsupported";
-  }
-  if (isIOS() && !isStandalone()) return "ios-needs-install";
-  if (Notification.permission === "denied") return "denied";
-  if (Notification.permission === "default") return "prompt";
-  if (!userId) return "disabled";
-
-  const subscription = await currentSubscription();
-  if (!subscription) return "disabled";
-
-  const { data } = await supabase
-    .from("push_subscriptions")
-    .select("endpoint")
-    .eq("user_id", userId)
-    .eq("endpoint", subscription.endpoint)
-    .maybeSingle();
-
-  if (data) return "enabled";
-
-  // Abonnement local présent mais absent côté serveur : on le réenregistre
-  // plutôt que de le détruire (sinon l'appareil perd les push silencieusement).
-  try {
-    await saveSubscription(userId, subscription);
-    return "enabled";
-  } catch (error) {
-    console.warn("[push] resynchronisation impossible", error);
-    return "disabled";
-  }
-}
-
-async function saveSubscription(userId: string, subscription: PushSubscription): Promise<void> {
-  const json = subscription.toJSON() as {
-    endpoint?: string;
-    keys?: { p256dh?: string; auth?: string };
-  };
-  const p256dh = json.keys?.p256dh ?? keyToBase64(subscription.getKey("p256dh"));
-  const auth = json.keys?.auth ?? keyToBase64(subscription.getKey("auth"));
-
-  // Un appareil ne doit jamais rester rattaché à un autre compte.
-  await supabase.from("push_subscriptions").delete().eq("endpoint", subscription.endpoint);
-
-  const { error } = await supabase.from("push_subscriptions").upsert(
-    {
-      user_id: userId,
-      endpoint: subscription.endpoint,
-      p256dh,
-      auth,
-      user_agent: navigator.userAgent.slice(0, 200),
-    },
-    { onConflict: "endpoint" },
-  );
-  if (error) throw error;
-
-  const { error: profileError } = await supabase
-    .from("profiles")
-    .update({ push_enabled: true })
-    .eq("id", userId);
-  if (profileError) throw profileError;
-}
-
-/** Demande la permission, s'abonne au push et enregistre l'appareil. */
-export async function enablePush(userId: string): Promise<void> {
-  if (isIOS() && !isStandalone()) {
-    throw new Error(
-      "Ajoutez d'abord Relink à votre écran d'accueil pour activer les notifications.",
-    );
-  }
-  if (!pushSupported())
-    throw new Error("Les notifications ne sont pas supportées sur cet appareil.");
-
-  const permission = await Notification.requestPermission();
-  if (permission !== "granted")
-    throw new Error("Notifications refusées dans les réglages du navigateur.");
-
-  const registration = await registerPushWorker();
-  await navigator.serviceWorker.ready;
-
-  const existing = await registration.pushManager.getSubscription();
-  const subscription =
-    existing ??
-    (await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource,
-    }));
-
-  await saveSubscription(userId, subscription);
-}
-
-/**
- * Ouverture de l'application : sans jamais demander la permission, on remet
- * l'abonnement en état (worker à jour, abonnement recréé, ligne serveur).
- */
-export async function syncPushSubscription(userId: string): Promise<void> {
-  try {
-    if (!pushSupported()) return;
-    if (isIOS() && !isStandalone()) return;
-    if (Notification.permission !== "granted") return;
-
-    const registration = await registerPushWorker();
-    await navigator.serviceWorker.ready;
-
-    const subscription =
-      (await registration.pushManager.getSubscription()) ??
-      (await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource,
-      }));
-
-    await saveSubscription(userId, subscription);
-    console.info("[push] abonnement synchronisé");
-  } catch (error) {
-    console.warn("[push] synchronisation impossible", error);
-  }
-}
-
-export async function disablePush(userId: string): Promise<void> {
-  const subscription = await currentSubscription();
-  if (subscription) {
-    await supabase.from("push_subscriptions").delete().eq("endpoint", subscription.endpoint);
-    await subscription.unsubscribe().catch(() => undefined);
-  }
-  await supabase.from("profiles").update({ push_enabled: false }).eq("id", userId);
-}
-
-/**
- * Déconnexion : on retire l'abonnement de cet appareil pour qu'un téléphone
- * partagé ne reçoive plus les notifications du compte précédent.
- */
-export async function cleanupPushOnSignOut(): Promise<void> {
-  try {
-    const subscription = await currentSubscription();
-    if (!subscription) return;
-    await supabase.from("push_subscriptions").delete().eq("endpoint", subscription.endpoint);
-    await subscription.unsubscribe().catch(() => undefined);
+    await registration.unregister().catch(() => undefined);
   } catch {
-    /* la déconnexion ne doit jamais échouer à cause du push */
+    /* nettoyage best-effort */
   }
-}
-
-/** Demande l'accès à la position (une seule fois) pour activer le partage. */
-export async function requestLocation(): Promise<GeolocationPosition> {
-  return new Promise((resolve, reject) => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) {
-      reject(new Error("La géolocalisation n'est pas disponible sur cet appareil."));
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      resolve,
-      () => reject(new Error("Position refusée.")),
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-      },
-    );
-  });
 }
