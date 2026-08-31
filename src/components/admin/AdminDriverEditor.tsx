@@ -7,13 +7,15 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Clock, Euro, IdCard, Store } from "lucide-react";
+import { Clock, Euro, IdCard, Languages, Store } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { logAdminChange } from "@/lib/support-queries";
+import { LANGUAGES, SERVICES } from "@/lib/showcase";
+import { BOOKING_THEMES } from "@/lib/booking-themes";
 import {
   DAY_LABELS,
   parseWorkingHours,
@@ -430,6 +432,165 @@ export function AdminDriverTariffCard({ driverId }: { driverId: string }) {
         </label>
       </div>
       <Button className="mt-3 min-h-10" disabled={busy} onClick={() => void save()}>
+        Enregistrer les modifications
+      </Button>
+    </Card>
+  );
+}
+
+/**
+ * Prestations, langues, secteurs et thème de vitrine.
+ * Écrit dans `driver_profiles`, la même source que l'éditeur « Ma vitrine ».
+ */
+export function AdminDriverServicesCard({ driverId }: { driverId: string }) {
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false);
+  const [form, setForm] = useState({
+    services: [] as string[],
+    languages: [] as string[],
+    departments: "",
+    booking_theme: "relink_classic",
+    woman_for_woman: false,
+  });
+
+  const { data } = useQuery({
+    queryKey: ["admin", "driver-services", driverId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("driver_profiles")
+        .select("services, languages, service_departments, booking_theme, woman_for_woman")
+        .eq("user_id", driverId)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  useEffect(() => {
+    if (data)
+      setForm({
+        services: (data.services ?? []).slice(),
+        languages: (data.languages ?? []).slice(),
+        departments: (data.service_departments ?? []).join(", "),
+        booking_theme: data.booking_theme ?? "relink_classic",
+        woman_for_woman: Boolean(data.woman_for_woman),
+      });
+  }, [data]);
+
+  function toggle(key: "services" | "languages", value: string) {
+    setForm((f) => ({
+      ...f,
+      [key]: f[key].includes(value) ? f[key].filter((v) => v !== value) : [...f[key], value],
+    }));
+  }
+
+  async function save() {
+    setBusy(true);
+    try {
+      const departments = form.departments
+        .split(",")
+        .map((d) => d.trim().toUpperCase())
+        .filter(Boolean);
+      const { error } = await supabase
+        .from("driver_profiles")
+        .update({
+          services: form.services,
+          languages: form.languages,
+          service_departments: departments,
+          booking_theme: form.booking_theme,
+        })
+        .eq("user_id", driverId);
+      if (error) throw error;
+      await logAdminChange({
+        targetUserId: driverId,
+        action: "admin.showcase_services_update",
+        field: "driver_profiles",
+        oldValue: data,
+        newValue: { ...form, departments },
+      });
+      await qc.invalidateQueries();
+      toast.success("Informations mises à jour");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Enregistrement impossible");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card title="Prestations, langues et secteurs" icon={<Languages className="size-4 text-primary" />}>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <fieldset>
+          <legend className="text-xs font-medium text-muted-foreground">Prestations</legend>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {SERVICES.map((s) => (
+              <button
+                key={s.value}
+                type="button"
+                onClick={() => toggle("services", s.value)}
+                className={`rounded-full border px-3 py-1.5 text-xs transition ${
+                  form.services.includes(s.value)
+                    ? "border-primary bg-primary/10 font-semibold text-primary"
+                    : "border-border text-muted-foreground"
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend className="text-xs font-medium text-muted-foreground">Langues</legend>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {LANGUAGES.map((l) => (
+              <button
+                key={l}
+                type="button"
+                onClick={() => toggle("languages", l)}
+                className={`rounded-full border px-3 py-1.5 text-xs transition ${
+                  form.languages.includes(l)
+                    ? "border-primary bg-primary/10 font-semibold text-primary"
+                    : "border-border text-muted-foreground"
+                }`}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      </div>
+
+      <label className="mt-4 block text-sm">
+        Départements d'intervention (codes séparés par des virgules)
+        <Input
+          className="mt-1"
+          value={form.departments}
+          onChange={(e) => setForm({ ...form, departments: e.target.value })}
+          placeholder="75, 92, 93"
+        />
+      </label>
+
+      <label className="mt-4 block text-sm">
+        Thème de vitrine
+        <select
+          className="mt-1 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm"
+          value={form.booking_theme}
+          disabled={form.woman_for_woman}
+          onChange={(e) => setForm({ ...form, booking_theme: e.target.value })}
+        >
+          {BOOKING_THEMES.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      {form.woman_for_woman ? (
+        <p className="mt-1 text-xs text-muted-foreground">
+          Ce chauffeur est en mode Woman for Woman : le thème est imposé par le programme.
+        </p>
+      ) : null}
+
+      <Button className="mt-4 min-h-10" disabled={busy} onClick={() => void save()}>
         Enregistrer les modifications
       </Button>
     </Card>
