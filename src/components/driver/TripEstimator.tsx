@@ -11,8 +11,8 @@ import {
   Route as RouteIcon,
 } from "lucide-react";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
-import { estimateRoute, priceForKm, reverseGeocode } from "@/lib/route-estimate.functions";
-import { supabase } from "@/integrations/supabase/client";
+import { estimateDriverTrip, reverseGeocode } from "@/lib/route-estimate.functions";
+
 import { POSITIONING } from "@/lib/brand";
 
 export type TripEstimate = {
