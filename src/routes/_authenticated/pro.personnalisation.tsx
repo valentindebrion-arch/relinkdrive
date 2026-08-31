@@ -309,7 +309,7 @@ function PersonalisationPage() {
     <div className="space-y-4 pb-8">
       <div className="flex items-center gap-3">
         <Link
-          to="/pro/profil"
+          to="/pro"
           className="grid size-10 place-items-center rounded-xl border border-border"
         >
           <ArrowLeft className="size-4" />

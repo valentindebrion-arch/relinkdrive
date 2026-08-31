@@ -32,7 +32,7 @@ export function ProUpsell({ feature }: { feature?: string }) {
           ))}
         </ul>
         <Button asChild className="mt-5 w-full">
-          <Link to="/pro/profil" search={{ section: "abonnement" }}>
+          <Link to="/pro">
             Découvrir ReLink Pro
           </Link>
         </Button>
