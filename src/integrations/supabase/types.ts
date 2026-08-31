@@ -44,6 +44,8 @@ export type Database = {
           event: string
           id: string
           metadata: Json | null
+          source: string | null
+          visitor_key: string | null
         }
         Insert: {
           city?: string | null
@@ -53,6 +55,8 @@ export type Database = {
           event: string
           id?: string
           metadata?: Json | null
+          source?: string | null
+          visitor_key?: string | null
         }
         Update: {
           city?: string | null
@@ -62,6 +66,8 @@ export type Database = {
           event?: string
           id?: string
           metadata?: Json | null
+          source?: string | null
+          visitor_key?: string | null
         }
         Relationships: []
       }
@@ -1366,6 +1372,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_driver_qr_stats: { Args: { _days?: number }; Returns: Json }
       get_driver_themes: {
         Args: { _ids: string[] }
         Returns: {
@@ -1553,6 +1560,15 @@ export type Database = {
         Returns: undefined
       }
       track_driver_page_view: { Args: { _slug: string }; Returns: undefined }
+      track_driver_visit: {
+        Args: {
+          _event: string
+          _slug: string
+          _source?: string
+          _visitor_key?: string
+        }
+        Returns: undefined
+      }
       wfw_relation_allowed: {
         Args: { _client: string; _driver: string }
         Returns: boolean
