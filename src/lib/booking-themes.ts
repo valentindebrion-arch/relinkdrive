@@ -306,3 +306,46 @@ export const DEFAULT_BRANDING: DriverBranding = {
   coverPath: null,
   welcomeMessage: null,
 };
+
+/** Ordre d'affichage du sélecteur « Style de ma vitrine ». */
+export const DRIVER_THEME_ORDER: BookingThemeId[] = [
+  "relink_classic",
+  "professional_blue",
+  "dynamic_red",
+  "luxury_black_gold",
+  "women_for_women",
+];
+
+/** Libellés courts utilisés par les pastilles de prévisualisation. */
+export const DRIVER_THEME_SHORT_LABEL: Record<BookingThemeId, string> = {
+  relink_classic: "ReLink",
+  professional_blue: "Bleu",
+  dynamic_red: "Rouge",
+  luxury_black_gold: "Gold",
+  women_for_women: "Woman for Woman",
+};
+
+export const DRIVER_THEME_OPTIONS = DRIVER_THEME_ORDER.map((id) => getBookingTheme(id));
+
+/**
+ * Accents seulement : utilisé sur les cartes chauffeur (Trouver, réseau, QR).
+ * Le fond et le texte restent ceux de ReLink, seules les touches de couleur
+ * (boutons, badges, bordures, icônes) suivent l'identité du chauffeur.
+ */
+export function driverAccentVars(theme: unknown): Record<string, string> {
+  const t = getBookingTheme(theme);
+  const v = t.vars;
+  return {
+    "--driver-primary": v["--driver-primary"]!,
+    "--driver-primary-soft": v["--driver-primary-soft"]!,
+    "--driver-border": v["--driver-border"]!,
+    "--driver-background-soft": v["--driver-background-soft"]!,
+    "--driver-accent": v["--driver-accent"]!,
+    "--driver-text-accent": v["--driver-text-accent"]!,
+    "--primary": v["--primary"]!,
+    "--primary-foreground": v["--primary-foreground"]!,
+    "--accent": v["--accent"]!,
+    "--accent-foreground": v["--accent-foreground"]!,
+    "--ring": v["--ring"]!,
+  };
+}
