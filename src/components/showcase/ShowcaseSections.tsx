@@ -514,51 +514,23 @@ export function contactActions(contact: ShowcaseContact): ContactAction[] {
       external: true,
     });
   }
-  if (links.instagram)
-    out.push({
-      kind: "instagram",
-      label: "Instagram",
-      href: links.instagram,
-      icon: Instagram,
-      external: true,
-    });
-  if (links.facebook)
-    out.push({
-      kind: "facebook",
-      label: "Facebook",
-      href: links.facebook,
-      icon: Facebook,
-      external: true,
-    });
-  if (links.tiktok)
-    out.push({ kind: "tiktok", label: "TikTok", href: links.tiktok, icon: Music2, external: true });
-  if (links.linkedin)
-    out.push({
-      kind: "linkedin",
-      label: "LinkedIn",
-      href: links.linkedin,
-      icon: Linkedin,
-      external: true,
-    });
   return out;
 }
 
 export function ShowcaseContactSection({
   title,
   contact,
-  links,
   onEdit,
   onTrack,
   intro,
 }: {
   title: string;
   contact: ShowcaseContact;
-  links: ShowcaseLinks;
   onEdit?: () => void;
   onTrack?: (kind: string) => void;
   intro?: string;
 }) {
-  const actions = contactActions(contact, { ...links, instagram: null, facebook: null, tiktok: null, linkedin: null });
+  const actions = contactActions(contact);
   return (
     <ShowcaseSection
       id="contact"
