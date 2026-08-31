@@ -118,7 +118,6 @@ function ClientDrivers() {
           const car =
             (vehicles ?? []).find((v) => v.driver_id === c.driver_id && v.is_primary) ??
             (vehicles ?? []).find((v) => v.driver_id === c.driver_id);
-          const ratingAvg: number | null = null;
           return {
             id: c.driver_id,
             name: dp?.business_name || profile?.full_name || "Chauffeur",
@@ -133,8 +132,6 @@ function ClientDrivers() {
             photoPath: car?.photo_side_url ?? car?.photo_url ?? null,
             zone: dp?.city || dp?.zone || null,
             slug: dp?.slug ?? null,
-            ratingAvg,
-            ratingCount: 0,
             womanForWoman:
               (dp as { woman_for_woman?: boolean } | undefined)?.woman_for_woman ?? false,
           };

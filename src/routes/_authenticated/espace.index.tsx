@@ -96,8 +96,6 @@ function ClientHome() {
             available: false,
             vehicle: car ? [car.brand, car.model].filter(Boolean).join(" ") || null : null,
             vehiclePhotoUrl: null,
-            ratingAvg: null,
-            ratingCount: 0,
             trips: 0,
             slug: dp?.slug ?? null,
             vehiclePhotoPath: car?.photo_front_url ?? car?.photo_url ?? null,
