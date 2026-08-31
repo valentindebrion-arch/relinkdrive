@@ -59,6 +59,9 @@ function IdentityCard({ clientId }: { clientId: string }) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ full_name: "", email: "", phone: "" });
   const [emailConfirm, setEmailConfirm] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<
+    "restricted" | "suspended" | "deleted" | null
+  >(null);
   const [busy, setBusy] = useState(false);
 
   const { data: profile, isLoading } = useQuery({
@@ -66,7 +69,7 @@ function IdentityCard({ clientId }: { clientId: string }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, full_name, email, phone, status, created_at")
+        .select("id, full_name, email, phone, status, created_at, gender, gender_correction_used")
         .eq("id", clientId)
         .maybeSingle();
       if (error) throw error;
@@ -107,7 +110,7 @@ function IdentityCard({ clientId }: { clientId: string }) {
         newValue: form,
       });
       await qc.invalidateQueries();
-      toast.success("Profil mis à jour");
+      toast.success("Informations mises à jour");
       setEditing(false);
       setEmailConfirm(false);
     } catch (e) {
@@ -117,7 +120,7 @@ function IdentityCard({ clientId }: { clientId: string }) {
     }
   }
 
-  async function setStatus(status: "active" | "restricted" | "suspended") {
+  async function setStatus(status: "active" | "restricted" | "suspended" | "deleted") {
     const { error } = await supabase.from("profiles").update({ status }).eq("id", clientId);
     if (error) {
       toast.error(error.message);
@@ -139,6 +142,14 @@ function IdentityCard({ clientId }: { clientId: string }) {
 
   return (
     <>
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+          Client
+        </span>
+        <span className="rounded-full border border-border px-3 py-1 text-xs font-medium">
+          {STATUS_LABELS[profile.status] ?? profile.status}
+        </span>
+      </div>
       <PageHeader
         title={profile.full_name || "Profil client"}
         description={`Inscrit le ${formatDate(profile.created_at)}`}
@@ -211,22 +222,82 @@ function IdentityCard({ clientId }: { clientId: string }) {
               <dd>{profile.phone ?? "—"}</dd>
             </div>
             <div>
+              <dt className="text-xs text-muted-foreground">Sexe</dt>
+              <dd>
+                {profile.gender === "female"
+                  ? "Femme"
+                  : profile.gender === "male"
+                    ? "Homme"
+                    : "Non renseigné"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">Correction autonome utilisée</dt>
+              <dd>{profile.gender_correction_used ? "Oui" : "Non"}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">Date d'inscription</dt>
+              <dd>{formatDate(profile.created_at)}</dd>
+            </div>
+            <div>
               <dt className="text-xs text-muted-foreground">Statut du compte</dt>
               <dd>{STATUS_LABELS[profile.status] ?? profile.status}</dd>
             </div>
           </dl>
         )}
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          {(["active", "restricted", "suspended"] as const)
+      </section>
+
+      <section className="surface mb-4 p-5">
+        <h2 className="text-base font-semibold">Gestion du compte</h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Statut actuel : {STATUS_LABELS[profile.status] ?? profile.status}
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {(["active", "restricted", "suspended", "deleted"] as const)
             .filter((s) => s !== profile.status)
             .map((s) => (
-              <Button key={s} size="sm" variant="ghost" onClick={() => void setStatus(s)}>
+              <Button
+                key={s}
+                size="sm"
+                variant={s === "active" ? "outline" : "ghost"}
+                onClick={() => {
+                  if (s === "suspended" || s === "deleted") setPendingStatus(s);
+                  else void setStatus(s);
+                }}
+              >
                 {STATUS_LABELS[s]}
               </Button>
             ))}
         </div>
       </section>
+
+      <AlertDialog open={pendingStatus !== null} onOpenChange={(o) => !o && setPendingStatus(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingStatus === "deleted" ? "Supprimer ce compte ?" : "Suspendre ce compte ?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              L'utilisateur perdra l'accès à ReLink. Cette action est enregistrée dans l'historique
+              administratif et reste réversible depuis cette fiche.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                const next = pendingStatus;
+                setPendingStatus(null);
+                if (next) void setStatus(next);
+              }}
+            >
+              Confirmer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={emailConfirm} onOpenChange={setEmailConfirm}>
         <AlertDialogContent>
@@ -266,16 +337,31 @@ function ConnectionsCard({ clientId }: { clientId: string }) {
         .select("id, driver_id, created_at")
         .eq("client_id", clientId);
       const ids = (data ?? []).map((r) => r.driver_id);
-      if (ids.length === 0) return [] as { id: string; driver_id: string; name: string }[];
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .in("id", ids);
-      return (data ?? []).map((r) => ({
-        id: r.id,
-        driver_id: r.driver_id,
-        name: profiles?.find((p) => p.id === r.driver_id)?.full_name ?? "Chauffeur",
-      }));
+      if (ids.length === 0)
+        return [] as {
+          id: string;
+          driver_id: string;
+          name: string;
+          vehicle: string | null;
+          created_at: string;
+        }[];
+      const [{ data: profiles }, { data: vehicles }] = await Promise.all([
+        supabase.from("profiles").select("id, full_name").in("id", ids),
+        supabase.from("vehicles").select("driver_id, brand, model, is_primary").in("driver_id", ids),
+      ]);
+      return (data ?? []).map((r) => {
+        const v =
+          vehicles?.find((x) => x.driver_id === r.driver_id && x.is_primary) ??
+          vehicles?.find((x) => x.driver_id === r.driver_id);
+        const vehicle = [v?.brand, v?.model].filter(Boolean).join(" ") || null;
+        return {
+          id: r.id,
+          driver_id: r.driver_id,
+          name: profiles?.find((p) => p.id === r.driver_id)?.full_name ?? "Chauffeur",
+          vehicle,
+          created_at: r.created_at,
+        };
+      });
     },
   });
 
@@ -306,13 +392,15 @@ function ConnectionsCard({ clientId }: { clientId: string }) {
   return (
     <section className="surface mb-4 p-5">
       <h2 className="flex items-center gap-2 text-base font-semibold">
-        <Users className="size-4 text-primary" /> Chauffeurs enregistrés
+        <Users className="size-4 text-primary" /> Chauffeurs dans son réseau
       </h2>
       <p className="mt-1 text-xs text-muted-foreground">
         Information de support. Ne supprimez une relation que sur demande explicite.
       </p>
       {list.length === 0 ? (
-        <p className="mt-3 text-sm text-muted-foreground">Aucun chauffeur enregistré.</p>
+        <p className="mt-3 text-sm text-muted-foreground">
+          Aucun chauffeur ajouté pour le moment.
+        </p>
       ) : (
         <ul className="mt-3 space-y-2">
           {list.map((c) => (
@@ -320,16 +408,22 @@ function ConnectionsCard({ clientId }: { clientId: string }) {
               key={c.id}
               className="flex items-center justify-between gap-3 rounded-xl border border-border p-3 text-sm"
             >
-              <Link
-                to="/admin/chauffeurs/$driverId"
-                params={{ driverId: c.driver_id }}
-                className="truncate font-medium hover:underline"
-              >
-                {c.name}
-              </Link>
-              <Button size="sm" variant="ghost" onClick={() => setRemoving(c.id)}>
-                Retirer
-              </Button>
+              <div className="min-w-0">
+                <p className="truncate font-medium">{c.name}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {c.vehicle ?? "Véhicule non renseigné"} · ajouté le {formatDate(c.created_at)}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <Button asChild size="sm" variant="outline">
+                  <Link to="/admin/chauffeurs/$driverId" params={{ driverId: c.driver_id }}>
+                    Voir le chauffeur
+                  </Link>
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setRemoving(c.id)}>
+                  Retirer
+                </Button>
+              </div>
               <AlertDialog
                 open={removing === c.id}
                 onOpenChange={(o) => !o && setRemoving(null)}
