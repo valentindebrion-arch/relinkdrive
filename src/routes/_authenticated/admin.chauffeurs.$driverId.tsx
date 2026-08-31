@@ -1,8 +1,19 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { HeartHandshake } from "lucide-react";
+import { ArrowLeft, HeartHandshake } from "lucide-react";
+import {
+  AdminGenderCard,
+  AdminHistoryCard,
+  AdminTicketsCard,
+} from "@/components/admin/AdminSupportCards";
+import {
+  AdminDriverHoursCard,
+  AdminDriverIdentityCard,
+  AdminDriverShowcaseCard,
+  AdminDriverTariffCard,
+} from "@/components/admin/AdminDriverEditor";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Switch } from "@/components/ui/switch";
@@ -105,11 +116,24 @@ function DossierDetailPage() {
   const { driverId } = Route.useParams();
   return (
     <>
+      <Link
+        to="/admin/chauffeurs"
+        className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" /> Chauffeurs
+      </Link>
       <SubscriptionAdminCard driverId={driverId} />
+      <AdminDriverIdentityCard driverId={driverId} />
+      <AdminGenderCard userId={driverId} />
+      <AdminDriverShowcaseCard driverId={driverId} />
+      <AdminDriverHoursCard driverId={driverId} />
+      <AdminDriverTariffCard driverId={driverId} />
       <DriverActivityCard driverId={driverId} />
       <VehiclePhotosAdminCard driverId={driverId} />
       <WomenProgramCard driverId={driverId} />
       <DossierReview driverId={driverId} />
+      <AdminTicketsCard userId={driverId} />
+      <AdminHistoryCard userId={driverId} />
     </>
   );
 }

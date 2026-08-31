@@ -85,6 +85,8 @@ export type Database = {
           reason: string | null
           resource: string | null
           resource_id: string | null
+          support_ticket_id: string | null
+          target_user_id: string | null
         }
         Insert: {
           action: string
@@ -96,6 +98,8 @@ export type Database = {
           reason?: string | null
           resource?: string | null
           resource_id?: string | null
+          support_ticket_id?: string | null
+          target_user_id?: string | null
         }
         Update: {
           action?: string
@@ -107,6 +111,8 @@ export type Database = {
           reason?: string | null
           resource?: string | null
           resource_id?: string | null
+          support_ticket_id?: string | null
+          target_user_id?: string | null
         }
         Relationships: []
       }
@@ -1004,6 +1010,98 @@ export type Database = {
         }
         Relationships: []
       }
+      support_messages: {
+        Row: {
+          attachment_path: string | null
+          author_id: string | null
+          author_kind: string
+          body: string
+          created_at: string
+          id: string
+          ticket_id: string
+        }
+        Insert: {
+          attachment_path?: string | null
+          author_id?: string | null
+          author_kind: string
+          body: string
+          created_at?: string
+          id?: string
+          ticket_id: string
+        }
+        Update: {
+          attachment_path?: string | null
+          author_id?: string | null
+          author_kind?: string
+          body?: string
+          created_at?: string
+          id?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          admin_unread: boolean
+          assigned_admin: string | null
+          category: string
+          created_at: string
+          id: string
+          last_admin_reply_at: string | null
+          last_message_at: string
+          origin_path: string | null
+          status: string
+          subject: string
+          ticket_number: number
+          updated_at: string
+          user_id: string
+          user_kind: string
+          user_unread: boolean
+        }
+        Insert: {
+          admin_unread?: boolean
+          assigned_admin?: string | null
+          category: string
+          created_at?: string
+          id?: string
+          last_admin_reply_at?: string | null
+          last_message_at?: string
+          origin_path?: string | null
+          status?: string
+          subject: string
+          ticket_number?: number
+          updated_at?: string
+          user_id: string
+          user_kind?: string
+          user_unread?: boolean
+        }
+        Update: {
+          admin_unread?: boolean
+          assigned_admin?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          last_admin_reply_at?: string | null
+          last_message_at?: string
+          origin_path?: string | null
+          status?: string
+          subject?: string
+          ticket_number?: number
+          updated_at?: string
+          user_id?: string
+          user_kind?: string
+          user_unread?: boolean
+        }
+        Relationships: []
+      }
       top10_drivers: {
         Row: {
           created_at: string
@@ -1244,6 +1342,18 @@ export type Database = {
         Args: { _decision: string; _driver: string; _reason?: string }
         Returns: Json
       }
+      admin_log_change: {
+        Args: {
+          _action: string
+          _field: string
+          _new_value: Json
+          _old_value: Json
+          _reason?: string
+          _target_user_id: string
+          _ticket_id?: string
+        }
+        Returns: string
+      }
       admin_log_vehicle_photo: {
         Args: {
           _action: string
@@ -1280,6 +1390,10 @@ export type Database = {
           _reason?: string
           _restore_tariffs?: boolean
         }
+        Returns: Json
+      }
+      admin_set_user_gender: {
+        Args: { _gender: string; _ticket_id?: string; _user_id: string }
         Returns: Json
       }
       admin_validate_section: {
