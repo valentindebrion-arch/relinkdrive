@@ -415,7 +415,13 @@ function ClientDrivers() {
       </div>
 
       <AlertDialog open={!!toRemove} onOpenChange={(o) => !o && setToRemove(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent
+          style={
+            driverAccentVars(
+              toRemove ? themes.data?.[toRemove.id] : undefined,
+            ) as CSSProperties
+          }
+        >
           <AlertDialogHeader>
             <AlertDialogTitle>
               Retirer {toRemove?.name.split(" ")[0] ?? "ce chauffeur"} de vos chauffeurs ?
@@ -428,17 +434,19 @@ function ClientDrivers() {
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction
+              className={DRIVER_ACTION_BUTTON_CLASS}
               onClick={() => {
                 const target = toRemove;
                 setToRemove(null);
                 if (target) void removeDriver(target.id, target.name);
               }}
             >
-              Retirer
+              Confirmer le retrait
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
 
       <AddDriverSheet open={addOpen} onClose={() => setAddOpen(false)} />
     </div>
