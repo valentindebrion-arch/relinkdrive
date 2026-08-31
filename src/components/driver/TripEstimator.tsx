@@ -22,7 +22,9 @@ export type TripEstimate = {
   durationMin: number;
   low: number;
   high: number;
+  minimum: number | null;
 };
+
 
 function money(v: number) {
   return Math.round(v).toLocaleString("fr-FR") + " €";
