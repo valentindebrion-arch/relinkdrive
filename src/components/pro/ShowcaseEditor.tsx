@@ -687,7 +687,51 @@ export function ShowcaseEditor() {
         </button>
       ) : null}
 
-      <div className="space-y-3">
+      {/* Style de ma vitrine */}
+      {editing ? (
+        <section className="surface mb-4 p-4">
+          <h2 className="text-base font-semibold">Style de ma vitrine</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Choisissez le style de votre vitrine : il s'applique partout où votre profil apparaît.
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
+            {DRIVER_THEME_OPTIONS.map((t) => {
+              const active = draft.booking_theme === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => set("booking_theme", t.id)}
+                  aria-pressed={active}
+                  className={`tap-active flex flex-col gap-2 rounded-2xl border p-2.5 text-left transition ${
+                    active
+                      ? "border-primary bg-accent/60 shadow-sm"
+                      : "border-border hover:border-primary/40"
+                  }`}
+                >
+                  <span
+                    className="h-8 w-full rounded-lg border border-border"
+                    style={{ background: t.banner }}
+                    aria-hidden
+                  />
+                  <span className="flex items-center justify-between gap-1">
+                    <span className="text-xs font-semibold">{DRIVER_THEME_SHORT_LABEL[t.id]}</span>
+                    {active ? <Check className="size-3.5 shrink-0 text-primary" /> : null}
+                  </span>
+                  {t.id === "luxury_black_gold" ? (
+                    <span className="w-fit rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                      Premium
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
+      <BookingThemeScope theme={draft.booking_theme} className="space-y-3 rounded-3xl">
+
         <ShowcaseHeader
           data={data}
           avatarUrl={avatarUrl}
