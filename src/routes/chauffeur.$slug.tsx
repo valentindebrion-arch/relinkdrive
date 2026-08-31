@@ -330,7 +330,9 @@ function DriverPublicPage() {
   // Woman for Woman : la relation n'est possible qu'avec une cliente compatible.
   const womanForWoman = Boolean((d as { woman_for_woman?: boolean }).woman_for_woman);
   const wfwAccess = wfwClientAccess(womanForWoman, profile?.gender);
-  const wfwLocked = !isDriver && !isAdmin && wfwAccess !== "ok";
+  // Visiteur non connecté : on laisse le parcours d'inscription se faire, la
+  // compatibilité Woman for Woman est vérifiée après connexion (et côté serveur).
+  const wfwLocked = !!session && !isDriver && !isAdmin && wfwAccess !== "ok";
   const verifiedDocs: string[] = d.verified_docs ?? [];
   const memberSince = d.member_since
     ? new Date(d.member_since).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
