@@ -585,6 +585,7 @@ export type Database = {
           women_for_women_eligible: boolean
           women_for_women_verified_at: string | null
           women_for_women_verified_by: string | null
+          working_hours: Json
           zone: string | null
         }
         Insert: {
@@ -653,6 +654,7 @@ export type Database = {
           women_for_women_eligible?: boolean
           women_for_women_verified_at?: string | null
           women_for_women_verified_by?: string | null
+          working_hours?: Json
           zone?: string | null
         }
         Update: {
@@ -721,6 +723,7 @@ export type Database = {
           women_for_women_eligible?: boolean
           women_for_women_verified_at?: string | null
           women_for_women_verified_by?: string | null
+          working_hours?: Json
           zone?: string | null
         }
         Relationships: []
@@ -1392,6 +1395,13 @@ export type Database = {
           search_appearances: number
         }[]
       }
+      get_driver_working_hours: {
+        Args: { _ids: string[] }
+        Returns: {
+          user_id: string
+          working_hours: Json
+        }[]
+      }
       get_local_drivers: {
         Args: { _limit?: number; _sector?: string }
         Returns: {
@@ -1426,6 +1436,7 @@ export type Database = {
           zone: string
         }[]
       }
+      get_public_driver_hours: { Args: { _slug: string }; Returns: Json }
       get_public_driver_page: {
         Args: { _slug: string }
         Returns: {
