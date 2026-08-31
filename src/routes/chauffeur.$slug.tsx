@@ -129,10 +129,8 @@ function DriverPublicPage() {
 
   const [celebration, setCelebration] = useState<{ first: boolean } | null>(null);
 
-  const source =
-    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("src") === "qr"
-      ? "qr"
-      : "link";
+  // Origine d'acquisition : QR code, partage, découverte ReLink ou accès direct.
+  const source = currentSource();
 
   // Accès à la vitrine : Woman for Woman est un mode réservé (contrôle serveur).
   const accessQuery = useQuery({
