@@ -1,13 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Car, Check, Compass, MapPin, Plus, Search, UserMinus, Users } from "lucide-react";
+import { Car, Check, Compass, MapPin, QrCode, Search, UserMinus, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { isWithinWorkingHours, parseWorkingHours } from "@/lib/working-hours";
 import { fetchConnectedProfile, fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { useAuth } from "@/lib/auth";
-import { AddDriverSheet } from "@/components/client/AddDriverSheet";
 import { ClientTopBar } from "@/components/client/ClientTopBar";
 import { useSignedUrls } from "@/lib/storage";
 import { AvatarPhoto } from "@/components/AvatarPhoto";
@@ -48,7 +47,6 @@ function initials(name?: string | null) {
 function ClientDrivers() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [addOpen, setAddOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [wfwOnly, setWfwOnly] = useState(false);
   const queryClient = useQueryClient();
@@ -204,10 +202,10 @@ function ClientDrivers() {
 
       <button
         type="button"
-        onClick={() => setAddOpen(true)}
+        onClick={() => void navigate({ to: "/espace/scanner" })}
         className="mt-4 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary text-[15px] font-extrabold text-primary-foreground transition active:scale-[0.985]"
       >
-        <Plus className="size-5" /> Ajouter un chauffeur
+        <QrCode className="size-5" /> Ajouter un chauffeur
       </button>
 
       {list.length >= 4 ? (
@@ -442,8 +440,6 @@ function ClientDrivers() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <AddDriverSheet open={addOpen} onClose={() => setAddOpen(false)} />
     </div>
   );
 }
