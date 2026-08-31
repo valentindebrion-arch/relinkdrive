@@ -23,5 +23,12 @@ export const getMyPublicLink = createServerFn({ method: "GET" })
       /* origine par défaut */
     }
 
-    return { available: true as const, url: `${origin}/chauffeur/${data.slug}` };
+    return {
+      available: true as const,
+      slug: data.slug,
+      // Lien public partageable (source « direct » / « share »).
+      url: `${origin}/chauffeur/${data.slug}`,
+      // Lien traçable imprimé dans le QR code (source « qr »).
+      qrUrl: `${origin}/q/${data.slug}`,
+    };
   });

@@ -6,6 +6,7 @@ import { driverAccentVars, DRIVER_ACTION_BUTTON_CLASS } from "@/lib/booking-them
 import { toast } from "sonner";
 import { Check, ShieldCheck, Sparkles, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { currentSource, trackDriverVisit } from "@/lib/visit-tracking";
 import { useAuth } from "@/lib/auth";
 import { useSignedUrl } from "@/lib/storage";
 import { VehicleShowcase } from "@/components/VehicleShowcase";
@@ -129,10 +130,8 @@ function DriverPublicPage() {
 
   const [celebration, setCelebration] = useState<{ first: boolean } | null>(null);
 
-  const source =
-    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("src") === "qr"
-      ? "qr"
-      : "link";
+  // Origine d'acquisition : QR code, partage, découverte ReLink ou accès direct.
+  const source = currentSource();
 
   // Accès à la vitrine : Woman for Woman est un mode réservé (contrôle serveur).
   const accessQuery = useQuery({
@@ -180,7 +179,7 @@ function DriverPublicPage() {
 
   useEffect(() => {
     if (!d?.user_id) return;
-    void supabase.rpc("track_driver_event", { _slug: slug, _event: "driver_page_view" });
+    void trackDriverVisit(slug, "driver_page_view", source);
     // Historique « Récemment consultés » du client connecté.
     if (user?.id && user.id !== d.user_id) {
       void supabase
@@ -190,7 +189,7 @@ function DriverPublicPage() {
           { onConflict: "client_id,driver_id" },
         );
     }
-  }, [d?.user_id, slug, user?.id]);
+  }, [d?.user_id, slug, user?.id, source]);
 
   const driverId = d?.user_id;
   const driverCity = d?.city ?? null;
@@ -242,6 +241,7 @@ function DriverPublicPage() {
       driver_id: driverId,
       client_id: user.id,
       city: driverCity,
+      source,
       metadata: { source },
     });
     void connQuery.refetch();
@@ -377,7 +377,8 @@ function DriverPublicPage() {
 
   /** Statistique de visibilité : clic sur un moyen de contact. */
   function trackContact(kind: string) {
-    void supabase.rpc("track_driver_event", { _slug: slug, _event: `contact_click:${kind}` });
+    void trackDriverVisit(slug, "contact_click", source);
+    void kind;
   }
 
   async function removeFromBook() {

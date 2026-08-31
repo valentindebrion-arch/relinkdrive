@@ -24,6 +24,7 @@ import { Route as AuthCallbackRouteImport } from './routes/auth_.callback'
 import { Route as AuthConfirmRouteImport } from './routes/auth_.confirm'
 import { Route as ChauffeurSlugRouteImport } from './routes/chauffeur.$slug'
 import { Route as LegalDocRouteImport } from './routes/legal.$doc'
+import { Route as QSlugRouteImport } from './routes/q.$slug'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminInscriptionsRouteImport } from './routes/_authenticated/admin.inscriptions'
 import { Route as AuthenticatedAdminSignalementsRouteImport } from './routes/_authenticated/admin.signalements'
@@ -122,6 +123,11 @@ const ChauffeurSlugRoute = ChauffeurSlugRouteImport.update({
 const LegalDocRoute = LegalDocRouteImport.update({
   id: '/legal/$doc',
   path: '/legal/$doc',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QSlugRoute = QSlugRouteImport.update({
+  id: '/q/$slug',
+  path: '/q/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
@@ -282,6 +288,7 @@ export interface FileRoutesByFullPath {
   '/auth/confirm': typeof AuthConfirmRoute
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
   '/legal/$doc': typeof LegalDocRoute
+  '/q/$slug': typeof QSlugRoute
   '/admin/inscriptions': typeof AuthenticatedAdminInscriptionsRouteWithChildren
   '/admin/signalements': typeof AuthenticatedAdminSignalementsRoute
   '/admin/top10': typeof AuthenticatedAdminTop10Route
@@ -320,6 +327,7 @@ export interface FileRoutesByTo {
   '/auth/confirm': typeof AuthConfirmRoute
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
   '/legal/$doc': typeof LegalDocRoute
+  '/q/$slug': typeof QSlugRoute
   '/admin/signalements': typeof AuthenticatedAdminSignalementsRoute
   '/admin/top10': typeof AuthenticatedAdminTop10Route
   '/admin/utilisateurs': typeof AuthenticatedAdminUtilisateursRoute
@@ -362,6 +370,7 @@ export interface FileRoutesById {
   '/auth_/confirm': typeof AuthConfirmRoute
   '/chauffeur/$slug': typeof ChauffeurSlugRoute
   '/legal/$doc': typeof LegalDocRoute
+  '/q/$slug': typeof QSlugRoute
   '/_authenticated/admin/inscriptions': typeof AuthenticatedAdminInscriptionsRouteWithChildren
   '/_authenticated/admin/signalements': typeof AuthenticatedAdminSignalementsRoute
   '/_authenticated/admin/top10': typeof AuthenticatedAdminTop10Route
@@ -405,6 +414,7 @@ export interface FileRouteTypes {
     | '/auth/confirm'
     | '/chauffeur/$slug'
     | '/legal/$doc'
+    | '/q/$slug'
     | '/admin/inscriptions'
     | '/admin/signalements'
     | '/admin/top10'
@@ -443,6 +453,7 @@ export interface FileRouteTypes {
     | '/auth/confirm'
     | '/chauffeur/$slug'
     | '/legal/$doc'
+    | '/q/$slug'
     | '/admin/signalements'
     | '/admin/top10'
     | '/admin/utilisateurs'
@@ -484,6 +495,7 @@ export interface FileRouteTypes {
     | '/auth_/confirm'
     | '/chauffeur/$slug'
     | '/legal/$doc'
+    | '/q/$slug'
     | '/_authenticated/admin/inscriptions'
     | '/_authenticated/admin/signalements'
     | '/_authenticated/admin/top10'
@@ -524,6 +536,7 @@ export interface RootRouteChildren {
   AuthConfirmRoute: typeof AuthConfirmRoute
   ChauffeurSlugRoute: typeof ChauffeurSlugRoute
   LegalDocRoute: typeof LegalDocRoute
+  QSlugRoute: typeof QSlugRoute
   ApiPublicPushRoute: typeof ApiPublicPushRoute
 }
 
@@ -632,6 +645,13 @@ declare module '@tanstack/react-router' {
       path: '/legal/$doc'
       fullPath: '/legal/$doc'
       preLoaderRoute: typeof LegalDocRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/q/$slug': {
+      id: '/q/$slug'
+      path: '/q/$slug'
+      fullPath: '/q/$slug'
+      preLoaderRoute: typeof QSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin/': {
@@ -932,6 +952,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthConfirmRoute: AuthConfirmRoute,
   ChauffeurSlugRoute: ChauffeurSlugRoute,
   LegalDocRoute: LegalDocRoute,
+  QSlugRoute: QSlugRoute,
   ApiPublicPushRoute: ApiPublicPushRoute,
 }
 export const routeTree = rootRouteImport
