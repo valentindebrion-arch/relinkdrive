@@ -14,7 +14,6 @@ import {
   Eye,
   Palette,
   Share2,
-  Sparkles,
   ArrowRight,
   Smartphone,
   Link2,
