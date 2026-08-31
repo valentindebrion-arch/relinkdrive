@@ -1362,6 +1362,13 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_driver_themes: {
+        Args: { _ids: string[] }
+        Returns: {
+          booking_theme: string
+          user_id: string
+        }[]
+      }
       get_driver_visibility_stats: {
         Args: { _days?: number }
         Returns: {
