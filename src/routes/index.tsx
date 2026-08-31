@@ -14,7 +14,7 @@ import {
   Eye,
   Palette,
   Share2,
-  Star,
+  Sparkles,
   ArrowRight,
   Smartphone,
   Link2,
@@ -546,7 +546,7 @@ function Landing() {
             {[
               { icon: QrCode, label: "QR Code" },
               { icon: Smartphone, label: "Un scan" },
-              { icon: Star, label: "Votre vitrine" },
+              { icon: Sparkles, label: "Votre vitrine" },
             ].map((s) => (
               <li
                 key={s.label}
