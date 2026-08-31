@@ -17,12 +17,14 @@ import {
   ShowcaseAbout,
   ShowcaseContactSection,
   ShowcaseHeader,
+  ShowcaseHours,
   ShowcaseLanguages,
   ShowcaseLinksSection,
   ShowcaseSectors,
   ShowcaseServices,
   ShowcaseVehicleInfo,
 } from "@/components/showcase/ShowcaseSections";
+import { parseWorkingHours } from "@/lib/working-hours";
 import { prefersReducedMotion, setDriverCelebration } from "@/lib/driver-celebration";
 import { DriverAddedOverlay } from "@/components/client/DriverAddedOverlay";
 import { DriverRemovedOverlay } from "@/components/client/DriverRemovedOverlay";
@@ -173,6 +175,33 @@ function DriverPublicPage() {
       return data;
     },
   });
+
+  // Horaires habituels de travail : ils pilotent le badge « Disponible ».
+  const hoursQuery = useQuery({
+    queryKey: ["driver-hours", slug],
+    queryFn: async () => {
+      const { data } = await (
+        supabase.rpc as unknown as (
+          fn: string,
+          args: Record<string, unknown>,
+        ) => Promise<{ data: unknown; error: unknown }>
+      )("get_public_driver_hours", { _slug: slug });
+      return parseWorkingHours(data);
+    },
+  });
+
+  // Estimation demandée depuis l'accueil client : on ouvre la vitrine dessus.
+  useEffect(() => {
+    if (typeof window === "undefined" || window.location.hash !== "#estimation") return;
+    const timer = window.setTimeout(() => {
+      const el = document.getElementById("estimation");
+      if (!el) return;
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      el.classList.add("estimate-highlight");
+      window.setTimeout(() => el.classList.remove("estimate-highlight"), 1200);
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [driverQuery.data]);
 
   // Thème personnalisé du chauffeur (lien direct, QR code).
   const branding = useDriverBranding({ slug });
@@ -496,7 +525,10 @@ function DriverPublicPage() {
           onTrack={trackContact}
         />
 
-        {/* 3 — Estimation indicative */}
+        {/* 3 — Horaires habituels */}
+        <ShowcaseHours week={hoursQuery.data ?? parseWorkingHours(null)} />
+
+        {/* 4 — Estimation indicative */}
         <TripEstimator slug={slug} firstName={firstName} autoLocate />
 
         {/* 4 — Prestations proposées */}
