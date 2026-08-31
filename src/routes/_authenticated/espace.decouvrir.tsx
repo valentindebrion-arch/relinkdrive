@@ -164,7 +164,7 @@ function DiscoverPage() {
             onClick={() => setFilter(f.value)}
             aria-pressed={filter === f.value}
             className={cn(
-              "tap tap-active rounded-full border px-3.5 py-1.5 text-[13px] font-bold transition",
+              "tap tap-active whitespace-nowrap rounded-full border px-3 py-1.5 text-[14px] font-bold transition",
               filter === f.value
                 ? "border-primary bg-primary text-primary-foreground shadow-card"
                 : "border-border bg-card text-foreground",
