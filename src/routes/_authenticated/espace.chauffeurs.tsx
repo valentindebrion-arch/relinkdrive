@@ -11,7 +11,7 @@ import { ClientTopBar } from "@/components/client/ClientTopBar";
 import { useSignedUrls } from "@/lib/storage";
 import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { useDriverThemes } from "@/components/DriverThemeScope";
-import { driverAccentVars } from "@/lib/booking-themes";
+import { driverAccentVars, DRIVER_ACTION_BUTTON_CLASS } from "@/lib/booking-themes";
 import type { CSSProperties } from "react";
 import {
   prefersReducedMotion,
