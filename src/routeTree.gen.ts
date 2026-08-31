@@ -33,6 +33,7 @@ import { Route as AuthenticatedEspaceIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedEspaceChauffeursRouteImport } from './routes/_authenticated/espace.chauffeurs'
 import { Route as AuthenticatedEspaceDecouvrirRouteImport } from './routes/_authenticated/espace.decouvrir'
 import { Route as AuthenticatedEspaceParametresRouteImport } from './routes/_authenticated/espace.parametres'
+import { Route as AuthenticatedEspaceScannerRouteImport } from './routes/_authenticated/espace.scanner'
 import { Route as AuthenticatedProIndexRouteImport } from './routes/_authenticated/pro.index'
 import { Route as AuthenticatedProDossierRouteImport } from './routes/_authenticated/pro.dossier'
 import { Route as AuthenticatedProEntrepriseRouteImport } from './routes/_authenticated/pro.entreprise'
@@ -180,6 +181,12 @@ const AuthenticatedEspaceParametresRoute =
   AuthenticatedEspaceParametresRouteImport.update({
     id: '/parametres',
     path: '/parametres',
+    getParentRoute: () => AuthenticatedEspaceRoute,
+  } as any)
+const AuthenticatedEspaceScannerRoute =
+  AuthenticatedEspaceScannerRouteImport.update({
+    id: '/scanner',
+    path: '/scanner',
     getParentRoute: () => AuthenticatedEspaceRoute,
   } as any)
 const AuthenticatedProIndexRoute = AuthenticatedProIndexRouteImport.update({
@@ -337,6 +344,7 @@ export interface FileRoutesByFullPath {
   '/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
   '/espace/decouvrir': typeof AuthenticatedEspaceDecouvrirRoute
   '/espace/parametres': typeof AuthenticatedEspaceParametresRoute
+  '/espace/scanner': typeof AuthenticatedEspaceScannerRoute
   '/pro/dossier': typeof AuthenticatedProDossierRoute
   '/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/pro/liens': typeof AuthenticatedProLiensRoute
@@ -381,6 +389,7 @@ export interface FileRoutesByTo {
   '/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
   '/espace/decouvrir': typeof AuthenticatedEspaceDecouvrirRoute
   '/espace/parametres': typeof AuthenticatedEspaceParametresRoute
+  '/espace/scanner': typeof AuthenticatedEspaceScannerRoute
   '/pro/dossier': typeof AuthenticatedProDossierRoute
   '/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/pro/liens': typeof AuthenticatedProLiensRoute
@@ -431,6 +440,7 @@ export interface FileRoutesById {
   '/_authenticated/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
   '/_authenticated/espace/decouvrir': typeof AuthenticatedEspaceDecouvrirRoute
   '/_authenticated/espace/parametres': typeof AuthenticatedEspaceParametresRoute
+  '/_authenticated/espace/scanner': typeof AuthenticatedEspaceScannerRoute
   '/_authenticated/pro/dossier': typeof AuthenticatedProDossierRoute
   '/_authenticated/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/_authenticated/pro/liens': typeof AuthenticatedProLiensRoute
@@ -481,6 +491,7 @@ export interface FileRouteTypes {
     | '/espace/chauffeurs'
     | '/espace/decouvrir'
     | '/espace/parametres'
+    | '/espace/scanner'
     | '/pro/dossier'
     | '/pro/entreprise'
     | '/pro/liens'
@@ -525,6 +536,7 @@ export interface FileRouteTypes {
     | '/espace/chauffeurs'
     | '/espace/decouvrir'
     | '/espace/parametres'
+    | '/espace/scanner'
     | '/pro/dossier'
     | '/pro/entreprise'
     | '/pro/liens'
@@ -574,6 +586,7 @@ export interface FileRouteTypes {
     | '/_authenticated/espace/chauffeurs'
     | '/_authenticated/espace/decouvrir'
     | '/_authenticated/espace/parametres'
+    | '/_authenticated/espace/scanner'
     | '/_authenticated/pro/dossier'
     | '/_authenticated/pro/entreprise'
     | '/_authenticated/pro/liens'
@@ -786,6 +799,13 @@ declare module '@tanstack/react-router' {
       path: '/parametres'
       fullPath: '/espace/parametres'
       preLoaderRoute: typeof AuthenticatedEspaceParametresRouteImport
+      parentRoute: typeof AuthenticatedEspaceRoute
+    }
+    '/_authenticated/espace/scanner': {
+      id: '/_authenticated/espace/scanner'
+      path: '/scanner'
+      fullPath: '/espace/scanner'
+      preLoaderRoute: typeof AuthenticatedEspaceScannerRouteImport
       parentRoute: typeof AuthenticatedEspaceRoute
     }
     '/_authenticated/pro/': {
@@ -1009,6 +1029,7 @@ interface AuthenticatedEspaceRouteChildren {
   AuthenticatedEspaceChauffeursRoute: typeof AuthenticatedEspaceChauffeursRoute
   AuthenticatedEspaceDecouvrirRoute: typeof AuthenticatedEspaceDecouvrirRoute
   AuthenticatedEspaceParametresRoute: typeof AuthenticatedEspaceParametresRoute
+  AuthenticatedEspaceScannerRoute: typeof AuthenticatedEspaceScannerRoute
   AuthenticatedEspaceIndexRoute: typeof AuthenticatedEspaceIndexRoute
 }
 
@@ -1016,6 +1037,7 @@ const AuthenticatedEspaceRouteChildren: AuthenticatedEspaceRouteChildren = {
   AuthenticatedEspaceChauffeursRoute: AuthenticatedEspaceChauffeursRoute,
   AuthenticatedEspaceDecouvrirRoute: AuthenticatedEspaceDecouvrirRoute,
   AuthenticatedEspaceParametresRoute: AuthenticatedEspaceParametresRoute,
+  AuthenticatedEspaceScannerRoute: AuthenticatedEspaceScannerRoute,
   AuthenticatedEspaceIndexRoute: AuthenticatedEspaceIndexRoute,
 }
 

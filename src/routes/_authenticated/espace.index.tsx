@@ -284,7 +284,7 @@ function ClientHome() {
                 <Compass className="size-5" /> Trouver un chauffeur
               </Link>
               <Link
-                to="/espace/chauffeurs"
+                to="/espace/scanner"
                 className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-primary/35 bg-card px-3 text-[14px] font-bold text-primary transition active:scale-[0.985]"
               >
                 <QrCode className="size-4" /> J'ai un QR code chauffeur
