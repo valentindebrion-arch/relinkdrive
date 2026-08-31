@@ -16,8 +16,6 @@ export type DiscoverDriver = {
   vehicle_category: string | null;
   vehicle_photo_url: string | null;
   max_passengers: number | null;
-  rating_avg: number | null;
-  rating_count: number;
   on_duty: boolean | null;
   woman_for_woman: boolean | null;
   rank_position?: number | null;
@@ -95,12 +93,6 @@ export function DiscoverDriverCard({
           ) : null}
         </p>
         {/* Plus de statut manuel : la disponibilité se lit sur la vitrine (horaires). */}
-        {driver.rating_count > 0 && driver.rating_avg ? (
-          <p className="mt-1.5 text-[12px] font-semibold text-muted-foreground">
-            ★ {driver.rating_avg.toFixed(1)} ({driver.rating_count})
-          </p>
-        ) : null}
-
       </div>
     </>
   );

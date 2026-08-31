@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Car, ChevronLeft, ChevronRight, QrCode, Star } from "lucide-react";
+import { Car, ChevronLeft, ChevronRight, QrCode } from "lucide-react";
 import { AvatarPhoto } from "@/components/AvatarPhoto";
 
 export type HomeCardDriver = {
@@ -11,8 +11,6 @@ export type HomeCardDriver = {
   vehiclePhotoUrl: string | null;
   /** URL signée de la photo de face du véhicule, affichée en priorité sur l'accueil. */
   frontPhotoUrl?: string | null;
-  ratingAvg: number | null;
-  ratingCount: number;
   /** Calculé à partir des horaires habituels du chauffeur (aucun statut manuel). */
   available: boolean;
   /** Indication sobre hors horaires (« Disponible à partir de 8h »). */
@@ -192,17 +190,6 @@ export function HomeDriverCard({
                   <p className="mt-0.5 truncate text-[13px] text-muted-foreground">
                     {driver.vehicle ?? "Véhicule non renseigné"}
                   </p>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] font-semibold">
-                    {driver.ratingAvg ? (
-                      <span className="inline-flex items-center gap-1 text-foreground">
-                        <Star className="size-3.5 fill-primary text-primary" aria-hidden />
-                        {driver.ratingAvg.toFixed(1)}
-                        <span className="text-muted-foreground">({driver.ratingCount})</span>
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">Pas encore d'avis</span>
-                    )}
-                  </div>
                 </div>
                 {driver.slug ? (
                   <Link

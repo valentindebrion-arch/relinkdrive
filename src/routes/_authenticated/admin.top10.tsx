@@ -16,7 +16,6 @@ import {
   GripVertical,
   Plus,
   Search,
-  Star,
   Trash2,
   X,
 } from "lucide-react";
@@ -67,8 +66,6 @@ type Driver = {
   verification_status: string;
   vehicle: string | null;
   vehiclePhotoPath: string | null;
-  ratingAvg: number | null;
-  ratingCount: number;
 };
 
 function initials(name: string) {
@@ -135,8 +132,6 @@ function AdminTop10() {
           verification_status: d.verification_status,
           vehicle: car ? [car.brand, car.model].filter(Boolean).join(" ") || null : null,
           vehiclePhotoPath: car?.photo_url ?? null,
-          ratingAvg: null,
-          ratingCount: 0,
         } satisfies Driver;
       });
     },
@@ -340,13 +335,6 @@ function AdminTop10() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    {d.ratingAvg ? (
-                      <span className="inline-flex items-center gap-1 text-sm font-semibold">
-                        <Star className="size-3.5 fill-primary text-primary" aria-hidden />
-                        {d.ratingAvg.toFixed(1)}
-                        <span className="text-muted-foreground">({d.ratingCount})</span>
-                      </span>
-                    ) : null}
                     <PlanBadge plan={d.plan} />
                     <StatusBadge status={d.verification_status} labels={VERIFICATION_LABELS} />
                   </div>
@@ -463,12 +451,6 @@ function AdminTop10() {
                             {[d.vehicle, d.city, d.email].filter(Boolean).join(" · ")}
                           </p>
                           <div className="mt-1 flex flex-wrap items-center gap-2">
-                            {d.ratingAvg ? (
-                              <span className="inline-flex items-center gap-1 text-xs font-semibold">
-                                <Star className="size-3 fill-primary text-primary" aria-hidden />
-                                {d.ratingAvg.toFixed(1)} ({d.ratingCount})
-                              </span>
-                            ) : null}
                             <PlanBadge plan={d.plan} />
                             <StatusBadge
                               status={d.verification_status}
