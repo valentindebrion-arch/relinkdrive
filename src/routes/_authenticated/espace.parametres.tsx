@@ -150,8 +150,7 @@ function ClientProfile() {
       <section className="surface p-5">
         <h2 className="text-base font-semibold">Préférences</h2>
 
-        <div className="mt-3">
-        </div>
+        <div className="mt-3"></div>
 
         <div className="mt-4 flex items-start justify-between gap-4 border-t border-border pt-4">
           <div className="flex gap-3">

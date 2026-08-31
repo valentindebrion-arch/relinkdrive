@@ -57,7 +57,6 @@ export function QrPage() {
     a.click();
   }
 
-
   return (
     <>
       <PageHeader
@@ -69,47 +68,47 @@ export function QrPage() {
         <div className="surface flex flex-col items-center gap-4 p-6 lg:col-span-2">
           <>
             <canvas ref={canvasRef} className="rounded-lg bg-white p-3" />
-              <p className="text-center text-sm break-all text-muted-foreground">{url}</p>
-              <div className="flex gap-2">
+            <p className="text-center text-sm break-all text-muted-foreground">{url}</p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                disabled={!url}
+                onClick={() => {
+                  void navigator.clipboard.writeText(url);
+                  toast.success("Lien copié");
+                }}
+              >
+                <Copy className="size-4" /> Copier le lien
+              </Button>
+              <Button onClick={downloadQr} disabled={!url}>
+                <Download className="size-4" /> Télécharger
+              </Button>
+            </div>
+            {!driver.data?.page_published ? (
+              <div className="space-y-2 rounded-lg bg-warning/10 p-3 text-center text-sm text-muted-foreground">
+                <p>Votre page publique est actuellement dépubliée : le QR code ne mène à rien.</p>
                 <Button
-                  variant="outline"
-                  disabled={!url}
-                  onClick={() => {
-                    void navigator.clipboard.writeText(url);
-                    toast.success("Lien copié");
+                  size="sm"
+                  disabled={publishing}
+                  onClick={async () => {
+                    setPublishing(true);
+                    const { error } = await supabase
+                      .from("driver_profiles")
+                      .update({ page_published: true })
+                      .eq("user_id", user!.id);
+                    setPublishing(false);
+                    if (error) toast.error(error.message);
+                    else {
+                      toast.success("Page publiée");
+                      void driver.refetch();
+                      void link.refetch();
+                    }
                   }}
                 >
-                  <Copy className="size-4" /> Copier le lien
-                </Button>
-                <Button onClick={downloadQr} disabled={!url}>
-                  <Download className="size-4" /> Télécharger
+                  Publier ma page
                 </Button>
               </div>
-              {!driver.data?.page_published ? (
-                <div className="space-y-2 rounded-lg bg-warning/10 p-3 text-center text-sm text-muted-foreground">
-                  <p>Votre page publique est actuellement dépubliée : le QR code ne mène à rien.</p>
-                  <Button
-                    size="sm"
-                    disabled={publishing}
-                    onClick={async () => {
-                      setPublishing(true);
-                      const { error } = await supabase
-                        .from("driver_profiles")
-                        .update({ page_published: true })
-                        .eq("user_id", user!.id);
-                      setPublishing(false);
-                      if (error) toast.error(error.message);
-                      else {
-                        toast.success("Page publiée");
-                        void driver.refetch();
-                        void link.refetch();
-                      }
-                    }}
-                  >
-                    Publier ma page
-                  </Button>
-                </div>
-              ) : null}
+            ) : null}
           </>
         </div>
         <div className="space-y-4">

@@ -493,8 +493,7 @@ export function ProSettings() {
         </div>
       </div>
 
-      <div className="mt-4">
-      </div>
+      <div className="mt-4"></div>
     </>
   );
 }
