@@ -10,6 +10,9 @@ import { AddDriverSheet } from "@/components/client/AddDriverSheet";
 import { ClientTopBar } from "@/components/client/ClientTopBar";
 import { useSignedUrls } from "@/lib/storage";
 import { AvatarPhoto } from "@/components/AvatarPhoto";
+import { useDriverThemes } from "@/components/DriverThemeScope";
+import { driverAccentVars } from "@/lib/booking-themes";
+import type { CSSProperties } from "react";
 import {
   prefersReducedMotion,
   takeDriverCelebration,
@@ -130,6 +133,7 @@ function ClientDrivers() {
   });
 
   const list = useMemo(() => drivers.data ?? [], [drivers.data]);
+  const themes = useDriverThemes(list.map((d) => d.id));
   const photos = useSignedUrls(
     "vehicles",
     list.map((d) => d.photoPath),
@@ -384,11 +388,21 @@ function ClientDrivers() {
 
             const card =
               d.slug && !leaving ? (
-                <Link to="/chauffeur/$slug" params={{ slug: d.slug }} className={cardClassName}>
+                <Link
+                  to="/chauffeur/$slug"
+                  params={{ slug: d.slug }}
+                  className={cardClassName}
+                  style={driverAccentVars(themes.data?.[d.id]) as CSSProperties}
+                >
                   {cardBody}
                 </Link>
               ) : (
-                <div className={cardClassName}>{cardBody}</div>
+                <div
+                  className={cardClassName}
+                  style={driverAccentVars(themes.data?.[d.id]) as CSSProperties}
+                >
+                  {cardBody}
+                </div>
               );
 
             return (
