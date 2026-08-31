@@ -1277,6 +1277,7 @@ export type Database = {
       }
       dossier_blocking_items: { Args: { _state: Json }; Returns: string }
       driver_dossier_state: { Args: { _driver: string }; Returns: Json }
+      driver_page_access: { Args: { _slug: string }; Returns: string }
       driver_plan: { Args: { _driver: string }; Returns: string }
       expire_temporary_pro_plans: { Args: never; Returns: number }
       get_connected_driver_profiles: {
