@@ -58,7 +58,6 @@ export function QrPage() {
     a.click();
   }
 
-  const verified = driver.data?.verification_status === "verified";
 
   return (
     <>
@@ -69,24 +68,9 @@ export function QrPage() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="surface flex flex-col items-center gap-4 p-6 lg:col-span-2">
-          {!verified ? (
-            <div className="space-y-3 py-6 text-center">
-              <span className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <ShieldCheck className="size-6" />
-              </span>
-              <p className="font-medium">
-                Votre QR code sera généré après validation de votre compte.
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Complétez et transmettez votre dossier pour activer votre page publique.
-              </p>
-              <Button asChild size="sm">
-                <Link to="/pro/dossier">Voir mon dossier</Link>
-              </Button>
-            </div>
-          ) : (
+          {
             <>
-              <canvas ref={canvasRef} className="rounded-lg bg-white p-3" />
+            <canvas ref={canvasRef} className="rounded-lg bg-white p-3" />
               <p className="text-center text-sm break-all text-muted-foreground">{url}</p>
               <div className="flex gap-2">
                 <Button
