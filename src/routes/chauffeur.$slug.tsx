@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
+import { driverAccentVars, DRIVER_ACTION_BUTTON_CLASS } from "@/lib/booking-themes";
+
 import { toast } from "sonner";
 import { Check, ShieldCheck, Sparkles, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
