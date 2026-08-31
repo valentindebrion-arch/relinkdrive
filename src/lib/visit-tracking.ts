@@ -46,11 +46,18 @@ export function currentSource(): VisitSource {
  * Enregistre un événement de visibilité. Le serveur ignore l'événement quand
  * le chauffeur consulte sa propre vitrine et déduplique les doublons.
  */
+const inFlight = new Set<string>();
+
 export async function trackDriverVisit(
   slug: string,
   event: "driver_page_view" | "qr_scan" | "contact_click",
   source: VisitSource = currentSource(),
 ) {
+  // Anti double-envoi côté client (double rendu React, double clic).
+  const key = `${slug}:${event}`;
+  if (inFlight.has(key)) return;
+  inFlight.add(key);
+  window.setTimeout(() => inFlight.delete(key), 5000);
   try {
     await (
       supabase.rpc as unknown as (
