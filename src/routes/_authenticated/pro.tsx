@@ -19,8 +19,8 @@ import { useDriverProfile } from "@/lib/driver-queries";
 import { isDriverActive, isDriverSubmitted } from "@/lib/driver-dossier";
 
 // Ordre réel des onglets de la barre inférieure chauffeur (index 0 = Ma vitrine).
-const PRO_TAB_ORDER = ["/pro", "/pro/profil", "/pro/vehicule", "/pro/qr", "/pro/parametres"];
-const PRO_TAB_KEYS = ["pro-home", "pro-profile", "pro-vehicles", "pro-qr", "pro-account"];
+const PRO_TAB_ORDER = ["/pro", "/pro/dossier", "/pro/entreprise", "/pro/parametres"];
+const PRO_TAB_KEYS = ["pro-home", "pro-dossier", "pro-company", "pro-account"];
 
 export const Route = createFileRoute("/_authenticated/pro")({
   beforeLoad: ({ location }) => requireDriverAccess(location.pathname),
