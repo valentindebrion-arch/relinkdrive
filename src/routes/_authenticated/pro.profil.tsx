@@ -19,6 +19,7 @@ import { useAuth } from "@/lib/auth";
 import { useDriverProfile, useMyDocuments, useMyVehicle } from "@/lib/driver-queries";
 import { DOCUMENT_TYPES, VERIFICATION_LABELS } from "@/lib/labels";
 import { StatusBadge } from "@/components/StatusBadge";
+import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ProSettings } from "@/components/pro/ProSettings";
@@ -278,17 +279,12 @@ function ProProfileHub() {
 
       <div className="surface p-4">
         <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
-          {profile?.avatar_url ? (
-            <img
-              src={profile.avatar_url}
-              alt=""
-              className="size-14 shrink-0 rounded-2xl object-cover"
-            />
-          ) : (
-            <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-primary/10 text-lg font-bold text-primary">
-              {initials}
-            </span>
-          )}
+          <AvatarPhoto
+            url={profile?.avatar_url}
+            name={profile?.full_name}
+            className="size-14 shrink-0 rounded-2xl object-cover"
+            fallbackClassName="grid size-14 shrink-0 place-items-center rounded-2xl bg-primary/10 text-lg font-bold text-primary"
+          />
           <div className="min-w-0">
             <p className="truncate font-semibold">{profile?.full_name ?? "—"}</p>
             {d?.business_name ? (

@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Car, ChevronLeft, ChevronRight, QrCode, Star } from "lucide-react";
+import { AvatarPhoto } from "@/components/AvatarPhoto";
 
 export type HomeCardDriver = {
   id: string;
@@ -174,18 +175,12 @@ export function HomeDriverCard({
               </>
             ) : driver ? (
               <>
-                {driver.avatarUrl ? (
-                  <img
-                    src={driver.avatarUrl}
-                    alt=""
-                    onError={(e) => (e.currentTarget.style.display = "none")}
-                    className="size-12 shrink-0 rounded-full object-cover"
-                  />
-                ) : (
-                  <span className="grid size-12 shrink-0 place-items-center rounded-full bg-primary/10 text-[15px] font-extrabold text-primary">
-                    {initials(driver.name)}
-                  </span>
-                )}
+                <AvatarPhoto
+                  url={driver.avatarUrl}
+                  name={driver.name}
+                  className="size-12 shrink-0 rounded-full object-cover"
+                  fallbackClassName="grid size-12 shrink-0 place-items-center rounded-full bg-primary/10 text-[15px] font-extrabold text-primary"
+                />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[17px] leading-tight font-extrabold">{driver.name}</p>
                   <p className="mt-0.5 truncate text-[13px] text-muted-foreground">

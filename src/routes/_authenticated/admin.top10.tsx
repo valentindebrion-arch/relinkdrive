@@ -21,6 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { PageHeader, EmptyState } from "@/components/Ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,10 +85,9 @@ function initials(name: string) {
 function Avatar({ name, url }: { name: string; url: string | null }) {
   if (url)
     return (
-      <img
-        src={url}
-        alt={`Photo de ${name}`}
-        loading="lazy"
+      <AvatarPhoto
+        url={url}
+        name={name}
         className="size-10 shrink-0 rounded-full object-cover"
       />
     );

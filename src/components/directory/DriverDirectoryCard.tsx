@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ShieldCheck, MapPin, Users, Car, Sparkles } from "lucide-react";
 import { serviceLabel, categoryLabel } from "@/lib/showcase";
+import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { cn } from "@/lib/utils";
 
 export type DirectoryDriver = {
@@ -59,18 +60,12 @@ export function DriverDirectoryCard({ driver }: { driver: DirectoryDriver }) {
 
       <div className="flex min-w-0 flex-1 flex-col gap-2 p-4">
         <div className="flex min-w-0 items-center gap-3">
-          {driver.avatar_url ? (
-            <img
-              src={driver.avatar_url}
-              alt={driver.display_name ?? "Chauffeur"}
-              loading="lazy"
-              className="size-10 shrink-0 rounded-full object-cover"
-            />
-          ) : (
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground">
-              {(driver.display_name ?? "C").slice(0, 1).toUpperCase()}
-            </span>
-          )}
+          <AvatarPhoto
+            url={driver.avatar_url}
+            name={driver.display_name ?? "Chauffeur"}
+            className="size-10 shrink-0 rounded-full object-cover"
+            fallbackClassName="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground"
+          />
           <div className="min-w-0">
             <p className="truncate font-semibold">{driver.display_name ?? "Chauffeur"}</p>
             <p className="inline-flex items-center gap-1 text-xs text-muted-foreground">

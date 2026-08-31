@@ -37,7 +37,18 @@ import { useAuth } from "@/lib/auth";
 import { useSignedUrl } from "@/lib/storage";
 import { VehicleShowcase } from "@/components/VehicleShowcase";
 import { TripEstimator } from "@/components/driver/TripEstimator";
-import { serviceLabel } from "@/lib/showcase";
+import { useDisplayAvatar } from "@/components/AvatarPhoto";
+import { showcaseFromPublicRow, vehicleTitle } from "@/lib/showcase-model";
+import {
+  ShowcaseAbout,
+  ShowcaseContactSection,
+  ShowcaseHeader,
+  ShowcaseLanguages,
+  ShowcaseLinksSection,
+  ShowcaseSectors,
+  ShowcaseServices,
+  ShowcaseVehicleInfo,
+} from "@/components/showcase/ShowcaseSections";
 import { prefersReducedMotion, setDriverCelebration } from "@/lib/driver-celebration";
 import { DriverAddedOverlay } from "@/components/client/DriverAddedOverlay";
 import { DriverRemovedOverlay } from "@/components/client/DriverRemovedOverlay";
@@ -303,6 +314,7 @@ function DriverPublicPage() {
       frontQuery.isLoading ||
       sideQuery.isLoading,
   };
+  const avatarUrl = useDisplayAvatar(d?.avatar_url);
 
   if (driverQuery.isLoading) {
     return <div className="p-10 text-center text-sm text-muted-foreground">Chargement…</div>;
@@ -526,14 +538,9 @@ function DriverPublicPage() {
     );
 
   const experienceLabel = memberSince ? `Depuis ${memberSince}` : "Nouveau";
-  const vehicleLabel = [d.vehicle_brand, d.vehicle_model].filter(Boolean).join(" ") || "Véhicule";
+  const showcase = showcaseFromPublicRow(d as unknown as Record<string, unknown>);
+  const vehicleLabel = vehicleTitle(showcase.vehicle);
   const vehicleSub = [d.vehicle_color, d.vehicle_category].filter(Boolean).join(" • ") || "Berline";
-
-  const zoneChips = [
-    ...(d.city ? [d.city] : []),
-    ...(d.zone ? [d.zone] : []),
-    ...((d.service_areas ?? []) as string[]),
-  ];
 
   return (
     <BookingThemeScope theme={branding.data?.themeId} className="min-h-screen pb-28 sm:pb-10">
@@ -546,139 +553,31 @@ function DriverPublicPage() {
         </Link>
 
         {/* 1 — Identité du chauffeur */}
-        <section className={`surface overflow-hidden${womanForWoman ? " wfw-card" : ""}`}>
-          <div className="flex items-center gap-3.5 p-5 pb-4">
-            <div className="relative shrink-0">
-              {d.avatar_url ? (
-                <img
-                  src={d.avatar_url}
-                  alt={firstName}
-                  className="size-20 rounded-full object-cover ring-2 ring-primary/20"
-                />
-              ) : (
-                <div className="flex size-20 items-center justify-center rounded-full bg-accent text-2xl font-semibold text-accent-foreground">
-                  {firstName.charAt(0)}
-                </div>
-              )}
-              <span
-                className={`absolute right-1 bottom-1 size-3.5 rounded-full border-2 border-background bg-primary`}
-              />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h1 className="flex min-w-0 items-center gap-1.5 text-[24px] leading-tight font-black tracking-tight">
-                <span className="truncate">
-                  {firstName}
-                  {lastInitial ? ` ${lastInitial}.` : ""}
-                </span>
-                <BadgeCheck className="size-5 shrink-0 text-primary" aria-label="Profil vérifié" />
-              </h1>
-              <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[13px] font-semibold text-muted-foreground">
-                {d.city ? (
-                  <span className="inline-flex min-w-0 items-center gap-1">
-                    <MapPin className="size-3.5" /> <span className="truncate">{d.city}</span>
-                  </span>
-                ) : null}
-              </p>
-              <p className="mt-0.5 truncate text-[13px] text-muted-foreground">
-                {vehicleLabel} · {vehicleSub}
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 border-t border-border px-5 py-3">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
-              <ShieldCheck className="size-3.5" /> Profil vérifié
-            </span>
-            <span className="text-xs font-medium text-muted-foreground">{experienceLabel}</span>
-            {womanForWoman ? (
-              <span className="wfw-badge inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold">
-                <Sparkles className="size-3.5" /> {WFW_LABEL}
-              </span>
-            ) : null}
-          </div>
-          {womanForWoman ? (
-            <p className="wfw-tint border-t border-border px-5 py-3 text-[12.5px] leading-snug text-muted-foreground">
-              {WFW_PUBLIC_HEADER_NOTICE}
-            </p>
-          ) : null}
-          {d.public_intro || d.bio ? (
-            <p className="flex gap-2 border-t border-border px-5 py-4 text-sm whitespace-pre-line text-muted-foreground">
-              <Quote className="size-4 shrink-0 fill-primary text-primary" />
-              {d.public_intro ?? d.bio}
-            </p>
-          ) : null}
-        </section>
+        <ShowcaseHeader
+          data={showcase}
+          avatarUrl={avatarUrl}
+          subtitle={`${vehicleLabel} · ${vehicleSub} · ${experienceLabel}`}
+        />
+        <ShowcaseAbout about={showcase.about} />
 
         {/* 2 — Contacter le chauffeur */}
-        <section className="surface p-5">
-          <h2 className="text-lg font-black tracking-tight">Contacter {firstName}</h2>
-          <p className="mt-1 text-[13px] text-muted-foreground">
-            {BRAND.name} ne gère ni la réservation ni la course : vous échangez directement avec le
-            chauffeur.
-          </p>
-          <div className="mt-4 space-y-2">
-            {contactLinks.length ? (
-              contactLinks.map((c) => (
-                <Button
-                  key={c.label}
-                  asChild
-                  variant={c.primary ? "default" : "outline"}
-                  className="h-12 w-full justify-start text-base"
-                >
-                  <a
-                    href={c.href}
-                    {...(c.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                    onClick={() => trackContact(c.kind)}
-                  >
-                    <c.icon className="size-4" /> {c.label}
-                  </a>
-                </Button>
-              ))
-            ) : (
-              <p className="rounded-2xl border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-                {firstName} n'a pas encore publié de moyen de contact.
-              </p>
-            )}
-          </div>
-        </section>
+        <ShowcaseContactSection
+          title={`Contacter ${firstName}`}
+          contact={showcase.contact}
+          intro={`${BRAND.name} ne gère ni la réservation ni la course : vous échangez directement avec le chauffeur.`}
+          onTrack={trackContact}
+        />
 
         {/* 3 — Estimation indicative */}
         <TripEstimator slug={slug} firstName={firstName} autoLocate />
 
         {/* 4 — Prestations proposées */}
-        {(d.services ?? []).length ? (
-          <Section title="Prestations">
-            <div className="flex flex-wrap gap-2">
-              {((d.services ?? []) as string[]).map((s) => (
-                <Chip key={s} icon={Briefcase}>
-                  {serviceLabel(s)}
-                </Chip>
-              ))}
-              {d.long_distance ? <Chip icon={MapPin}>Longue distance</Chip> : null}
-            </div>
-          </Section>
-        ) : null}
+        <ShowcaseServices services={showcase.services} longDistance={showcase.longDistance} />
 
-        {/* 4 — Zone d'activité */}
-        {zoneChips.length || d.stations?.length || d.airports?.length ? (
-          <Section title="Zone d'activité">
-            <div className="flex flex-wrap gap-2">
-              {zoneChips.map((z) => (
-                <Chip key={z} icon={MapPin}>
-                  {z}
-                </Chip>
-              ))}
-              {((d.stations ?? []) as string[]).map((z) => (
-                <Chip key={z}>Gare · {z}</Chip>
-              ))}
-              {((d.airports ?? []) as string[]).map((z) => (
-                <Chip key={z}>Aéroport · {z}</Chip>
-              ))}
-              {d.long_distance ? <Chip>Longue distance</Chip> : null}
-            </div>
-          </Section>
-        ) : null}
+        {/* 5 — Secteurs d'intervention */}
+        <ShowcaseSectors data={showcase} />
 
-        {/* 5 — Le véhicule */}
+        {/* 6 — Le véhicule */}
         <section className="space-y-3">
           <VehicleShowcase
             loading={vehiclePhotos.isLoading}
@@ -700,83 +599,22 @@ function DriverPublicPage() {
               },
             ]}
           />
-          <Section title="Le véhicule">
-            <p className="font-medium">
-              {[d.vehicle_brand, d.vehicle_model, d.vehicle_color].filter(Boolean).join(" · ") ||
-                vehicleLabel}
-              {d.vehicle_year ? ` · ${d.vehicle_year}` : ""}
-            </p>
-            <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
-              <li>
-                {d.max_passengers != null
-                  ? `Jusqu'à ${d.max_passengers} passagers`
-                  : "Capacité en passagers non renseignée"}
-              </li>
-              <li>
-                {d.large_luggage_capacity != null
-                  ? `${d.large_luggage_capacity} grands bagages`
-                  : d.luggage_capacity != null
-                    ? `${d.luggage_capacity} bagages au total`
-                    : "Capacité en bagages non renseignée"}
-              </li>
-              {d.cabin_luggage_capacity != null ? (
-                <li>{d.cabin_luggage_capacity} bagages cabine</li>
-              ) : null}
-              {d.child_seat ? <li>Siège enfant disponible</li> : null}
-              {d.booster_seat ? <li>Rehausseur disponible</li> : null}
-              {d.stroller_space ? <li>Espace pour poussette</li> : null}
-              {d.accessible ? <li>Accessible en fauteuil roulant</li> : null}
-              {d.large_trunk ? <li>Grand coffre pour bagages volumineux</li> : null}
-            </ul>
-            {equipments.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {equipments.map((e) => (
-                  <Chip key={e.label} icon={e.icon}>
-                    {e.label}
-                  </Chip>
-                ))}
-              </div>
-            ) : null}
-          </Section>
+          <ShowcaseVehicleInfo vehicle={showcase.vehicle} />
         </section>
 
-        {/* 6 — Votre trajet avec [prénom] */}
-        <Section title={`À bord avec ${firstName}`}>
-          <div className="flex flex-wrap gap-2">
-            {((d.languages ?? []) as string[]).map((l) => (
-              <Chip key={l} icon={Languages}>
-                {l}
-              </Chip>
-            ))}
-            {((d.services ?? []) as string[]).map((s) => (
-              <Chip key={s} icon={Briefcase}>
-                {s}
-              </Chip>
-            ))}
-            {d.quiet_ride ? <Chip icon={Volume2}>Trajet silencieux sur demande</Chip> : null}
-            {d.luggage_help ? <Chip icon={Luggage}>Aide avec les bagages</Chip> : null}
-            {d.card_payment ? <Chip icon={CreditCard}>Paiement par carte</Chip> : null}
-            <Chip icon={Dog}>
-              {d.pets_policy === "accepted"
-                ? `Animaux acceptés${d.pets_max ? ` (jusqu'à ${d.pets_max})` : ""}`
-                : d.pets_policy === "conditional"
-                  ? "Animaux sous conditions"
-                  : "Animaux non acceptés"}
-            </Chip>
+        {/* 7 — Langues et liens */}
+        <ShowcaseLanguages languages={showcase.languages} />
+        <ShowcaseLinksSection links={showcase.links} onTrack={trackContact} />
+
+        {showcase.womanForWoman ? (
+          <div className="wfw-card flex items-start gap-2 rounded-2xl border px-4 py-3">
+            <Sparkles className="mt-0.5 size-4 shrink-0 text-wfw" aria-hidden />
+            <p className="text-[12.5px] leading-snug">
+              <span className="font-semibold">{WFW_LABEL}</span>
+              <span className="block text-muted-foreground">{WFW_PUBLIC_DESCRIPTION}</span>
+            </p>
           </div>
-          {(d as { woman_for_woman?: boolean }).woman_for_woman ? (
-            <div className="wfw-card mt-3 flex items-start gap-2 rounded-2xl border px-3 py-2">
-              <Sparkles className="mt-0.5 size-4 shrink-0 text-wfw" aria-hidden />
-              <p className="text-[12.5px] leading-snug">
-                <span className="font-semibold">{WFW_LABEL}</span>
-                <span className="block text-muted-foreground">{WFW_PUBLIC_DESCRIPTION}</span>
-              </p>
-            </div>
-          ) : null}
-          {d.pets_conditions && d.pets_policy === "conditional" ? (
-            <p className="mt-2 text-xs text-muted-foreground">{d.pets_conditions}</p>
-          ) : null}
-        </Section>
+        ) : null}
 
         {/* 8 — Votre chauffeur est vérifié */}
         <Section title="Profil vérifié">

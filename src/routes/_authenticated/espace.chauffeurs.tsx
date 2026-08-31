@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth";
 import { AddDriverSheet } from "@/components/client/AddDriverSheet";
 import { ClientTopBar } from "@/components/client/ClientTopBar";
 import { useSignedUrls } from "@/lib/storage";
+import { AvatarPhoto } from "@/components/AvatarPhoto";
 import {
   prefersReducedMotion,
   takeDriverCelebration,
@@ -311,18 +312,12 @@ function ClientDrivers() {
                 <div className="px-4 py-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-2">
-                      {d.avatarUrl ? (
-                        <img
-                          src={d.avatarUrl}
-                          alt=""
-                          onError={(e) => (e.currentTarget.style.display = "none")}
-                          className="size-7 shrink-0 rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="grid size-7 shrink-0 place-items-center rounded-full bg-primary/10 text-[11px] font-extrabold text-primary">
-                          {initials(d.name)}
-                        </span>
-                      )}
+                      <AvatarPhoto
+                        url={d.avatarUrl}
+                        name={d.name}
+                        className="size-7 shrink-0 rounded-full object-cover"
+                        fallbackClassName="grid size-7 shrink-0 place-items-center rounded-full bg-primary/10 text-[11px] font-extrabold text-primary"
+                      />
                       <p className="truncate text-[15px] leading-tight font-extrabold">{d.name}</p>
                     </div>
 

@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { ChevronRight, CreditCard, FileText, MapPin, Receipt } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { requestLocation } from "@/lib/push";
@@ -104,17 +105,12 @@ function ClientProfile() {
     <div className="space-y-4 pb-4">
       {/* En-tête identité */}
       <section className="surface flex items-center gap-4 p-5">
-        {profile?.avatar_url ? (
-          <img
-            src={profile.avatar_url}
-            alt={profile.full_name || "Photo de profil"}
-            className="size-16 shrink-0 rounded-full object-cover"
-          />
-        ) : (
-          <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-accent text-lg font-bold text-accent-foreground">
-            {initials(profile?.full_name)}
-          </span>
-        )}
+        <AvatarPhoto
+          url={profile?.avatar_url}
+          name={profile?.full_name}
+          className="size-16 shrink-0 rounded-full object-cover"
+          fallbackClassName="flex size-16 shrink-0 items-center justify-center rounded-full bg-accent text-lg font-bold text-accent-foreground"
+        />
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-lg font-bold">{profile?.full_name || "Mon compte"}</h1>
           <p className="truncate text-xs text-muted-foreground">{profile?.email ?? ""}</p>
