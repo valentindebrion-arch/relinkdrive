@@ -11,8 +11,6 @@ const profileSchema = z.object({
     .regex(/^[0-9+ ().-]*$/, "Numéro de téléphone invalide")
     .optional()
     .default(""),
-  // Donnée strictement déclarative, jamais déduite d'une autre information.
-  gender: z.enum(["female", "male", "undisclosed"]).nullable().optional(),
 });
 
 /** Met à jour le profil de l'utilisateur connecté uniquement (RLS appliquée). */
@@ -20,29 +18,13 @@ export const updateMyProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => profileSchema.parse(input))
   .handler(async ({ data, context }) => {
-    // Le genre est définitif : on ne le transmet que s'il n'a jamais été renseigné.
-    const { data: current } = await context.supabase
-      .from("profiles")
-      .select("gender")
-      .eq("id", context.userId)
-      .maybeSingle();
-    const genderLocked = !!current?.gender;
+    // Le sexe n'est jamais modifié ici : il passe par la fonction dédiée
+    // `set_my_gender` qui applique la règle « 1 choix + 1 correction ».
     const { error } = await context.supabase
       .from("profiles")
-      .update({
-        full_name: data.full_name,
-        phone: data.phone || null,
-        ...(!genderLocked && data.gender !== undefined && data.gender !== null
-          ? { gender: data.gender }
-          : {}),
-      })
+      .update({ full_name: data.full_name, phone: data.phone || null })
       .eq("id", context.userId);
-    if (error) {
-      if (/gender_already_set/i.test(error.message)) {
-        throw new Error("Votre genre a déjà été enregistré et ne peut plus être modifié.");
-      }
-      throw new Error(error.message);
-    }
+    if (error) throw new Error(error.message);
     return { ok: true as const };
   });
 

@@ -834,6 +834,7 @@ export type Database = {
           email: string | null
           full_name: string
           gender: string | null
+          gender_correction_used: boolean
           id: string
           location_enabled: boolean
           notification_prefs: Json
@@ -848,6 +849,7 @@ export type Database = {
           email?: string | null
           full_name?: string
           gender?: string | null
+          gender_correction_used?: boolean
           id: string
           location_enabled?: boolean
           notification_prefs?: Json
@@ -862,6 +864,7 @@ export type Database = {
           email?: string | null
           full_name?: string
           gender?: string | null
+          gender_correction_used?: boolean
           id?: string
           location_enabled?: boolean
           notification_prefs?: Json
@@ -1543,6 +1546,7 @@ export type Database = {
           zone: string
         }[]
       }
+      set_my_gender: { Args: { _gender: string }; Returns: Json }
       submit_driver_dossier: { Args: never; Returns: Json }
       track_driver_event: {
         Args: { _event: string; _slug: string }

@@ -79,7 +79,6 @@ function makeVars(v: {
     "--driver-accent": v.accent,
     "--driver-text-accent": v.accentText,
 
-
     "--theme-primary": v.primary,
 
     "--theme-primary-hover": v.primaryHover,
@@ -357,3 +356,10 @@ export function driverAccentVars(theme: unknown): Record<string, string> {
   };
 }
 
+/**
+ * Bouton d'action plein aux couleurs du chauffeur (ajout, retrait et leurs
+ * confirmations). Aucune couleur n'est écrite en dur : tout provient des
+ * jetons `--driver-*` posés par `driverAccentVars`.
+ */
+export const DRIVER_ACTION_BUTTON_CLASS =
+  "bg-[var(--driver-primary,var(--primary))] text-[color:var(--driver-foreground,var(--primary-foreground))] hover:bg-[var(--driver-primary-hover,var(--primary))] focus-visible:ring-[var(--driver-primary,var(--primary))]";

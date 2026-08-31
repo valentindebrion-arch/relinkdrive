@@ -15,9 +15,6 @@ import {
   type BookingThemeId,
 } from "@/lib/booking-themes";
 import {
-  GENDER_HELP,
-  GENDER_LOCK_WARNING,
-  GENDER_OPTIONS,
   WFW_DRIVER_DESCRIPTION,
   WFW_DRIVER_PROFILE_REQUIRED,
   driverCanOfferWfw,
@@ -49,17 +46,12 @@ function ThemeDot({ id }: { id: BookingThemeId }) {
 export function ThemePicker({
   value,
   gender,
-  genderLocked,
   onChange,
-  onGenderChange,
 }: {
   value: BookingThemeId;
   /** Genre déclaré du chauffeur (déclaratif, jamais déduit). */
   gender: string;
-  /** Le genre a déjà été enregistré : il est définitif. */
-  genderLocked: boolean;
   onChange: (id: BookingThemeId) => void;
-  onGenderChange: (gender: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState<BookingThemeId | null>(null);
@@ -144,29 +136,10 @@ export function ThemePicker({
           <div className="mb-6 rounded-2xl border border-border p-3">
             <p className="text-[13px] font-semibold">Woman for Woman</p>
             <p className="mt-1 text-xs text-muted-foreground">{WFW_DRIVER_DESCRIPTION}</p>
-            {canWfw ? null : genderLocked ? (
-              <p className="mt-2 text-xs text-muted-foreground">{WFW_DRIVER_PROFILE_REQUIRED}</p>
-            ) : (
-              <div className="mt-2">
-                <label htmlFor="showcase-gender" className="text-xs font-medium">
-                  Genre / sexe
-                </label>
-                <select
-                  id="showcase-gender"
-                  value={gender}
-                  onChange={(e) => onGenderChange(e.target.value)}
-                  className="mt-1 min-h-11 w-full rounded-xl border border-input bg-background px-3 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                >
-                  <option value="">Non renseigné</option>
-                  {GENDER_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-                <p className="mt-1 text-[11px] text-muted-foreground">{GENDER_HELP}</p>
-                <p className="mt-1 text-[11px] text-muted-foreground">{GENDER_LOCK_WARNING}</p>
-              </div>
+            {canWfw ? null : (
+              <p className="mt-2 text-xs text-muted-foreground">
+                {WFW_DRIVER_PROFILE_REQUIRED} Le sexe se renseigne dans « Mes informations ».
+              </p>
             )}
           </div>
         </SheetContent>

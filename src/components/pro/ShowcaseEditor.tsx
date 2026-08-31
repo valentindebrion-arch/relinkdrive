@@ -40,6 +40,7 @@ import {
   type BookingThemeId,
 } from "@/lib/booking-themes";
 import { BookingThemeScope } from "@/components/BookingThemeScope";
+import { GenderField } from "@/components/GenderField";
 import { ThemePicker } from "@/components/pro/ThemePicker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -249,7 +250,7 @@ export function ShowcaseEditor() {
     const t = (tariff.data ?? {}) as Record<string, unknown>;
     const next: Draft = {
       booking_theme: normalizeBookingTheme(d["booking_theme"]),
-      gender: (d["gender"] as string) ?? "",
+      gender: profile?.gender ?? "",
       full_name: profile?.full_name ?? "",
       public_intro: (d["public_intro"] as string) ?? "",
       city: (d["city"] as string) ?? "",
@@ -396,10 +397,6 @@ export function ShowcaseEditor() {
       .from("driver_profiles")
       .update({
         booking_theme: draft.booking_theme,
-        // Le genre est définitif : on ne l'envoie que s'il n'était pas encore déclaré.
-        ...((driver.data as { gender?: string | null } | null)?.gender
-          ? {}
-          : { gender: draft.gender || null }),
         public_intro: draft.public_intro || null,
         city: draft.city || null,
         zone: draft.zone || null,
@@ -703,9 +700,7 @@ export function ShowcaseEditor() {
         <ThemePicker
           value={draft.booking_theme}
           gender={draft.gender}
-          genderLocked={!!(driver.data as { gender?: string | null } | null)?.gender}
           onChange={(id) => set("booking_theme", id)}
-          onGenderChange={(g) => set("gender", g)}
         />
       ) : null}
 
@@ -886,6 +881,16 @@ export function ShowcaseEditor() {
                     onChange={(e) => set("full_name", e.target.value)}
                   />
                 </Field>
+                {/* Sexe : visible, corrigeable une seule fois (contrôle serveur). */}
+                <GenderField
+                  gender={profile?.gender ?? null}
+                  correctionUsed={!!profile?.gender_correction_used}
+                  womanForWomanActive={draft.booking_theme === "women_for_women"}
+                  onSaved={async () => {
+                    await refresh();
+                    await driver.refetch();
+                  }}
+                />
                 <Field label="Ville principale">
                   <Input
                     value={draft.city}

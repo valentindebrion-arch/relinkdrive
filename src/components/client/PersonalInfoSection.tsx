@@ -7,41 +7,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { deleteMyAddress, saveMyAddress, updateMyProfile } from "@/lib/account.functions";
-import {
-  GENDER_FIELD_LABEL,
-  GENDER_HELP,
-  GENDER_LOCKED_HELP,
-  GENDER_LOCK_WARNING,
-  GENDER_OPTIONS,
-  genderLabel,
-  type GenderValue,
-} from "@/lib/woman-for-woman";
+import { GenderField } from "@/components/GenderField";
+import type { GenderValue } from "@/lib/woman-for-woman";
 
 type Address = { id: string; label: string; address: string };
 
 export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
   const { user, profile, refresh } = useAuth();
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState<{ full_name: string; phone: string; gender: GenderValue | "" }>({
+  const [form, setForm] = useState<{ full_name: string; phone: string }>({
     full_name: "",
     phone: "",
-    gender: "",
   });
   const [busy, setBusy] = useState(false);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [newAddress, setNewAddress] = useState({ label: "", address: "" });
   const [addingAddress, setAddingAddress] = useState(false);
 
-  // Le genre est une déclaration unique : une fois enregistré, il est définitif.
-  const genderLocked = !!profile?.gender;
-  const [confirmGender, setConfirmGender] = useState(false);
-
   useEffect(() => {
     if (profile)
       setForm({
         full_name: profile.full_name ?? "",
         phone: profile.phone ?? "",
-        gender: (profile.gender as GenderValue | null) ?? "",
       });
   }, [profile]);
 
@@ -67,11 +54,12 @@ export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
   async function save() {
     setBusy(true);
     try {
-      await updateMyProfile({
-        data: { full_name: form.full_name, phone: form.phone, gender: form.gender || null },
-      });
+      // Le sexe se corrige uniquement via le champ dédié (règle serveur).
+      await updateMyProfile({ data: { full_name: form.full_name, phone: form.phone } });
       toast.success("Informations mises à jour");
-      setConfirmGender(false);
+      setEditing(false);
+      await refresh();
+
       setEditing(false);
       await refresh();
     } catch (err) {
@@ -138,84 +126,32 @@ export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
               L'adresse e-mail est liée à votre connexion et ne peut pas être modifiée ici.
             </p>
           </div>
-          <div>
-            <Label htmlFor="pi-gender">{GENDER_FIELD_LABEL}</Label>
-            {genderLocked ? (
-              <>
-                <Input id="pi-gender" value={genderLabel(profile?.gender)} disabled />
-                <p className="mt-1 text-xs text-muted-foreground">{GENDER_LOCKED_HELP}</p>
-              </>
-            ) : (
-              <>
-                <select
-                  id="pi-gender"
-                  value={form.gender}
-                  onChange={(e) => setForm({ ...form, gender: e.target.value as GenderValue | "" })}
-                  className="mt-1 min-h-11 w-full rounded-xl border border-input bg-background px-3 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                >
-                  <option value="">Non renseigné</option>
-                  {GENDER_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-                <p className="mt-1 text-xs text-muted-foreground">{GENDER_HELP}</p>
-                <p className="mt-1 text-xs font-semibold text-warning-foreground">
-                  {GENDER_LOCK_WARNING}
-                </p>
-              </>
-            )}
-          </div>
 
-          {confirmGender ? (
-            <div className="rounded-xl border border-warning/40 bg-warning/10 p-3">
-              <p className="text-sm font-semibold">
-                Confirmer votre genre : {genderLabel(form.gender)}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">{GENDER_LOCK_WARNING}</p>
-              <div className="mt-3 flex gap-2">
-                <Button className="min-h-11" disabled={busy} onClick={() => void save()}>
-                  {busy ? "Enregistrement…" : "Confirmer et enregistrer"}
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="min-h-11"
-                  onClick={() => setConfirmGender(false)}
-                >
-                  Revenir
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex gap-2">
-              <Button
-                onClick={() => {
-                  if (!genderLocked && form.gender) {
-                    setConfirmGender(true);
-                    return;
-                  }
-                  void save();
-                }}
-                disabled={busy}
-                className="min-h-11"
-              >
-                {busy ? "Enregistrement…" : "Enregistrer"}
-              </Button>
-              <Button variant="ghost" className="min-h-11" onClick={() => setEditing(false)}>
-                Annuler
-              </Button>
-            </div>
-          )}
+          <div className="flex gap-2">
+            <Button onClick={() => void save()} disabled={busy} className="min-h-11">
+              {busy ? "Enregistrement…" : "Enregistrer"}
+            </Button>
+            <Button variant="ghost" className="min-h-11" onClick={() => setEditing(false)}>
+              Annuler
+            </Button>
+          </div>
         </div>
       ) : (
         <dl className="mt-3 divide-y divide-border text-sm">
           <Row label="Prénom et nom" value={profile?.full_name || "—"} />
           <Row label="E-mail" value={profile?.email || "—"} />
           <Row label="Téléphone" value={profile?.phone || "Non renseigné"} />
-          <Row label="Genre / sexe" value={genderLabel(profile?.gender)} />
         </dl>
       )}
+
+      {/* Sexe : toujours visible, 1 choix initial + 1 correction autonome. */}
+      <div className="mt-3">
+        <GenderField
+          gender={profile?.gender ?? null}
+          correctionUsed={!!profile?.gender_correction_used}
+          onSaved={refresh}
+        />
+      </div>
 
       <div className="mt-5 border-t border-border pt-4">
         <div className="flex items-center justify-between gap-3">
