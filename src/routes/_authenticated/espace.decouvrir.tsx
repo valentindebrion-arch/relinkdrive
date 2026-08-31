@@ -156,15 +156,15 @@ function DiscoverPage() {
         ))}
       </div>
 
-      <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
-        {VEHICLE_FILTERS.map((f) => (
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        {VEHICLE_FILTERS.filter((f) => f.value !== "all").map((f) => (
           <button
             key={f.value}
             type="button"
             onClick={() => setFilter(f.value)}
             aria-pressed={filter === f.value}
             className={cn(
-              "tap tap-active shrink-0 rounded-full border px-3.5 py-1.5 text-[13px] font-bold transition",
+              "tap tap-active rounded-full border px-3.5 py-1.5 text-[13px] font-bold transition",
               filter === f.value
                 ? "border-primary bg-primary text-primary-foreground shadow-card"
                 : "border-border bg-card text-foreground",
