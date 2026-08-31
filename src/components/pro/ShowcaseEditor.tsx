@@ -42,6 +42,15 @@ import {
 import { BookingThemeScope } from "@/components/BookingThemeScope";
 import { GenderField } from "@/components/GenderField";
 import { ThemePicker } from "@/components/pro/ThemePicker";
+import {
+  DAY_LABELS,
+  defaultWorkingHours,
+  emptyWorkingHours,
+  hasWorkingHours,
+  parseWorkingHours,
+  serializeWorkingHours,
+  type WorkingDay,
+} from "@/lib/working-hours";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,6 +72,7 @@ import {
   ShowcaseAbout,
   ShowcaseContactSection,
   ShowcaseHeader,
+  ShowcaseHours,
   ShowcaseLanguages,
   ShowcaseLinksSection,
   ShowcaseSectors,
@@ -77,6 +87,7 @@ type SectionKey =
   | "sectors"
   | "services"
   | "languages"
+  | "hours"
   | "vehicle"
   | "tariffs"
   | "contact"
@@ -88,6 +99,7 @@ const SECTION_TITLES: Record<SectionKey, string> = {
   sectors: "Mes secteurs d'intervention",
   services: "Mes prestations",
   languages: "Langues parlées",
+  hours: "Mes horaires",
   vehicle: "Mon véhicule",
   tariffs: "Mes tarifs",
   contact: "Mes moyens de contact",
@@ -108,6 +120,7 @@ type Draft = {
   long_distance: boolean;
   services: string[];
   languages: string[];
+  working_hours: WorkingDay[];
   public_phone: string;
   show_public_phone: boolean;
   whatsapp_number: string;
@@ -173,6 +186,7 @@ const EMPTY_DRAFT: Draft = {
   long_distance: false,
   services: [],
   languages: [],
+  working_hours: emptyWorkingHours(),
   public_phone: "",
   show_public_phone: false,
   whatsapp_number: "",
@@ -261,6 +275,7 @@ export function ShowcaseEditor() {
       long_distance: !!d["long_distance"],
       services: ((d["services"] as string[]) ?? []).slice(),
       languages: ((d["languages"] as string[]) ?? []).slice(),
+      working_hours: parseWorkingHours(d["working_hours"]),
       public_phone: (d["public_phone"] as string) ?? "",
       show_public_phone: !!d["show_public_phone"],
       whatsapp_number: (d["whatsapp_number"] as string) ?? "",
@@ -406,6 +421,7 @@ export function ShowcaseEditor() {
         long_distance: draft.long_distance,
         services: draft.services,
         languages: draft.languages,
+        working_hours: serializeWorkingHours(draft.working_hours),
         public_phone: draft.public_phone || null,
         show_public_phone: draft.show_public_phone && !!draft.public_phone,
         whatsapp_number: draft.whatsapp_number || null,
@@ -734,6 +750,10 @@ export function ShowcaseEditor() {
           languages={data.languages}
           {...(editing ? { onEdit: open("languages") } : {})}
         />
+        <ShowcaseHours
+          week={draft.working_hours}
+          {...(editing ? { onEdit: open("hours") } : {})}
+        />
 
         {/* Photos du véhicule */}
         <section id="vitrine-photos" className="scroll-mt-24 space-y-3">
@@ -963,6 +983,13 @@ export function ShowcaseEditor() {
                   />
                 ))}
               </div>
+            ) : null}
+
+            {section === "hours" ? (
+              <WorkingHoursEditor
+                week={draft.working_hours}
+                onChange={(w) => set("working_hours", w)}
+              />
             ) : null}
 
             {section === "vehicle" ? (
@@ -1349,6 +1376,81 @@ function MiniStat({
       <Icon className="size-4 text-muted-foreground" />
       <p className="mt-1 text-lg font-bold tabular-nums">{value}</p>
       <p className="truncate text-[11px] text-muted-foreground">{label}</p>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------- horaires */
+
+/** Un créneau par jour pour cette première version ; la structure en accepte plusieurs. */
+function WorkingHoursEditor({
+  week,
+  onChange,
+}: {
+  week: WorkingDay[];
+  onChange: (week: WorkingDay[]) => void;
+}) {
+  const update = (day: number, patch: Partial<WorkingDay>) =>
+    onChange(week.map((d) => (d.day === day ? { ...d, ...patch } : d)));
+  const setTime = (day: number, key: "start" | "end", value: string) =>
+    onChange(
+      week.map((d) =>
+        d.day === day
+          ? {
+              ...d,
+              slots: [{ start: d.slots[0]?.start ?? "", end: d.slots[0]?.end ?? "", [key]: value }],
+            }
+          : d,
+      ),
+    );
+
+  return (
+    <div className="space-y-2">
+      {!hasWorkingHours(week) ? (
+        <Button variant="outline" className="h-11 w-full" onClick={() => onChange(defaultWorkingHours())}>
+          Pré-remplir des horaires classiques
+        </Button>
+      ) : null}
+      {week.map((d) => (
+        <div key={d.day} className="rounded-xl border border-border p-3">
+          <label className="flex min-h-10 items-center justify-between gap-3">
+            <span className="text-sm font-semibold">{DAY_LABELS[d.day]}</span>
+            <Switch
+              checked={d.enabled}
+              onCheckedChange={(v) =>
+                update(d.day, {
+                  enabled: v,
+                  slots: d.slots[0]?.start ? d.slots : [{ start: "08:00", end: "19:00" }],
+                })
+              }
+            />
+          </label>
+          {d.enabled ? (
+            <div className="mt-2 grid grid-cols-2 gap-3">
+              <Field label="Début">
+                <Input
+                  type="time"
+                  value={d.slots[0]?.start ?? ""}
+                  onChange={(e) => setTime(d.day, "start", e.target.value)}
+                />
+              </Field>
+              <Field label="Fin">
+                <Input
+                  type="time"
+                  value={d.slots[0]?.end ?? ""}
+                  onChange={(e) => setTime(d.day, "end", e.target.value)}
+                />
+              </Field>
+            </div>
+          ) : (
+            <p className="mt-1 text-xs text-muted-foreground">Fermé</p>
+          )}
+        </div>
+      ))}
+      <p className="text-xs text-muted-foreground">
+        Ces horaires indiquent quand vous travaillez habituellement (heure de France
+        métropolitaine). Ils n'engagent pas votre disponibilité immédiate.
+      </p>
     </div>
   );
 }
