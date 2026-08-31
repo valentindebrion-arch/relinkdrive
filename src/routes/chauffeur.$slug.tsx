@@ -617,7 +617,10 @@ function DriverPublicPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction className={DRIVER_ACTION_BUTTON_CLASS} onClick={() => void connect()}>
+            <AlertDialogAction
+              className={DRIVER_ACTION_BUTTON_CLASS}
+              onClick={() => void connect()}
+            >
               Confirmer l'ajout
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -644,7 +647,6 @@ function DriverPublicPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
 
       {removal ? (
         <DriverRemovedOverlay

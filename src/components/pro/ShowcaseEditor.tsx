@@ -908,7 +908,6 @@ export function ShowcaseEditor() {
               </>
             ) : null}
 
-
             {section === "about" ? (
               <Field label="Votre présentation publique">
                 <Textarea

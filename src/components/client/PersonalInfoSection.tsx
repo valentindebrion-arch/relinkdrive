@@ -10,7 +10,6 @@ import { deleteMyAddress, saveMyAddress, updateMyProfile } from "@/lib/account.f
 import { GenderField } from "@/components/GenderField";
 import type { GenderValue } from "@/lib/woman-for-woman";
 
-
 type Address = { id: string; label: string; address: string };
 
 export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
@@ -153,7 +152,6 @@ export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
           onSaved={refresh}
         />
       </div>
-
 
       <div className="mt-5 border-t border-border pt-4">
         <div className="flex items-center justify-between gap-3">

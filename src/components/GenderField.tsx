@@ -20,12 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  GENDER_HELP,
-  GENDER_OPTIONS,
-  genderLabel,
-  type GenderValue,
-} from "@/lib/woman-for-woman";
+import { GENDER_HELP, GENDER_OPTIONS, genderLabel, type GenderValue } from "@/lib/woman-for-woman";
 
 export const SAV_EMAIL = "support@relink.app";
 

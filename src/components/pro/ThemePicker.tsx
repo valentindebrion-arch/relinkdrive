@@ -58,7 +58,6 @@ export function ThemePicker({
   const current = getBookingTheme(value);
   const canWfw = driverCanOfferWfw(gender);
 
-
   function select(id: BookingThemeId) {
     if (id === value) {
       setOpen(false);
@@ -142,7 +141,6 @@ export function ThemePicker({
                 {WFW_DRIVER_PROFILE_REQUIRED} Le sexe se renseigne dans « Mes informations ».
               </p>
             )}
-
           </div>
         </SheetContent>
       </Sheet>

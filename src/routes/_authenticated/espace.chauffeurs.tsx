@@ -417,9 +417,7 @@ function ClientDrivers() {
       <AlertDialog open={!!toRemove} onOpenChange={(o) => !o && setToRemove(null)}>
         <AlertDialogContent
           style={
-            driverAccentVars(
-              toRemove ? themes.data?.[toRemove.id] : undefined,
-            ) as CSSProperties
+            driverAccentVars(toRemove ? themes.data?.[toRemove.id] : undefined) as CSSProperties
           }
         >
           <AlertDialogHeader>
@@ -446,7 +444,6 @@ function ClientDrivers() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
 
       <AddDriverSheet open={addOpen} onClose={() => setAddOpen(false)} />
     </div>

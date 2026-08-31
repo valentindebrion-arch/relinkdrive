@@ -79,7 +79,6 @@ function makeVars(v: {
     "--driver-accent": v.accent,
     "--driver-text-accent": v.accentText,
 
-
     "--theme-primary": v.primary,
 
     "--theme-primary-hover": v.primaryHover,
@@ -364,5 +363,3 @@ export function driverAccentVars(theme: unknown): Record<string, string> {
  */
 export const DRIVER_ACTION_BUTTON_CLASS =
   "bg-[var(--driver-primary,var(--primary))] text-[color:var(--driver-foreground,var(--primary-foreground))] hover:bg-[var(--driver-primary-hover,var(--primary))] focus-visible:ring-[var(--driver-primary,var(--primary))]";
-
-
