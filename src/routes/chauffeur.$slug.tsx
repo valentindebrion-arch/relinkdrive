@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { driverAccentVars, DRIVER_ACTION_BUTTON_CLASS } from "@/lib/booking-themes";
 
 import { toast } from "sonner";
-import { Check, ShieldCheck, Sparkles, UserPlus } from "lucide-react";
+import { Check, Sparkles, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { currentSource, trackDriverVisit } from "@/lib/visit-tracking";
 import { useAuth } from "@/lib/auth";
@@ -380,7 +380,7 @@ function DriverPublicPage() {
   // Visiteur non connecté : on laisse le parcours d'inscription se faire, la
   // compatibilité Woman for Woman est vérifiée après connexion (et côté serveur).
   const wfwLocked = !!session && !isDriver && !isAdmin && wfwAccess !== "ok";
-  const verifiedDocs: string[] = d.verified_docs ?? [];
+  
   const memberSince = d.member_since
     ? new Date(d.member_since).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
     : null;
