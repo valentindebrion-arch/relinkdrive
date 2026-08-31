@@ -1,10 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { toast } from "sonner";
-import { Copy, Download, ShieldCheck } from "lucide-react";
+import { Copy, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useDriverProfile } from "@/lib/driver-queries";
@@ -68,8 +67,7 @@ export function QrPage() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="surface flex flex-col items-center gap-4 p-6 lg:col-span-2">
-          {
-            <>
+          <>
             <canvas ref={canvasRef} className="rounded-lg bg-white p-3" />
               <p className="text-center text-sm break-all text-muted-foreground">{url}</p>
               <div className="flex gap-2">
@@ -112,8 +110,7 @@ export function QrPage() {
                   </Button>
                 </div>
               ) : null}
-            </>
-          )}
+          </>
         </div>
         <div className="space-y-4">
           <StatCard label="Vues de la page" value={stats.data?.views ?? 0} />
