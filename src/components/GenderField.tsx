@@ -6,6 +6,7 @@
  * strictement déclarative : elle n'est jamais déduite d'une autre donnée.
  */
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Lock, Pencil } from "lucide-react";
@@ -138,9 +139,12 @@ export function GenderField({
             le SAV ReLink.
           </p>
           <Button asChild variant="outline" size="sm" className="mt-2 min-h-10">
-            <a href={`mailto:${SAV_EMAIL}?subject=Correction%20du%20sexe%20sur%20mon%20compte`}>
+            <Link
+              to="/support/nouveau"
+              search={{ motif: "Modifier mes informations personnelles" }}
+            >
               Contacter le SAV ReLink
-            </a>
+            </Link>
           </Button>
         </div>
       ) : null}

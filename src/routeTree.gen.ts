@@ -29,7 +29,6 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminInscriptionsRouteImport } from './routes/_authenticated/admin.inscriptions'
 import { Route as AuthenticatedAdminSignalementsRouteImport } from './routes/_authenticated/admin.signalements'
 import { Route as AuthenticatedAdminTop10RouteImport } from './routes/_authenticated/admin.top10'
-import { Route as AuthenticatedAdminUtilisateursRouteImport } from './routes/_authenticated/admin.utilisateurs'
 import { Route as AuthenticatedEspaceIndexRouteImport } from './routes/_authenticated/espace.index'
 import { Route as AuthenticatedEspaceChauffeursRouteImport } from './routes/_authenticated/espace.chauffeurs'
 import { Route as AuthenticatedEspaceDecouvrirRouteImport } from './routes/_authenticated/espace.decouvrir'
@@ -45,11 +44,18 @@ import { Route as AuthenticatedProQrRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedProTarificationRouteImport } from './routes/_authenticated/pro.tarification'
 import { Route as AuthenticatedProVehiculeRouteImport } from './routes/_authenticated/pro.vehicule'
 import { Route as AuthenticatedProVerificationRouteImport } from './routes/_authenticated/pro.verification'
+import { Route as AuthenticatedSupportIndexRouteImport } from './routes/_authenticated/support.index'
+import { Route as AuthenticatedSupportTicketIdRouteImport } from './routes/_authenticated/support.$ticketId'
+import { Route as AuthenticatedSupportNouveauRouteImport } from './routes/_authenticated/support.nouveau'
 import { Route as ApiPublicPushRouteImport } from './routes/api/public/push'
 import { Route as AuthenticatedAdminChauffeursIndexRouteImport } from './routes/_authenticated/admin.chauffeurs.index'
 import { Route as AuthenticatedAdminChauffeursDriverIdRouteImport } from './routes/_authenticated/admin.chauffeurs.$driverId'
 import { Route as AuthenticatedAdminInscriptionsIndexRouteImport } from './routes/_authenticated/admin.inscriptions.index'
 import { Route as AuthenticatedAdminInscriptionsDriverIdRouteImport } from './routes/_authenticated/admin.inscriptions.$driverId'
+import { Route as AuthenticatedAdminSupportIndexRouteImport } from './routes/_authenticated/admin.support.index'
+import { Route as AuthenticatedAdminSupportTicketIdRouteImport } from './routes/_authenticated/admin.support.$ticketId'
+import { Route as AuthenticatedAdminUtilisateursIndexRouteImport } from './routes/_authenticated/admin.utilisateurs.index'
+import { Route as AuthenticatedAdminUtilisateursClientIdRouteImport } from './routes/_authenticated/admin.utilisateurs.$clientId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -152,12 +158,6 @@ const AuthenticatedAdminTop10Route = AuthenticatedAdminTop10RouteImport.update({
   path: '/top10',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
-const AuthenticatedAdminUtilisateursRoute =
-  AuthenticatedAdminUtilisateursRouteImport.update({
-    id: '/utilisateurs',
-    path: '/utilisateurs',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
 const AuthenticatedEspaceIndexRoute =
   AuthenticatedEspaceIndexRouteImport.update({
     id: '/',
@@ -243,6 +243,24 @@ const AuthenticatedProVerificationRoute =
     path: '/verification',
     getParentRoute: () => AuthenticatedProRoute,
   } as any)
+const AuthenticatedSupportIndexRoute =
+  AuthenticatedSupportIndexRouteImport.update({
+    id: '/support/',
+    path: '/support/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSupportTicketIdRoute =
+  AuthenticatedSupportTicketIdRouteImport.update({
+    id: '/support/$ticketId',
+    path: '/support/$ticketId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSupportNouveauRoute =
+  AuthenticatedSupportNouveauRouteImport.update({
+    id: '/support/nouveau',
+    path: '/support/nouveau',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiPublicPushRoute = ApiPublicPushRouteImport.update({
   id: '/api/public/push',
   path: '/api/public/push',
@@ -272,6 +290,30 @@ const AuthenticatedAdminInscriptionsDriverIdRoute =
     path: '/$driverId',
     getParentRoute: () => AuthenticatedAdminInscriptionsRoute,
   } as any)
+const AuthenticatedAdminSupportIndexRoute =
+  AuthenticatedAdminSupportIndexRouteImport.update({
+    id: '/support/',
+    path: '/support/',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminSupportTicketIdRoute =
+  AuthenticatedAdminSupportTicketIdRouteImport.update({
+    id: '/support/$ticketId',
+    path: '/support/$ticketId',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminUtilisateursIndexRoute =
+  AuthenticatedAdminUtilisateursIndexRouteImport.update({
+    id: '/utilisateurs/',
+    path: '/utilisateurs/',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminUtilisateursClientIdRoute =
+  AuthenticatedAdminUtilisateursClientIdRouteImport.update({
+    id: '/utilisateurs/$clientId',
+    path: '/utilisateurs/$clientId',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -292,7 +334,6 @@ export interface FileRoutesByFullPath {
   '/admin/inscriptions': typeof AuthenticatedAdminInscriptionsRouteWithChildren
   '/admin/signalements': typeof AuthenticatedAdminSignalementsRoute
   '/admin/top10': typeof AuthenticatedAdminTop10Route
-  '/admin/utilisateurs': typeof AuthenticatedAdminUtilisateursRoute
   '/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
   '/espace/decouvrir': typeof AuthenticatedEspaceDecouvrirRoute
   '/espace/parametres': typeof AuthenticatedEspaceParametresRoute
@@ -306,14 +347,21 @@ export interface FileRoutesByFullPath {
   '/pro/tarification': typeof AuthenticatedProTarificationRoute
   '/pro/vehicule': typeof AuthenticatedProVehiculeRoute
   '/pro/verification': typeof AuthenticatedProVerificationRoute
+  '/support/$ticketId': typeof AuthenticatedSupportTicketIdRoute
+  '/support/nouveau': typeof AuthenticatedSupportNouveauRoute
   '/api/public/push': typeof ApiPublicPushRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/espace/': typeof AuthenticatedEspaceIndexRoute
   '/pro/': typeof AuthenticatedProIndexRoute
+  '/support/': typeof AuthenticatedSupportIndexRoute
   '/admin/chauffeurs/$driverId': typeof AuthenticatedAdminChauffeursDriverIdRoute
   '/admin/inscriptions/$driverId': typeof AuthenticatedAdminInscriptionsDriverIdRoute
+  '/admin/support/$ticketId': typeof AuthenticatedAdminSupportTicketIdRoute
+  '/admin/utilisateurs/$clientId': typeof AuthenticatedAdminUtilisateursClientIdRoute
   '/admin/chauffeurs/': typeof AuthenticatedAdminChauffeursIndexRoute
   '/admin/inscriptions/': typeof AuthenticatedAdminInscriptionsIndexRoute
+  '/admin/support/': typeof AuthenticatedAdminSupportIndexRoute
+  '/admin/utilisateurs/': typeof AuthenticatedAdminUtilisateursIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -330,7 +378,6 @@ export interface FileRoutesByTo {
   '/q/$slug': typeof QSlugRoute
   '/admin/signalements': typeof AuthenticatedAdminSignalementsRoute
   '/admin/top10': typeof AuthenticatedAdminTop10Route
-  '/admin/utilisateurs': typeof AuthenticatedAdminUtilisateursRoute
   '/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
   '/espace/decouvrir': typeof AuthenticatedEspaceDecouvrirRoute
   '/espace/parametres': typeof AuthenticatedEspaceParametresRoute
@@ -344,14 +391,21 @@ export interface FileRoutesByTo {
   '/pro/tarification': typeof AuthenticatedProTarificationRoute
   '/pro/vehicule': typeof AuthenticatedProVehiculeRoute
   '/pro/verification': typeof AuthenticatedProVerificationRoute
+  '/support/$ticketId': typeof AuthenticatedSupportTicketIdRoute
+  '/support/nouveau': typeof AuthenticatedSupportNouveauRoute
   '/api/public/push': typeof ApiPublicPushRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/espace': typeof AuthenticatedEspaceIndexRoute
   '/pro': typeof AuthenticatedProIndexRoute
+  '/support': typeof AuthenticatedSupportIndexRoute
   '/admin/chauffeurs/$driverId': typeof AuthenticatedAdminChauffeursDriverIdRoute
   '/admin/inscriptions/$driverId': typeof AuthenticatedAdminInscriptionsDriverIdRoute
+  '/admin/support/$ticketId': typeof AuthenticatedAdminSupportTicketIdRoute
+  '/admin/utilisateurs/$clientId': typeof AuthenticatedAdminUtilisateursClientIdRoute
   '/admin/chauffeurs': typeof AuthenticatedAdminChauffeursIndexRoute
   '/admin/inscriptions': typeof AuthenticatedAdminInscriptionsIndexRoute
+  '/admin/support': typeof AuthenticatedAdminSupportIndexRoute
+  '/admin/utilisateurs': typeof AuthenticatedAdminUtilisateursIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -374,7 +428,6 @@ export interface FileRoutesById {
   '/_authenticated/admin/inscriptions': typeof AuthenticatedAdminInscriptionsRouteWithChildren
   '/_authenticated/admin/signalements': typeof AuthenticatedAdminSignalementsRoute
   '/_authenticated/admin/top10': typeof AuthenticatedAdminTop10Route
-  '/_authenticated/admin/utilisateurs': typeof AuthenticatedAdminUtilisateursRoute
   '/_authenticated/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
   '/_authenticated/espace/decouvrir': typeof AuthenticatedEspaceDecouvrirRoute
   '/_authenticated/espace/parametres': typeof AuthenticatedEspaceParametresRoute
@@ -388,14 +441,21 @@ export interface FileRoutesById {
   '/_authenticated/pro/tarification': typeof AuthenticatedProTarificationRoute
   '/_authenticated/pro/vehicule': typeof AuthenticatedProVehiculeRoute
   '/_authenticated/pro/verification': typeof AuthenticatedProVerificationRoute
+  '/_authenticated/support/$ticketId': typeof AuthenticatedSupportTicketIdRoute
+  '/_authenticated/support/nouveau': typeof AuthenticatedSupportNouveauRoute
   '/api/public/push': typeof ApiPublicPushRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/espace/': typeof AuthenticatedEspaceIndexRoute
   '/_authenticated/pro/': typeof AuthenticatedProIndexRoute
+  '/_authenticated/support/': typeof AuthenticatedSupportIndexRoute
   '/_authenticated/admin/chauffeurs/$driverId': typeof AuthenticatedAdminChauffeursDriverIdRoute
   '/_authenticated/admin/inscriptions/$driverId': typeof AuthenticatedAdminInscriptionsDriverIdRoute
+  '/_authenticated/admin/support/$ticketId': typeof AuthenticatedAdminSupportTicketIdRoute
+  '/_authenticated/admin/utilisateurs/$clientId': typeof AuthenticatedAdminUtilisateursClientIdRoute
   '/_authenticated/admin/chauffeurs/': typeof AuthenticatedAdminChauffeursIndexRoute
   '/_authenticated/admin/inscriptions/': typeof AuthenticatedAdminInscriptionsIndexRoute
+  '/_authenticated/admin/support/': typeof AuthenticatedAdminSupportIndexRoute
+  '/_authenticated/admin/utilisateurs/': typeof AuthenticatedAdminUtilisateursIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -418,7 +478,6 @@ export interface FileRouteTypes {
     | '/admin/inscriptions'
     | '/admin/signalements'
     | '/admin/top10'
-    | '/admin/utilisateurs'
     | '/espace/chauffeurs'
     | '/espace/decouvrir'
     | '/espace/parametres'
@@ -432,14 +491,21 @@ export interface FileRouteTypes {
     | '/pro/tarification'
     | '/pro/vehicule'
     | '/pro/verification'
+    | '/support/$ticketId'
+    | '/support/nouveau'
     | '/api/public/push'
     | '/admin/'
     | '/espace/'
     | '/pro/'
+    | '/support/'
     | '/admin/chauffeurs/$driverId'
     | '/admin/inscriptions/$driverId'
+    | '/admin/support/$ticketId'
+    | '/admin/utilisateurs/$clientId'
     | '/admin/chauffeurs/'
     | '/admin/inscriptions/'
+    | '/admin/support/'
+    | '/admin/utilisateurs/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -456,7 +522,6 @@ export interface FileRouteTypes {
     | '/q/$slug'
     | '/admin/signalements'
     | '/admin/top10'
-    | '/admin/utilisateurs'
     | '/espace/chauffeurs'
     | '/espace/decouvrir'
     | '/espace/parametres'
@@ -470,14 +535,21 @@ export interface FileRouteTypes {
     | '/pro/tarification'
     | '/pro/vehicule'
     | '/pro/verification'
+    | '/support/$ticketId'
+    | '/support/nouveau'
     | '/api/public/push'
     | '/admin'
     | '/espace'
     | '/pro'
+    | '/support'
     | '/admin/chauffeurs/$driverId'
     | '/admin/inscriptions/$driverId'
+    | '/admin/support/$ticketId'
+    | '/admin/utilisateurs/$clientId'
     | '/admin/chauffeurs'
     | '/admin/inscriptions'
+    | '/admin/support'
+    | '/admin/utilisateurs'
   id:
     | '__root__'
     | '/'
@@ -499,7 +571,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/inscriptions'
     | '/_authenticated/admin/signalements'
     | '/_authenticated/admin/top10'
-    | '/_authenticated/admin/utilisateurs'
     | '/_authenticated/espace/chauffeurs'
     | '/_authenticated/espace/decouvrir'
     | '/_authenticated/espace/parametres'
@@ -513,14 +584,21 @@ export interface FileRouteTypes {
     | '/_authenticated/pro/tarification'
     | '/_authenticated/pro/vehicule'
     | '/_authenticated/pro/verification'
+    | '/_authenticated/support/$ticketId'
+    | '/_authenticated/support/nouveau'
     | '/api/public/push'
     | '/_authenticated/admin/'
     | '/_authenticated/espace/'
     | '/_authenticated/pro/'
+    | '/_authenticated/support/'
     | '/_authenticated/admin/chauffeurs/$driverId'
     | '/_authenticated/admin/inscriptions/$driverId'
+    | '/_authenticated/admin/support/$ticketId'
+    | '/_authenticated/admin/utilisateurs/$clientId'
     | '/_authenticated/admin/chauffeurs/'
     | '/_authenticated/admin/inscriptions/'
+    | '/_authenticated/admin/support/'
+    | '/_authenticated/admin/utilisateurs/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -682,13 +760,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminTop10RouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/_authenticated/admin/utilisateurs': {
-      id: '/_authenticated/admin/utilisateurs'
-      path: '/utilisateurs'
-      fullPath: '/admin/utilisateurs'
-      preLoaderRoute: typeof AuthenticatedAdminUtilisateursRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
     '/_authenticated/espace/': {
       id: '/_authenticated/espace/'
       path: '/'
@@ -794,6 +865,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProVerificationRouteImport
       parentRoute: typeof AuthenticatedProRoute
     }
+    '/_authenticated/support/': {
+      id: '/_authenticated/support/'
+      path: '/support'
+      fullPath: '/support/'
+      preLoaderRoute: typeof AuthenticatedSupportIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/support/$ticketId': {
+      id: '/_authenticated/support/$ticketId'
+      path: '/support/$ticketId'
+      fullPath: '/support/$ticketId'
+      preLoaderRoute: typeof AuthenticatedSupportTicketIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/support/nouveau': {
+      id: '/_authenticated/support/nouveau'
+      path: '/support/nouveau'
+      fullPath: '/support/nouveau'
+      preLoaderRoute: typeof AuthenticatedSupportNouveauRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/push': {
       id: '/api/public/push'
       path: '/api/public/push'
@@ -829,6 +921,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminInscriptionsDriverIdRouteImport
       parentRoute: typeof AuthenticatedAdminInscriptionsRoute
     }
+    '/_authenticated/admin/support/': {
+      id: '/_authenticated/admin/support/'
+      path: '/support'
+      fullPath: '/admin/support/'
+      preLoaderRoute: typeof AuthenticatedAdminSupportIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/support/$ticketId': {
+      id: '/_authenticated/admin/support/$ticketId'
+      path: '/support/$ticketId'
+      fullPath: '/admin/support/$ticketId'
+      preLoaderRoute: typeof AuthenticatedAdminSupportTicketIdRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/utilisateurs/': {
+      id: '/_authenticated/admin/utilisateurs/'
+      path: '/utilisateurs'
+      fullPath: '/admin/utilisateurs/'
+      preLoaderRoute: typeof AuthenticatedAdminUtilisateursIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/utilisateurs/$clientId': {
+      id: '/_authenticated/admin/utilisateurs/$clientId'
+      path: '/utilisateurs/$clientId'
+      fullPath: '/admin/utilisateurs/$clientId'
+      preLoaderRoute: typeof AuthenticatedAdminUtilisateursClientIdRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
@@ -854,10 +974,13 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminInscriptionsRoute: typeof AuthenticatedAdminInscriptionsRouteWithChildren
   AuthenticatedAdminSignalementsRoute: typeof AuthenticatedAdminSignalementsRoute
   AuthenticatedAdminTop10Route: typeof AuthenticatedAdminTop10Route
-  AuthenticatedAdminUtilisateursRoute: typeof AuthenticatedAdminUtilisateursRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminChauffeursDriverIdRoute: typeof AuthenticatedAdminChauffeursDriverIdRoute
+  AuthenticatedAdminSupportTicketIdRoute: typeof AuthenticatedAdminSupportTicketIdRoute
+  AuthenticatedAdminUtilisateursClientIdRoute: typeof AuthenticatedAdminUtilisateursClientIdRoute
   AuthenticatedAdminChauffeursIndexRoute: typeof AuthenticatedAdminChauffeursIndexRoute
+  AuthenticatedAdminSupportIndexRoute: typeof AuthenticatedAdminSupportIndexRoute
+  AuthenticatedAdminUtilisateursIndexRoute: typeof AuthenticatedAdminUtilisateursIndexRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
@@ -865,12 +988,18 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
     AuthenticatedAdminInscriptionsRouteWithChildren,
   AuthenticatedAdminSignalementsRoute: AuthenticatedAdminSignalementsRoute,
   AuthenticatedAdminTop10Route: AuthenticatedAdminTop10Route,
-  AuthenticatedAdminUtilisateursRoute: AuthenticatedAdminUtilisateursRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedAdminChauffeursDriverIdRoute:
     AuthenticatedAdminChauffeursDriverIdRoute,
+  AuthenticatedAdminSupportTicketIdRoute:
+    AuthenticatedAdminSupportTicketIdRoute,
+  AuthenticatedAdminUtilisateursClientIdRoute:
+    AuthenticatedAdminUtilisateursClientIdRoute,
   AuthenticatedAdminChauffeursIndexRoute:
     AuthenticatedAdminChauffeursIndexRoute,
+  AuthenticatedAdminSupportIndexRoute: AuthenticatedAdminSupportIndexRoute,
+  AuthenticatedAdminUtilisateursIndexRoute:
+    AuthenticatedAdminUtilisateursIndexRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
@@ -928,12 +1057,18 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedEspaceRoute: typeof AuthenticatedEspaceRouteWithChildren
   AuthenticatedProRoute: typeof AuthenticatedProRouteWithChildren
+  AuthenticatedSupportTicketIdRoute: typeof AuthenticatedSupportTicketIdRoute
+  AuthenticatedSupportNouveauRoute: typeof AuthenticatedSupportNouveauRoute
+  AuthenticatedSupportIndexRoute: typeof AuthenticatedSupportIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedEspaceRoute: AuthenticatedEspaceRouteWithChildren,
   AuthenticatedProRoute: AuthenticatedProRouteWithChildren,
+  AuthenticatedSupportTicketIdRoute: AuthenticatedSupportTicketIdRoute,
+  AuthenticatedSupportNouveauRoute: AuthenticatedSupportNouveauRoute,
+  AuthenticatedSupportIndexRoute: AuthenticatedSupportIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

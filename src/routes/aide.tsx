@@ -114,12 +114,20 @@ function HelpPage() {
           notification non reçue : l'équipe {BRAND.name} intervient uniquement sur le fonctionnement
           du logiciel, du lundi au vendredi de 9h à 18h.
         </p>
-        <a
-          href="mailto:support@relink.app"
-          className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-semibold"
-        >
-          <Mail className="size-4" /> support@relink.app
-        </a>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Link
+            to="/support/nouveau"
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground"
+          >
+            <LifeBuoy className="size-4" /> Contacter le support ReLink
+          </Link>
+          <Link
+            to="/support"
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-semibold"
+          >
+            <Mail className="size-4" /> Mes demandes
+          </Link>
+        </div>
         <p className="mt-3 flex items-start gap-2 text-xs text-muted-foreground">
           <LifeBuoy className="mt-0.5 size-4 shrink-0" />
           Vous pouvez aussi utiliser « Signaler un problème technique » dans l'onglet Profil.
