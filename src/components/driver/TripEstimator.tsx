@@ -54,7 +54,7 @@ export function TripEstimator({
   /** Renseigne automatiquement le départ si la géolocalisation est déjà autorisée. */
   autoLocate?: boolean;
 }) {
-  const estimateFn = useServerFn(estimateRoute);
+  const estimateFn = useServerFn(estimateDriverTrip);
   const geocodeFn = useServerFn(reverseGeocode);
 
   const [pickup, setPickup] = useState("");
@@ -75,32 +75,17 @@ export function TripEstimator({
     setState("loading");
     void (async () => {
       try {
-        const res = await estimateFn({ data: { origin: pickup, destination: dropoff } });
-
-        // Grille tarifaire renseignée par le chauffeur ; repli sur un tarif de marché.
-        let reference = priceForKm(res.distanceKm).total;
-        try {
-          const { data } = await supabase.rpc("get_public_driver_pricing", { _slug: slug });
-          const t = data?.[0];
-          if (t?.price_per_km) {
-            const perKm = Number(t.price_per_km);
-            const minimum = Number(t.minimum ?? 0);
-            const pickupPct = Number(t.pickup_pct ?? 0);
-            const raw = Math.max(minimum, res.distanceKm * perKm);
-            reference = raw * (1 + pickupPct / 100);
-          }
-        } catch {
-          /* tarif de repli conservé */
-        }
-
+        // Le serveur applique la grille du chauffeur et son plancher tarifaire.
+        const res = await estimateFn({ data: { slug, origin: pickup, destination: dropoff } });
         if (cancelled) return;
         setResult({
           pickup,
           dropoff,
           distanceKm: res.distanceKm,
           durationMin: res.durationMin,
-          low: Math.max(5, Math.floor((reference * 0.9) / 5) * 5),
-          high: Math.ceil((reference * 1.15) / 5) * 5,
+          low: res.low,
+          high: res.high,
+          minimum: res.minimum,
         });
         setState("idle");
       } catch {
@@ -113,6 +98,7 @@ export function TripEstimator({
       cancelled = true;
     };
   }, [pickup, dropoff, pickupOk, dropoffOk, slug, estimateFn]);
+
 
   async function locateMe() {
     if (!navigator.geolocation) return;
