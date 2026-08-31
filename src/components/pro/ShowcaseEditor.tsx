@@ -886,6 +886,16 @@ export function ShowcaseEditor() {
                     onChange={(e) => set("full_name", e.target.value)}
                   />
                 </Field>
+                {/* Sexe : visible, corrigeable une seule fois (contrôle serveur). */}
+                <GenderField
+                  gender={profile?.gender ?? null}
+                  correctionUsed={!!profile?.gender_correction_used}
+                  womanForWomanActive={draft.booking_theme === "women_for_women"}
+                  onSaved={async () => {
+                    await refresh();
+                    await driver.refetch();
+                  }}
+                />
                 <Field label="Ville principale">
                   <Input
                     value={draft.city}
@@ -902,6 +912,7 @@ export function ShowcaseEditor() {
                 </Field>
               </>
             ) : null}
+
 
             {section === "about" ? (
               <Field label="Votre présentation publique">
