@@ -70,11 +70,15 @@ function makeVars(v: {
   return {
     // Jetons publics de l'identité visuelle du chauffeur
     "--driver-primary": v.primary,
+    "--driver-primary-hover": v.primaryHover,
+    "--driver-primary-pressed": v.primaryHover,
     "--driver-primary-soft": v.accent,
+    "--driver-foreground": v.onPrimary,
     "--driver-border": v.border,
     "--driver-background-soft": v.secondary,
     "--driver-accent": v.accent,
     "--driver-text-accent": v.accentText,
+
 
     "--theme-primary": v.primary,
 
