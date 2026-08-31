@@ -314,6 +314,7 @@ function DriverPublicPage() {
       frontQuery.isLoading ||
       sideQuery.isLoading,
   };
+  const avatarUrl = useDisplayAvatar(d?.avatar_url);
 
   if (driverQuery.isLoading) {
     return <div className="p-10 text-center text-sm text-muted-foreground">Chargement…</div>;
