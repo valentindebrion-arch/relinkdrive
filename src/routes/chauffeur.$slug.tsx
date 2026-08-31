@@ -606,21 +606,24 @@ function DriverPublicPage() {
         <PoweredByRelink />
       </div>
 
+      {/* Confirmations : mêmes couleurs de thème que les boutons d'action. */}
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent style={driverAccentVars(branding.data?.themeId) as CSSProperties}>
           <AlertDialogHeader>
             <AlertDialogTitle>Ajouter {firstName} à vos chauffeurs ?</AlertDialogTitle>
             <AlertDialogDescription></AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void connect()}>Confirmer l'ajout</AlertDialogAction>
+            <AlertDialogAction className={DRIVER_ACTION_BUTTON_CLASS} onClick={() => void connect()}>
+              Confirmer l'ajout
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       <AlertDialog open={removeOpen} onOpenChange={setRemoveOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent style={driverAccentVars(branding.data?.themeId) as CSSProperties}>
           <AlertDialogHeader>
             <AlertDialogTitle>Retirer {firstName} de vos chauffeurs ?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -632,13 +635,14 @@ function DriverPublicPage() {
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => void removeFromBook()}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className={DRIVER_ACTION_BUTTON_CLASS}
             >
-              Retirer définitivement
+              Confirmer le retrait
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
 
       {removal ? (
         <DriverRemovedOverlay
