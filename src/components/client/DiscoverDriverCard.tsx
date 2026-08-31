@@ -94,28 +94,13 @@ export function DiscoverDriverCard({
             <span>· {seats > 4 ? `Van · ${seats} places` : `Berline · ${seats} places`}</span>
           ) : null}
         </p>
-        <p className="mt-1.5 flex items-center gap-2 text-[12px] font-semibold">
-          <span
-            className={cn(
-              "inline-flex items-center gap-1 rounded-full px-2 py-0.5",
-              driver.on_duty ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
-            )}
-          >
-            <span
-              className={cn(
-                "size-1.5 rounded-full",
-                driver.on_duty ? "bg-primary" : "bg-muted-foreground/60",
-              )}
-              aria-hidden
-            />
-            {driver.on_duty ? "Disponible" : "Indisponible actuellement"}
-          </span>
-          {driver.rating_count > 0 && driver.rating_avg ? (
-            <span className="text-muted-foreground">
-              ★ {driver.rating_avg.toFixed(1)} ({driver.rating_count})
-            </span>
-          ) : null}
-        </p>
+        {/* Plus de statut manuel : la disponibilité se lit sur la vitrine (horaires). */}
+        {driver.rating_count > 0 && driver.rating_avg ? (
+          <p className="mt-1.5 text-[12px] font-semibold text-muted-foreground">
+            ★ {driver.rating_avg.toFixed(1)} ({driver.rating_count})
+          </p>
+        ) : null}
+
       </div>
     </>
   );
