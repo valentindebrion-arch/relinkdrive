@@ -68,7 +68,16 @@ function makeVars(v: {
   destructive?: string;
 }): Record<string, string> {
   return {
+    // Jetons publics de l'identité visuelle du chauffeur
+    "--driver-primary": v.primary,
+    "--driver-primary-soft": v.accent,
+    "--driver-border": v.border,
+    "--driver-background-soft": v.secondary,
+    "--driver-accent": v.accent,
+    "--driver-text-accent": v.accentText,
+
     "--theme-primary": v.primary,
+
     "--theme-primary-hover": v.primaryHover,
     "--theme-secondary": v.secondary,
     "--theme-background": v.background,
