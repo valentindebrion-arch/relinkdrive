@@ -226,7 +226,13 @@ export function TripEstimator({
               <p className="text-3xl font-black tracking-tight text-primary">
                 {money(result.low)} – {money(result.high)}
               </p>
+              {result.minimum ? (
+                <p className="mt-1 text-[12px] font-semibold text-muted-foreground">
+                  Course minimum du chauffeur : {money(result.minimum)}
+                </p>
+              ) : null}
             </div>
+
           </div>
 
           <p className="flex gap-2 rounded-2xl bg-muted/50 px-3 py-2.5 text-[11.5px] leading-snug text-muted-foreground">
