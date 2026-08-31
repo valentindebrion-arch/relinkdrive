@@ -132,8 +132,24 @@ function DriverPublicPage() {
       ? "qr"
       : "link";
 
+  // Accès à la vitrine : Woman for Woman est un mode réservé (contrôle serveur).
+  const accessQuery = useQuery({
+    queryKey: ["driver-page-access", slug, user?.id ?? null],
+    queryFn: async (): Promise<string> => {
+      const { data, error } = await (
+        supabase.rpc as unknown as (
+          fn: string,
+          args: Record<string, unknown>,
+        ) => Promise<{ data: string | null; error: { message: string } | null }>
+      )("driver_page_access", { _slug: slug });
+      if (error) return "ok";
+      return data ?? "ok";
+    },
+  });
+  const access = accessQuery.data ?? "ok";
+
   const driverQuery = useQuery({
-    queryKey: ["public-driver", slug],
+    queryKey: ["public-driver", slug, user?.id ?? null],
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_public_driver_page", { _slug: slug });
       if (error) throw error;
@@ -278,9 +294,43 @@ function DriverPublicPage() {
   };
   const avatarUrl = useDisplayAvatar(d?.avatar_url);
 
-  if (driverQuery.isLoading) {
+  if (accessQuery.isLoading || driverQuery.isLoading) {
     return <div className="p-10 text-center text-sm text-muted-foreground">Chargement…</div>;
   }
+  // Vitrine Woman for Woman : aucune donnée de la chauffeuse n'est affichée.
+  if (access === "wfw_signin" || access === "wfw_locked") {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-5 text-center">
+        <div className="max-w-sm">
+          <Sparkles className="mx-auto size-6 text-wfw" aria-hidden />
+          <h1 className="mt-3 text-xl font-semibold">{WFW_LABEL}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {access === "wfw_signin"
+              ? `Cette vitrine fait partie de ${WFW_LABEL}. Connectez-vous à ${BRAND.name} pour vérifier votre accès.`
+              : "Cette vitrine est réservée aux utilisatrices éligibles au service Woman for Woman."}
+          </p>
+          {access === "wfw_signin" ? (
+            <Button
+              className="mt-5 h-11 w-full"
+              onClick={() =>
+                navigate({
+                  to: "/auth",
+                  search: { mode: "signin", role: "client", next: `/chauffeur/${slug}` },
+                })
+              }
+            >
+              Se connecter
+            </Button>
+          ) : (
+            <Button asChild variant="outline" className="mt-5">
+              <Link to="/">Retour à {BRAND.name}</Link>
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   if (!d) {
     return (
       <div className="flex min-h-screen items-center justify-center px-5 text-center">
