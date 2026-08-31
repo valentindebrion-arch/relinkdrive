@@ -86,7 +86,6 @@ function CallbackPage() {
 
         if (result.role === "admin") return navigate({ to: "/admin", replace: true });
         if (result.role === "driver") {
-          const incomplete = result.driverStatus !== "verified";
           return navigate({ to: "/pro", replace: true });
         }
         return navigate({
