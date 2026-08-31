@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ShieldCheck, MapPin, Users, Car, Sparkles } from "lucide-react";
 import { serviceLabel, categoryLabel } from "@/lib/showcase";
+import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { cn } from "@/lib/utils";
 
 export type DirectoryDriver = {
