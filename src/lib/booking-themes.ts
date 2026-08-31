@@ -70,11 +70,15 @@ function makeVars(v: {
   return {
     // Jetons publics de l'identité visuelle du chauffeur
     "--driver-primary": v.primary,
+    "--driver-primary-hover": v.primaryHover,
+    "--driver-primary-pressed": v.primaryHover,
     "--driver-primary-soft": v.accent,
+    "--driver-foreground": v.onPrimary,
     "--driver-border": v.border,
     "--driver-background-soft": v.secondary,
     "--driver-accent": v.accent,
     "--driver-text-accent": v.accentText,
+
 
     "--theme-primary": v.primary,
 
@@ -337,7 +341,10 @@ export function driverAccentVars(theme: unknown): Record<string, string> {
   const v = t.vars;
   return {
     "--driver-primary": v["--driver-primary"]!,
+    "--driver-primary-hover": v["--driver-primary-hover"]!,
+    "--driver-primary-pressed": v["--driver-primary-pressed"]!,
     "--driver-primary-soft": v["--driver-primary-soft"]!,
+    "--driver-foreground": v["--driver-foreground"]!,
     "--driver-border": v["--driver-border"]!,
     "--driver-background-soft": v["--driver-background-soft"]!,
     "--driver-accent": v["--driver-accent"]!,
@@ -349,3 +356,4 @@ export function driverAccentVars(theme: unknown): Record<string, string> {
     "--ring": v["--ring"]!,
   };
 }
+
