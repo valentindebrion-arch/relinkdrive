@@ -276,7 +276,7 @@ function ClientHome() {
           </DriverThemeScope>
         )}
 
-        <section className="home-rise space-y-2" style={{ animationDelay: "90ms" }}>
+        <section className="home-rise space-y-3" style={{ animationDelay: "90ms" }}>
           {noDriver ? (
             <>
               <Link
