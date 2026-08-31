@@ -45,35 +45,31 @@ function ProLayout() {
   const restrictedItems: NavItem[] = [
     { to: "/pro/dossier", label: "Mon dossier", icon: <ShieldCheck /> },
     { to: "/pro/entreprise", label: "Mon entreprise", icon: <Building2 /> },
-    { to: "/pro/vehicule", label: "Mes véhicules", icon: <Car /> },
+    { to: "/pro", label: "Ma vitrine", icon: <Home /> },
     { to: "/pro/parametres", label: "Mon compte", icon: <UserRound /> },
     { to: "/aide", label: "Aide", icon: <HelpCircle /> },
   ];
 
-  // Espace chauffeur : uniquement la gestion de la présence sur ReLink.
+  // Espace chauffeur : tout ce qui concerne la présence publique vit dans Ma vitrine.
   const items: NavItem[] = [
     { to: "/pro", label: "Ma vitrine", icon: <Home /> },
-    { to: "/pro/profil", label: "Mon profil", icon: <UserRound /> },
-    { to: "/pro/vehicule", label: "Mes véhicules", icon: <Car /> },
-    { to: "/pro/tarification", label: "Mes tarifs", icon: <SlidersHorizontal /> },
-    { to: "/pro/liens", label: "Mes liens", icon: <Link2 /> },
-    { to: "/pro/qr", label: "Mon QR code", icon: <QrCode /> },
     { to: "/pro/dossier", label: "Vérification", icon: <ShieldCheck /> },
     { to: "/pro/entreprise", label: "Mon entreprise", icon: <Building2 /> },
+    { to: "/pro/parametres", label: "Mon compte", icon: <UserRound /> },
+    { to: "/aide", label: "Aide", icon: <HelpCircle /> },
   ];
 
   const bottomItems: NavItem[] = [
     { to: "/pro", label: "Vitrine", icon: <Home /> },
-    { to: "/pro/profil", label: "Profil", icon: <UserRound /> },
-    { to: "/pro/vehicule", label: "Véhicules", icon: <Car /> },
-    { to: "/pro/qr", label: "QR code", icon: <QrCode /> },
+    { to: "/pro/dossier", label: "Vérification", icon: <ShieldCheck /> },
+    { to: "/pro/entreprise", label: "Entreprise", icon: <Building2 /> },
     { to: "/pro/parametres", label: "Compte", icon: <UserRound /> },
   ];
 
   const restrictedBottom: NavItem[] = [
     { to: "/pro/dossier", label: "Dossier", icon: <ShieldCheck /> },
     { to: "/pro/entreprise", label: "Entreprise", icon: <Building2 /> },
-    { to: "/pro/vehicule", label: "Véhicule", icon: <Car /> },
+    { to: "/pro", label: "Vitrine", icon: <Home /> },
     { to: "/pro/parametres", label: "Compte", icon: <UserRound /> },
   ];
 
