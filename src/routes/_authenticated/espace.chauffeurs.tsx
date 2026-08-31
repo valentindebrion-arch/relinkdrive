@@ -1,13 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
-import { Car, Check, Compass, MapPin, Plus, Search, UserMinus, Users } from "lucide-react";
+import { useEffect, useMemo } from "react";
+import { Car, Check, Compass, MapPin, QrCode, Search, UserMinus, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { isWithinWorkingHours, parseWorkingHours } from "@/lib/working-hours";
 import { fetchConnectedProfile, fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { useAuth } from "@/lib/auth";
-import { AddDriverSheet } from "@/components/client/AddDriverSheet";
 import { ClientTopBar } from "@/components/client/ClientTopBar";
 import { useSignedUrls } from "@/lib/storage";
 import { AvatarPhoto } from "@/components/AvatarPhoto";
