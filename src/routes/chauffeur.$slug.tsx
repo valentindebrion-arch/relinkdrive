@@ -442,14 +442,15 @@ function DriverPublicPage() {
           <Check className="size-4" />{" "}
           {removal ? "Chauffeur retiré" : `${firstName} est dans mes chauffeurs`}
         </p>
-        <button
-          type="button"
+        {/* Identité visuelle du chauffeur : le bouton reprend la couleur de son thème. */}
+        <Button
+          variant="outline"
           onClick={() => setRemoveOpen(true)}
           disabled={adding || removal}
-          className="text-xs font-semibold text-muted-foreground underline underline-offset-4 transition hover:text-foreground"
+          className="h-11 w-full border-primary/40 bg-[var(--driver-primary-soft,var(--accent))] text-[color:var(--driver-text-accent,var(--accent-foreground))] hover:bg-[var(--driver-accent,var(--accent))] focus-visible:ring-[var(--driver-primary,var(--primary))] disabled:opacity-60"
         >
           Retirer {firstName} de mes chauffeurs
-        </button>
+        </Button>
       </div>
     ) : (
       <Button
@@ -629,7 +630,12 @@ function DriverPublicPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void removeFromBook()}>Retirer</AlertDialogAction>
+            <AlertDialogAction
+              onClick={() => void removeFromBook()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Retirer définitivement
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
