@@ -40,6 +40,7 @@ export type Database = {
           city: string | null
           client_id: string | null
           created_at: string
+          dedupe_bucket: string | null
           driver_id: string | null
           event: string
           id: string
@@ -51,6 +52,7 @@ export type Database = {
           city?: string | null
           client_id?: string | null
           created_at?: string
+          dedupe_bucket?: string | null
           driver_id?: string | null
           event: string
           id?: string
@@ -62,6 +64,7 @@ export type Database = {
           city?: string | null
           client_id?: string | null
           created_at?: string
+          dedupe_bucket?: string | null
           driver_id?: string | null
           event?: string
           id?: string
