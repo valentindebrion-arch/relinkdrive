@@ -34,6 +34,14 @@ import { DEPARTMENT_NAMES } from "@/lib/departments";
 import { LANGUAGES, SERVICES, VEHICLE_CATEGORIES } from "@/lib/showcase";
 import { showcaseCompletion, showcaseFromOwnRows } from "@/lib/showcase-model";
 import { BRAND } from "@/lib/brand";
+import {
+  DEFAULT_BOOKING_THEME,
+  DRIVER_THEME_OPTIONS,
+  DRIVER_THEME_SHORT_LABEL,
+  normalizeBookingTheme,
+  type BookingThemeId,
+} from "@/lib/booking-themes";
+import { BookingThemeScope } from "@/components/BookingThemeScope";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -87,6 +95,7 @@ const SECTION_TITLES: Record<SectionKey, string> = {
 };
 
 type Draft = {
+  booking_theme: BookingThemeId;
   full_name: string;
   public_intro: string;
   city: string;
@@ -150,6 +159,7 @@ const numOrNull = (v: string) => {
 };
 
 const EMPTY_DRAFT: Draft = {
+  booking_theme: DEFAULT_BOOKING_THEME,
   full_name: "",
   public_intro: "",
   city: "",
@@ -236,6 +246,7 @@ export function ShowcaseEditor() {
     const v = (vehicle.data ?? {}) as Record<string, unknown>;
     const t = (tariff.data ?? {}) as Record<string, unknown>;
     const next: Draft = {
+      booking_theme: normalizeBookingTheme(d["booking_theme"]),
       full_name: profile?.full_name ?? "",
       public_intro: (d["public_intro"] as string) ?? "",
       city: (d["city"] as string) ?? "",
@@ -381,6 +392,7 @@ export function ShowcaseEditor() {
     const { error: driverError } = await supabase
       .from("driver_profiles")
       .update({
+        booking_theme: draft.booking_theme,
         public_intro: draft.public_intro || null,
         city: draft.city || null,
         zone: draft.zone || null,
@@ -452,7 +464,11 @@ export function ShowcaseEditor() {
     }
     setBaseline(draft);
     setSavedAt(Date.now());
-    toast.success("Votre vitrine a été mise à jour");
+    toast.success(
+      draft.booking_theme !== baseline.booking_theme
+        ? "✓ Votre style a été mis à jour"
+        : "Votre vitrine a été mise à jour",
+    );
     await refresh();
     void qc.invalidateQueries({ queryKey: ["driver-profile"] });
     void qc.invalidateQueries({ queryKey: ["my-vehicle"] });
@@ -675,7 +691,51 @@ export function ShowcaseEditor() {
         </button>
       ) : null}
 
-      <div className="space-y-3">
+      {/* Style de ma vitrine */}
+      {editing ? (
+        <section className="surface mb-4 p-4">
+          <h2 className="text-base font-semibold">Style de ma vitrine</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Choisissez le style de votre vitrine : il s'applique partout où votre profil apparaît.
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
+            {DRIVER_THEME_OPTIONS.map((t) => {
+              const active = draft.booking_theme === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => set("booking_theme", t.id)}
+                  aria-pressed={active}
+                  className={`tap-active flex flex-col gap-2 rounded-2xl border p-2.5 text-left transition ${
+                    active
+                      ? "border-primary bg-accent/60 shadow-sm"
+                      : "border-border hover:border-primary/40"
+                  }`}
+                >
+                  <span
+                    className="h-8 w-full rounded-lg border border-border"
+                    style={{ background: t.banner }}
+                    aria-hidden
+                  />
+                  <span className="flex items-center justify-between gap-1">
+                    <span className="text-xs font-semibold">{DRIVER_THEME_SHORT_LABEL[t.id]}</span>
+                    {active ? <Check className="size-3.5 shrink-0 text-primary" /> : null}
+                  </span>
+                  {t.id === "luxury_black_gold" ? (
+                    <span className="w-fit rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                      Premium
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
+      <BookingThemeScope theme={draft.booking_theme} className="space-y-3 rounded-3xl">
+
         <ShowcaseHeader
           data={data}
           avatarUrl={avatarUrl}
@@ -789,9 +849,12 @@ export function ShowcaseEditor() {
             </p>
           )}
         </section>
+      </BookingThemeScope>
 
+      <div className="mt-3 space-y-3">
         {/* Visibilité */}
         {editing ? (
+
           <section className="surface p-5">
             <h2 className="text-base font-semibold">Ma visibilité · 30 derniers jours</h2>
             <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">

@@ -68,7 +68,16 @@ function makeVars(v: {
   destructive?: string;
 }): Record<string, string> {
   return {
+    // Jetons publics de l'identité visuelle du chauffeur
+    "--driver-primary": v.primary,
+    "--driver-primary-soft": v.accent,
+    "--driver-border": v.border,
+    "--driver-background-soft": v.secondary,
+    "--driver-accent": v.accent,
+    "--driver-text-accent": v.accentText,
+
     "--theme-primary": v.primary,
+
     "--theme-primary-hover": v.primaryHover,
     "--theme-secondary": v.secondary,
     "--theme-background": v.background,
@@ -141,39 +150,38 @@ export const BOOKING_THEMES: BookingTheme[] = [
   },
   {
     id: "luxury_black_gold",
-    name: "Luxe",
+    name: "Gold",
     description:
-      "Noir profond, anthracite et blanc cassé, rehaussés d'un doré discret sur les contours, icônes et boutons.",
-    mood: "Premium · sobre · élégant",
+      "Base ivoire et blanc cassé rehaussée de doré. Un positionnement haut de gamme, lumineux et élégant.",
+    mood: "Premium · lumineux · élégant",
     swatches: [
-      "oklch(0.17 0.005 80)",
-      "oklch(0.26 0.008 80)",
-      "oklch(0.78 0.11 85)",
-      "oklch(0.95 0.01 85)",
-      "oklch(0.42 0.03 85)",
+      "oklch(0.62 0.1 85)",
+      "oklch(0.93 0.05 88)",
+      "#ffffff",
+      "oklch(0.97 0.02 90)",
+      "oklch(0.3 0.02 85)",
     ],
-    dark: true,
-    banner:
-      "linear-gradient(135deg, oklch(0.17 0.005 80), oklch(0.26 0.01 85) 70%, oklch(0.4 0.06 85))",
+    dark: false,
+    banner: "linear-gradient(135deg, oklch(0.72 0.1 88), oklch(0.58 0.09 82))",
     vars: makeVars({
-      primary: "oklch(0.78 0.1 85)",
-      primaryHover: "oklch(0.72 0.1 85)",
-      onPrimary: "oklch(0.19 0.02 80)",
-      secondary: "oklch(0.28 0.01 80)",
-      secondaryText: "oklch(0.95 0.01 85)",
-      background: "oklch(0.17 0.005 80)",
-      surface: "oklch(0.23 0.008 80)",
-      text: "oklch(0.96 0.01 85)",
-      muted: "oklch(0.27 0.008 80)",
-      mutedText: "oklch(0.78 0.012 85)",
-      border: "oklch(0.45 0.035 85)",
-      accent: "oklch(0.3 0.03 85)",
-      accentText: "oklch(0.9 0.07 85)",
-      shadow: "0 1px 2px oklch(0 0 0 / 40%), 0 12px 32px oklch(0 0 0 / 45%)",
-      radius: "0.75rem",
-      destructive: "oklch(0.68 0.19 25)",
+      primary: "oklch(0.6 0.1 82)",
+      primaryHover: "oklch(0.54 0.1 82)",
+      onPrimary: "oklch(0.99 0.01 90)",
+      secondary: "oklch(0.96 0.02 90)",
+      secondaryText: "oklch(0.36 0.05 85)",
+      background: "oklch(0.988 0.008 92)",
+      surface: "oklch(1 0 0)",
+      text: "oklch(0.26 0.015 85)",
+      muted: "oklch(0.965 0.014 90)",
+      mutedText: "oklch(0.52 0.02 88)",
+      border: "oklch(0.9 0.03 88)",
+      accent: "oklch(0.95 0.04 88)",
+      accentText: "oklch(0.42 0.09 82)",
+      shadow: "0 1px 2px oklch(0.35 0.05 85 / 8%), 0 8px 24px oklch(0.35 0.05 85 / 7%)",
+      radius: "0.875rem",
     }),
   },
+
   {
     id: "dynamic_red",
     name: "Rouge",
@@ -298,3 +306,46 @@ export const DEFAULT_BRANDING: DriverBranding = {
   coverPath: null,
   welcomeMessage: null,
 };
+
+/** Ordre d'affichage du sélecteur « Style de ma vitrine ». */
+export const DRIVER_THEME_ORDER: BookingThemeId[] = [
+  "relink_classic",
+  "professional_blue",
+  "dynamic_red",
+  "luxury_black_gold",
+  "women_for_women",
+];
+
+/** Libellés courts utilisés par les pastilles de prévisualisation. */
+export const DRIVER_THEME_SHORT_LABEL: Record<BookingThemeId, string> = {
+  relink_classic: "ReLink",
+  professional_blue: "Bleu",
+  dynamic_red: "Rouge",
+  luxury_black_gold: "Gold",
+  women_for_women: "Woman for Woman",
+};
+
+export const DRIVER_THEME_OPTIONS = DRIVER_THEME_ORDER.map((id) => getBookingTheme(id));
+
+/**
+ * Accents seulement : utilisé sur les cartes chauffeur (Trouver, réseau, QR).
+ * Le fond et le texte restent ceux de ReLink, seules les touches de couleur
+ * (boutons, badges, bordures, icônes) suivent l'identité du chauffeur.
+ */
+export function driverAccentVars(theme: unknown): Record<string, string> {
+  const t = getBookingTheme(theme);
+  const v = t.vars;
+  return {
+    "--driver-primary": v["--driver-primary"]!,
+    "--driver-primary-soft": v["--driver-primary-soft"]!,
+    "--driver-border": v["--driver-border"]!,
+    "--driver-background-soft": v["--driver-background-soft"]!,
+    "--driver-accent": v["--driver-accent"]!,
+    "--driver-text-accent": v["--driver-text-accent"]!,
+    "--primary": v["--primary"]!,
+    "--primary-foreground": v["--primary-foreground"]!,
+    "--accent": v["--accent"]!,
+    "--accent-foreground": v["--accent-foreground"]!,
+    "--ring": v["--ring"]!,
+  };
+}

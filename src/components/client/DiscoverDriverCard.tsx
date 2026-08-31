@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { ChevronRight, Sparkles } from "lucide-react";
 import { WFW_LABEL } from "@/lib/woman-for-woman";
 import { cn } from "@/lib/utils";
+import { driverAccentVars } from "@/lib/booking-themes";
+import type { CSSProperties } from "react";
 
 export type DiscoverDriver = {
   user_id: string;
@@ -25,12 +27,16 @@ export function DiscoverDriverCard({
   driver,
   photoUrl,
   premium,
+  theme,
 }: {
   driver: DiscoverDriver;
   photoUrl: string | null;
   /** Carte de la sélection « La crème de la crème ». */
   premium?: boolean;
+  /** Identité visuelle choisie par le chauffeur (accents uniquement). */
+  theme?: string | null;
 }) {
+  const accents = driverAccentVars(theme) as CSSProperties;
   const wfw = !!driver.woman_for_woman;
   const seats = driver.max_passengers;
   const vehicle = [driver.vehicle_brand, driver.vehicle_model].filter(Boolean).join(" ");
@@ -119,12 +125,18 @@ export function DiscoverDriverCard({
     wfw && "wfw-card",
   );
 
-  if (!driver.slug) return <div className={className}>{inner}</div>;
+  if (!driver.slug)
+    return (
+      <div className={className} style={accents}>
+        {inner}
+      </div>
+    );
   return (
     <Link
       to="/chauffeur/$slug"
       params={{ slug: driver.slug }}
       className={cn(className, "tap tap-active")}
+      style={accents}
     >
       {inner}
     </Link>

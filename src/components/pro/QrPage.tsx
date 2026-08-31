@@ -10,6 +10,8 @@ import { useDriverProfile } from "@/lib/driver-queries";
 import { getMyPublicLink } from "@/lib/driver-qr.functions";
 import { PageHeader, StatCard } from "@/components/Ui";
 import { Button } from "@/components/ui/button";
+import { driverAccentVars } from "@/lib/booking-themes";
+import type { CSSProperties } from "react";
 
 export function QrPage() {
   const { user } = useAuth();
@@ -65,7 +67,14 @@ export function QrPage() {
       />
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <div className="surface flex flex-col items-center gap-4 p-6 lg:col-span-2">
+        <div
+          className="surface flex flex-col items-center gap-4 p-6 lg:col-span-2"
+          style={
+            driverAccentVars(
+              (driver.data as { booking_theme?: string } | null | undefined)?.booking_theme,
+            ) as CSSProperties
+          }
+        >
           <>
             <canvas ref={canvasRef} className="rounded-lg bg-white p-3" />
             <p className="text-center text-sm break-all text-muted-foreground">{url}</p>
