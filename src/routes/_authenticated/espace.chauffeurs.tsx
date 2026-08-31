@@ -10,7 +10,6 @@ import { AddDriverSheet } from "@/components/client/AddDriverSheet";
 import { ClientTopBar } from "@/components/client/ClientTopBar";
 import { useSignedUrls } from "@/lib/storage";
 import { AvatarPhoto } from "@/components/AvatarPhoto";
-import { useDriverThemes } from "@/components/DriverThemeScope";
 import { driverAccentVars, DRIVER_ACTION_BUTTON_CLASS } from "@/lib/booking-themes";
 import type { CSSProperties } from "react";
 import {
@@ -133,7 +132,6 @@ function ClientDrivers() {
   });
 
   const list = useMemo(() => drivers.data ?? [], [drivers.data]);
-  const themes = useDriverThemes(list.map((d) => d.id));
   const photos = useSignedUrls(
     "vehicles",
     list.map((d) => d.photoPath),
@@ -392,14 +390,14 @@ function ClientDrivers() {
                   to="/chauffeur/$slug"
                   params={{ slug: d.slug }}
                   className={cardClassName}
-                  style={driverAccentVars(themes.data?.[d.id]) as CSSProperties}
+                  style={driverAccentVars(null) as CSSProperties}
                 >
                   {cardBody}
                 </Link>
               ) : (
                 <div
                   className={cardClassName}
-                  style={driverAccentVars(themes.data?.[d.id]) as CSSProperties}
+                  style={driverAccentVars(null) as CSSProperties}
                 >
                   {cardBody}
                 </div>
@@ -417,7 +415,7 @@ function ClientDrivers() {
       <AlertDialog open={!!toRemove} onOpenChange={(o) => !o && setToRemove(null)}>
         <AlertDialogContent
           style={
-            driverAccentVars(toRemove ? themes.data?.[toRemove.id] : undefined) as CSSProperties
+            driverAccentVars(null) as CSSProperties
           }
         >
           <AlertDialogHeader>

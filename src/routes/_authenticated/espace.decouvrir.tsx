@@ -6,7 +6,6 @@ import { useAuth } from "@/lib/auth";
 import { ClientTopBar } from "@/components/client/ClientTopBar";
 import { DiscoverDriverCard, type DiscoverDriver } from "@/components/client/DiscoverDriverCard";
 import { useSignedUrls } from "@/lib/storage";
-import { useDriverThemes } from "@/components/DriverThemeScope";
 import {
   useClientSector,
   matchesVehicleFilter,
@@ -85,7 +84,6 @@ function DiscoverPage() {
       [filtered],
     ),
   );
-  const themes = useDriverThemes(filtered.map((d) => d.user_id));
   const photoOf = (d: LocalDriver) =>
     d.vehicle_photo_url ? (photos.data?.[d.vehicle_photo_url] ?? null) : null;
 
@@ -216,7 +214,6 @@ function DiscoverPage() {
                 <DiscoverDriverCard
                   driver={d}
                   photoUrl={photoOf(d)}
-                  theme={themes.data?.[d.user_id] ?? null}
                   premium
                 />
               </li>
@@ -241,8 +238,7 @@ function DiscoverPage() {
                   <DiscoverDriverCard
                     driver={d}
                     photoUrl={photoOf(d)}
-                    theme={themes.data?.[d.user_id] ?? null}
-                  />
+                    />
                 </li>
               ))}
             </Section>
