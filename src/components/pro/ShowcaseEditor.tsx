@@ -750,10 +750,7 @@ export function ShowcaseEditor() {
           languages={data.languages}
           {...(editing ? { onEdit: open("languages") } : {})}
         />
-        <ShowcaseHours
-          week={draft.working_hours}
-          {...(editing ? { onEdit: open("hours") } : {})}
-        />
+        <ShowcaseHours week={draft.working_hours} {...(editing ? { onEdit: open("hours") } : {})} />
 
         {/* Photos du véhicule */}
         <section id="vitrine-photos" className="scroll-mt-24 space-y-3">
@@ -1407,7 +1404,11 @@ function WorkingHoursEditor({
   return (
     <div className="space-y-2">
       {!hasWorkingHours(week) ? (
-        <Button variant="outline" className="h-11 w-full" onClick={() => onChange(defaultWorkingHours())}>
+        <Button
+          variant="outline"
+          className="h-11 w-full"
+          onClick={() => onChange(defaultWorkingHours())}
+        >
           Pré-remplir des horaires classiques
         </Button>
       ) : null}
