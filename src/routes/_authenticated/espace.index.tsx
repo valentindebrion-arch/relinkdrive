@@ -240,7 +240,11 @@ function ClientHome() {
             </div>
           </div>
         ) : (
-          <DriverThemeScope theme={selectedTheme} className="home-rise" style={{ animationDelay: "40ms" }}>
+          <DriverThemeScope
+            theme={selectedTheme}
+            className="home-rise"
+            style={{ animationDelay: "40ms" }}
+          >
             <HomeDriverCard
               drivers={drivers}
               index={safeIndex}
@@ -293,13 +297,17 @@ function ClientHome() {
         {noDriver ? null : (
           <DriverThemeScope theme={selectedTheme}>
             <VehicleFacts
-            facts={selectedDriver?.facts ?? null}
-            driverSlug={selectedDriver?.slug ?? null}
-            driverKey={selectedDriver?.id ?? (data.isLoading ? "loading" : "empty")}
-            anim={
-              dir === "right" ? "driver-card-in-right" : dir === "left" ? "driver-card-in-left" : ""
-            }
-            loading={data.isLoading || photosPending}
+              facts={selectedDriver?.facts ?? null}
+              driverSlug={selectedDriver?.slug ?? null}
+              driverKey={selectedDriver?.id ?? (data.isLoading ? "loading" : "empty")}
+              anim={
+                dir === "right"
+                  ? "driver-card-in-right"
+                  : dir === "left"
+                    ? "driver-card-in-left"
+                    : ""
+              }
+              loading={data.isLoading || photosPending}
               locked={false}
             />
           </DriverThemeScope>

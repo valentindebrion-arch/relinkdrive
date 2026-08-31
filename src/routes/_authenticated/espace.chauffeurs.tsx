@@ -395,10 +395,7 @@ function ClientDrivers() {
                   {cardBody}
                 </Link>
               ) : (
-                <div
-                  className={cardClassName}
-                  style={driverAccentVars(null) as CSSProperties}
-                >
+                <div className={cardClassName} style={driverAccentVars(null) as CSSProperties}>
                   {cardBody}
                 </div>
               );
@@ -413,11 +410,7 @@ function ClientDrivers() {
       </div>
 
       <AlertDialog open={!!toRemove} onOpenChange={(o) => !o && setToRemove(null)}>
-        <AlertDialogContent
-          style={
-            driverAccentVars(null) as CSSProperties
-          }
-        >
+        <AlertDialogContent style={driverAccentVars(null) as CSSProperties}>
           <AlertDialogHeader>
             <AlertDialogTitle>
               Retirer {toRemove?.name.split(" ")[0] ?? "ce chauffeur"} de vos chauffeurs ?

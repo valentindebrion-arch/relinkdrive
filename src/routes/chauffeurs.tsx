@@ -242,10 +242,7 @@ function DirectoryPage() {
               </p>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {list.map((d) => (
-                  <DriverDirectoryCard
-                    key={d.user_id}
-                    driver={d}
-                  />
+                  <DriverDirectoryCard key={d.user_id} driver={d} />
                 ))}
               </div>
             </>

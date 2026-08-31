@@ -211,11 +211,7 @@ function DiscoverPage() {
           >
             {premium.map((d) => (
               <li key={d.user_id}>
-                <DiscoverDriverCard
-                  driver={d}
-                  photoUrl={photoOf(d)}
-                  premium
-                />
+                <DiscoverDriverCard driver={d} photoUrl={photoOf(d)} premium />
               </li>
             ))}
           </Section>
@@ -235,10 +231,7 @@ function DiscoverPage() {
             >
               {around.map((d) => (
                 <li key={d.user_id}>
-                  <DiscoverDriverCard
-                    driver={d}
-                    photoUrl={photoOf(d)}
-                    />
+                  <DiscoverDriverCard driver={d} photoUrl={photoOf(d)} />
                 </li>
               ))}
             </Section>
