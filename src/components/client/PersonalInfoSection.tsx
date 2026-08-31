@@ -16,26 +16,20 @@ type Address = { id: string; label: string; address: string };
 export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
   const { user, profile, refresh } = useAuth();
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState<{ full_name: string; phone: string; gender: GenderValue | "" }>({
+  const [form, setForm] = useState<{ full_name: string; phone: string }>({
     full_name: "",
     phone: "",
-    gender: "",
   });
   const [busy, setBusy] = useState(false);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [newAddress, setNewAddress] = useState({ label: "", address: "" });
   const [addingAddress, setAddingAddress] = useState(false);
 
-  // Le genre est une déclaration unique : une fois enregistré, il est définitif.
-  const genderLocked = !!profile?.gender;
-  const [confirmGender, setConfirmGender] = useState(false);
-
   useEffect(() => {
     if (profile)
       setForm({
         full_name: profile.full_name ?? "",
         phone: profile.phone ?? "",
-        gender: (profile.gender as GenderValue | null) ?? "",
       });
   }, [profile]);
 
@@ -61,11 +55,12 @@ export function PersonalInfoSection({ openSignal }: { openSignal?: number }) {
   async function save() {
     setBusy(true);
     try {
-      await updateMyProfile({
-        data: { full_name: form.full_name, phone: form.phone, gender: form.gender || null },
-      });
+      // Le sexe se corrige uniquement via le champ dédié (règle serveur).
+      await updateMyProfile({ data: { full_name: form.full_name, phone: form.phone } });
       toast.success("Informations mises à jour");
-      setConfirmGender(false);
+      setEditing(false);
+      await refresh();
+
       setEditing(false);
       await refresh();
     } catch (err) {
