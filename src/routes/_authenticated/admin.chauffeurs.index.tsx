@@ -267,7 +267,13 @@ function AdminDrivers() {
                 {rows.map((d) => (
                   <tr
                     key={d.user_id}
-                    className="border-b border-border/60 last:border-0 hover:bg-accent/30"
+                    onClick={() =>
+                      void navigate({
+                        to: "/admin/chauffeurs/$driverId",
+                        params: { driverId: d.user_id },
+                      })
+                    }
+                    className="cursor-pointer border-b border-border/60 transition last:border-0 hover:bg-accent/30"
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
@@ -301,7 +307,10 @@ function AdminDrivers() {
                       <StatusBadge status={d.verification_status} labels={VERIFICATION_LABELS} />
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex flex-wrap justify-end gap-2">
+                      <div
+                        className="flex flex-wrap justify-end gap-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <Button asChild size="sm">
                           <Link to="/admin/chauffeurs/$driverId" params={{ driverId: d.user_id }}>
                             <UserCog className="size-4" /> Voir / Gérer
@@ -341,8 +350,28 @@ function AdminDrivers() {
           {/* Liste (mobile / tablette) */}
           <div className="space-y-3 lg:hidden">
             {rows.map((d) => (
-              <div key={d.user_id} className="surface p-4">
-                <div className="flex items-start gap-3">
+              <div
+                key={d.user_id}
+                className="surface p-4 transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+              >
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() =>
+                    void navigate({
+                      to: "/admin/chauffeurs/$driverId",
+                      params: { driverId: d.user_id },
+                    })
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter")
+                      void navigate({
+                        to: "/admin/chauffeurs/$driverId",
+                        params: { driverId: d.user_id },
+                      });
+                  }}
+                  className="flex cursor-pointer items-start gap-3 text-left"
+                >
                   <Avatar name={d.full_name} url={d.avatar_url} />
                   <div className="min-w-0 flex-1">
                     <p className="font-medium">{d.full_name}</p>
