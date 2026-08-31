@@ -42,6 +42,7 @@ import {
   type BookingThemeId,
 } from "@/lib/booking-themes";
 import { BookingThemeScope } from "@/components/BookingThemeScope";
+import { ThemePicker } from "@/components/pro/ThemePicker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -96,6 +97,8 @@ const SECTION_TITLES: Record<SectionKey, string> = {
 
 type Draft = {
   booking_theme: BookingThemeId;
+  /** Genre déclaré (déclaratif) : conditionne le mode Woman for Woman. */
+  gender: string;
   full_name: string;
   public_intro: string;
   city: string;
@@ -160,6 +163,7 @@ const numOrNull = (v: string) => {
 
 const EMPTY_DRAFT: Draft = {
   booking_theme: DEFAULT_BOOKING_THEME,
+  gender: "",
   full_name: "",
   public_intro: "",
   city: "",
@@ -247,6 +251,7 @@ export function ShowcaseEditor() {
     const t = (tariff.data ?? {}) as Record<string, unknown>;
     const next: Draft = {
       booking_theme: normalizeBookingTheme(d["booking_theme"]),
+      gender: (d["gender"] as string) ?? "",
       full_name: profile?.full_name ?? "",
       public_intro: (d["public_intro"] as string) ?? "",
       city: (d["city"] as string) ?? "",
@@ -393,6 +398,10 @@ export function ShowcaseEditor() {
       .from("driver_profiles")
       .update({
         booking_theme: draft.booking_theme,
+        // Le genre est définitif : on ne l'envoie que s'il n'était pas encore déclaré.
+        ...((driver.data as { gender?: string | null } | null)?.gender
+          ? {}
+          : { gender: draft.gender || null }),
         public_intro: draft.public_intro || null,
         city: draft.city || null,
         zone: draft.zone || null,
