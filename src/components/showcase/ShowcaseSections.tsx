@@ -475,7 +475,7 @@ export type ContactAction = {
 };
 
 /** Moyens de contact publiés, dans l'ordre d'utilité. */
-export function contactActions(contact: ShowcaseContact, links: ShowcaseLinks): ContactAction[] {
+export function contactActions(contact: ShowcaseContact): ContactAction[] {
   const phone = contact.phone?.replace(/\s/g, "");
   const out: ContactAction[] = [];
   if (phone) {
