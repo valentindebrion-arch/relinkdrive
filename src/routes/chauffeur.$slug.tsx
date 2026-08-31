@@ -2,36 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-  BadgeCheck,
-  Briefcase,
-  Car,
-  Check,
-  CreditCard,
-  Clock,
-  Dog,
-  Droplets,
-  Facebook,
-  Globe,
-  Instagram,
-  Languages,
-  Linkedin,
-  Luggage,
-  MapPin,
-  MessageCircle,
-  Moon,
-  Music2,
-  Phone,
-  PlugZap,
-  Quote,
-  Star as StarIcon,
-  ShieldCheck,
-  Snowflake,
-  Sparkles,
-  Sun,
-  UserPlus,
-  Volume2,
-} from "lucide-react";
+import { Check, ShieldCheck, Sparkles, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useSignedUrl } from "@/lib/storage";
@@ -141,15 +112,6 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h2 className="text-base font-semibold">{title}</h2>
       <div className="mt-3 text-sm">{children}</div>
     </section>
-  );
-}
-
-function Chip({ icon: Icon, children }: { icon?: typeof Car; children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-medium text-foreground">
-      {Icon ? <Icon className="size-3.5 text-primary" /> : null}
-      {children}
-    </span>
   );
 }
 
@@ -349,94 +311,6 @@ function DriverPublicPage() {
   const memberSince = d.member_since
     ? new Date(d.member_since).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
     : null;
-
-  const equipments: { label: string; icon: typeof Car; on: boolean }[] = [
-    { label: "Climatisation", icon: Snowflake, on: !!d.air_conditioning },
-    { label: "Chargeurs téléphone", icon: PlugZap, on: !!d.chargers },
-    { label: "Bouteilles d'eau", icon: Droplets, on: !!d.water },
-    { label: "Paiement par carte", icon: CreditCard, on: !!d.card_payment },
-    { label: "Trajet silencieux sur demande", icon: Volume2, on: !!d.quiet_ride },
-    { label: "Aide aux bagages", icon: Luggage, on: !!d.luggage_help },
-    { label: "Animaux acceptés", icon: Dog, on: d.pets_policy === "accepted" },
-  ].filter((e) => e.on);
-
-  const publicPhone: string | null = d.public_phone ?? null;
-  const whatsapp: string | null = d.whatsapp_number ?? null;
-  const website: string | null = (d as { website_url?: string | null }).website_url ?? null;
-
-  type ContactLink = {
-    kind: string;
-    label: string;
-    href: string;
-    icon: typeof Car;
-    external?: boolean;
-    primary?: boolean;
-  };
-
-  /** Moyens de contact publiés par le chauffeur, dans l'ordre d'utilité. */
-  const contactLinks: ContactLink[] = (
-    [
-      publicPhone
-        ? {
-            kind: "phone",
-            label: `Appeler ${publicPhone}`,
-            href: `tel:${publicPhone.replace(/\s/g, "")}`,
-            icon: Phone,
-            primary: true,
-          }
-        : null,
-      publicPhone
-        ? {
-            kind: "sms",
-            label: "Envoyer un SMS",
-            href: `sms:${publicPhone.replace(/\s/g, "")}`,
-            icon: MessageCircle,
-          }
-        : null,
-      whatsapp
-        ? {
-            kind: "whatsapp",
-            label: "Écrire sur WhatsApp",
-            href: `https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}`,
-            icon: MessageCircle,
-            external: true,
-          }
-        : null,
-      website
-        ? { kind: "website", label: "Site internet", href: website, icon: Globe, external: true }
-        : null,
-      d.instagram_url
-        ? {
-            kind: "instagram",
-            label: "Instagram",
-            href: d.instagram_url,
-            icon: Instagram,
-            external: true,
-          }
-        : null,
-      d.facebook_url
-        ? {
-            kind: "facebook",
-            label: "Facebook",
-            href: d.facebook_url,
-            icon: Facebook,
-            external: true,
-          }
-        : null,
-      d.tiktok_url
-        ? { kind: "tiktok", label: "TikTok", href: d.tiktok_url, icon: Music2, external: true }
-        : null,
-      d.linkedin_url
-        ? {
-            kind: "linkedin",
-            label: "LinkedIn",
-            href: d.linkedin_url,
-            icon: Linkedin,
-            external: true,
-          }
-        : null,
-    ] as (ContactLink | null)[]
-  ).filter((c): c is ContactLink => !!c);
 
   function startAdd(mode: "signin" | "signup" = "signup") {
     void supabase.rpc("track_driver_event", { _slug: slug, _event: "driver_add_click" });

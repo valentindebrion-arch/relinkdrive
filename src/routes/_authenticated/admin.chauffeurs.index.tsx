@@ -9,6 +9,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Search, UserCog } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { PageHeader, EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { VERIFICATION_LABELS, formatDate } from "@/lib/labels";
@@ -95,11 +96,7 @@ type DriverRow = {
 function Avatar({ name, url }: { name: string; url: string | null }) {
   if (url) {
     return (
-      <AvatarPhoto
-        url={url}
-        name={name}
-        className="size-10 shrink-0 rounded-full object-cover"
-      />
+      <AvatarPhoto url={url} name={name} className="size-10 shrink-0 rounded-full object-cover" />
     );
   }
   const initials = name

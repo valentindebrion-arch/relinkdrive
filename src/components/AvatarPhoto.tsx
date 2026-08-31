@@ -19,10 +19,10 @@ export function AvatarPhoto({
   className = "size-12 rounded-full object-cover",
   fallbackClassName,
 }: {
-  url?: string | null;
-  name?: string | null;
-  className?: string;
-  fallbackClassName?: string;
+  url?: string | null | undefined;
+  name?: string | null | undefined;
+  className?: string | undefined;
+  fallbackClassName?: string | undefined;
 }) {
   const resolved = useDisplayAvatar(url);
   const initial = (name ?? "?").trim().charAt(0).toUpperCase() || "?";

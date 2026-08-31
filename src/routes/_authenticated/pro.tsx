@@ -19,8 +19,8 @@ import { useDriverProfile } from "@/lib/driver-queries";
 import { isDriverActive, isDriverSubmitted } from "@/lib/driver-dossier";
 
 // Ordre réel des onglets de la barre inférieure chauffeur (index 0 = Ma vitrine).
-const PRO_TAB_ORDER = ["/pro", "/pro/profil", "/pro/vehicule", "/pro/qr", "/pro/parametres"];
-const PRO_TAB_KEYS = ["pro-home", "pro-profile", "pro-vehicles", "pro-qr", "pro-account"];
+const PRO_TAB_ORDER = ["/pro", "/pro/dossier", "/pro/entreprise", "/pro/parametres"];
+const PRO_TAB_KEYS = ["pro-home", "pro-dossier", "pro-company", "pro-account"];
 
 export const Route = createFileRoute("/_authenticated/pro")({
   beforeLoad: ({ location }) => requireDriverAccess(location.pathname),
@@ -45,35 +45,31 @@ function ProLayout() {
   const restrictedItems: NavItem[] = [
     { to: "/pro/dossier", label: "Mon dossier", icon: <ShieldCheck /> },
     { to: "/pro/entreprise", label: "Mon entreprise", icon: <Building2 /> },
-    { to: "/pro/vehicule", label: "Mes véhicules", icon: <Car /> },
+    { to: "/pro", label: "Ma vitrine", icon: <Home /> },
     { to: "/pro/parametres", label: "Mon compte", icon: <UserRound /> },
     { to: "/aide", label: "Aide", icon: <HelpCircle /> },
   ];
 
-  // Espace chauffeur : uniquement la gestion de la présence sur ReLink.
+  // Espace chauffeur : tout ce qui concerne la présence publique vit dans Ma vitrine.
   const items: NavItem[] = [
     { to: "/pro", label: "Ma vitrine", icon: <Home /> },
-    { to: "/pro/profil", label: "Mon profil", icon: <UserRound /> },
-    { to: "/pro/vehicule", label: "Mes véhicules", icon: <Car /> },
-    { to: "/pro/tarification", label: "Mes tarifs", icon: <SlidersHorizontal /> },
-    { to: "/pro/liens", label: "Mes liens", icon: <Link2 /> },
-    { to: "/pro/qr", label: "Mon QR code", icon: <QrCode /> },
     { to: "/pro/dossier", label: "Vérification", icon: <ShieldCheck /> },
     { to: "/pro/entreprise", label: "Mon entreprise", icon: <Building2 /> },
+    { to: "/pro/parametres", label: "Mon compte", icon: <UserRound /> },
+    { to: "/aide", label: "Aide", icon: <HelpCircle /> },
   ];
 
   const bottomItems: NavItem[] = [
     { to: "/pro", label: "Vitrine", icon: <Home /> },
-    { to: "/pro/profil", label: "Profil", icon: <UserRound /> },
-    { to: "/pro/vehicule", label: "Véhicules", icon: <Car /> },
-    { to: "/pro/qr", label: "QR code", icon: <QrCode /> },
+    { to: "/pro/dossier", label: "Vérification", icon: <ShieldCheck /> },
+    { to: "/pro/entreprise", label: "Entreprise", icon: <Building2 /> },
     { to: "/pro/parametres", label: "Compte", icon: <UserRound /> },
   ];
 
   const restrictedBottom: NavItem[] = [
     { to: "/pro/dossier", label: "Dossier", icon: <ShieldCheck /> },
     { to: "/pro/entreprise", label: "Entreprise", icon: <Building2 /> },
-    { to: "/pro/vehicule", label: "Véhicule", icon: <Car /> },
+    { to: "/pro", label: "Vitrine", icon: <Home /> },
     { to: "/pro/parametres", label: "Compte", icon: <UserRound /> },
   ];
 
