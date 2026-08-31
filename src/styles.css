@@ -857,3 +857,16 @@
     box-shadow: 0 0 0 2px color-mix(in oklab, var(--primary) 50%, transparent);
   }
 }
+
+/* Estimation ouverte depuis l'accueil client : mise en évidence très discrète. */
+@keyframes estimate-highlight-pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--driver-primary, var(--primary));
+  }
+  100% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+.estimate-highlight {
+  animation: estimate-highlight-pulse 1.1s ease-out;
+}

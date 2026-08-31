@@ -11,8 +11,8 @@ import {
   Route as RouteIcon,
 } from "lucide-react";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
-import { estimateRoute, priceForKm, reverseGeocode } from "@/lib/route-estimate.functions";
-import { supabase } from "@/integrations/supabase/client";
+import { estimateDriverTrip, reverseGeocode } from "@/lib/route-estimate.functions";
+
 import { POSITIONING } from "@/lib/brand";
 
 export type TripEstimate = {
@@ -22,6 +22,7 @@ export type TripEstimate = {
   durationMin: number;
   low: number;
   high: number;
+  minimum: number | null;
 };
 
 function money(v: number) {
@@ -52,7 +53,7 @@ export function TripEstimator({
   /** Renseigne automatiquement le départ si la géolocalisation est déjà autorisée. */
   autoLocate?: boolean;
 }) {
-  const estimateFn = useServerFn(estimateRoute);
+  const estimateFn = useServerFn(estimateDriverTrip);
   const geocodeFn = useServerFn(reverseGeocode);
 
   const [pickup, setPickup] = useState("");
@@ -73,32 +74,17 @@ export function TripEstimator({
     setState("loading");
     void (async () => {
       try {
-        const res = await estimateFn({ data: { origin: pickup, destination: dropoff } });
-
-        // Grille tarifaire renseignée par le chauffeur ; repli sur un tarif de marché.
-        let reference = priceForKm(res.distanceKm).total;
-        try {
-          const { data } = await supabase.rpc("get_public_driver_pricing", { _slug: slug });
-          const t = data?.[0];
-          if (t?.price_per_km) {
-            const perKm = Number(t.price_per_km);
-            const minimum = Number(t.minimum ?? 0);
-            const pickupPct = Number(t.pickup_pct ?? 0);
-            const raw = Math.max(minimum, res.distanceKm * perKm);
-            reference = raw * (1 + pickupPct / 100);
-          }
-        } catch {
-          /* tarif de repli conservé */
-        }
-
+        // Le serveur applique la grille du chauffeur et son plancher tarifaire.
+        const res = await estimateFn({ data: { slug, origin: pickup, destination: dropoff } });
         if (cancelled) return;
         setResult({
           pickup,
           dropoff,
           distanceKm: res.distanceKm,
           durationMin: res.durationMin,
-          low: Math.max(5, Math.floor((reference * 0.9) / 5) * 5),
-          high: Math.ceil((reference * 1.15) / 5) * 5,
+          low: res.low,
+          high: res.high,
+          minimum: res.minimum,
         });
         setState("idle");
       } catch {
@@ -238,6 +224,11 @@ export function TripEstimator({
               <p className="text-3xl font-black tracking-tight text-primary">
                 {money(result.low)} – {money(result.high)}
               </p>
+              {result.minimum ? (
+                <p className="mt-1 text-[12px] font-semibold text-muted-foreground">
+                  Course minimum du chauffeur : {money(result.minimum)}
+                </p>
+              ) : null}
             </div>
           </div>
 

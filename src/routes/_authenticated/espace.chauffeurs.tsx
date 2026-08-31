@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Car, Check, Compass, MapPin, Plus, Search, UserMinus, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { isWithinWorkingHours, parseWorkingHours } from "@/lib/working-hours";
 import { fetchConnectedProfile, fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { useAuth } from "@/lib/auth";
 import { AddDriverSheet } from "@/components/client/AddDriverSheet";
@@ -103,6 +104,13 @@ function ClientDrivers() {
           .in("driver_id", ids),
       ]);
 
+      const { data: hours } = await (
+        supabase.rpc as unknown as (
+          fn: string,
+          args: Record<string, unknown>,
+        ) => Promise<{ data: { user_id: string; working_hours: unknown }[] | null }>
+      )("get_driver_working_hours", { _ids: ids });
+
       return Promise.all(
         (conns ?? []).map(async (c) => {
           const profile = (profiles ?? []).find((p) => p.id === c.driver_id);
@@ -115,12 +123,16 @@ function ClientDrivers() {
             id: c.driver_id,
             name: dp?.business_name || profile?.full_name || "Chauffeur",
             avatarUrl: profile?.avatar_url ?? null,
-            available: !!dp?.on_duty && dp?.accepting_requests !== false,
+            // Disponibilité = horaires habituels du chauffeur (plus de statut manuel).
+            available: isWithinWorkingHours(
+              parseWorkingHours(
+                (hours ?? []).find((h) => h.user_id === c.driver_id)?.working_hours ?? null,
+              ),
+            ),
             vehicle: car ? [car.brand, car.model].filter(Boolean).join(" ") || null : null,
             photoPath: car?.photo_side_url ?? car?.photo_url ?? null,
             zone: dp?.city || dp?.zone || null,
             slug: dp?.slug ?? null,
-            trips: 0,
             ratingAvg,
             ratingCount: 0,
             womanForWoman:
@@ -352,7 +364,7 @@ function ClientDrivers() {
                         }`}
                         aria-hidden
                       />
-                      {d.available ? "Disponible" : "Indisponible"}
+                      {d.available ? "Disponible" : "Hors horaires"}
                     </span>
                     <span className="inline-flex min-w-0 items-center gap-1 text-muted-foreground">
                       <MapPin className="size-3.5 shrink-0" aria-hidden />
@@ -362,9 +374,7 @@ function ClientDrivers() {
 
                   <div className="mt-2 flex items-center justify-between gap-3">
                     <p className="text-[11px] font-semibold text-muted-foreground">
-                      {d.trips > 0
-                        ? `${d.trips} trajet${d.trips > 1 ? "s" : ""} ensemble`
-                        : "Aucun trajet ensemble"}
+                      {d.available ? "Dans ses horaires habituels" : "Hors horaires habituels"}
                     </p>
                     {leaving ? null : (
                       <button
