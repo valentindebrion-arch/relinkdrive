@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { PushSettingsCard } from "@/components/PushSettingsCard";
 import {
   GENDER_FIELD_LABEL,
   GENDER_HELP,
@@ -494,9 +493,7 @@ export function ProSettings() {
         </div>
       </div>
 
-      <div className="mt-4">
-        <PushSettingsCard audience="driver" />
-      </div>
+      <div className="mt-4"></div>
     </>
   );
 }

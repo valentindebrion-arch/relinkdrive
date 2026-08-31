@@ -1,5 +1,7 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/pro/dossier")({
-  component: () => <Outlet />,
+  beforeLoad: () => {
+    throw redirect({ to: "/pro", replace: true });
+  },
 });

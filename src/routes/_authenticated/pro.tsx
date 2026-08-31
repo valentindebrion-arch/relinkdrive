@@ -1,26 +1,14 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import {
-  Home,
-  Car,
-  Link2,
-  SlidersHorizontal,
-  UserRound,
-  QrCode,
-  ShieldCheck,
-  Building2,
-  HelpCircle,
-} from "lucide-react";
+import { Home, QrCode, HelpCircle } from "lucide-react";
 import { DashboardShell, type NavItem } from "@/components/DashboardShell";
 import { ClientPageTransition } from "@/components/ClientPageTransition";
 import { useAuth } from "@/lib/auth";
 import { requireDriverAccess } from "@/lib/role-guard";
-import { useDriverProfile } from "@/lib/driver-queries";
-import { isDriverActive, isDriverSubmitted } from "@/lib/driver-dossier";
 
-// Ordre réel des onglets de la barre inférieure chauffeur (index 0 = Ma vitrine).
-const PRO_TAB_ORDER = ["/pro", "/pro/dossier", "/pro/entreprise", "/pro/parametres"];
-const PRO_TAB_KEYS = ["pro-home", "pro-dossier", "pro-company", "pro-account"];
+// Espace chauffeur simplifié : tout converge vers la vitrine publique.
+const PRO_TAB_ORDER = ["/pro", "/pro/qr", "/aide"];
+const PRO_TAB_KEYS = ["pro-home", "pro-qr", "pro-help"];
 
 export const Route = createFileRoute("/_authenticated/pro")({
   beforeLoad: ({ location }) => requireDriverAccess(location.pathname),
@@ -30,57 +18,25 @@ export const Route = createFileRoute("/_authenticated/pro")({
 function ProLayout() {
   const { isDriver, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
-  const driver = useDriverProfile();
 
   useEffect(() => {
     if (!loading && !isDriver && !isAdmin) navigate({ to: "/espace", replace: true });
   }, [loading, isDriver, isAdmin, navigate]);
 
-  const verified = isAdmin || isDriverActive(driver.data?.verification_status);
-  // L'espace complet s'ouvre dès l'envoi du dossier ; la vitrine reste privée tant
-  // que la vérification n'est pas terminée.
-  const active = verified || isDriverSubmitted(driver.data?.verification_status);
-
-  // Compte non validé : menu réduit au dossier et aux informations obligatoires.
-  const restrictedItems: NavItem[] = [
-    { to: "/pro/dossier", label: "Mon dossier", icon: <ShieldCheck /> },
-    { to: "/pro/entreprise", label: "Mon entreprise", icon: <Building2 /> },
-    { to: "/pro", label: "Ma vitrine", icon: <Home /> },
-    { to: "/pro/parametres", label: "Mon compte", icon: <UserRound /> },
-    { to: "/aide", label: "Aide", icon: <HelpCircle /> },
-  ];
-
-  // Espace chauffeur : tout ce qui concerne la présence publique vit dans Ma vitrine.
   const items: NavItem[] = [
     { to: "/pro", label: "Ma vitrine", icon: <Home /> },
-    { to: "/pro/dossier", label: "Vérification", icon: <ShieldCheck /> },
-    { to: "/pro/entreprise", label: "Mon entreprise", icon: <Building2 /> },
-    { to: "/pro/parametres", label: "Mon compte", icon: <UserRound /> },
+    { to: "/pro/qr", label: "QR code & partage", icon: <QrCode /> },
     { to: "/aide", label: "Aide", icon: <HelpCircle /> },
   ];
 
   const bottomItems: NavItem[] = [
     { to: "/pro", label: "Vitrine", icon: <Home /> },
-    { to: "/pro/dossier", label: "Vérification", icon: <ShieldCheck /> },
-    { to: "/pro/entreprise", label: "Entreprise", icon: <Building2 /> },
-    { to: "/pro/parametres", label: "Compte", icon: <UserRound /> },
-  ];
-
-  const restrictedBottom: NavItem[] = [
-    { to: "/pro/dossier", label: "Dossier", icon: <ShieldCheck /> },
-    { to: "/pro/entreprise", label: "Entreprise", icon: <Building2 /> },
-    { to: "/pro", label: "Vitrine", icon: <Home /> },
-    { to: "/pro/parametres", label: "Compte", icon: <UserRound /> },
+    { to: "/pro/qr", label: "QR code", icon: <QrCode /> },
+    { to: "/aide", label: "Aide", icon: <HelpCircle /> },
   ];
 
   return (
-    <DashboardShell
-      items={active ? items : restrictedItems}
-      bottomItems={active ? bottomItems : restrictedBottom}
-      area="Espace chauffeur"
-      settingsTo={active ? "/pro/parametres" : "/pro/parametres"}
-      brandTo={active ? "/pro" : "/pro/dossier"}
-    >
+    <DashboardShell items={items} bottomItems={bottomItems} area="Espace chauffeur" brandTo="/pro">
       <ClientPageTransition tabOrder={PRO_TAB_ORDER} tabKeys={PRO_TAB_KEYS} bottomOffset="5.5rem">
         <Outlet />
       </ClientPageTransition>

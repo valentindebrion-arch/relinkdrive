@@ -49,8 +49,6 @@ import { Route as AuthenticatedAdminChauffeursIndexRouteImport } from './routes/
 import { Route as AuthenticatedAdminChauffeursDriverIdRouteImport } from './routes/_authenticated/admin.chauffeurs.$driverId'
 import { Route as AuthenticatedAdminInscriptionsIndexRouteImport } from './routes/_authenticated/admin.inscriptions.index'
 import { Route as AuthenticatedAdminInscriptionsDriverIdRouteImport } from './routes/_authenticated/admin.inscriptions.$driverId'
-import { Route as AuthenticatedProDossierIndexRouteImport } from './routes/_authenticated/pro.dossier.index'
-import { Route as AuthenticatedProDossierCompleterRouteImport } from './routes/_authenticated/pro.dossier.completer'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -268,18 +266,6 @@ const AuthenticatedAdminInscriptionsDriverIdRoute =
     path: '/$driverId',
     getParentRoute: () => AuthenticatedAdminInscriptionsRoute,
   } as any)
-const AuthenticatedProDossierIndexRoute =
-  AuthenticatedProDossierIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedProDossierRoute,
-  } as any)
-const AuthenticatedProDossierCompleterRoute =
-  AuthenticatedProDossierCompleterRouteImport.update({
-    id: '/completer',
-    path: '/completer',
-    getParentRoute: () => AuthenticatedProDossierRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -303,7 +289,7 @@ export interface FileRoutesByFullPath {
   '/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
   '/espace/decouvrir': typeof AuthenticatedEspaceDecouvrirRoute
   '/espace/parametres': typeof AuthenticatedEspaceParametresRoute
-  '/pro/dossier': typeof AuthenticatedProDossierRouteWithChildren
+  '/pro/dossier': typeof AuthenticatedProDossierRoute
   '/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/pro/liens': typeof AuthenticatedProLiensRoute
   '/pro/parametres': typeof AuthenticatedProParametresRoute
@@ -319,10 +305,8 @@ export interface FileRoutesByFullPath {
   '/pro/': typeof AuthenticatedProIndexRoute
   '/admin/chauffeurs/$driverId': typeof AuthenticatedAdminChauffeursDriverIdRoute
   '/admin/inscriptions/$driverId': typeof AuthenticatedAdminInscriptionsDriverIdRoute
-  '/pro/dossier/completer': typeof AuthenticatedProDossierCompleterRoute
   '/admin/chauffeurs/': typeof AuthenticatedAdminChauffeursIndexRoute
   '/admin/inscriptions/': typeof AuthenticatedAdminInscriptionsIndexRoute
-  '/pro/dossier/': typeof AuthenticatedProDossierIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -342,6 +326,7 @@ export interface FileRoutesByTo {
   '/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
   '/espace/decouvrir': typeof AuthenticatedEspaceDecouvrirRoute
   '/espace/parametres': typeof AuthenticatedEspaceParametresRoute
+  '/pro/dossier': typeof AuthenticatedProDossierRoute
   '/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/pro/liens': typeof AuthenticatedProLiensRoute
   '/pro/parametres': typeof AuthenticatedProParametresRoute
@@ -357,10 +342,8 @@ export interface FileRoutesByTo {
   '/pro': typeof AuthenticatedProIndexRoute
   '/admin/chauffeurs/$driverId': typeof AuthenticatedAdminChauffeursDriverIdRoute
   '/admin/inscriptions/$driverId': typeof AuthenticatedAdminInscriptionsDriverIdRoute
-  '/pro/dossier/completer': typeof AuthenticatedProDossierCompleterRoute
   '/admin/chauffeurs': typeof AuthenticatedAdminChauffeursIndexRoute
   '/admin/inscriptions': typeof AuthenticatedAdminInscriptionsIndexRoute
-  '/pro/dossier': typeof AuthenticatedProDossierIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -386,7 +369,7 @@ export interface FileRoutesById {
   '/_authenticated/espace/chauffeurs': typeof AuthenticatedEspaceChauffeursRoute
   '/_authenticated/espace/decouvrir': typeof AuthenticatedEspaceDecouvrirRoute
   '/_authenticated/espace/parametres': typeof AuthenticatedEspaceParametresRoute
-  '/_authenticated/pro/dossier': typeof AuthenticatedProDossierRouteWithChildren
+  '/_authenticated/pro/dossier': typeof AuthenticatedProDossierRoute
   '/_authenticated/pro/entreprise': typeof AuthenticatedProEntrepriseRoute
   '/_authenticated/pro/liens': typeof AuthenticatedProLiensRoute
   '/_authenticated/pro/parametres': typeof AuthenticatedProParametresRoute
@@ -402,10 +385,8 @@ export interface FileRoutesById {
   '/_authenticated/pro/': typeof AuthenticatedProIndexRoute
   '/_authenticated/admin/chauffeurs/$driverId': typeof AuthenticatedAdminChauffeursDriverIdRoute
   '/_authenticated/admin/inscriptions/$driverId': typeof AuthenticatedAdminInscriptionsDriverIdRoute
-  '/_authenticated/pro/dossier/completer': typeof AuthenticatedProDossierCompleterRoute
   '/_authenticated/admin/chauffeurs/': typeof AuthenticatedAdminChauffeursIndexRoute
   '/_authenticated/admin/inscriptions/': typeof AuthenticatedAdminInscriptionsIndexRoute
-  '/_authenticated/pro/dossier/': typeof AuthenticatedProDossierIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -447,10 +428,8 @@ export interface FileRouteTypes {
     | '/pro/'
     | '/admin/chauffeurs/$driverId'
     | '/admin/inscriptions/$driverId'
-    | '/pro/dossier/completer'
     | '/admin/chauffeurs/'
     | '/admin/inscriptions/'
-    | '/pro/dossier/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -470,6 +449,7 @@ export interface FileRouteTypes {
     | '/espace/chauffeurs'
     | '/espace/decouvrir'
     | '/espace/parametres'
+    | '/pro/dossier'
     | '/pro/entreprise'
     | '/pro/liens'
     | '/pro/parametres'
@@ -485,10 +465,8 @@ export interface FileRouteTypes {
     | '/pro'
     | '/admin/chauffeurs/$driverId'
     | '/admin/inscriptions/$driverId'
-    | '/pro/dossier/completer'
     | '/admin/chauffeurs'
     | '/admin/inscriptions'
-    | '/pro/dossier'
   id:
     | '__root__'
     | '/'
@@ -529,10 +507,8 @@ export interface FileRouteTypes {
     | '/_authenticated/pro/'
     | '/_authenticated/admin/chauffeurs/$driverId'
     | '/_authenticated/admin/inscriptions/$driverId'
-    | '/_authenticated/pro/dossier/completer'
     | '/_authenticated/admin/chauffeurs/'
     | '/_authenticated/admin/inscriptions/'
-    | '/_authenticated/pro/dossier/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -833,20 +809,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminInscriptionsDriverIdRouteImport
       parentRoute: typeof AuthenticatedAdminInscriptionsRoute
     }
-    '/_authenticated/pro/dossier/': {
-      id: '/_authenticated/pro/dossier/'
-      path: '/'
-      fullPath: '/pro/dossier/'
-      preLoaderRoute: typeof AuthenticatedProDossierIndexRouteImport
-      parentRoute: typeof AuthenticatedProDossierRoute
-    }
-    '/_authenticated/pro/dossier/completer': {
-      id: '/_authenticated/pro/dossier/completer'
-      path: '/completer'
-      fullPath: '/pro/dossier/completer'
-      preLoaderRoute: typeof AuthenticatedProDossierCompleterRouteImport
-      parentRoute: typeof AuthenticatedProDossierRoute
-    }
   }
 }
 
@@ -911,25 +873,8 @@ const AuthenticatedEspaceRouteChildren: AuthenticatedEspaceRouteChildren = {
 const AuthenticatedEspaceRouteWithChildren =
   AuthenticatedEspaceRoute._addFileChildren(AuthenticatedEspaceRouteChildren)
 
-interface AuthenticatedProDossierRouteChildren {
-  AuthenticatedProDossierCompleterRoute: typeof AuthenticatedProDossierCompleterRoute
-  AuthenticatedProDossierIndexRoute: typeof AuthenticatedProDossierIndexRoute
-}
-
-const AuthenticatedProDossierRouteChildren: AuthenticatedProDossierRouteChildren =
-  {
-    AuthenticatedProDossierCompleterRoute:
-      AuthenticatedProDossierCompleterRoute,
-    AuthenticatedProDossierIndexRoute: AuthenticatedProDossierIndexRoute,
-  }
-
-const AuthenticatedProDossierRouteWithChildren =
-  AuthenticatedProDossierRoute._addFileChildren(
-    AuthenticatedProDossierRouteChildren,
-  )
-
 interface AuthenticatedProRouteChildren {
-  AuthenticatedProDossierRoute: typeof AuthenticatedProDossierRouteWithChildren
+  AuthenticatedProDossierRoute: typeof AuthenticatedProDossierRoute
   AuthenticatedProEntrepriseRoute: typeof AuthenticatedProEntrepriseRoute
   AuthenticatedProLiensRoute: typeof AuthenticatedProLiensRoute
   AuthenticatedProParametresRoute: typeof AuthenticatedProParametresRoute
@@ -943,7 +888,7 @@ interface AuthenticatedProRouteChildren {
 }
 
 const AuthenticatedProRouteChildren: AuthenticatedProRouteChildren = {
-  AuthenticatedProDossierRoute: AuthenticatedProDossierRouteWithChildren,
+  AuthenticatedProDossierRoute: AuthenticatedProDossierRoute,
   AuthenticatedProEntrepriseRoute: AuthenticatedProEntrepriseRoute,
   AuthenticatedProLiensRoute: AuthenticatedProLiensRoute,
   AuthenticatedProParametresRoute: AuthenticatedProParametresRoute,

@@ -38,7 +38,7 @@ export function ProFeatureSheet({
         </SheetHeader>
         <div className="mt-5 grid gap-2">
           <Button asChild size="lg" className="min-h-12 w-full font-bold">
-            <Link to="/pro/parametres">Découvrir ReLink Pro</Link>
+            <Link to="/pro">Découvrir ReLink Pro</Link>
           </Button>
           <Button
             variant="ghost"

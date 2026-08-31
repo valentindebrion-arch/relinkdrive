@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
 import { CircleUserRound, HelpCircle, Menu, Settings, X } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
-import { NotificationBell } from "@/components/NotificationBell";
 import { cn } from "@/lib/utils";
 
 const MENU = [
@@ -86,7 +85,6 @@ export function ClientTopBar({ title, className }: { title?: string; className?:
       <header className={cn("flex items-center justify-between gap-2 py-1.5", className)}>
         <BrandLogo to="/espace" size="sm" />
         <div className="flex items-center gap-1">
-          <NotificationBell />
           <button
             type="button"
             onClick={() => setOpen(true)}
