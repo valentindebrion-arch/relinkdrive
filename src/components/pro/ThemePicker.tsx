@@ -49,22 +49,18 @@ function ThemeDot({ id }: { id: BookingThemeId }) {
 export function ThemePicker({
   value,
   gender,
-  genderLocked,
   onChange,
-  onGenderChange,
 }: {
   value: BookingThemeId;
   /** Genre déclaré du chauffeur (déclaratif, jamais déduit). */
   gender: string;
-  /** Le genre a déjà été enregistré : il est définitif. */
-  genderLocked: boolean;
   onChange: (id: BookingThemeId) => void;
-  onGenderChange: (gender: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState<BookingThemeId | null>(null);
   const current = getBookingTheme(value);
   const canWfw = driverCanOfferWfw(gender);
+
 
   function select(id: BookingThemeId) {
     if (id === value) {
