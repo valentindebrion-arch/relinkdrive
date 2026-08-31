@@ -14,6 +14,9 @@ export type Profile = {
   status: string;
   /** Déclaratif uniquement (services de mise en relation, ex. Woman for Woman). */
   gender: string | null;
+  /** La correction autonome unique du sexe a déjà été utilisée. */
+  gender_correction_used?: boolean;
+
 };
 
 type AuthValue = {

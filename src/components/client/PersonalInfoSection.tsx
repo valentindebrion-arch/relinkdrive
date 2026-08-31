@@ -7,15 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { deleteMyAddress, saveMyAddress, updateMyProfile } from "@/lib/account.functions";
-import {
-  GENDER_FIELD_LABEL,
-  GENDER_HELP,
-  GENDER_LOCKED_HELP,
-  GENDER_LOCK_WARNING,
-  GENDER_OPTIONS,
-  genderLabel,
-  type GenderValue,
-} from "@/lib/woman-for-woman";
+import { GenderField } from "@/components/GenderField";
+import type { GenderValue } from "@/lib/woman-for-woman";
+
 
 type Address = { id: string; label: string; address: string };
 
