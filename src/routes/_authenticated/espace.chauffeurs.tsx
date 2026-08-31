@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth";
 import { AddDriverSheet } from "@/components/client/AddDriverSheet";
 import { ClientTopBar } from "@/components/client/ClientTopBar";
 import { useSignedUrls } from "@/lib/storage";
+import { AvatarPhoto } from "@/components/AvatarPhoto";
 import {
   prefersReducedMotion,
   takeDriverCelebration,

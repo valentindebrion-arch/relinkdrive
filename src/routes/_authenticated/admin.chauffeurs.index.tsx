@@ -95,10 +95,9 @@ type DriverRow = {
 function Avatar({ name, url }: { name: string; url: string | null }) {
   if (url) {
     return (
-      <img
-        src={url}
-        alt={`Photo de ${name}`}
-        loading="lazy"
+      <AvatarPhoto
+        url={url}
+        name={name}
         className="size-10 shrink-0 rounded-full object-cover"
       />
     );

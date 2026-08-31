@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Car, ChevronLeft, ChevronRight, QrCode, Star } from "lucide-react";
+import { AvatarPhoto } from "@/components/AvatarPhoto";
 
 export type HomeCardDriver = {
   id: string;

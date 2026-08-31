@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { ChevronRight, CreditCard, FileText, MapPin, Receipt } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { requestLocation } from "@/lib/push";
