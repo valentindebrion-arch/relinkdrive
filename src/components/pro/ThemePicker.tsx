@@ -15,9 +15,6 @@ import {
   type BookingThemeId,
 } from "@/lib/booking-themes";
 import {
-  GENDER_HELP,
-  GENDER_LOCK_WARNING,
-  GENDER_OPTIONS,
   WFW_DRIVER_DESCRIPTION,
   WFW_DRIVER_PROFILE_REQUIRED,
   driverCanOfferWfw,
