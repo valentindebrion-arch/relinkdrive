@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { driverAccentVars, DRIVER_ACTION_BUTTON_CLASS } from "@/lib/booking-themes";
 
 import { toast } from "sonner";
-import { Check, ShieldCheck, Sparkles, UserPlus } from "lucide-react";
+import { Check, Sparkles, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { currentSource, trackDriverVisit } from "@/lib/visit-tracking";
 import { useAuth } from "@/lib/auth";
@@ -102,14 +102,6 @@ export const Route = createFileRoute("/chauffeur/$slug")({
   component: DriverPublicPage,
 });
 
-const VERIFICATION_BADGES: { doc: string; label: string }[] = [
-  { doc: "identity", label: "Identité vérifiée" },
-  { doc: "company_proof", label: "Entreprise vérifiée" },
-  { doc: "vtc_card", label: "Carte professionnelle vérifiée" },
-  { doc: "driving_license", label: "Permis vérifié" },
-  { doc: "insurance", label: "Assurance vérifiée" },
-  { doc: "registration", label: "Véhicule vérifié" },
-];
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -388,7 +380,7 @@ function DriverPublicPage() {
   // Visiteur non connecté : on laisse le parcours d'inscription se faire, la
   // compatibilité Woman for Woman est vérifiée après connexion (et côté serveur).
   const wfwLocked = !!session && !isDriver && !isAdmin && wfwAccess !== "ok";
-  const verifiedDocs: string[] = d.verified_docs ?? [];
+  
   const memberSince = d.member_since
     ? new Date(d.member_since).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
     : null;
@@ -576,34 +568,6 @@ function DriverPublicPage() {
           </div>
         ) : null}
 
-        {/* 8 — Votre chauffeur est vérifié */}
-        <Section title="Profil vérifié">
-          <p className="text-muted-foreground">
-            {BRAND.name} contrôle les informations professionnelles de {firstName} avant la
-            publication de cette vitrine. Ce badge n'est pas une garantie de la prestation.
-          </p>
-          <ul className="mt-3 space-y-2">
-            {VERIFICATION_BADGES.filter((b) => verifiedDocs.includes(b.doc)).map((b) => (
-              <li key={b.doc} className="flex items-center gap-2">
-                <ShieldCheck className="size-4 text-primary" /> {b.label}
-              </li>
-            ))}
-            {d.company_verified ? (
-              <li className="flex items-center gap-2">
-                <ShieldCheck className="size-4 text-primary" /> Entreprise enregistrée
-              </li>
-            ) : null}
-            <li className="flex items-center gap-2">
-              <ShieldCheck className="size-4 text-primary" /> Informations professionnelles
-              contrôlées par {BRAND.name}
-            </li>
-            {memberSince ? (
-              <li className="flex items-center gap-2 text-muted-foreground">
-                <Check className="size-4" /> Membre depuis {memberSince}
-              </li>
-            ) : null}
-          </ul>
-        </Section>
 
         {/* 9 — Comment ça fonctionne ? */}
         <Section title="Comment ça fonctionne ?">
