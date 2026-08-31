@@ -9,6 +9,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Search, UserCog } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { PageHeader, EmptyState } from "@/components/Ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { VERIFICATION_LABELS, formatDate } from "@/lib/labels";
