@@ -2,36 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-  BadgeCheck,
-  Briefcase,
-  Car,
-  Check,
-  CreditCard,
-  Clock,
-  Dog,
-  Droplets,
-  Facebook,
-  Globe,
-  Instagram,
-  Languages,
-  Linkedin,
-  Luggage,
-  MapPin,
-  MessageCircle,
-  Moon,
-  Music2,
-  Phone,
-  PlugZap,
-  Quote,
-  Star as StarIcon,
-  ShieldCheck,
-  Snowflake,
-  Sparkles,
-  Sun,
-  UserPlus,
-  Volume2,
-} from "lucide-react";
+import { Check, ShieldCheck, Sparkles, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useSignedUrl } from "@/lib/storage";
