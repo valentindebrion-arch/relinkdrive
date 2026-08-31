@@ -7,7 +7,7 @@
  * `driver_profiles`, `vehicles`, `driver_tariffs`) et la page publique les relit.
  */
 
-import { DEPARTMENT_NAMES } from "@/lib/departments";
+import { departmentLabel as baseDepartmentLabel } from "@/lib/departments";
 
 export type VehiclePhotoSlots = {
   exterior: string | null;
@@ -104,9 +104,7 @@ export function showcaseLastInitial(fullName?: string | null) {
 
 /** « Puy-de-Dôme (63) » — libellé lisible d'un département d'intervention. */
 export function departmentLabel(code: string) {
-  const c = code.trim().toUpperCase();
-  const name = DEPARTMENT_NAMES[c];
-  return name ? `${name} (${c})` : c;
+  return baseDepartmentLabel(code.trim().toUpperCase()) ?? code;
 }
 
 /** Libellé court du véhicule (« Mercedes Classe E »). */
