@@ -53,7 +53,7 @@ const PREMIUM_COUNT = 3;
 function DiscoverPage() {
   const { user } = useAuth();
   const { sector, department, detecting, error, detect, setManual } = useClientSector();
-  const [filter, setFilter] = useState<VehicleFilter>("all");
+  const [filter, setFilter] = useState<VehicleFilter>("sedan");
   const [pickerOpen, setPickerOpen] = useState(false);
   const [scope, setScope] = useState<Scope>("department");
 
@@ -156,15 +156,15 @@ function DiscoverPage() {
         ))}
       </div>
 
-      <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
-        {VEHICLE_FILTERS.map((f) => (
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        {VEHICLE_FILTERS.filter((f) => f.value !== "all").map((f) => (
           <button
             key={f.value}
             type="button"
             onClick={() => setFilter(f.value)}
             aria-pressed={filter === f.value}
             className={cn(
-              "tap tap-active shrink-0 rounded-full border px-3.5 py-1.5 text-[13px] font-bold transition",
+              "tap tap-active rounded-full border px-3.5 py-1.5 text-[13px] font-bold transition",
               filter === f.value
                 ? "border-primary bg-primary text-primary-foreground shadow-card"
                 : "border-border bg-card text-foreground",
@@ -196,7 +196,7 @@ function DiscoverPage() {
           departmentLabelText={depName}
           scope={effectiveScope}
           hasOthers={all.length > 0}
-          onReset={() => setFilter("all")}
+          onSwitch={() => setFilter(filter === "van" ? "sedan" : "van")}
           onShowAll={() => setScope("all")}
         />
       ) : (
@@ -265,30 +265,31 @@ function EmptyState({
   departmentLabelText,
   scope,
   hasOthers,
-  onReset,
+  onSwitch,
   onShowAll,
 }: {
   filter: VehicleFilter;
   departmentLabelText: string | null;
   scope: Scope;
   hasOthers: boolean;
-  onReset: () => void;
+  onSwitch: () => void;
   onShowAll: () => void;
 }) {
   const vehicleLabel = filter === "van" ? "Van" : "Berline";
+  const otherLabel = filter === "van" ? "Berline" : "Van";
   return (
     <div className="mt-5 rounded-[1.25rem] border border-border/70 bg-card p-6 text-center shadow-card">
-      {filter !== "all" && hasOthers ? (
+      {hasOthers ? (
         <>
           <p className="text-sm font-bold">
             Aucun {vehicleLabel} ReLink dans votre département pour le moment.
           </p>
           <button
             type="button"
-            onClick={onReset}
+            onClick={onSwitch}
             className="tap tap-active mt-3 rounded-full bg-primary px-4 py-2 text-[13px] font-bold text-primary-foreground"
           >
-            Voir tous les chauffeurs
+            Voir les {otherLabel}
           </button>
         </>
       ) : (
