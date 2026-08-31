@@ -50,8 +50,9 @@ export function parseDriverQr(raw: string): string | null {
 
   const segments = path.split("/").filter(Boolean);
   if (segments.length < 2) return null;
-  const [prefix, slug] = segments;
-  if (prefix !== "q" && prefix !== "chauffeur") return null;
+  const prefix = segments[0];
+  const slug = segments[1];
+  if (!slug || (prefix !== "q" && prefix !== "chauffeur")) return null;
   const decoded = decodeURIComponent(slug);
   return SLUG_RE.test(decoded) ? decoded.toLowerCase() : null;
 }
