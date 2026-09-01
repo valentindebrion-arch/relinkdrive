@@ -160,10 +160,30 @@ const VEHICLE_FLAGS: [string, string][] = [
 ];
 
 const PHOTO_SLOTS = [
-  { field: "photo_url", kind: "exterior", label: "Photo extérieure" },
-  { field: "photo_side_url", kind: "side", label: "Vue de côté" },
-  { field: "photo_front_url", kind: "front", label: "Vue de face" },
-  { field: "photo_interior_url", kind: "interior", label: "Intérieur" },
+  {
+    field: "photo_side_url",
+    kind: "side",
+    label: "Vue de profil",
+    description: "Photographiez le véhicule entièrement de côté, avec toute la voiture visible dans le cadre.",
+  },
+  {
+    field: "photo_interior_url",
+    kind: "interior",
+    label: "Photo intérieure",
+    description: "Photographiez l'habitacle en montrant clairement l'espace réservé aux passagers.",
+  },
+  {
+    field: "photo_front_url",
+    kind: "front",
+    label: "Vue de face",
+    description: "Photographiez le véhicule droit devant, entièrement visible et centré.",
+  },
+  {
+    field: "photo_url",
+    kind: "exterior",
+    label: "Vue 3/4 (côté)",
+    description: "Photographiez le véhicule entier légèrement de biais, avec l'avant et le côté visibles.",
+  },
 ] as const;
 
 type PhotoField = (typeof PHOTO_SLOTS)[number]["field"];
