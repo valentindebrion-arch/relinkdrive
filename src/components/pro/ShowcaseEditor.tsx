@@ -163,7 +163,7 @@ const PHOTO_SLOTS = [
   {
     field: "photo_side_url",
     kind: "side",
-    label: "Vue de profil",
+    label: "Vue 3/4 (côté)",
     description: "Photographiez le véhicule entièrement de côté, avec toute la voiture visible dans le cadre.",
   },
   {
@@ -181,7 +181,7 @@ const PHOTO_SLOTS = [
   {
     field: "photo_url",
     kind: "exterior",
-    label: "Vue 3/4 (côté)",
+    label: "Vue de profil",
     description: "Photographiez le véhicule entier légèrement de biais, avec l'avant et le côté visibles.",
   },
 ] as const;
