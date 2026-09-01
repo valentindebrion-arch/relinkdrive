@@ -1392,6 +1392,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_set_driver_published: {
+        Args: { _driver: string; _published: boolean; _reason?: string }
+        Returns: boolean
+      }
       admin_set_user_gender: {
         Args: { _gender: string; _ticket_id?: string; _user_id: string }
         Returns: Json
