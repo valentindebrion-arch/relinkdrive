@@ -791,6 +791,7 @@ export function ShowcaseEditor() {
                   <PhotoSlot
                     key={s.field}
                     label={s.label}
+                    description={s.description}
                     url={photoUrl(s.field)}
                     busy={busyPhoto === s.field}
                     onSelect={(file) => void uploadVehiclePhoto(file, s.field, s.kind)}
