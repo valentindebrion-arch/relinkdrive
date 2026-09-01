@@ -102,7 +102,6 @@ export const Route = createFileRoute("/chauffeur/$slug")({
   component: DriverPublicPage,
 });
 
-
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="surface p-5">
@@ -358,13 +357,12 @@ function DriverPublicPage() {
     return (
       <div className="flex min-h-screen items-center justify-center px-5 text-center">
         <div>
-          <h1 className="text-xl font-semibold">Page chauffeur indisponible</h1>
+          <h1 className="text-xl font-semibold">Ce profil n'est pas disponible</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Ce lien n'est plus actif. Le chauffeur n'est pas disponible actuellement sur{" "}
-            {BRAND.name}.
+            Cette vitrine chauffeur n'est actuellement pas accessible sur {BRAND.name}.
           </p>
-          <Button asChild variant="outline" className="mt-5">
-            <Link to="/">Retour à l'accueil</Link>
+          <Button asChild className="mt-5">
+            <Link to="/chauffeurs">Trouver un chauffeur</Link>
           </Button>
         </div>
       </div>
@@ -380,7 +378,7 @@ function DriverPublicPage() {
   // Visiteur non connecté : on laisse le parcours d'inscription se faire, la
   // compatibilité Woman for Woman est vérifiée après connexion (et côté serveur).
   const wfwLocked = !!session && !isDriver && !isAdmin && wfwAccess !== "ok";
-  
+
   const memberSince = d.member_since
     ? new Date(d.member_since).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
     : null;
@@ -567,7 +565,6 @@ function DriverPublicPage() {
             </p>
           </div>
         ) : null}
-
 
         {/* 9 — Comment ça fonctionne ? */}
         <Section title="Comment ça fonctionne ?">

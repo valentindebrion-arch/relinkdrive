@@ -55,7 +55,6 @@ export function QrPage() {
   const { user, profile } = useAuth();
   const driver = useDriverProfile();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [publishing, setPublishing] = useState(false);
   const [days, setDays] = useState<number>(30);
   const fetchLink = useServerFn(getMyPublicLink);
 
@@ -118,7 +117,8 @@ export function QrPage() {
 
   // Conversion : ajouts / visiteurs uniques (fallback : vues), jamais inventée.
   const base = s ? (s.unique_visitors > 0 ? s.unique_visitors : s.views) : 0;
-  const conversion = s && base > 0 ? `${((s.adds / base) * 100).toFixed(1).replace(".", ",")} %` : "—";
+  const conversion =
+    s && base > 0 ? `${((s.adds / base) * 100).toFixed(1).replace(".", ",")} %` : "—";
 
   const sourceRows = s
     ? Object.entries(s.sources)
@@ -233,27 +233,10 @@ export function QrPage() {
 
           {driver.data && !driver.data.page_published ? (
             <div className="space-y-2 rounded-lg bg-warning/10 p-3 text-center text-sm text-muted-foreground">
-              <p>Votre vitrine est actuellement dépubliée : le QR code ne mène à rien.</p>
-              <Button
-                size="sm"
-                disabled={publishing}
-                onClick={async () => {
-                  setPublishing(true);
-                  const { error } = await supabase
-                    .from("driver_profiles")
-                    .update({ page_published: true })
-                    .eq("user_id", user!.id);
-                  setPublishing(false);
-                  if (error) toast.error(error.message);
-                  else {
-                    toast.success("Vitrine publiée");
-                    void driver.refetch();
-                    void link.refetch();
-                  }
-                }}
-              >
-                Publier ma vitrine
-              </Button>
+              <p>
+                Votre vitrine n'est actuellement pas accessible sur ReLink : le QR code et votre
+                lien ne mènent à aucune page. Contactez le support ReLink pour en savoir plus.
+              </p>
             </div>
           ) : null}
         </div>
