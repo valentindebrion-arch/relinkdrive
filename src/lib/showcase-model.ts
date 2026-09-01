@@ -14,6 +14,7 @@ export type VehiclePhotoSlots = {
   side: string | null;
   front: string | null;
   interior: string | null;
+  trunk: string | null;
 };
 
 export type ShowcaseVehicle = {
@@ -184,6 +185,7 @@ export function showcaseFromPublicRow(row: Row): ShowcaseData {
       side: str(row["vehicle_side_photo_url"]),
       front: str(row["vehicle_front_photo_url"]),
       interior: str(row["vehicle_interior_photo_url"]),
+      trunk: str(row["vehicle_trunk_photo_url"]),
     },
     tariff: null,
     contact: {
@@ -270,6 +272,7 @@ export function showcaseFromOwnRows({
       side: str(vehicle?.["photo_side_url"]),
       front: str(vehicle?.["photo_front_url"]),
       interior: str(vehicle?.["photo_interior_url"]),
+      trunk: str(vehicle?.["photo_trunk_url"]),
     },
     tariff: tariff
       ? {

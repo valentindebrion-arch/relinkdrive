@@ -1609,6 +1609,7 @@ export type Database = {
           vehicle_model: string
           vehicle_photo_url: string
           vehicle_side_photo_url: string
+          vehicle_trunk_photo_url: string
           vehicle_year: number
           verified_docs: string[]
           water: boolean
