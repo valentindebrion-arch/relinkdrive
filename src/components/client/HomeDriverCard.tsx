@@ -106,13 +106,13 @@ export function HomeDriverCard({
           <div className="relative aspect-[16/10] w-full bg-muted">
             {loading ? (
               <span className="absolute inset-0 animate-pulse bg-muted" aria-hidden />
-            ) : driver?.frontPhotoUrl || driver?.vehiclePhotoUrl ? (
+            ) : driver?.frontPhotoUrl ? (
               <>
                 {!photoReady ? (
                   <span className="absolute inset-0 animate-pulse bg-muted" aria-hidden />
                 ) : null}
                 <img
-                  src={(driver.frontPhotoUrl || driver.vehiclePhotoUrl) ?? undefined}
+                  src={driver.frontPhotoUrl ?? undefined}
                   alt={`Véhicule de ${driver.name}`}
                   loading="eager"
                   decoding="async"

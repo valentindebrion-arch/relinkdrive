@@ -133,7 +133,8 @@ function ClientDrivers() {
               ),
             ),
             vehicle: car ? [car.brand, car.model].filter(Boolean).join(" ") || null : null,
-            photoPath: car?.photo_side_url ?? car?.photo_url ?? null,
+            // Mes chauffeurs : uniquement la vue de côté (aucune substitution).
+            photoPath: car?.photo_side_url ?? null,
             zone: dp?.city || dp?.zone || null,
             slug: dp?.slug ?? null,
             womanForWoman:
