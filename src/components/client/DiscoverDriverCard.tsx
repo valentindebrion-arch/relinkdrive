@@ -24,13 +24,10 @@ export type DiscoverDriver = {
 export function DiscoverDriverCard({
   driver,
   photoUrl,
-  premium,
   theme,
 }: {
   driver: DiscoverDriver;
   photoUrl: string | null;
-  /** Carte de la sélection « La crème de la crème ». */
-  premium?: boolean;
   /** Identité visuelle choisie par le chauffeur (accents uniquement). */
   theme?: string | null;
 }) {
