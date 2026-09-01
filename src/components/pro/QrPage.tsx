@@ -55,7 +55,6 @@ export function QrPage() {
   const { user, profile } = useAuth();
   const driver = useDriverProfile();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [publishing, setPublishing] = useState(false);
   const [days, setDays] = useState<number>(30);
   const fetchLink = useServerFn(getMyPublicLink);
 
