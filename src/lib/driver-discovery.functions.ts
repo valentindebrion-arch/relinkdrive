@@ -27,7 +27,7 @@ export const discoverDrivers = createServerFn({ method: "POST" })
       await import("@/lib/driver-discovery.server");
 
     const { data: rows, error } = await context.supabase.rpc("get_local_drivers", {
-      _limit: 100,
+      _limit: 200,
     });
     if (error) throw new Error(error.message);
     const drivers = (rows ?? []) as unknown as Array<
