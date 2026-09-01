@@ -303,16 +303,19 @@ function DriverPublicPage() {
   const interiorQuery = useSignedUrl("vehicles", d?.vehicle_interior_photo_url);
   const frontQuery = useSignedUrl("vehicles", d?.vehicle_front_photo_url);
   const sideQuery = useSignedUrl("vehicles", d?.vehicle_side_photo_url);
+  const trunkQuery = useSignedUrl("vehicles", d?.vehicle_trunk_photo_url);
   const vehiclePhoto = exteriorQuery.data ?? null;
   const interiorPhoto = interiorQuery.data ?? null;
   const frontPhoto = frontQuery.data ?? null;
   const sidePhoto = sideQuery.data ?? null;
+  const trunkPhoto = trunkQuery.data ?? null;
   const vehiclePhotos = {
     isLoading:
       exteriorQuery.isLoading ||
       interiorQuery.isLoading ||
       frontQuery.isLoading ||
-      sideQuery.isLoading,
+      sideQuery.isLoading ||
+      trunkQuery.isLoading,
   };
   const avatarUrl = useDisplayAvatar(d?.avatar_url);
 
@@ -547,6 +550,15 @@ function DriverPublicPage() {
                 url: interiorPhoto,
                 label: "Intérieur du véhicule",
               },
+              ...(d.vehicle_trunk_photo_url
+                ? [
+                    {
+                      key: d.vehicle_trunk_photo_url,
+                      url: trunkPhoto,
+                      label: "Photo du coffre",
+                    },
+                  ]
+                : []),
             ]}
           />
           <ShowcaseVehicleInfo vehicle={showcase.vehicle} />
