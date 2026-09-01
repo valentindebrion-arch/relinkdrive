@@ -48,8 +48,6 @@ type LocalDriver = DiscoverDriver & {
 
 type Scope = "department" | "all";
 
-const PREMIUM_COUNT = 3;
-
 function DiscoverPage() {
   const { user } = useAuth();
   const { sector, department, detecting, error, detect, setManual } = useClientSector();
