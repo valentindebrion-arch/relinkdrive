@@ -374,17 +374,19 @@ export function VehiclePage() {
 
         <div className="grid gap-4 sm:col-span-2 sm:grid-cols-2">
           <PhotoSlot
-            id="photo"
-            label="Photo extérieure du véhicule"
-            url={photo.data ?? null}
-            loading={busy === "photo_url" || photo.isLoading}
-            hasPath={!!form.photo_url}
-            onSelect={(file) => void upload(file, "photo_url")}
-            onRemove={() => void removePhoto("photo_url")}
+            id="photo-side"
+            label="Vue de profil"
+            description="Photographiez le véhicule entièrement de côté, avec toute la voiture visible dans le cadre."
+            url={side.data ?? null}
+            loading={busy === "photo_side_url" || side.isLoading}
+            hasPath={!!form.photo_side_url}
+            onSelect={(file) => void upload(file, "photo_side_url")}
+            onRemove={() => void removePhoto("photo_side_url")}
           />
           <PhotoSlot
             id="photo-in"
-            label="Photo intérieure du véhicule"
+            label="Photo intérieure"
+            description="Photographiez l'habitacle en montrant clairement l'espace réservé aux passagers."
             url={interior.data ?? null}
             loading={busy === "photo_interior_url" || interior.isLoading}
             hasPath={!!form.photo_interior_url}
@@ -393,7 +395,8 @@ export function VehiclePage() {
           />
           <PhotoSlot
             id="photo-front"
-            label="Photo de face du véhicule"
+            label="Vue de face"
+            description="Photographiez le véhicule droit devant, entièrement visible et centré."
             url={front.data ?? null}
             loading={busy === "photo_front_url" || front.isLoading}
             hasPath={!!form.photo_front_url}
@@ -401,13 +404,14 @@ export function VehiclePage() {
             onRemove={() => void removePhoto("photo_front_url")}
           />
           <PhotoSlot
-            id="photo-side"
-            label="Photo de côté du véhicule"
-            url={side.data ?? null}
-            loading={busy === "photo_side_url" || side.isLoading}
-            hasPath={!!form.photo_side_url}
-            onSelect={(file) => void upload(file, "photo_side_url")}
-            onRemove={() => void removePhoto("photo_side_url")}
+            id="photo"
+            label="Vue 3/4 (côté)"
+            description="Photographiez le véhicule entier légèrement de biais, avec l'avant et le côté visibles."
+            url={photo.data ?? null}
+            loading={busy === "photo_url" || photo.isLoading}
+            hasPath={!!form.photo_url}
+            onSelect={(file) => void upload(file, "photo_url")}
+            onRemove={() => void removePhoto("photo_url")}
           />
           <PhotoSlot
             id="photo-trunk"
@@ -511,6 +515,7 @@ export function VehiclePage() {
 function PhotoSlot({
   id,
   label,
+  description,
   url,
   loading,
   hasPath,
@@ -519,6 +524,7 @@ function PhotoSlot({
 }: {
   id: string;
   label: string;
+  description?: string;
   url: string | null;
   loading: boolean;
   hasPath: boolean;
@@ -528,6 +534,9 @@ function PhotoSlot({
   return (
     <div className="rounded-xl border border-border/70 p-3">
       <Label htmlFor={id}>{label}</Label>
+      {description ? (
+        <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+      ) : null}
       <div className="mt-2 aspect-[4/3] w-full overflow-hidden rounded-lg bg-muted">
         {loading ? (
           <div className="size-full animate-pulse bg-muted" />

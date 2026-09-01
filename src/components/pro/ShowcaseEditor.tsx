@@ -160,10 +160,30 @@ const VEHICLE_FLAGS: [string, string][] = [
 ];
 
 const PHOTO_SLOTS = [
-  { field: "photo_url", kind: "exterior", label: "Photo extérieure" },
-  { field: "photo_side_url", kind: "side", label: "Vue de côté" },
-  { field: "photo_front_url", kind: "front", label: "Vue de face" },
-  { field: "photo_interior_url", kind: "interior", label: "Intérieur" },
+  {
+    field: "photo_side_url",
+    kind: "side",
+    label: "Vue de profil",
+    description: "Photographiez le véhicule entièrement de côté, avec toute la voiture visible dans le cadre.",
+  },
+  {
+    field: "photo_interior_url",
+    kind: "interior",
+    label: "Photo intérieure",
+    description: "Photographiez l'habitacle en montrant clairement l'espace réservé aux passagers.",
+  },
+  {
+    field: "photo_front_url",
+    kind: "front",
+    label: "Vue de face",
+    description: "Photographiez le véhicule droit devant, entièrement visible et centré.",
+  },
+  {
+    field: "photo_url",
+    kind: "exterior",
+    label: "Vue 3/4 (côté)",
+    description: "Photographiez le véhicule entier légèrement de biais, avec l'avant et le côté visibles.",
+  },
 ] as const;
 
 type PhotoField = (typeof PHOTO_SLOTS)[number]["field"];
@@ -771,6 +791,7 @@ export function ShowcaseEditor() {
                   <PhotoSlot
                     key={s.field}
                     label={s.label}
+                    description={s.description}
                     url={photoUrl(s.field)}
                     busy={busyPhoto === s.field}
                     onSelect={(file) => void uploadVehiclePhoto(file, s.field, s.kind)}
@@ -1291,12 +1312,14 @@ function DepartmentPicker({
 
 function PhotoSlot({
   label,
+  description,
   url,
   busy,
   onSelect,
   onRemove,
 }: {
   label: string;
+  description?: string;
   url: string | null;
   busy: boolean;
   onSelect: (file: File) => void;
@@ -1321,8 +1344,13 @@ function PhotoSlot({
         )}
         {busy ? <span className="absolute inset-0 animate-pulse bg-background/60" /> : null}
       </button>
-      <div className="flex items-center justify-between gap-2 px-2 py-1.5">
-        <span className="truncate text-[11px] font-medium text-muted-foreground">{label}</span>
+      <div className="flex items-start justify-between gap-2 px-2 py-1.5">
+        <div className="min-w-0">
+          <span className="block truncate text-[11px] font-medium text-muted-foreground">{label}</span>
+          {description ? (
+            <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">{description}</p>
+          ) : null}
+        </div>
         <div className="flex shrink-0 items-center gap-1">
           <button
             type="button"
