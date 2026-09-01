@@ -103,9 +103,7 @@ function PublicationBadge({ published }: { published: boolean }) {
     <span
       className={
         "rounded-full px-2.5 py-0.5 text-xs font-semibold " +
-        (published
-          ? "bg-primary/10 text-primary"
-          : "bg-destructive/10 text-destructive")
+        (published ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive")
       }
     >
       {published ? "Publié" : "Retiré"}
@@ -305,11 +303,7 @@ function AdminDriverPublication() {
                     <EyeOff className="size-4" /> Retirer de ReLink
                   </Button>
                 ) : (
-                  <Button
-                    size="sm"
-                    disabled={setPublished.isPending}
-                    onClick={() => setPending(d)}
-                  >
+                  <Button size="sm" disabled={setPublished.isPending} onClick={() => setPending(d)}>
                     <RotateCcw className="size-4" /> Remettre sur ReLink
                   </Button>
                 )}

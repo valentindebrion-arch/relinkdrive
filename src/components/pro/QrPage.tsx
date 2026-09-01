@@ -117,7 +117,8 @@ export function QrPage() {
 
   // Conversion : ajouts / visiteurs uniques (fallback : vues), jamais inventée.
   const base = s ? (s.unique_visitors > 0 ? s.unique_visitors : s.views) : 0;
-  const conversion = s && base > 0 ? `${((s.adds / base) * 100).toFixed(1).replace(".", ",")} %` : "—";
+  const conversion =
+    s && base > 0 ? `${((s.adds / base) * 100).toFixed(1).replace(".", ",")} %` : "—";
 
   const sourceRows = s
     ? Object.entries(s.sources)
