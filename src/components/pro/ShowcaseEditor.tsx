@@ -184,6 +184,12 @@ const PHOTO_SLOTS = [
     label: "Vue de profil",
     description: "Photographiez le véhicule entier légèrement de biais, avec l'avant et le côté visibles.",
   },
+  {
+    field: "photo_trunk_url",
+    kind: "trunk",
+    label: "Photo du coffre",
+    description: "Photographiez le coffre ouvert, avec l'espace de chargement clairement visible.",
+  },
 ] as const;
 
 type PhotoField = (typeof PHOTO_SLOTS)[number]["field"];
