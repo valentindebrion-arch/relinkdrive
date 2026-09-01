@@ -233,27 +233,10 @@ export function QrPage() {
 
           {driver.data && !driver.data.page_published ? (
             <div className="space-y-2 rounded-lg bg-warning/10 p-3 text-center text-sm text-muted-foreground">
-              <p>Votre vitrine est actuellement dépubliée : le QR code ne mène à rien.</p>
-              <Button
-                size="sm"
-                disabled={publishing}
-                onClick={async () => {
-                  setPublishing(true);
-                  const { error } = await supabase
-                    .from("driver_profiles")
-                    .update({ page_published: true })
-                    .eq("user_id", user!.id);
-                  setPublishing(false);
-                  if (error) toast.error(error.message);
-                  else {
-                    toast.success("Vitrine publiée");
-                    void driver.refetch();
-                    void link.refetch();
-                  }
-                }}
-              >
-                Publier ma vitrine
-              </Button>
+              <p>
+                Votre vitrine n'est actuellement pas accessible sur ReLink : le QR code et votre
+                lien ne mènent à aucune page. Contactez le support ReLink pour en savoir plus.
+              </p>
             </div>
           ) : null}
         </div>
