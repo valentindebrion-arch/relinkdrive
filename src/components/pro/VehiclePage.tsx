@@ -515,6 +515,7 @@ export function VehiclePage() {
 function PhotoSlot({
   id,
   label,
+  description,
   url,
   loading,
   hasPath,
@@ -523,6 +524,7 @@ function PhotoSlot({
 }: {
   id: string;
   label: string;
+  description?: string;
   url: string | null;
   loading: boolean;
   hasPath: boolean;
@@ -532,6 +534,9 @@ function PhotoSlot({
   return (
     <div className="rounded-xl border border-border/70 p-3">
       <Label htmlFor={id}>{label}</Label>
+      {description ? (
+        <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+      ) : null}
       <div className="mt-2 aspect-[4/3] w-full overflow-hidden rounded-lg bg-muted">
         {loading ? (
           <div className="size-full animate-pulse bg-muted" />
