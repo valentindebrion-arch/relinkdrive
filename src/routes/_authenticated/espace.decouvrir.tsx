@@ -200,43 +200,20 @@ function DiscoverPage() {
           onShowAll={() => setScope("all")}
         />
       ) : (
-        <>
-          <Section
-            title="La crème de la crème"
-            subtitle={
-              effectiveScope === "department" && depName
-                ? `Les chauffeurs les plus appréciés qui interviennent dans le ${depName}.`
-                : "Les chauffeurs les plus appréciés du réseau ReLink."
-            }
-          >
-            {premium.map((d) => (
-              <li key={d.user_id}>
-                <DiscoverDriverCard driver={d} photoUrl={photoOf(d)} premium />
-              </li>
-            ))}
-          </Section>
-
-          {around.length ? (
-            <Section
-              title={
-                effectiveScope === "department"
-                  ? "Chauffeurs dans votre département"
-                  : "Tous les chauffeurs"
-              }
-              subtitle={
-                effectiveScope === "department" && depName
-                  ? `Tous les chauffeurs ReLink qui exercent dans le ${depName}, quelle que soit leur commune.`
-                  : "Explorez l'ensemble du réseau ReLink, sans limite géographique."
-              }
-            >
-              {around.map((d) => (
-                <li key={d.user_id}>
-                  <DiscoverDriverCard driver={d} photoUrl={photoOf(d)} />
-                </li>
-              ))}
-            </Section>
-          ) : null}
-        </>
+        <Section
+          title="Chauffeurs autour de vous"
+          subtitle={
+            effectiveScope === "department" && depName
+              ? `Découvrez les chauffeurs disponibles dans le ${depName}.`
+              : "Découvrez les chauffeurs disponibles sur tout le réseau ReLink."
+          }
+        >
+          {filtered.map((d) => (
+            <li key={d.user_id}>
+              <DiscoverDriverCard driver={d} photoUrl={photoOf(d)} />
+            </li>
+          ))}
+        </Section>
       )}
     </div>
   );
