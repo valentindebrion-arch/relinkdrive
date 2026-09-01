@@ -183,6 +183,7 @@ const PHOTO_SLOTS = [
     kind: "exterior",
     label: "Vue de profil",
     description: "Photographiez le véhicule entier légèrement de biais, avec l'avant et le côté visibles.",
+  },
   {
     field: "photo_trunk_url",
     kind: "trunk",
