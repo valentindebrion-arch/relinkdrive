@@ -101,7 +101,8 @@ function ClientHome() {
             vehiclePhotoUrl: null,
             trips: 0,
             slug: dp?.slug ?? null,
-            vehiclePhotoPath: car?.photo_front_url ?? car?.photo_url ?? null,
+            // Accueil : grande photo = vue de face uniquement.
+            vehiclePhotoPath: car?.photo_front_url ?? null,
             frontPhotoPath: car?.photo_front_url ?? null,
             exteriorPhotoPath: car?.photo_url ?? null,
             vehiclePhotoVersion: car?.updated_at ?? null,
