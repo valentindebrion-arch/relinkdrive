@@ -74,8 +74,6 @@ function DiscoverPage() {
     () => all.filter((d) => matchesVehicleFilter(filter, d.max_passengers, d.vehicle_category)),
     [all, filter],
   );
-  const premium = useMemo(() => filtered.slice(0, PREMIUM_COUNT), [filtered]);
-  const around = useMemo(() => filtered.slice(PREMIUM_COUNT), [filtered]);
 
   const photos = useSignedUrls(
     "vehicles",
