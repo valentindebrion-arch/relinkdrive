@@ -83,7 +83,10 @@ function ClientHome() {
             )("get_driver_working_hours", { _ids: ids }),
           ]);
 
-        drivers = ids.map((id) => {
+        // Chauffeur dépublié par l'administration : masqué des surfaces actives.
+        const visibleIds = ids.filter((id) => (dprofiles ?? []).some((d) => d.user_id === id));
+
+        drivers = visibleIds.map((id) => {
           const profile = (profiles ?? []).find((p) => p.id === id);
           const dp = (dprofiles ?? []).find((d) => d.user_id === id);
           const car =

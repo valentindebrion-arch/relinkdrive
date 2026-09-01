@@ -109,8 +109,14 @@ function ClientDrivers() {
         ) => Promise<{ data: { user_id: string; working_hours: unknown }[] | null }>
       )("get_driver_working_hours", { _ids: ids });
 
+      // Un chauffeur retiré de ReLink par l'administration n'apparaît plus dans
+      // les surfaces actives du carnet : la relation reste toutefois en base.
+      const visibleConns = (conns ?? []).filter((c) =>
+        (dprofiles ?? []).some((d) => d.user_id === c.driver_id),
+      );
+
       return Promise.all(
-        (conns ?? []).map(async (c) => {
+        visibleConns.map(async (c) => {
           const profile = (profiles ?? []).find((p) => p.id === c.driver_id);
           const dp = (dprofiles ?? []).find((d) => d.user_id === c.driver_id);
           const car =
