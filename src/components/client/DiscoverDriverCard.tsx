@@ -51,24 +51,6 @@ export function DiscoverDriverCard({
             draggable={false}
           />
         ) : null}
-        {premium ? (
-          <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-primary/92 px-2.5 py-1 text-[11px] font-extrabold text-primary-foreground shadow-sm backdrop-blur-sm">
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden
-            >
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-            Sélection ReLink
-          </span>
-        ) : null}
         {wfw ? (
           <span className="wfw-badge absolute top-3 right-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-extrabold shadow-sm backdrop-blur-sm">
             <Sparkles className="size-3" aria-hidden /> {WFW_LABEL}
