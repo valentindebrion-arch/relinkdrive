@@ -281,9 +281,9 @@ function AdminDriverPublication() {
                   <Car className="size-3" /> {d.vehicle ?? "Véhicule non renseigné"}
                 </p>
               </div>
-              {photos.data?.[drivers.findIndex((x) => x.user_id === d.user_id)] ? (
+              {d.vehiclePhotoPath && photos.data?.[d.vehiclePhotoPath] ? (
                 <img
-                  src={photos.data[drivers.findIndex((x) => x.user_id === d.user_id)] ?? ""}
+                  src={photos.data[d.vehiclePhotoPath] ?? ""}
                   alt={`Véhicule de ${d.full_name}`}
                   className="hidden h-14 w-24 rounded-lg object-cover sm:block"
                   loading="lazy"

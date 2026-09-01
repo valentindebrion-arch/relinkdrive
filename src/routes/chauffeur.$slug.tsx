@@ -358,13 +358,12 @@ function DriverPublicPage() {
     return (
       <div className="flex min-h-screen items-center justify-center px-5 text-center">
         <div>
-          <h1 className="text-xl font-semibold">Page chauffeur indisponible</h1>
+          <h1 className="text-xl font-semibold">Ce profil n'est pas disponible</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Ce lien n'est plus actif. Le chauffeur n'est pas disponible actuellement sur{" "}
-            {BRAND.name}.
+            Cette vitrine chauffeur n'est actuellement pas accessible sur {BRAND.name}.
           </p>
-          <Button asChild variant="outline" className="mt-5">
-            <Link to="/">Retour à l'accueil</Link>
+          <Button asChild className="mt-5">
+            <Link to="/chauffeurs">Trouver un chauffeur</Link>
           </Button>
         </div>
       </div>
