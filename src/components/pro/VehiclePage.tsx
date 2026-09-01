@@ -375,7 +375,7 @@ export function VehiclePage() {
         <div className="grid gap-4 sm:col-span-2 sm:grid-cols-2">
           <PhotoSlot
             id="photo-side"
-            label="Vue de profil"
+            label="Vue 3/4 (côté)"
             description="Photographiez le véhicule entièrement de côté, avec toute la voiture visible dans le cadre."
             url={side.data ?? null}
             loading={busy === "photo_side_url" || side.isLoading}
@@ -405,7 +405,7 @@ export function VehiclePage() {
           />
           <PhotoSlot
             id="photo"
-            label="Vue 3/4 (côté)"
+            label="Vue de profil"
             description="Photographiez le véhicule entier légèrement de biais, avec l'avant et le côté visibles."
             url={photo.data ?? null}
             loading={busy === "photo_url" || photo.isLoading}
