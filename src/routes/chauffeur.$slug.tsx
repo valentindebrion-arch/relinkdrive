@@ -562,6 +562,14 @@ function DriverPublicPage() {
             <div className="order-7 empty:hidden">
               <ShowcaseSectors data={showcase} />
             </div>
+            <div className="order-3 empty:hidden">
+              <ShowcaseContactSection
+                title={`Contacter ${firstName}`}
+                contact={showcase.contact}
+                intro={`${BRAND.name} ne gère ni la réservation ni la course : vous échangez directement avec le chauffeur.`}
+                onTrack={trackContact}
+              />
+            </div>
             <div className="order-12 lg:hidden">{howItWorks}</div>
           </div>
 
@@ -611,14 +619,6 @@ function DriverPublicPage() {
                 />
                 <ShowcaseVehicleInfo vehicle={showcase.vehicle} />
               </section>
-            </div>
-            <div className="order-3 empty:hidden">
-              <ShowcaseContactSection
-                title={`Contacter ${firstName}`}
-                contact={showcase.contact}
-                intro={`${BRAND.name} ne gère ni la réservation ni la course : vous échangez directement avec le chauffeur.`}
-                onTrack={trackContact}
-              />
             </div>
 
             <div className="order-9 empty:hidden lg:hidden">
