@@ -492,6 +492,30 @@ function DriverPublicPage() {
   const vehicleLabel = vehicleTitle(showcase.vehicle);
   const vehicleSub = [d.vehicle_color, d.vehicle_category].filter(Boolean).join(" • ") || "Berline";
 
+  const howItWorks = (
+    <Section title="Comment ça fonctionne ?">
+      <ol className="space-y-2 lg:grid lg:grid-cols-3 lg:gap-4 lg:space-y-0">
+        {[
+          `Consultez la vitrine de ${firstName} : véhicules, prestations, zones desservies.`,
+          "Ajoutez-le à vos chauffeurs pour le retrouver plus tard.",
+          "Contactez-le directement pour convenir de votre trajet.",
+        ].map((step, i) => (
+          <li key={step} className="flex gap-3">
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+              {i + 1}
+            </span>
+            {step}
+          </li>
+        ))}
+      </ol>
+      <p className="mt-3 text-xs text-muted-foreground">
+        {BRAND.name} met les chauffeurs en visibilité et vous donne accès à leurs coordonnées
+        professionnelles. La prestation, son tarif et ses conditions se conviennent directement avec
+        le chauffeur.
+      </p>
+    </Section>
+  );
+
   return (
     <BookingThemeScope theme={branding.data?.themeId} className="min-h-screen pb-28 sm:pb-10">
       <div className="mx-auto max-w-lg space-y-3 px-4 py-6 md:max-w-2xl lg:max-w-6xl lg:px-8 lg:py-10">
