@@ -494,7 +494,7 @@ function DriverPublicPage() {
 
   return (
     <BookingThemeScope theme={branding.data?.themeId} className="min-h-screen pb-28 sm:pb-10">
-      <div className="mx-auto max-w-lg space-y-3 px-4 py-6">
+      <div className="mx-auto max-w-lg space-y-3 px-4 py-6 md:max-w-2xl lg:max-w-6xl lg:px-8 lg:py-10">
         <Link
           to="/"
           className="block text-center text-xs font-medium tracking-wide text-muted-foreground uppercase transition hover:opacity-80 active:scale-95 cursor-pointer"
@@ -502,81 +502,108 @@ function DriverPublicPage() {
           {BRAND.name}
         </Link>
 
-        {/* 1 — Identité du chauffeur */}
-        <ShowcaseHeader
-          data={showcase}
-          avatarUrl={avatarUrl}
-          subtitle={`${vehicleLabel} · ${vehicleSub} · ${experienceLabel}`}
-        />
-        <ShowcaseAbout about={showcase.about} />
-
-        {/* 2 — Contacter le chauffeur */}
-        <ShowcaseContactSection
-          title={`Contacter ${firstName}`}
-          contact={showcase.contact}
-          intro={`${BRAND.name} ne gère ni la réservation ni la course : vous échangez directement avec le chauffeur.`}
-          onTrack={trackContact}
-        />
-
-        {/* 3 — Horaires habituels */}
-        <ShowcaseHours week={hoursQuery.data ?? parseWorkingHours(null)} />
-
-        {/* 4 — Estimation indicative */}
-        <TripEstimator slug={slug} firstName={firstName} autoLocate />
-
-        {/* 4 — Prestations proposées */}
-        <ShowcaseServices services={showcase.services} longDistance={showcase.longDistance} />
-
-        {/* 5 — Secteurs d'intervention */}
-        <ShowcaseSectors data={showcase} />
-
-        {/* 6 — Le véhicule */}
-        <section className="space-y-3">
-          <VehicleShowcase
-            loading={vehiclePhotos.isLoading}
-            overlay={
-              d.max_passengers ? `${vehicleLabel} · ${d.max_passengers} places` : vehicleLabel
-            }
-            photos={[
-              {
-                key: d.vehicle_photo_url ?? "exterior",
-                url: vehiclePhoto,
-                label: "Extérieur du véhicule",
-              },
-              { key: d.vehicle_side_photo_url ?? "side", url: sidePhoto, label: "Vue de côté" },
-              { key: d.vehicle_front_photo_url ?? "front", url: frontPhoto, label: "Vue de face" },
-              {
-                key: d.vehicle_interior_photo_url ?? "interior",
-                url: interiorPhoto,
-                label: "Intérieur du véhicule",
-              },
-              ...(d.vehicle_trunk_photo_url
-                ? [
-                    {
-                      key: d.vehicle_trunk_photo_url,
-                      url: trunkPhoto,
-                      label: "Photo du coffre",
-                    },
-                  ]
-                : []),
-            ]}
-          />
-          <ShowcaseVehicleInfo vehicle={showcase.vehicle} />
-        </section>
-
-        {/* 7 — Langues et liens */}
-        <ShowcaseLanguages languages={showcase.languages} />
-        <ShowcaseLinksSection links={showcase.links} onTrack={trackContact} />
-
-        {showcase.womanForWoman ? (
-          <div className="wfw-card flex items-start gap-2 rounded-2xl border px-4 py-3">
-            <Sparkles className="mt-0.5 size-4 shrink-0 text-wfw" aria-hidden />
-            <p className="text-[12.5px] leading-snug">
-              <span className="font-semibold">{WFW_LABEL}</span>
-              <span className="block text-muted-foreground">{WFW_PUBLIC_DESCRIPTION}</span>
-            </p>
+        <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)] lg:items-start lg:gap-6">
+          {/* Colonne principale (desktop) — sur mobile, l'ordre d'origine est conservé via order-* */}
+          <div className="contents lg:block lg:space-y-4">
+            <div className="order-1">
+              <ShowcaseHeader
+                data={showcase}
+                avatarUrl={avatarUrl}
+                subtitle={`${vehicleLabel} · ${vehicleSub} · ${experienceLabel}`}
+              />
+            </div>
+            <div className="order-2">
+              <ShowcaseAbout about={showcase.about} />
+            </div>
+            <div className="order-5">
+              <TripEstimator slug={slug} firstName={firstName} autoLocate />
+            </div>
+            <div className="order-6">
+              <ShowcaseServices services={showcase.services} longDistance={showcase.longDistance} />
+            </div>
+            <div className="order-7">
+              <ShowcaseSectors data={showcase} />
+            </div>
           </div>
-        ) : null}
+
+          {/* Colonne secondaire (desktop) */}
+          <div className="contents lg:block lg:space-y-4">
+            <div className="order-8">
+              <section className="space-y-3">
+                <VehicleShowcase
+                  loading={vehiclePhotos.isLoading}
+                  overlay={
+                    d.max_passengers ? `${vehicleLabel} · ${d.max_passengers} places` : vehicleLabel
+                  }
+                  photos={[
+                    {
+                      key: d.vehicle_photo_url ?? "exterior",
+                      url: vehiclePhoto,
+                      label: "Extérieur du véhicule",
+                    },
+                    {
+                      key: d.vehicle_side_photo_url ?? "side",
+                      url: sidePhoto,
+                      label: "Vue de côté",
+                    },
+                    {
+                      key: d.vehicle_front_photo_url ?? "front",
+                      url: frontPhoto,
+                      label: "Vue de face",
+                    },
+                    {
+                      key: d.vehicle_interior_photo_url ?? "interior",
+                      url: interiorPhoto,
+                      label: "Intérieur du véhicule",
+                    },
+                    ...(d.vehicle_trunk_photo_url
+                      ? [
+                          {
+                            key: d.vehicle_trunk_photo_url,
+                            url: trunkPhoto,
+                            label: "Photo du coffre",
+                          },
+                        ]
+                      : []),
+                  ]}
+                />
+                <ShowcaseVehicleInfo vehicle={showcase.vehicle} />
+              </section>
+            </div>
+            <div className="order-3">
+              <ShowcaseContactSection
+                title={`Contacter ${firstName}`}
+                contact={showcase.contact}
+                intro={`${BRAND.name} ne gère ni la réservation ni la course : vous échangez directement avec le chauffeur.`}
+                onTrack={trackContact}
+              />
+            </div>
+            <div className="order-4">
+              <ShowcaseHours week={hoursQuery.data ?? parseWorkingHours(null)} />
+            </div>
+
+            <div className="order-9">
+              <ShowcaseLanguages languages={showcase.languages} />
+            </div>
+            <div className="order-10">
+              <ShowcaseLinksSection links={showcase.links} onTrack={trackContact} />
+            </div>
+
+            {showcase.womanForWoman ? (
+              <div className="wfw-card order-11 flex items-start gap-2 rounded-2xl border px-4 py-3">
+                <Sparkles className="mt-0.5 size-4 shrink-0 text-wfw" aria-hidden />
+                <p className="text-[12.5px] leading-snug">
+                  <span className="font-semibold">{WFW_LABEL}</span>
+                  <span className="block text-muted-foreground">{WFW_PUBLIC_DESCRIPTION}</span>
+                </p>
+              </div>
+            ) : null}
+
+            <div className="order-13">
+              <div className="surface p-5">{bookAction}</div>
+            </div>
+          </div>
+        </div>
 
         {/* 9 — Comment ça fonctionne ? */}
         <Section title="Comment ça fonctionne ?">
@@ -600,9 +627,6 @@ function DriverPublicPage() {
             avec le chauffeur.
           </p>
         </Section>
-
-        {/* Carnet de chauffeurs — dernier bloc fonctionnel */}
-        <div className="surface p-5">{bookAction}</div>
 
         <div className="space-y-1 pb-2 text-center text-xs text-muted-foreground">
           <p>
