@@ -502,7 +502,7 @@ function DriverPublicPage() {
           {BRAND.name}
         </Link>
 
-        <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)] lg:items-start lg:gap-6">
+        <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-start lg:gap-6">
           {/* Colonne principale (desktop) — sur mobile, l'ordre d'origine est conservé via order-* */}
           <div className="contents lg:block lg:space-y-4">
             <div className="order-1 empty:hidden">
