@@ -1613,6 +1613,7 @@ export type Database = {
           vehicle_year: number
           verified_docs: string[]
           water: boolean
+          website_url: string
           whatsapp_number: string
           woman_for_woman: boolean
           zone: string
