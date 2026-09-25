@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Car } from "lucide-react";
+import { Car, ChevronLeft, ChevronRight } from "lucide-react";
 import type { VehiclePhoto } from "@/components/VehicleGallery";
 
 /**
@@ -63,8 +63,34 @@ export function VehicleShowcase({
   const list = photos.filter((p) => !!p.url);
   const slides = list.length ? list : photos.slice(0, 1);
 
+  const goTo = (i: number) => {
+    const el = ref.current;
+    if (!el || slides.length < 2) return;
+    const next = (i + slides.length) % slides.length;
+    el.scrollTo({ left: next * el.clientWidth, behavior: "smooth" });
+    setIndex(next);
+  };
+
+  const arrowClass =
+    "absolute top-1/2 z-10 hidden size-10 -translate-y-1/2 place-items-center rounded-full border border-white/20 bg-black/35 text-white shadow-lg backdrop-blur-md transition hover:scale-105 hover:bg-black/55 focus-visible:outline-2 focus-visible:outline-white [@media(hover:hover)_and_(pointer:fine)]:grid";
+
   return (
-    <section aria-label="Photos du véhicule" className="relative overflow-hidden rounded-3xl">
+    <section
+      aria-label="Photos du véhicule"
+      aria-roledescription="carrousel"
+      tabIndex={slides.length > 1 ? 0 : undefined}
+      onKeyDown={(e) => {
+        if (slides.length < 2) return;
+        if (e.key === "ArrowRight") {
+          e.preventDefault();
+          goTo(index + 1);
+        } else if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          goTo(index - 1);
+        }
+      }}
+      className="relative overflow-hidden rounded-3xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
       <div
         ref={ref}
         onScroll={(e) => {
@@ -81,6 +107,23 @@ export function VehicleShowcase({
 
       {slides.length > 1 ? (
         <>
+          <button
+            type="button"
+            aria-label="Photo précédente"
+            onClick={() => goTo(index - 1)}
+            className={`${arrowClass} left-3`}
+          >
+            <ChevronLeft className="size-5" aria-hidden />
+          </button>
+          <button
+            type="button"
+            aria-label="Photo suivante"
+            onClick={() => goTo(index + 1)}
+            className={`${arrowClass} right-3`}
+          >
+            <ChevronRight className="size-5" aria-hidden />
+          </button>
+
           <span className="pointer-events-none absolute top-3 right-3 rounded-full bg-black/50 px-2 py-0.5 text-[11px] font-semibold text-white tabular-nums">
             {Math.min(index + 1, slides.length)} / {slides.length}
           </span>
