@@ -492,6 +492,30 @@ function DriverPublicPage() {
   const vehicleLabel = vehicleTitle(showcase.vehicle);
   const vehicleSub = [d.vehicle_color, d.vehicle_category].filter(Boolean).join(" • ") || "Berline";
 
+  const howItWorks = (
+    <Section title="Comment ça fonctionne ?">
+      <ol className="space-y-2 lg:grid lg:grid-cols-3 lg:gap-4 lg:space-y-0">
+        {[
+          `Consultez la vitrine de ${firstName} : véhicules, prestations, zones desservies.`,
+          "Ajoutez-le à vos chauffeurs pour le retrouver plus tard.",
+          "Contactez-le directement pour convenir de votre trajet.",
+        ].map((step, i) => (
+          <li key={step} className="flex gap-3">
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+              {i + 1}
+            </span>
+            {step}
+          </li>
+        ))}
+      </ol>
+      <p className="mt-3 text-xs text-muted-foreground">
+        {BRAND.name} met les chauffeurs en visibilité et vous donne accès à leurs coordonnées
+        professionnelles. La prestation, son tarif et ses conditions se conviennent directement avec
+        le chauffeur.
+      </p>
+    </Section>
+  );
+
   return (
     <BookingThemeScope theme={branding.data?.themeId} className="min-h-screen pb-28 sm:pb-10">
       <div className="mx-auto max-w-lg space-y-3 px-4 py-6 md:max-w-2xl lg:max-w-6xl lg:px-8 lg:py-10">
@@ -502,10 +526,20 @@ function DriverPublicPage() {
           {BRAND.name}
         </Link>
 
-        <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-start lg:gap-6">
+        {/* En-tête desktop : identité + CTA immédiatement accessible */}
+        <div className="hidden lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-center lg:gap-6">
+          <ShowcaseHeader
+            data={showcase}
+            avatarUrl={avatarUrl}
+            subtitle={`${vehicleLabel} · ${vehicleSub} · ${experienceLabel}`}
+          />
+          <div className="surface p-5">{bookAction}</div>
+        </div>
+
+        <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:items-start lg:gap-6">
           {/* Colonne principale (desktop) — sur mobile, l'ordre d'origine est conservé via order-* */}
           <div className="contents lg:block lg:space-y-4">
-            <div className="order-1 empty:hidden">
+            <div className="order-1 empty:hidden lg:hidden">
               <ShowcaseHeader
                 data={showcase}
                 avatarUrl={avatarUrl}
@@ -514,6 +548,10 @@ function DriverPublicPage() {
             </div>
             <div className="order-2 empty:hidden">
               <ShowcaseAbout about={showcase.about} />
+              {/* Desktop : langues regroupées avec « À propos de moi » */}
+              <div className="mt-3 hidden empty:hidden lg:block">
+                <ShowcaseLanguages languages={showcase.languages} />
+              </div>
             </div>
             <div className="order-5 empty:hidden">
               <TripEstimator slug={slug} firstName={firstName} autoLocate />
@@ -524,34 +562,14 @@ function DriverPublicPage() {
             <div className="order-7 empty:hidden">
               <ShowcaseSectors data={showcase} />
             </div>
-            <div className="order-12">
-              {/* 9 — Comment ça fonctionne ? */}
-              <Section title="Comment ça fonctionne ?">
-                <ol className="space-y-2">
-                  {[
-                    `Consultez la vitrine de ${firstName} : véhicules, prestations, zones desservies.`,
-                    "Ajoutez-le à vos chauffeurs pour le retrouver plus tard.",
-                    "Contactez-le directement pour convenir de votre trajet.",
-                  ].map((step, i) => (
-                    <li key={step} className="flex gap-3">
-                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                        {i + 1}
-                      </span>
-                      {step}
-                    </li>
-                  ))}
-                </ol>
-                <p className="mt-3 text-xs text-muted-foreground">
-                  {BRAND.name} met les chauffeurs en visibilité et vous donne accès à leurs
-                  coordonnées professionnelles. La prestation, son tarif et ses conditions se
-                  conviennent directement avec le chauffeur.
-                </p>
-              </Section>
-            </div>
+            <div className="order-12 lg:hidden">{howItWorks}</div>
           </div>
 
-          {/* Colonne secondaire (desktop) */}
+          {/* Colonne secondaire (desktop) : horaires, galerie, véhicule, éléments courts */}
           <div className="contents lg:block lg:space-y-4">
+            <div className="order-4 empty:hidden">
+              <ShowcaseHours week={hoursQuery.data ?? parseWorkingHours(null)} />
+            </div>
             <div className="order-8 empty:hidden">
               <section className="space-y-3">
                 <VehicleShowcase
@@ -602,11 +620,8 @@ function DriverPublicPage() {
                 onTrack={trackContact}
               />
             </div>
-            <div className="order-4 empty:hidden">
-              <ShowcaseHours week={hoursQuery.data ?? parseWorkingHours(null)} />
-            </div>
 
-            <div className="order-9 empty:hidden">
+            <div className="order-9 empty:hidden lg:hidden">
               <ShowcaseLanguages languages={showcase.languages} />
             </div>
             <div className="order-10 empty:hidden">
@@ -623,11 +638,14 @@ function DriverPublicPage() {
               </div>
             ) : null}
 
-            <div className="order-13 empty:hidden">
+            <div className="order-13 empty:hidden lg:hidden">
               <div className="surface p-5">{bookAction}</div>
             </div>
           </div>
         </div>
+
+        {/* Desktop : « Comment ça fonctionne ? » toujours en dernier, pleine largeur */}
+        <div className="hidden lg:block">{howItWorks}</div>
 
         <div className="space-y-1 pb-2 text-center text-xs text-muted-foreground">
           <p>
