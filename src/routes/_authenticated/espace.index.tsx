@@ -217,7 +217,7 @@ function ClientHome() {
 
   return (
     <div
-      className="home-screen client-home-modern relative isolate flex w-full max-w-full flex-col overflow-x-hidden"
+      className="home-screen relative flex w-full max-w-full flex-col overflow-x-hidden"
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
       <ConnectionDecor />

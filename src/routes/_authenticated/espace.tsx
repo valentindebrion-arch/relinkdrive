@@ -16,7 +16,7 @@ function ClientLayout() {
   const isHome = pathname === "/espace" || pathname === "/espace/";
 
   return (
-    <div className="relative min-h-[100dvh] overflow-x-hidden bg-background">
+    <div className="client-home-modern relative isolate min-h-[100dvh] overflow-x-hidden bg-background">
       <ClientPageTransition onTransitionChange={handleTransitionChange}>
         {isHome ? (
           <Outlet />

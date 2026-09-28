@@ -192,7 +192,7 @@ function ClientDrivers() {
   }
 
   return (
-    <div className="client-home-modern client-drivers-page w-full max-w-full pb-6">
+    <div className="client-drivers-page w-full max-w-full pb-6">
       <ClientTopBar />
 
       <header className="client-home-heading mt-4 flex items-end justify-between gap-3">

@@ -10,7 +10,9 @@ const TABS = [
   { to: "/espace/decouvrir", label: "Trouver", icon: Compass },
 ] as const;
 
-/** Navigation principale fixe de l'espace client. */
+/** Navigation principale fixe de l'espace client.
+ * Sur mobile, seul l'onglet actif affiche son libellé afin de garder un dock léger.
+ */
 export function ClientTabBar({ disabled = false }: { disabled?: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const lastNav = useRef(0);
@@ -19,17 +21,17 @@ export function ClientTabBar({ disabled = false }: { disabled?: boolean }) {
     <nav
       aria-label="Navigation principale"
       aria-busy={disabled || undefined}
-      className={`client-tabbar fixed right-3 bottom-3 left-3 z-40 rounded-[1.6rem] border border-white/80 bg-card/90 shadow-[0_18px_50px_-22px_rgba(9,54,37,.45)] backdrop-blur-xl ${disabled ? "pointer-events-none" : ""}`}
+      className={`client-tabbar fixed bottom-3 left-1/2 z-40 -translate-x-1/2 rounded-full border border-white/80 bg-card/88 shadow-[0_18px_50px_-22px_rgba(9,54,37,.45)] backdrop-blur-xl ${disabled ? "pointer-events-none" : ""}`}
       style={{ marginBottom: "env(safe-area-inset-bottom)" }}
     >
-      <ul className="mx-auto flex max-w-lg items-stretch">
+      <ul className="flex items-center gap-1 p-1.5">
         {TABS.map((tab) => {
           const active =
             tab.to === "/espace"
               ? pathname === "/espace" || pathname === "/espace/"
               : pathname.startsWith(tab.to);
           return (
-            <li key={tab.to} className="flex-1">
+            <li key={tab.to}>
               <Link
                 to={tab.to}
                 aria-current={active ? "page" : undefined}
@@ -46,24 +48,19 @@ export function ClientTabBar({ disabled = false }: { disabled?: boolean }) {
                   lastNav.current = now;
                 }}
                 className={cn(
-                  "relative flex min-h-14 flex-col items-center justify-center gap-1 text-[11px] font-semibold transition-colors duration-200",
-                  active ? "text-primary" : "text-muted-foreground",
+                  "client-tabbar-link relative flex items-center justify-center text-[12px] font-bold transition-all duration-300",
+                  active
+                    ? "is-active bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
                 )}
               >
-                <span
-                  aria-hidden
-                  className={cn(
-                    "absolute top-1.5 h-8 w-16 rounded-full bg-primary/8 transition-opacity duration-200",
-                    active ? "opacity-100" : "opacity-0",
-                  )}
-                />
                 <tab.icon
                   className={cn(
-                    "relative size-5 transition-transform duration-200",
-                    active ? "-translate-y-0.5" : "translate-y-0",
+                    "client-tabbar-icon relative size-[19px] shrink-0 transition-transform duration-300",
+                    active ? "scale-105" : "scale-100",
                   )}
                 />
-                <span className="relative">{tab.label}</span>
+                <span className="client-tabbar-label relative whitespace-nowrap">{tab.label}</span>
               </Link>
             </li>
           );

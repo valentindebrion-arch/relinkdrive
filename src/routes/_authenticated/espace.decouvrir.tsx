@@ -84,7 +84,7 @@ function DiscoverPage() {
     d.vehicle_photo_url ? (photos.data?.[d.vehicle_photo_url] ?? null) : null;
 
   return (
-    <div className="client-home-modern client-discover-page w-full max-w-full pb-6">
+    <div className="client-discover-page w-full max-w-full pb-6">
       <ClientTopBar />
 
       <header className="client-home-heading mt-4">
