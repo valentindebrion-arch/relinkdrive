@@ -94,6 +94,7 @@ type DriverRow = {
   account_status: string;
   booking_theme: string;
   booking_theme_mode: "auto" | "admin";
+  vehicle_name: string;
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -146,8 +147,17 @@ function AdminDrivers() {
             .select("id, full_name, email, phone, avatar_url, status")
             .in("id", ids)
         : { data: [] };
+      const { data: vehicles } = ids.length
+        ? await supabase
+            .from("vehicles")
+            .select("driver_id, brand, model, is_primary, created_at")
+            .in("driver_id", ids)
+            .order("is_primary", { ascending: false })
+            .order("created_at")
+        : { data: [] };
       return (drivers ?? []).map((d) => {
         const p = (profiles ?? []).find((x) => x.id === d.user_id);
+        const vehicle = (vehicles ?? []).find((v) => v.driver_id === d.user_id);
         return {
           user_id: d.user_id,
           slug: d.slug,
@@ -165,6 +175,8 @@ function AdminDrivers() {
           account_status: p?.status ?? "active",
           booking_theme: d.booking_theme ?? "relink_classic",
           booking_theme_mode: d.booking_theme_mode === "admin" ? "admin" : "auto",
+          vehicle_name:
+            [vehicle?.brand, vehicle?.model].filter(Boolean).join(" ") || "Non renseigné",
         };
       });
     },
@@ -292,6 +304,7 @@ function AdminDrivers() {
                   <th className="px-4 py-3 font-medium">Compte</th>
                   <th className="px-4 py-3 font-medium">Abonnement</th>
                   <th className="px-4 py-3 font-medium">Validation</th>
+                  <th className="px-4 py-3 font-medium">Véhicule</th>
                   <th className="px-4 py-3 text-right font-medium">Actions</th>
                 </tr>
               </thead>
@@ -338,6 +351,7 @@ function AdminDrivers() {
                     <td className="px-4 py-3">
                       <StatusBadge status={d.verification_status} labels={VERIFICATION_LABELS} />
                     </td>
+                    <td className="px-4 py-3 text-xs font-medium">{d.vehicle_name}</td>
                     <td className="px-4 py-3">
                       <div
                         className="flex flex-wrap items-end justify-end gap-2"
@@ -437,6 +451,7 @@ function AdminDrivers() {
                       {d.city || d.zone || "Zone non renseignée"} · inscrit le{" "}
                       {formatDate(d.created_at)}
                     </p>
+                    <p className="mt-1 text-xs font-medium">Véhicule : {d.vehicle_name}</p>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                       <PlanBadge plan={d.plan} />
                       <StatusBadge status={d.verification_status} labels={VERIFICATION_LABELS} />
