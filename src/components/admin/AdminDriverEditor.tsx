@@ -572,11 +572,11 @@ export function AdminDriverServicesCard({ driverId }: { driverId: string }) {
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  relink_classic: "Vert — Électrique / hybride",
-  professional_blue: "Bleu — Van",
-  dynamic_red: "Rouge — Véhicule sportif",
-  luxury_black_gold: "Gold — Luxe",
-  women_for_women: "Violine — Woman for Woman",
+  relink_classic: "Écologique",
+  professional_blue: "Van",
+  dynamic_red: "Sportif",
+  luxury_black_gold: "Luxe",
+  women_for_women: "Woman for Woman",
 };
 
 /** Catégorie colorimétrique appliquée à la vitrine publique. */
