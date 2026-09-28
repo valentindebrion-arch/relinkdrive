@@ -42,8 +42,8 @@ const SOURCE_LABELS: Record<string, string> = {
 
 function StatTile({ value, label }: { value: string; label: string }) {
   return (
-    <div className="rounded-xl border border-[color:var(--driver-border,var(--border))] bg-card p-3">
-      <p className="text-xl font-semibold text-[color:var(--driver-primary,var(--primary))]">
+    <div className="min-w-0 rounded-xl border border-[color:var(--driver-border,var(--border))] bg-card p-3">
+      <p className="break-words text-xl font-semibold text-[color:var(--driver-primary,var(--primary))]">
         {value}
       </p>
       <p className="mt-0.5 text-xs text-muted-foreground">{label}</p>
@@ -169,15 +169,15 @@ export function QrPage() {
   ) as CSSProperties;
 
   return (
-    <div style={themeStyle}>
+    <div className="min-w-0 max-w-full overflow-hidden" style={themeStyle}>
       <PageHeader
         title="Mon QR Code"
         description="Partagez votre vitrine ReLink et développez votre réseau de clients."
       />
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
+      <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
         {/* Carte QR */}
-        <div className="surface space-y-4 border border-[color:var(--driver-border,var(--border))] p-5">
+        <div className="surface min-w-0 space-y-4 border border-[color:var(--driver-border,var(--border))] p-4 sm:p-5">
           <div className="text-center">
             <p className="flex items-center justify-center gap-2 text-sm font-semibold">
               <QrCode className="size-4 text-[color:var(--driver-primary,var(--primary))]" />
@@ -188,23 +188,23 @@ export function QrPage() {
             </p>
           </div>
 
-          <div className="flex justify-center">
-            <div className="rounded-2xl border-2 border-[color:var(--driver-primary,var(--primary))]/30 bg-white p-3">
-              <canvas ref={canvasRef} className="block" />
+          <div className="flex min-w-0 justify-center">
+            <div className="max-w-full rounded-2xl border-2 border-[color:var(--driver-primary,var(--primary))]/30 bg-white p-2 sm:p-3">
+              <canvas ref={canvasRef} className="block h-auto max-w-full" />
             </div>
           </div>
 
           <p className="text-center text-sm font-medium">{displayName} · ReLink</p>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <Button
               onClick={() => void shareShowcase()}
               disabled={!url}
-              className="bg-[var(--driver-primary,var(--primary))] text-[color:var(--driver-foreground,var(--primary-foreground))] hover:bg-[var(--driver-primary-hover,var(--primary))]"
+              className="w-full min-w-0 bg-[var(--driver-primary,var(--primary))] text-[color:var(--driver-foreground,var(--primary-foreground))] hover:bg-[var(--driver-primary-hover,var(--primary))]"
             >
               <Share2 className="size-4" /> Partager
             </Button>
-            <Button variant="outline" onClick={downloadQr} disabled={!qrUrl}>
+            <Button className="w-full min-w-0" variant="outline" onClick={downloadQr} disabled={!qrUrl}>
               <Download className="size-4" /> Télécharger
             </Button>
           </div>
@@ -242,11 +242,11 @@ export function QrPage() {
         </div>
 
         {/* Analytics */}
-        <div className="space-y-4">
-          <div className="surface border border-[color:var(--driver-border,var(--border))] p-4">
+        <div className="min-w-0 space-y-4">
+          <div className="surface min-w-0 border border-[color:var(--driver-border,var(--border))] p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-base font-semibold">Ma visibilité</h2>
-              <div className="flex gap-1 rounded-lg bg-muted p-1">
+              <div className="grid w-full grid-cols-2 gap-1 rounded-lg bg-muted p-1 sm:w-auto sm:grid-cols-4">
                 {PERIODS.map((p) => (
                   <button
                     key={p.days}
@@ -293,7 +293,7 @@ export function QrPage() {
             </p>
           </div>
 
-          <div className="surface border border-[color:var(--driver-border,var(--border))] p-4">
+          <div className="surface min-w-0 border border-[color:var(--driver-border,var(--border))] p-4">
             <h2 className="text-base font-semibold">Visites de ma vitrine</h2>
             <div className="mt-3 flex h-24 items-end gap-[2px]">
               {series.length === 0 ? (
@@ -314,7 +314,7 @@ export function QrPage() {
             </div>
           </div>
 
-          <div className="surface border border-[color:var(--driver-border,var(--border))] p-4">
+          <div className="surface min-w-0 border border-[color:var(--driver-border,var(--border))] p-4">
             <h2 className="text-base font-semibold">Comment les visiteurs me trouvent</h2>
             {sourceRows.length === 0 ? (
               <p className="mt-2 text-xs text-muted-foreground">
@@ -345,7 +345,7 @@ export function QrPage() {
             )}
           </div>
 
-          <div className="surface border border-[color:var(--driver-border,var(--border))] p-4">
+          <div className="surface min-w-0 border border-[color:var(--driver-border,var(--border))] p-4">
             <h2 className="flex items-center gap-2 text-base font-semibold">
               <TrendingUp className="size-4 text-[color:var(--driver-primary,var(--primary))]" />
               Mon réseau
@@ -367,13 +367,13 @@ export function QrPage() {
             </p>
           </div>
 
-          <div className="surface border border-[color:var(--driver-border,var(--border))] p-4">
+          <div className="surface min-w-0 border border-[color:var(--driver-border,var(--border))] p-4">
             <h2 className="text-base font-semibold">Faites connaître votre vitrine</h2>
             <p className="mt-1 text-xs text-muted-foreground">
               Partagez votre QR Code ou votre lien ReLink pour permettre à vos clients de vous
               retrouver facilement.
             </p>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-3 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
               <Button
                 onClick={() => void shareShowcase()}
                 disabled={!url}
