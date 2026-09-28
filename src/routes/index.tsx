@@ -330,7 +330,7 @@ function Landing() {
               <span className="truncate">Le réseau des chauffeurs indépendants</span>
             </p>
             <h1 className="mt-4 max-w-3xl text-[1.75rem] leading-tight font-semibold text-balance sm:mt-5 sm:text-4xl lg:text-5xl">
-              Trouvez les chauffeurs qui vous correspondent.
+              Retrouvez les chauffeurs qui vous correspondent.
             </h1>
             <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:mt-4 sm:text-lg">
               Découvrez leur vitrine, ajoutez vos chauffeurs préférés à votre réseau et
