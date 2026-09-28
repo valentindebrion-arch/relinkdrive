@@ -537,6 +537,7 @@ export type Database = {
           bio: string | null
           booking_notice: string | null
           booking_theme: string
+          booking_theme_mode: string
           brand_cover_path: string | null
           brand_display_name: string | null
           brand_logo_path: string | null
@@ -606,6 +607,7 @@ export type Database = {
           bio?: string | null
           booking_notice?: string | null
           booking_theme?: string
+          booking_theme_mode?: string
           brand_cover_path?: string | null
           brand_display_name?: string | null
           brand_logo_path?: string | null
@@ -675,6 +677,7 @@ export type Database = {
           bio?: string | null
           booking_notice?: string | null
           booking_theme?: string
+          booking_theme_mode?: string
           brand_cover_path?: string | null
           brand_display_name?: string | null
           brand_logo_path?: string | null
@@ -1408,6 +1411,7 @@ export type Database = {
         Args: { _folder: string; _viewer: string }
         Returns: boolean
       }
+      compute_vehicle_theme: { Args: { _driver: string }; Returns: string }
       dossier_blocking_items: { Args: { _state: Json }; Returns: string }
       driver_dossier_state: { Args: { _driver: string }; Returns: Json }
       driver_page_access: { Args: { _slug: string }; Returns: string }
@@ -1484,6 +1488,7 @@ export type Database = {
           zone: string
         }[]
       }
+      get_driver_auto_theme: { Args: { _driver: string }; Returns: string }
       get_driver_booking_theme: {
         Args: { _driver?: string; _slug?: string }
         Returns: {
