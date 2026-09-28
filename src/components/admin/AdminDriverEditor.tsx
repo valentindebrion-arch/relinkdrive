@@ -7,7 +7,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Clock, Euro, IdCard, Languages, Store } from "lucide-react";
+import { Clock, Euro, IdCard, Languages, Palette, Store } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -439,7 +439,7 @@ export function AdminDriverTariffCard({ driverId }: { driverId: string }) {
 }
 
 /**
- * Prestations, langues, secteurs et thème de vitrine.
+ * Prestations, langues et secteurs.
  * Écrit dans `driver_profiles`, la même source que l'éditeur « Ma vitrine ».
  */
 export function AdminDriverServicesCard({ driverId }: { driverId: string }) {
@@ -449,9 +449,6 @@ export function AdminDriverServicesCard({ driverId }: { driverId: string }) {
     services: [] as string[],
     languages: [] as string[],
     departments: "",
-    booking_theme: "relink_classic",
-    booking_theme_mode: "auto" as "auto" | "admin",
-    woman_for_woman: false,
   });
 
   const { data } = useQuery({
@@ -459,7 +456,7 @@ export function AdminDriverServicesCard({ driverId }: { driverId: string }) {
     queryFn: async () => {
       const { data } = await supabase
         .from("driver_profiles")
-        .select("services, languages, service_departments, booking_theme, booking_theme_mode, woman_for_woman")
+        .select("services, languages, service_departments")
         .eq("user_id", driverId)
         .maybeSingle();
       return data;
@@ -472,9 +469,6 @@ export function AdminDriverServicesCard({ driverId }: { driverId: string }) {
         services: (data.services ?? []).slice(),
         languages: (data.languages ?? []).slice(),
         departments: (data.service_departments ?? []).join(", "),
-        booking_theme: data.booking_theme ?? "relink_classic",
-        booking_theme_mode: data.booking_theme_mode === "admin" ? "admin" : "auto",
-        woman_for_woman: Boolean(data.woman_for_woman),
       });
   }, [data]);
 
@@ -498,8 +492,6 @@ export function AdminDriverServicesCard({ driverId }: { driverId: string }) {
           services: form.services,
           languages: form.languages,
           service_departments: departments,
-          booking_theme: form.booking_theme,
-          booking_theme_mode: form.booking_theme_mode,
         })
         .eq("user_id", driverId);
       if (error) throw error;
@@ -572,37 +564,96 @@ export function AdminDriverServicesCard({ driverId }: { driverId: string }) {
         />
       </label>
 
-      <label className="mt-4 block text-sm">
-        Thème de vitrine
+      <Button className="mt-4 min-h-10" disabled={busy} onClick={() => void save()}>
+        Enregistrer les modifications
+      </Button>
+    </Card>
+  );
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  relink_classic: "Vert — Électrique / hybride",
+  professional_blue: "Bleu — Van",
+  dynamic_red: "Rouge — Véhicule sportif",
+  luxury_black_gold: "Gold — Luxe",
+  women_for_women: "Violine — Woman for Woman",
+};
+
+/** Catégorie colorimétrique appliquée à la vitrine publique. */
+export function AdminDriverCategoryCard({ driverId }: { driverId: string }) {
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false);
+  const [value, setValue] = useState("__auto__");
+
+  const { data } = useQuery({
+    queryKey: ["admin", "driver-category", driverId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("driver_profiles")
+        .select("booking_theme, booking_theme_mode")
+        .eq("user_id", driverId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  useEffect(() => {
+    if (!data) return;
+    setValue(data.booking_theme_mode === "admin" ? data.booking_theme : "__auto__");
+  }, [data]);
+
+  async function save(nextValue: string) {
+    setValue(nextValue);
+    setBusy(true);
+    try {
+      const automatic = nextValue === "__auto__";
+      const { error } = await supabase
+        .from("driver_profiles")
+        .update({
+          booking_theme_mode: automatic ? "auto" : "admin",
+          ...(automatic ? {} : { booking_theme: nextValue }),
+        })
+        .eq("user_id", driverId);
+      if (error) throw error;
+      await logAdminChange({
+        targetUserId: driverId,
+        action: "admin.driver_category_update",
+        field: "driver_profiles.booking_theme",
+        oldValue: data,
+        newValue: { booking_theme_mode: automatic ? "auto" : "admin", booking_theme: nextValue },
+      });
+      await qc.invalidateQueries();
+      toast.success("Catégorie mise à jour");
+    } catch (e) {
+      setValue(data?.booking_theme_mode === "admin" ? data.booking_theme : "__auto__");
+      toast.error(e instanceof Error ? e.message : "Mise à jour impossible");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card title="Catégorie" icon={<Palette className="size-4 text-primary" />}>
+      <label className="block text-sm">
+        Couleur du profil
         <select
           className="mt-1 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm"
-          value={form.booking_theme_mode === "auto" ? "__auto__" : form.booking_theme}
-          onChange={(e) =>
-            setForm({
-              ...form,
-              booking_theme_mode: e.target.value === "__auto__" ? "auto" : "admin",
-              booking_theme:
-                e.target.value === "__auto__" ? form.booking_theme : e.target.value,
-            })
-          }
+          value={value}
+          disabled={busy}
+          onChange={(event) => void save(event.target.value)}
         >
           <option value="__auto__">Automatique (recommandé)</option>
-          {BOOKING_THEMES.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name}
+          {BOOKING_THEMES.map((theme) => (
+            <option key={theme.id} value={theme.id}>
+              {CATEGORY_LABELS[theme.id] ?? theme.name}
             </option>
           ))}
         </select>
       </label>
-      <p className="mt-1 text-xs text-muted-foreground">
-        {form.booking_theme_mode === "auto"
-          ? "La variante est calculée automatiquement selon le véhicule principal. Woman for Woman reste prioritaire."
-          : "Dérogation administrateur active : ce choix reste prioritaire sur la catégorie du véhicule."}
+      <p className="mt-2 text-xs text-muted-foreground">
+        En mode automatique, la couleur dépend du véhicule principal et Woman for Woman reste prioritaire.
       </p>
-
-      <Button className="mt-4 min-h-10" disabled={busy} onClick={() => void save()}>
-        Enregistrer les modifications
-      </Button>
     </Card>
   );
 }
