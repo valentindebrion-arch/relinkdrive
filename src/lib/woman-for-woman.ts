@@ -3,8 +3,8 @@
  *
  * Le genre est une donnée strictement déclarative : elle n'est jamais déduite
  * du prénom, du nom, de la photo ou de l'e-mail. Elle sert uniquement à
- * autoriser la mise en relation femme → femme lorsque ce service est demandé.
- * Le contrôle définitif est refait côté serveur (fonctions et déclencheurs SQL).
+ * afficher le label et le thème Woman for Woman. Ce mode ne restreint plus
+ * l'accès aux profils ni leur ajout au carnet.
  */
 
 export type GenderValue = "female" | "male" | "undisclosed";
@@ -91,11 +91,8 @@ export type WfwAccess = "ok" | "blocked" | "incomplete";
  * Le contrôle définitif est refait côté base de données.
  */
 export function wfwClientAccess(
-  driverWomanForWoman: boolean | null | undefined,
-  clientGender: string | null | undefined,
+  _driverWomanForWoman: boolean | null | undefined,
+  _clientGender: string | null | undefined,
 ): WfwAccess {
-  if (!driverWomanForWoman) return "ok";
-  if (clientGender === "female") return "ok";
-  if (!clientGender) return "incomplete";
-  return "blocked";
+  return "ok";
 }
