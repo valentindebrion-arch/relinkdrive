@@ -86,6 +86,8 @@ export function QrPage() {
   const stats = useQuery({
     queryKey: ["qr-stats", user?.id, days],
     enabled: !!user?.id,
+    refetchInterval: 15_000,
+    refetchOnWindowFocus: true,
     queryFn: async (): Promise<Stats> => {
       const { data: raw, error } = await (
         supabase.rpc as unknown as (
@@ -129,7 +131,8 @@ export function QrPage() {
 
   const series = s?.series ?? [];
   const maxViews = Math.max(1, ...series.map((p) => Number(p.views)));
-  const hasData = !!s && (s.views > 0 || s.qr_scans > 0 || s.adds > 0);
+  const hasData =
+    !!s && (s.views > 0 || s.qr_scans > 0 || s.contact_clicks > 0 || s.adds > 0);
 
   const trend =
     s && s.adds_previous != null && s.adds_previous > 0
@@ -282,14 +285,16 @@ export function QrPage() {
               </div>
             ) : null}
 
-            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <StatTile value={String(s?.views ?? 0)} label="Vues de la vitrine" />
-              <StatTile value={String(s?.qr_scans ?? 0)} label="Scans QR" />
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
+              <StatTile value={String(s?.views ?? 0)} label="Ouvertures du profil" />
+              <StatTile value={String(s?.qr_scans ?? 0)} label="Flashs du QR code" />
+              <StatTile value={String(s?.contact_clicks ?? 0)} label="Clics de contact" />
               <StatTile value={String(s?.adds ?? 0)} label="Ajouts au réseau" />
               <StatTile value={conversion} label="Conversion" />
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              ⓘ Pourcentage de visiteurs ayant ajouté votre profil à leurs chauffeurs.
+              Actualisation automatique toutes les 15 secondes · La conversion correspond au
+              pourcentage de visiteurs ayant ajouté votre profil à leurs chauffeurs.
             </p>
           </div>
 
