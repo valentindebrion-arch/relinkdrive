@@ -192,17 +192,16 @@ function ClientDrivers() {
   }
 
   return (
-    <div className="w-full max-w-full pb-4">
+    <div className="client-home-modern client-drivers-page w-full max-w-full pb-6">
       <ClientTopBar />
 
-      <header className="mt-1 flex items-end justify-between gap-2">
+      <header className="client-home-heading mt-4 flex items-end justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-[22px] leading-tight font-black tracking-tight">Mes chauffeurs</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Votre carnet personnel de chauffeurs de confiance.
-          </p>
+          <p className="text-[11px] font-black tracking-[0.2em] text-primary uppercase">Mon réseau</p>
+          <h1 className="mt-1 text-[clamp(1.8rem,7vw,2.65rem)] leading-[0.95] font-black tracking-[-0.055em]">Mes chauffeurs</h1>
+          <p className="mt-2 text-sm font-medium text-muted-foreground">Vos contacts, toujours à portée de main.</p>
         </div>
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary">
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-primary/15 bg-primary/10 px-3 py-1.5 text-xs font-black text-primary shadow-sm">
           <Users className="size-3.5" aria-hidden /> {list.length}
         </span>
       </header>
@@ -210,13 +209,13 @@ function ClientDrivers() {
       <button
         type="button"
         onClick={() => void navigate({ to: "/espace/scanner" })}
-        className="mt-4 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary text-[15px] font-extrabold text-primary-foreground transition active:scale-[0.985]"
+        className="client-drivers-add mt-5 flex min-h-14 w-full items-center justify-center gap-2 rounded-[1.25rem] bg-primary text-[15px] font-extrabold text-primary-foreground shadow-[0_16px_34px_-18px_hsl(var(--primary))] transition active:scale-[0.985]"
       >
         <QrCode className="size-5" /> Ajouter un chauffeur
       </button>
 
       {list.length >= 4 ? (
-        <label className="mt-3 flex min-h-12 items-center gap-2 rounded-2xl border border-border bg-card px-4">
+        <label className="client-filter-shell mt-3 flex min-h-12 items-center gap-2 rounded-2xl border border-border/60 bg-card/85 px-4 shadow-sm backdrop-blur-xl">
           <Search className="size-4 text-muted-foreground" aria-hidden />
           <input
             value={search}
@@ -260,12 +259,12 @@ function ClientDrivers() {
         </div>
       ) : null}
 
-      <div className="mt-4 space-y-4">
+      <div className="client-drivers-grid mt-5 grid gap-4">
         {drivers.isLoading ? (
           [0, 1].map((i) => (
             <div
               key={i}
-              className="overflow-hidden rounded-[1.5rem] border border-border/60 bg-card shadow-card"
+              className="overflow-hidden rounded-[1.75rem] border border-border/50 bg-card shadow-card"
             >
               <div className="aspect-[16/10] w-full animate-pulse bg-muted" />
               <div className="space-y-2 p-4">
@@ -294,13 +293,13 @@ function ClientDrivers() {
             const photoUrl = d.photoPath ? (photos.data?.[d.photoPath] ?? null) : null;
             const justAdded = celebration?.driverId === d.id;
             const leaving = removingId === d.id;
-            const cardClassName = `group block overflow-hidden rounded-[1.25rem] border bg-card shadow-card transition active:scale-[0.985] ${
+            const cardClassName = `client-network-card group block overflow-hidden rounded-[1.75rem] border bg-card shadow-card transition active:scale-[0.985] ${
               justAdded ? "achievement-land border-primary/40" : "border-border"
             }${leaving ? " removal-exit border-destructive/50" : ""}${d.womanForWoman ? " wfw-card" : ""}`;
             const cardBody = (
               <>
                 {/* Photo véhicule — pleine largeur, format identique aux cartes Top 10 */}
-                <div className="relative aspect-video w-full bg-muted">
+                <div className="client-network-vehicle relative aspect-video w-full bg-muted">
                   {d.womanForWoman ? (
                     <span className="wfw-badge absolute top-3 right-3 z-10 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-extrabold shadow-sm backdrop-blur-sm">
                       {WFW_LABEL}
@@ -325,14 +324,14 @@ function ClientDrivers() {
                 </div>
 
                 {/* Informations compactes */}
-                <div className="px-4 py-3">
+                <div className="px-4 py-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-2">
                       <AvatarPhoto
                         url={d.avatarUrl}
                         name={d.name}
-                        className="size-7 shrink-0 rounded-full object-cover"
-                        fallbackClassName="grid size-7 shrink-0 place-items-center rounded-full bg-primary/10 text-[11px] font-extrabold text-primary"
+                        className="size-9 shrink-0 rounded-xl object-cover ring-2 ring-background"
+                        fallbackClassName="grid size-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-[11px] font-extrabold text-primary"
                       />
                       <p className="truncate text-[15px] leading-tight font-extrabold">{d.name}</p>
                     </div>

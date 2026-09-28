@@ -84,17 +84,16 @@ function DiscoverPage() {
     d.vehicle_photo_url ? (photos.data?.[d.vehicle_photo_url] ?? null) : null;
 
   return (
-    <div className="w-full max-w-full pb-6">
+    <div className="client-home-modern client-discover-page w-full max-w-full pb-6">
       <ClientTopBar />
 
-      <header className="mt-1">
-        <h1 className="text-[22px] leading-tight font-black tracking-tight">
-          Trouver un Chauffeur 
-        </h1>
+      <header className="client-home-heading mt-4">
+        <p className="text-[11px] font-black tracking-[0.2em] text-primary uppercase">Explorer</p>
+        <h1 className="mt-1 text-[clamp(1.8rem,7vw,2.65rem)] leading-[0.95] font-black tracking-[-0.055em]">Trouver un chauffeur</h1>
         <button
           type="button"
           onClick={() => setPickerOpen((v) => !v)}
-          className="tap mt-1.5 inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[13px] font-semibold shadow-card"
+          className="tap mt-3 inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card/85 px-3.5 py-2 text-[13px] font-bold shadow-sm backdrop-blur-xl"
         >
           <MapPin className="size-3.5 text-primary" aria-hidden />
           {detecting
@@ -130,7 +129,7 @@ function DiscoverPage() {
         />
       ) : null}
 
-      <div className="mt-3 grid grid-cols-2 gap-2 rounded-full border border-border bg-card p-1 shadow-card">
+      <div className="client-scope-switch mt-4 grid grid-cols-2 gap-1 rounded-[1.15rem] border border-border/60 bg-card/80 p-1 shadow-sm backdrop-blur-xl">
         {(
           [
             { value: "department", label: "Mon département" },
@@ -143,7 +142,7 @@ function DiscoverPage() {
             onClick={() => setScope(m.value)}
             aria-pressed={scope === m.value}
             className={cn(
-              "tap tap-active rounded-full px-3 py-2 text-[13px] font-bold transition",
+              "tap tap-active rounded-[0.9rem] px-3 py-2.5 text-[13px] font-bold transition",
               scope === m.value ? "bg-primary text-primary-foreground" : "text-muted-foreground",
             )}
           >
@@ -152,7 +151,7 @@ function DiscoverPage() {
         ))}
       </div>
 
-      <div className="mt-2 grid grid-cols-2 gap-2">
+      <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
         {VEHICLE_FILTERS.filter((f) => f.value !== "all").map((f) => (
           <button
             key={f.value}
@@ -160,7 +159,7 @@ function DiscoverPage() {
             onClick={() => setFilter(f.value)}
             aria-pressed={filter === f.value}
             className={cn(
-              "tap tap-active whitespace-nowrap rounded-full border px-2 py-1.5 text-[13px] font-semibold transition",
+              "tap tap-active min-w-[7rem] flex-1 whitespace-nowrap rounded-full border px-3 py-2 text-[13px] font-bold transition",
               filter === f.value
                 ? "border-primary bg-primary text-primary-foreground shadow-card"
                 : "border-border bg-card text-foreground",
@@ -197,11 +196,11 @@ function DiscoverPage() {
         />
       ) : (
         <Section
-          title="Chauffeurs autour de vous"
+          title={`${filtered.length} chauffeur${filtered.length > 1 ? "s" : ""}`}
           subtitle={
             effectiveScope === "department" && depName
-              ? `Découvrez les chauffeurs disponibles dans le ${depName}.`
-              : "Découvrez les chauffeurs disponibles sur tout le réseau ReLink."
+              ? `Dans le ${depName}`
+              : "Sur tout le réseau ReLink"
           }
         >
           {filtered.map((d) => (
@@ -226,9 +225,11 @@ function Section({
 }) {
   return (
     <section className="mt-6">
-      <h2 className="text-[17px] font-black tracking-tight">{title}</h2>
-      <p className="mt-0.5 text-[13px] text-muted-foreground">{subtitle}</p>
-      <ul className="mt-3 space-y-4">{children}</ul>
+      <div className="flex items-end justify-between gap-3">
+        <h2 className="text-[18px] font-black tracking-tight">{title}</h2>
+        <p className="text-right text-[12px] font-semibold text-muted-foreground">{subtitle}</p>
+      </div>
+      <ul className="client-discover-grid mt-3 grid gap-4">{children}</ul>
     </section>
   );
 }

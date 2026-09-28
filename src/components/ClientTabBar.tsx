@@ -19,8 +19,8 @@ export function ClientTabBar({ disabled = false }: { disabled?: boolean }) {
     <nav
       aria-label="Navigation principale"
       aria-busy={disabled || undefined}
-      className={`fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 shadow-[0_-1px_12px_rgba(0,0,0,0.04)] backdrop-blur ${disabled ? "pointer-events-none" : ""}`}
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      className={`client-tabbar fixed right-3 bottom-3 left-3 z-40 rounded-[1.6rem] border border-white/80 bg-card/90 shadow-[0_18px_50px_-22px_rgba(9,54,37,.45)] backdrop-blur-xl ${disabled ? "pointer-events-none" : ""}`}
+      style={{ marginBottom: "env(safe-area-inset-bottom)" }}
     >
       <ul className="mx-auto flex max-w-lg items-stretch">
         {TABS.map((tab) => {

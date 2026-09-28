@@ -99,11 +99,11 @@ export function HomeDriverCard({
       >
         <div
           key={driver?.id ?? (loading ? "loading" : "empty")}
-          className={`overflow-hidden rounded-[1.75rem] border border-border/60 bg-card shadow-[0_10px_30px_-24px_rgba(0,0,0,0.55)] ${anim}`}
+          className={`client-home-driver-card overflow-hidden rounded-[2rem] border border-white/80 bg-card ${anim}`}
           style={drag ? { transform: `translate3d(${drag * 0.3}px,0,0)` } : undefined}
         >
           {/* Photo du véhicule */}
-          <div className="relative aspect-[16/10] w-full bg-muted">
+          <div className="client-home-vehicle relative aspect-[16/10] w-full bg-muted sm:aspect-[16/9]">
             {loading ? (
               <span className="absolute inset-0 animate-pulse bg-muted" aria-hidden />
             ) : driver?.frontPhotoUrl ? (
@@ -129,18 +129,18 @@ export function HomeDriverCard({
             )}
 
             {driver ? (
-              <span className="absolute top-3 left-3 rounded-full bg-card/95 px-2.5 py-1 text-[11px] font-bold text-primary shadow-sm backdrop-blur">
-                Dans vos chauffeurs
+              <span className="absolute top-3 left-3 rounded-full border border-white/40 bg-black/30 px-3 py-1.5 text-[10px] font-bold tracking-wide text-white uppercase shadow-sm backdrop-blur-md">
+                Mon chauffeur
               </span>
             ) : null}
 
             {driver?.available ? (
-              <span className="absolute top-3 right-3 flex items-center gap-1.5 rounded-full bg-card/95 px-2.5 py-1 text-[11px] font-bold text-primary shadow-sm backdrop-blur">
+              <span className="absolute top-3 right-3 flex items-center gap-1.5 rounded-full border border-white/50 bg-white/90 px-3 py-1.5 text-[11px] font-bold text-primary shadow-sm backdrop-blur">
                 <span className="status-dot-pulse size-1.5 rounded-full bg-primary" aria-hidden />
                 Disponible
               </span>
             ) : driver?.availabilityHint ? (
-              <span className="absolute top-3 right-3 rounded-full bg-card/85 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground shadow-sm backdrop-blur">
+              <span className="absolute top-3 right-3 max-w-[52%] truncate rounded-full border border-white/50 bg-white/90 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground shadow-sm backdrop-blur">
                 {driver.availabilityHint}
               </span>
             ) : null}
@@ -151,7 +151,7 @@ export function HomeDriverCard({
                   type="button"
                   aria-label="Chauffeur précédent"
                   onClick={() => go(-1)}
-                  className="absolute top-1/2 left-2 grid size-9 -translate-y-1/2 place-items-center rounded-full bg-card/90 text-foreground shadow-sm backdrop-blur transition active:scale-95"
+                  className="absolute top-1/2 left-3 grid size-10 -translate-y-1/2 place-items-center rounded-full border border-white/50 bg-white/90 text-foreground shadow-lg backdrop-blur transition hover:scale-105 active:scale-95"
                 >
                   <ChevronLeft className="size-4" />
                 </button>
@@ -159,7 +159,7 @@ export function HomeDriverCard({
                   type="button"
                   aria-label="Chauffeur suivant"
                   onClick={() => go(1)}
-                  className="absolute top-1/2 right-2 grid size-9 -translate-y-1/2 place-items-center rounded-full bg-card/90 text-foreground shadow-sm backdrop-blur transition active:scale-95"
+                  className="absolute top-1/2 right-3 grid size-10 -translate-y-1/2 place-items-center rounded-full border border-white/50 bg-white/90 text-foreground shadow-lg backdrop-blur transition hover:scale-105 active:scale-95"
                 >
                   <ChevronRight className="size-4" />
                 </button>
@@ -168,7 +168,7 @@ export function HomeDriverCard({
           </div>
 
           {/* Identité */}
-          <div className="flex items-center gap-3 px-4 py-3.5">
+          <div className="client-home-driver-identity flex items-center gap-3 px-4 py-4 sm:px-5">
             {loading ? (
               <>
                 <span className="size-12 shrink-0 animate-pulse rounded-full bg-muted" />
@@ -182,8 +182,8 @@ export function HomeDriverCard({
                 <AvatarPhoto
                   url={driver.avatarUrl}
                   name={driver.name}
-                  className="size-12 shrink-0 rounded-full object-cover"
-                  fallbackClassName="grid size-12 shrink-0 place-items-center rounded-full bg-primary/10 text-[15px] font-extrabold text-primary"
+                  className="size-12 shrink-0 rounded-2xl object-cover ring-2 ring-white shadow-md"
+                  fallbackClassName="grid size-12 shrink-0 place-items-center rounded-2xl bg-primary/10 text-[15px] font-extrabold text-primary ring-2 ring-white shadow-md"
                 />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[17px] leading-tight font-extrabold">{driver.name}</p>
@@ -195,7 +195,7 @@ export function HomeDriverCard({
                   <Link
                     to="/chauffeur/$slug"
                     params={{ slug: driver.slug }}
-                    className="shrink-0 text-[12px] font-bold text-primary underline underline-offset-2"
+                    className="shrink-0 rounded-xl bg-primary/10 px-3 py-2 text-[12px] font-bold text-primary transition hover:bg-primary/15"
                   >
                     Profil
                   </Link>

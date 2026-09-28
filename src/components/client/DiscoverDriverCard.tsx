@@ -38,7 +38,7 @@ export function DiscoverDriverCard({
 
   const inner = (
     <>
-      <div className="relative aspect-video w-full bg-muted">
+      <div className="client-discover-vehicle relative aspect-video w-full bg-muted">
         {photoUrl ? (
           <img
             src={photoUrl}
@@ -54,12 +54,12 @@ export function DiscoverDriverCard({
           </span>
         ) : null}
       </div>
-      <div className="px-4 py-3.5">
+      <div className="px-4 py-4">
         <div className="flex items-center justify-between gap-2">
           <span className="text-[15px] font-extrabold tracking-tight">{driver.display_name}</span>
           {driver.slug ? (
-            <span className="flex shrink-0 items-center gap-0.5 text-[13px] font-semibold text-primary">
-              Voir le profil
+            <span className="flex shrink-0 items-center gap-0.5 rounded-full bg-primary/10 px-2.5 py-1.5 text-[12px] font-bold text-primary">
+              Profil
               <ChevronRight className="size-4 transition group-hover:translate-x-0.5" aria-hidden />
             </span>
           ) : null}
@@ -77,7 +77,7 @@ export function DiscoverDriverCard({
   );
 
   const className = cn(
-    "group block overflow-hidden rounded-[1.25rem] border border-border bg-card shadow-card transition",
+    "client-discover-card group block overflow-hidden rounded-[1.75rem] border border-border/60 bg-card shadow-card transition",
     wfw && "wfw-card",
   );
 

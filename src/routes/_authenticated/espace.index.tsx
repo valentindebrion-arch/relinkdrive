@@ -7,7 +7,6 @@ import { fetchConnectedProfiles } from "@/lib/connected-profiles";
 import { useAuth } from "@/lib/auth";
 import { ClientTopBar } from "@/components/client/ClientTopBar";
 import { ConnectionDecor } from "@/components/client/ConnectionDecor";
-import { DriverThemeScope, useDriverThemes } from "@/components/DriverThemeScope";
 import { HomeDriverCard, type HomeCardDriver } from "@/components/client/HomeDriverCard";
 import {
   EQUIPMENT_LABELS,
@@ -202,11 +201,6 @@ function ClientHome() {
   const safeIndex = restoredIndex >= 0 ? restoredIndex : 0;
   const selectedDriver = drivers[safeIndex] ?? null;
 
-  // Exception Accueil : seuls les éléments liés au chauffeur affiché reprennent
-  // son thème. La navigation et les actions ReLink restent vertes.
-  const themes = useDriverThemes(drivers.map((d) => d.id));
-  const selectedTheme = selectedDriver ? (themes.data?.[selectedDriver.id] ?? null) : null;
-
   function goToDriver(delta: number) {
     if (drivers.length < 2 || transitioning) return;
     const nextIndex = (safeIndex + delta + drivers.length) % drivers.length;
@@ -223,22 +217,22 @@ function ClientHome() {
 
   return (
     <div
-      className="home-screen relative isolate flex w-full max-w-full flex-col overflow-x-hidden bg-muted/30"
+      className="home-screen client-home-modern relative isolate flex w-full max-w-full flex-col overflow-x-hidden"
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
       <ConnectionDecor />
 
-      <div className="home-rise relative shrink-0 px-4">
+      <div className="home-rise client-home-heading relative shrink-0 px-4 pt-2 pb-3">
         <ClientTopBar />
-        <p className="mt-1 text-[13px] font-semibold text-muted-foreground">
+        <p className="mt-3 text-[12px] font-bold tracking-[.08em] text-emerald-700 uppercase">
           {firstName ? `Bonjour ${firstName} 👋` : "Bonjour 👋"}
         </p>
-        <h1 className="text-[22px] leading-tight font-black tracking-tight">
+        <h1 className="mt-0.5 text-[26px] leading-tight font-black tracking-[-.045em] sm:text-[30px]">
           Mon réseau de chauffeurs
         </h1>
       </div>
 
-      <main className="flex w-full min-w-0 flex-col gap-[var(--home-gap)] px-4 pt-[var(--home-gap)] pb-[calc(var(--home-tabbar-h)+env(safe-area-inset-bottom)+24px)]">
+      <main className="relative flex w-full min-w-0 flex-col gap-[var(--home-gap)] px-4 pt-[var(--home-gap)] pb-[calc(var(--home-tabbar-h)+env(safe-area-inset-bottom)+40px)]">
         {noDriver ? (
           <div
             className="home-rise overflow-hidden rounded-[1.75rem] border border-border/60 bg-card shadow-[0_10px_30px_-24px_rgba(0,0,0,0.55)]"
@@ -263,11 +257,7 @@ function ClientHome() {
             </div>
           </div>
         ) : (
-          <DriverThemeScope
-            theme={selectedTheme}
-            className="home-rise"
-            style={{ animationDelay: "40ms" }}
-          >
+          <div className="home-rise" style={{ animationDelay: "40ms" }}>
             <HomeDriverCard
               drivers={drivers}
               index={safeIndex}
@@ -275,10 +265,10 @@ function ClientHome() {
               dir={dir}
               loading={data.isLoading || photosPending}
             />
-          </DriverThemeScope>
+          </div>
         )}
 
-        <section className="home-rise flex flex-col gap-3" style={{ animationDelay: "90ms" }}>
+        <section className="home-rise client-home-actions flex flex-col gap-3 sm:grid sm:grid-cols-2" style={{ animationDelay: "90ms" }}>
           {noDriver ? (
             <>
               <Link
@@ -297,49 +287,43 @@ function ClientHome() {
           ) : (
             <>
               {selectedDriver?.slug ? (
-                <DriverThemeScope theme={selectedTheme}>
-                  <Link
-                    to="/chauffeur/$slug"
-                    params={{ slug: selectedDriver.slug }}
-                    className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--driver-primary,var(--primary))] px-3 text-[15px] font-extrabold text-[color:var(--driver-foreground,var(--primary-foreground))] transition hover:bg-[var(--driver-primary-hover,var(--primary))] active:scale-[0.985]"
-                  >
-                    Voir le profil et contacter
-                  </Link>
-                </DriverThemeScope>
+                <Link
+                  to="/chauffeur/$slug"
+                  params={{ slug: selectedDriver.slug }}
+                  className="client-home-main-action flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-3 text-[15px] font-extrabold text-primary-foreground transition hover:bg-primary/90 active:scale-[0.985]"
+                >
+                  Voir le profil et contacter
+                </Link>
               ) : null}
               {selectedDriver?.slug ? (
-                <DriverThemeScope theme={selectedTheme}>
-                  <Link
-                    to="/chauffeur/$slug"
-                    params={{ slug: selectedDriver.slug }}
-                    hash="estimation"
-                    className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border-2 border-[var(--driver-primary,var(--primary))] bg-[var(--driver-primary-soft,var(--card))] px-3 text-[14px] font-bold text-[color:var(--driver-text-accent,var(--primary))] transition active:scale-[0.985]"
-                  >
-                    <Calculator className="size-4" /> Estimer un trajet
-                  </Link>
-                </DriverThemeScope>
+                <Link
+                  to="/chauffeur/$slug"
+                  params={{ slug: selectedDriver.slug }}
+                  hash="estimation"
+                  className="client-home-secondary-action flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl border border-primary/35 bg-primary/10 px-3 text-[14px] font-bold text-primary transition active:scale-[0.985]"
+                >
+                  <Calculator className="size-4" /> Estimer un trajet
+                </Link>
               ) : null}
             </>
           )}
         </section>
 
         {noDriver ? null : (
-          <DriverThemeScope theme={selectedTheme}>
-            <VehicleFacts
-              facts={selectedDriver?.facts ?? null}
-              driverSlug={selectedDriver?.slug ?? null}
-              driverKey={selectedDriver?.id ?? (data.isLoading ? "loading" : "empty")}
-              anim={
-                dir === "right"
-                  ? "driver-card-in-right"
-                  : dir === "left"
-                    ? "driver-card-in-left"
-                    : ""
-              }
-              loading={data.isLoading || photosPending}
-              locked={false}
-            />
-          </DriverThemeScope>
+          <VehicleFacts
+            facts={selectedDriver?.facts ?? null}
+            driverSlug={selectedDriver?.slug ?? null}
+            driverKey={selectedDriver?.id ?? (data.isLoading ? "loading" : "empty")}
+            anim={
+              dir === "right"
+                ? "driver-card-in-right"
+                : dir === "left"
+                  ? "driver-card-in-left"
+                  : ""
+            }
+            loading={data.isLoading || photosPending}
+            locked={false}
+          />
         )}
       </main>
     </div>
