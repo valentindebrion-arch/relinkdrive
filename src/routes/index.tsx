@@ -258,12 +258,13 @@ function DriverPreviewCard({ card }: { card: PreviewCard }) {
           </span>
         ))}
       </div>
-      <div
-        className="mt-3 rounded-xl px-3 py-2 text-center text-xs font-medium"
+      <a
+        href="/chauffeurs"
+        className="mt-3 block w-full rounded-xl px-3 py-2 text-center text-xs font-medium"
         style={{ background: "var(--card-accent)", color: "oklch(0.99 0.005 150)" }}
       >
         Voir la vitrine
-      </div>
+      </a>
     </article>
   );
 }
