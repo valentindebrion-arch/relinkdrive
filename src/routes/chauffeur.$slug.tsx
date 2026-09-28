@@ -196,7 +196,6 @@ function DriverPublicPage() {
   }, [d?.user_id, slug, user?.id, source]);
 
   const driverId = d?.user_id;
-  const driverCity = d?.city ?? null;
 
   const connect = useCallback(async () => {
     if (!user?.id || !driverId) return;
@@ -240,14 +239,6 @@ function DriverPublicPage() {
       );
       return;
     }
-    await supabase.from("analytics_events").insert({
-      event: "driver_added",
-      driver_id: driverId,
-      client_id: user.id,
-      city: driverCity,
-      source,
-      metadata: { source },
-    });
     void connQuery.refetch();
     // Le chauffeur quitte immédiatement les espaces de découverte et rejoint le carnet.
     void queryClient.invalidateQueries({ queryKey: ["top10-drivers"] });
@@ -272,7 +263,7 @@ function DriverPublicPage() {
     }
     setCelebration({ first });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, driverId, driverCity, source, isDriver, isAdmin, driverQuery.data, navigate]);
+  }, [user?.id, driverId, source, isDriver, isAdmin, driverQuery.data, navigate]);
 
   // Ajout automatique après connexion / création de compte depuis ce lien
   useEffect(() => {
