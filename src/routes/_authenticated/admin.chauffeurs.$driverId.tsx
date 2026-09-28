@@ -11,6 +11,7 @@ import {
 } from "@/components/admin/AdminSupportCards";
 import {
   AdminDriverHoursCard,
+  AdminDriverCategoryCard,
   AdminDriverIdentityCard,
   AdminDriverServicesCard,
   AdminDriverShowcaseCard,
@@ -149,6 +150,8 @@ function DossierDetailPage() {
       >
         <ArrowLeft className="size-4" /> Chauffeurs
       </Link>
+      <VehiclePhotosAdminCard driverId={driverId} />
+      <AdminDriverCategoryCard driverId={driverId} />
       <PublicShowcaseLink driverId={driverId} />
       <SubscriptionAdminCard driverId={driverId} />
       <AdminDriverIdentityCard driverId={driverId} />
@@ -158,7 +161,6 @@ function DossierDetailPage() {
       <AdminDriverHoursCard driverId={driverId} />
       <AdminDriverTariffCard driverId={driverId} />
       <DriverActivityCard driverId={driverId} />
-      <VehiclePhotosAdminCard driverId={driverId} />
       <WomenProgramCard driverId={driverId} />
       <DossierReview driverId={driverId} />
       <AdminTicketsCard userId={driverId} />
