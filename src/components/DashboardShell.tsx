@@ -24,6 +24,7 @@ export function DashboardShell({
   bottomItems,
   hideBrand = false,
   brandTo,
+  contentClassName,
 }: {
   items: NavItem[];
   area: string;
@@ -33,6 +34,7 @@ export function DashboardShell({
   bottomItems?: NavItem[];
   hideBrand?: boolean;
   brandTo?: string;
+  contentClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
   const { profile, signOut } = useAuth();
@@ -159,7 +161,7 @@ export function DashboardShell({
           bottomItems ? "pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-6" : "",
         )}
       >
-        <div className="mx-auto w-full max-w-5xl">{children}</div>
+        <div className={cn("mx-auto w-full max-w-5xl", contentClassName)}>{children}</div>
       </main>
 
       {bottomItems ? (
