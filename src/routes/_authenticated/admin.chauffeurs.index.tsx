@@ -281,7 +281,7 @@ function AdminDrivers() {
       ) : (
         <>
           {/* Tableau (écrans larges) */}
-          <div className="surface hidden overflow-x-auto lg:block">
+          <div className="surface hidden lg:block">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-left text-xs text-muted-foreground">
