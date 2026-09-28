@@ -97,11 +97,11 @@ type DriverRow = {
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
-  relink_classic: "Vert",
-  professional_blue: "Bleu",
-  dynamic_red: "Rouge",
-  luxury_black_gold: "Gold",
-  women_for_women: "Violine",
+  relink_classic: "Écologique",
+  professional_blue: "Van",
+  dynamic_red: "Sportif",
+  luxury_black_gold: "Luxe",
+  women_for_women: "Woman for Woman",
 };
 
 function Avatar({ name, url }: { name: string; url: string | null }) {
