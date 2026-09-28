@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Search, SlidersHorizontal, Loader2 } from "lucide-react";
+import { Search, SlidersHorizontal, Loader2, MapPin } from "lucide-react";
 import { BRAND, POSITIONING } from "@/lib/brand";
 import { BrandLogo } from "@/components/BrandLogo";
 import { useAuth, homeForRoles } from "@/lib/auth";
@@ -79,14 +79,14 @@ function DirectoryPage() {
   const hasFilters = !!(service || category || minPassengers || language);
 
   return (
-    <div className="min-h-screen overflow-x-hidden">
-      <header className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-4 sm:px-5">
+    <div className="directory-page min-h-screen overflow-x-hidden bg-[#f7faf8]">
+      <header className="directory-nav sticky top-0 z-40 mx-auto mt-2 grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-white/70 bg-white/80 px-4 py-2.5 shadow-[0_12px_40px_-24px_rgba(13,55,40,.4)] backdrop-blur-xl sm:mt-4 sm:px-5">
         <BrandLogo to="/" size="md" />
-        <nav className="flex shrink-0 items-center gap-1.5 text-sm">
+        <nav className="landing-menu flex shrink-0 items-center gap-1 rounded-xl bg-emerald-950/[.035] p-1 text-sm">
           {!loading && session ? (
             <Link
               to={homeForRoles(roles)}
-              className="rounded-lg bg-primary px-3 py-2 font-medium text-primary-foreground sm:px-4"
+              className="directory-primary-button rounded-xl bg-primary px-3 py-2 font-semibold text-primary-foreground sm:px-4"
             >
               Mon espace
             </Link>
@@ -95,14 +95,14 @@ function DirectoryPage() {
               <Link
                 to="/auth"
                 search={{ mode: "signin" }}
-                className="rounded-lg px-2.5 py-2 text-muted-foreground hover:text-foreground"
+                className="landing-menu-link hidden rounded-lg px-2.5 py-2 font-medium text-muted-foreground transition hover:bg-white hover:text-foreground sm:inline-flex"
               >
                 Connexion
               </Link>
               <Link
                 to="/auth"
                 search={{ mode: "signup", role: "driver" }}
-                className="rounded-lg bg-primary px-3 py-2 font-medium text-primary-foreground"
+                className="directory-primary-button rounded-lg bg-primary px-3 py-2 font-semibold text-primary-foreground"
               >
                 Je suis chauffeur
               </Link>
@@ -111,33 +111,46 @@ function DirectoryPage() {
         </nav>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 pb-16 sm:px-5">
-        <h1 className="text-2xl font-semibold text-balance sm:text-3xl">Trouver un chauffeur</h1>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Explorez le réseau des chauffeurs VTC professionnels et découvrez ceux qui interviennent
-          dans votre secteur.
-        </p>
+      <main className="pb-20">
+        <section className="directory-hero relative mx-auto mt-3 w-[calc(100%-1rem)] max-w-[1400px] overflow-hidden rounded-[2rem] px-4 pt-9 pb-20 text-white sm:mt-5 sm:px-8 sm:pt-11 sm:pb-24 lg:px-14">
+          <div className="directory-glow" aria-hidden />
+          <div className="directory-hero-content relative z-10 mx-auto max-w-6xl">
+            <h1 className="max-w-3xl text-[2.35rem] leading-[1.02] font-semibold tracking-[-.05em] text-balance sm:text-5xl">
+              Trouvez votre <span className="landing-gradient-text">chauffeur.</span>
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm text-emerald-50/70 sm:text-base">
+              Recherchez par ville et contactez directement le professionnel qui vous correspond.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-4 text-xs text-emerald-50/65 sm:text-sm">
+              <span className="inline-flex items-center gap-1.5"><MapPin className="size-4 text-emerald-300" /> Partout en France</span>
+              <span className="inline-flex items-center gap-1.5"><Search className="size-4 text-emerald-300" /> Contact direct</span>
+            </div>
+          </div>
+        </section>
+
+        <div className="relative z-20 mx-auto -mt-14 max-w-6xl px-4 sm:px-5">
+          <div className="directory-search-panel rounded-[1.75rem] border border-white/80 bg-white/90 p-3 shadow-[0_30px_70px_-35px_rgba(8,52,35,.55)] backdrop-blur-xl sm:p-4">
 
         <form
-          className="mt-5 flex flex-col gap-2 sm:flex-row"
+          className="flex flex-col gap-2 sm:flex-row"
           onSubmit={(e) => {
             e.preventDefault();
             setQuery(q.trim());
           }}
         >
           <div className="relative min-w-0 flex-1">
-            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute top-1/2 left-4 size-5 -translate-y-1/2 text-emerald-700" />
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Ville ou secteur — ex. Clermont-Ferrand"
               aria-label="Rechercher une ville ou un secteur"
-              className="w-full rounded-xl border border-border bg-card py-3 pr-3 pl-9 text-sm"
+              className="w-full rounded-2xl border border-emerald-950/10 bg-[#f5f9f7] py-4 pr-4 pl-12 text-sm outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
             />
           </div>
           <button
             type="submit"
-            className="rounded-xl bg-primary px-5 py-3 text-sm font-medium text-primary-foreground"
+            className="directory-primary-button rounded-2xl bg-primary px-6 py-4 text-sm font-semibold text-primary-foreground"
           >
             Rechercher
           </button>
@@ -145,7 +158,7 @@ function DirectoryPage() {
             type="button"
             onClick={() => setShowFilters((v) => !v)}
             aria-expanded={showFilters}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-3 text-sm font-medium"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-emerald-950/10 bg-white px-5 py-4 text-sm font-semibold transition hover:bg-emerald-50"
           >
             <SlidersHorizontal className="size-4" />
             Filtres{hasFilters ? " ·" : ""}
@@ -153,7 +166,7 @@ function DirectoryPage() {
         </form>
 
         {showFilters ? (
-          <div className="surface mt-3 grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-3 grid gap-3 rounded-2xl bg-emerald-50/70 p-4 sm:grid-cols-2 lg:grid-cols-4">
             <label className="text-sm">
               <span className="mb-1 block text-xs font-medium text-muted-foreground">
                 Prestation
@@ -161,7 +174,7 @@ function DirectoryPage() {
               <select
                 value={service}
                 onChange={(e) => setService(e.target.value)}
-                className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-emerald-950/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald-500"
               >
                 <option value="">Toutes</option>
                 {SERVICES.map((s) => (
@@ -178,7 +191,7 @@ function DirectoryPage() {
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-emerald-950/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald-500"
               >
                 <option value="">Tous</option>
                 {VEHICLE_CATEGORIES.map((c) => (
@@ -195,7 +208,7 @@ function DirectoryPage() {
               <select
                 value={minPassengers}
                 onChange={(e) => setMinPassengers(e.target.value)}
-                className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-emerald-950/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald-500"
               >
                 <option value="">Indifférent</option>
                 {[2, 3, 4, 5, 6, 7, 8].map((n) => (
@@ -212,7 +225,7 @@ function DirectoryPage() {
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
-                className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-emerald-950/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald-500"
               >
                 <option value="">Indifférent</option>
                 {LANGUAGES.map((l) => (
@@ -224,8 +237,9 @@ function DirectoryPage() {
             </label>
           </div>
         ) : null}
+          </div>
 
-        <div className="mt-6">
+        <div className="mt-7">
           {drivers.isPending ? (
             <p className="inline-flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="size-4 animate-spin" /> Chargement de l'annuaire…
@@ -237,16 +251,22 @@ function DirectoryPage() {
             />
           ) : (
             <>
-              <p className="mb-3 text-sm text-muted-foreground">
-                {list.length} chauffeur{list.length > 1 ? "s" : ""} dans l'annuaire
-              </p>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="mb-4 flex items-end justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-semibold tracking-[-.035em] sm:text-2xl">Chauffeurs disponibles</h2>
+                </div>
+                <p className="shrink-0 rounded-full border border-emerald-950/10 bg-white px-3 py-1.5 text-xs font-medium text-muted-foreground">
+                  {list.length} chauffeur{list.length > 1 ? "s" : ""}
+                </p>
+              </div>
+              <div className="directory-grid grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {list.map((d) => (
                   <DriverDirectoryCard key={d.user_id} driver={d} />
                 ))}
               </div>
             </>
           )}
+        </div>
         </div>
       </main>
 

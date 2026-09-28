@@ -233,6 +233,342 @@
   box-shadow: var(--shadow-card);
 }
 
+/* Landing page — direction artistique 2026 */
+.landing-page {
+  background:
+    radial-gradient(circle at 8% 20%, oklch(0.93 0.055 156 / 45%), transparent 27rem),
+    #f7faf8;
+}
+
+.landing-nav {
+  animation: landing-nav-in 700ms cubic-bezier(.2,.8,.2,1) both;
+}
+
+.landing-hero {
+  background:
+    radial-gradient(circle at 75% 20%, oklch(0.7 0.16 158 / 24%), transparent 24rem),
+    radial-gradient(circle at 12% 100%, oklch(0.62 0.13 184 / 18%), transparent 28rem),
+    linear-gradient(135deg, #09271e 0%, #103f30 48%, #0a2e25 100%);
+  box-shadow: 0 38px 90px -55px rgba(5, 41, 29, .85);
+}
+
+.landing-hero::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  opacity: .15;
+  background-image: linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, black, transparent 85%);
+}
+
+.landing-gradient-text {
+  color: transparent;
+  background: linear-gradient(90deg, #94f3c2, #ddffe9 52%, #78dec8);
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+.landing-orb {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(2px);
+  pointer-events: none;
+  animation: landing-orbit 10s ease-in-out infinite alternate;
+}
+
+.landing-orb-one {
+  width: 22rem;
+  height: 22rem;
+  right: -8rem;
+  top: -10rem;
+  background: radial-gradient(circle, rgba(87, 224, 155, .18), transparent 68%);
+}
+
+.landing-orb-two {
+  width: 18rem;
+  height: 18rem;
+  left: 38%;
+  bottom: -12rem;
+  background: radial-gradient(circle, rgba(83, 214, 200, .14), transparent 68%);
+  animation-delay: -4s;
+}
+
+.landing-reveal { animation: landing-rise 800ms 120ms cubic-bezier(.2,.8,.2,1) both; }
+.landing-profile-stage { animation: landing-rise 900ms 260ms cubic-bezier(.2,.8,.2,1) both; perspective: 900px; }
+.landing-profile-card { transition: transform 350ms cubic-bezier(.2,.8,.2,1), box-shadow 350ms ease; }
+.landing-profile-card:nth-child(1) { transform: rotate(-2deg) translateY(10px); }
+.landing-profile-card:nth-child(2) { transform: rotate(2deg) translateY(-6px); }
+.landing-profile-card:nth-child(3) { transform: rotate(1.5deg) translateY(8px); }
+.landing-profile-card:nth-child(4) { transform: rotate(-1.5deg) translateY(-3px); }
+.landing-profile-card:hover { transform: translateY(-7px) rotate(0); box-shadow: 0 30px 70px -30px rgba(5, 35, 25, .7); }
+.landing-profile-button { transition: filter 180ms ease, transform 180ms ease; }
+.landing-profile-button:hover { filter: brightness(.94) saturate(1.12); transform: translateY(-1px); }
+
+.landing-primary-button,
+.landing-hero-primary,
+.landing-hero-secondary { transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease; }
+.landing-primary-button:hover,
+.landing-hero-primary:hover,
+.landing-hero-secondary:hover { transform: translateY(-2px); }
+.landing-primary-button:hover { box-shadow: 0 12px 28px -14px rgba(20, 126, 82, .75); }
+.landing-hero-primary:hover { box-shadow: 0 18px 40px -16px rgba(0,0,0,.5); }
+.landing-hero-secondary:hover { background: rgba(255,255,255,.16); }
+
+.landing-section { scroll-margin-top: 5rem; }
+.landing-feature-card,
+.landing-step-card,
+.landing-glass-panel { transition: transform 300ms cubic-bezier(.2,.8,.2,1), box-shadow 300ms ease, border-color 300ms ease; }
+.landing-feature-card:hover,
+.landing-step-card:hover,
+.landing-glass-panel:hover { transform: translateY(-5px); border-color: rgba(43, 154, 105, .24); box-shadow: 0 26px 60px -42px rgba(9, 62, 42, .75); }
+.landing-theme-choice { transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease; }
+.landing-theme-choice:hover { transform: translateY(-3px); border-color: rgba(43, 154, 105, .25); box-shadow: 0 16px 32px -24px rgba(9, 62, 42, .55); }
+
+.landing-driver-zone {
+  background:
+    radial-gradient(circle at 85% 10%, rgba(109, 221, 164, .16), transparent 25rem),
+    linear-gradient(145deg, #edf8f1, #f8fbf9 58%, #eaf5f1);
+}
+
+.landing-qr-panel,
+.landing-final-cta {
+  background:
+    radial-gradient(circle at 90% 0%, rgba(115, 235, 174, .22), transparent 18rem),
+    linear-gradient(135deg, #0a3024, #145940);
+  box-shadow: 0 35px 80px -48px rgba(4, 44, 29, .9);
+}
+
+.landing-mini-step { transition: transform 250ms ease, background-color 250ms ease; }
+.landing-mini-step:hover { transform: translateY(-4px); background: rgba(255,255,255,.15); }
+
+@keyframes landing-nav-in {
+  from { opacity: 0; transform: translateY(-14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes landing-rise {
+  from { opacity: 0; transform: translateY(28px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes landing-orbit {
+  from { transform: translate3d(-10px, 0, 0) scale(.95); }
+  to { transform: translate3d(18px, 14px, 0) scale(1.08); }
+}
+
+@media (max-width: 639px) {
+  .landing-nav { width: calc(100% - 1rem); }
+  .landing-profile-stage { margin-inline: -.25rem; }
+  .landing-profile-card:nth-child(n) { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-nav,
+  .landing-reveal,
+  .landing-profile-stage,
+  .landing-orb { animation: none !important; }
+  .landing-profile-card,
+  .landing-feature-card,
+  .landing-step-card,
+  .landing-glass-panel,
+  .landing-mini-step { transition: none !important; }
+}
+
+/* Annuaire chauffeurs */
+.directory-page {
+  background:
+    radial-gradient(circle at 5% 35%, rgba(101, 207, 151, .12), transparent 25rem),
+    #f7faf8;
+}
+
+.directory-nav { animation: landing-nav-in 700ms cubic-bezier(.2,.8,.2,1) both; }
+.directory-hero {
+  background:
+    radial-gradient(circle at 78% 10%, rgba(91, 229, 160, .22), transparent 25rem),
+    radial-gradient(circle at 10% 100%, rgba(69, 191, 174, .14), transparent 28rem),
+    linear-gradient(135deg, #08271d 0%, #104c37 58%, #0a3025 100%);
+  box-shadow: 0 38px 90px -55px rgba(5, 41, 29, .85);
+}
+.directory-hero::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  opacity: .14;
+  background-image: linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: linear-gradient(100deg, black, transparent 90%);
+}
+.directory-glow {
+  position: absolute;
+  width: 25rem;
+  height: 25rem;
+  border-radius: 999px;
+  right: -8rem;
+  top: -11rem;
+  background: radial-gradient(circle, rgba(126, 242, 182, .16), transparent 68%);
+  animation: landing-orbit 10s ease-in-out infinite alternate;
+}
+.directory-hero-content { animation: landing-rise 800ms 100ms cubic-bezier(.2,.8,.2,1) both; }
+.directory-search-panel { animation: directory-panel-in 850ms 220ms cubic-bezier(.2,.8,.2,1) both; }
+.directory-primary-button { transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease; }
+.directory-primary-button:hover { transform: translateY(-2px); filter: saturate(1.08); box-shadow: 0 14px 30px -17px rgba(17, 126, 80, .8); }
+.directory-driver-card {
+  transition: transform 350ms cubic-bezier(.2,.8,.2,1), box-shadow 350ms ease, border-color 350ms ease;
+  animation: directory-card-in 650ms cubic-bezier(.2,.8,.2,1) both;
+}
+.directory-driver-card:hover {
+  transform: translateY(-7px);
+  border-color: rgba(43, 154, 105, .25);
+  box-shadow: 0 34px 70px -40px rgba(6, 53, 35, .72);
+}
+.directory-grid > :nth-child(2) { animation-delay: 70ms; }
+.directory-grid > :nth-child(3) { animation-delay: 140ms; }
+.directory-grid > :nth-child(4) { animation-delay: 210ms; }
+.directory-grid > :nth-child(5) { animation-delay: 280ms; }
+.directory-grid > :nth-child(6) { animation-delay: 350ms; }
+
+@keyframes directory-panel-in {
+  from { opacity: 0; transform: translateY(22px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes directory-card-in {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 639px) {
+  .directory-nav { width: calc(100% - 1rem); }
+  .directory-hero { padding-bottom: 5.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .directory-nav,
+  .directory-hero-content,
+  .directory-search-panel,
+  .directory-driver-card,
+  .directory-glow { animation: none !important; }
+  .directory-driver-card { transition: none !important; }
+}
+
+/* Vitrine publique chauffeur */
+.driver-public-page {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 12% 4%, color-mix(in oklab, var(--driver-primary, var(--primary)) 16%, transparent), transparent 28rem),
+    radial-gradient(circle at 92% 30%, color-mix(in oklab, var(--driver-accent, var(--accent)) 35%, transparent), transparent 30rem),
+    linear-gradient(180deg, color-mix(in oklab, var(--driver-primary-soft, var(--accent)) 42%, white), var(--background) 32rem);
+}
+
+.driver-public-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .17;
+  background-image: linear-gradient(color-mix(in oklab, var(--driver-primary, var(--primary)) 20%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in oklab, var(--driver-primary, var(--primary)) 20%, transparent) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: linear-gradient(to bottom, black, transparent 48rem);
+}
+
+.driver-showcase-shell { animation: driver-showcase-in 700ms cubic-bezier(.2,.8,.2,1) both; }
+.driver-profile-hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 82% 0%, color-mix(in oklab, var(--driver-accent, var(--accent)) 65%, transparent), transparent 22rem),
+    linear-gradient(135deg, color-mix(in oklab, var(--driver-primary, var(--primary)) 16%, #102a22), #102a22);
+  box-shadow: 0 32px 80px -48px color-mix(in oklab, var(--driver-primary, var(--primary)) 65%, #05150f);
+}
+.driver-profile-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: .12;
+  background-image: linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.driver-profile-hero > * { position: relative; z-index: 1; }
+
+.driver-public-page .surface {
+  border-radius: 1.6rem;
+  border-color: color-mix(in oklab, var(--driver-primary, var(--primary)) 12%, var(--border));
+  box-shadow: 0 20px 55px -42px color-mix(in oklab, var(--driver-primary, var(--primary)) 45%, #14231d);
+  transition: transform 300ms cubic-bezier(.2,.8,.2,1), box-shadow 300ms ease, border-color 300ms ease;
+}
+.driver-public-page .surface:hover {
+  border-color: color-mix(in oklab, var(--driver-primary, var(--primary)) 28%, var(--border));
+  box-shadow: 0 30px 65px -43px color-mix(in oklab, var(--driver-primary, var(--primary)) 60%, #14231d);
+}
+.driver-public-page .driver-identity-card > .surface {
+  position: relative;
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in oklab, var(--driver-primary-soft, var(--accent)) 38%, transparent), transparent 13rem),
+    color-mix(in oklab, white 97%, var(--driver-primary-soft, var(--accent)));
+  border-color: color-mix(in oklab, var(--driver-primary, var(--primary)) 14%, white);
+  box-shadow: 0 22px 50px -34px rgba(0,0,0,.45);
+}
+.driver-public-page .driver-identity-card > .surface::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 5px;
+  background: var(--driver-primary, var(--primary));
+}
+.driver-public-page .driver-identity-card > .surface > * { position: relative; }
+.driver-public-page .driver-identity-card img {
+  box-shadow: 0 12px 30px -16px color-mix(in oklab, var(--driver-primary, var(--primary)) 70%, black);
+}
+.driver-book-action {
+  background: color-mix(in oklab, white 92%, var(--driver-primary-soft, var(--accent)));
+  border-color: rgba(255,255,255,.75) !important;
+}
+.driver-public-page .driver-public-section,
+.driver-public-page [id^="vitrine-"] {
+  background: color-mix(in oklab, white 94%, var(--driver-primary-soft, var(--accent)));
+}
+.driver-public-page [id^="vitrine-"]:hover { transform: translateY(-3px); }
+.driver-public-page [id^="vitrine-"] h2,
+.driver-public-section h2 {
+  letter-spacing: -.025em;
+}
+.driver-public-page [id^="vitrine-"] h2::after,
+.driver-public-section h2::after {
+  content: "";
+  display: block;
+  width: 2rem;
+  height: 3px;
+  margin-top: .55rem;
+  border-radius: 999px;
+  background: var(--driver-primary, var(--primary));
+  opacity: .75;
+}
+.driver-public-page .rounded-full.border {
+  border-color: color-mix(in oklab, var(--driver-primary, var(--primary)) 18%, var(--border));
+  background: color-mix(in oklab, var(--driver-primary-soft, var(--accent)) 50%, white);
+}
+.driver-vehicle-panel > * { overflow: hidden; border-radius: 1.6rem; }
+
+@keyframes driver-showcase-in {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 1023px) {
+  .driver-public-page .driver-identity-card > .surface {
+    overflow: hidden;
+    border-radius: 2rem;
+    padding-top: .15rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .driver-showcase-shell { animation: none !important; }
+  .driver-public-page .surface { transition: none !important; }
+}
+
 /* Transitions d'étapes du formulaire de demande */
 @keyframes step-in-right {
   from {

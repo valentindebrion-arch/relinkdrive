@@ -18,7 +18,6 @@ import {
   type WorkingDay,
 } from "@/lib/working-hours";
 import {
-  BadgeCheck,
   Briefcase,
   Camera,
   Car,
@@ -170,7 +169,6 @@ export function ShowcaseHeader({
               {data.firstName}
               {data.lastInitial ? ` ${data.lastInitial}.` : ""}
             </span>
-            <BadgeCheck className="size-5 shrink-0 text-primary" aria-label="Profil vérifié" />
           </h1>
           {data.city ? (
             <p className="mt-1 flex items-center gap-1 text-[13px] font-semibold text-muted-foreground">

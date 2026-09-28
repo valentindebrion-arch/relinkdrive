@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
-import relinkLogo from "@/assets/relink-logo.png.asset.json";
 
 type Size = "sm" | "md" | "lg";
 
@@ -24,7 +23,7 @@ export function BrandLogo({
   const content = (
     <span className={cn("inline-flex items-center gap-0", className)}>
       <img
-        src={relinkLogo.url}
+        src="/relink-logo.png"
         alt="ReLink"
         onError={(event) => {
           event.currentTarget.onerror = null;

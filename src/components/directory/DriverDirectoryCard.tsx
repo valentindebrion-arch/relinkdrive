@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ShieldCheck, MapPin, Users, Car, Sparkles } from "lucide-react";
+import { MapPin, Users, Car, Sparkles } from "lucide-react";
 import { serviceLabel, categoryLabel } from "@/lib/showcase";
 import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { cn } from "@/lib/utils";
@@ -43,7 +43,7 @@ export function DriverDirectoryCard({
       params={{ slug: driver.slug ?? "" }}
       style={driverAccentVars(theme) as CSSProperties}
       className={cn(
-        "surface group flex min-w-0 flex-col overflow-hidden transition-shadow hover:shadow-md",
+        "directory-driver-card group flex min-w-0 flex-col overflow-hidden rounded-[1.6rem] border border-emerald-950/8 bg-white shadow-[0_18px_45px_-35px_rgba(9,62,42,.55)]",
         driver.woman_for_woman ? "border-[var(--wfw-border,var(--border))]" : "",
       )}
     >
@@ -53,7 +53,7 @@ export function DriverDirectoryCard({
             src={driver.vehicle_photo_url}
             alt={vehicle ? `Véhicule ${vehicle}` : "Véhicule du chauffeur"}
             loading="lazy"
-            className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+            className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
           />
         ) : (
           <div className="flex size-full flex-col items-center justify-center gap-1 text-muted-foreground">
@@ -68,20 +68,17 @@ export function DriverDirectoryCard({
         ) : null}
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-2 p-4">
+      <div className="flex min-w-0 flex-1 flex-col gap-2.5 p-5">
         <div className="flex min-w-0 items-center gap-3">
           <AvatarPhoto
             url={driver.avatar_url}
             name={driver.display_name ?? "Chauffeur"}
-            className="size-10 shrink-0 rounded-full object-cover"
-            fallbackClassName="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground"
+            className="size-11 shrink-0 rounded-2xl object-cover ring-2 ring-white shadow-md"
+            fallbackClassName="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-accent text-sm font-semibold text-accent-foreground ring-2 ring-white shadow-md"
           />
-          <div className="min-w-0">
-            <p className="truncate font-semibold">{driver.display_name ?? "Chauffeur"}</p>
-            <p className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-              <ShieldCheck className="size-3.5 text-primary" /> Profil vérifié
-            </p>
-          </div>
+          <p className="min-w-0 truncate text-base font-semibold tracking-[-.02em]">
+            {driver.display_name ?? "Chauffeur"}
+          </p>
         </div>
 
         {driver.city || driver.zone ? (

@@ -163,6 +163,14 @@ const pillars = [
   },
 ];
 
+const themeDescriptions: Record<BookingThemeId, { color: string; mood: string }> = {
+  relink_classic: { color: "Vert", mood: "naturel et rassurant" },
+  professional_blue: { color: "Bleu", mood: "sobre et professionnel" },
+  dynamic_red: { color: "Rouge", mood: "énergique et affirmé" },
+  luxury_black_gold: { color: "Or", mood: "élégant et premium" },
+  women_for_women: { color: "Violet", mood: "doux et chaleureux" },
+};
+
 type PreviewCard = {
   theme: BookingThemeId;
   name: string;
@@ -219,7 +227,7 @@ function DriverPreviewCard({ card }: { card: PreviewCard }) {
   return (
     <article
       style={themeStyle(card.theme)}
-      className="min-w-0 rounded-2xl border border-border bg-card p-3.5 shadow-sm"
+      className="landing-profile-card min-w-0 rounded-[1.4rem] border border-white/70 bg-white/90 p-3.5 shadow-[0_20px_60px_-32px_rgba(12,45,34,.55)] backdrop-blur-xl"
     >
       <div className="flex items-center gap-3">
         <span
@@ -260,7 +268,7 @@ function DriverPreviewCard({ card }: { card: PreviewCard }) {
       </div>
       <a
         href="/chauffeurs"
-        className="mt-3 block w-full rounded-xl px-3 py-2 text-center text-xs font-medium"
+        className="landing-profile-button mt-3 block w-full rounded-xl px-3 py-2 text-center text-xs font-semibold"
         style={{ background: "var(--card-accent)", color: "oklch(0.99 0.005 150)" }}
       >
         Voir la vitrine
@@ -282,22 +290,22 @@ function Landing() {
   }, [loading, session, roles, navigate]);
 
   return (
-    <div className="min-h-screen overflow-x-hidden">
-      <header className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-4 sm:px-5 sm:py-5">
+    <div className="landing-page min-h-screen overflow-x-hidden bg-[#f7faf8]">
+      <header className="landing-nav sticky top-0 z-40 mx-auto mt-2 grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-white/70 bg-white/80 px-4 py-2.5 shadow-[0_12px_40px_-24px_rgba(13,55,40,.4)] backdrop-blur-xl sm:mt-4 sm:px-5">
         <div className="min-w-0">
           <BrandLogo to="/" size="md" />
         </div>
-        <nav className="flex shrink-0 items-center gap-1.5 text-sm">
+        <nav className="landing-menu flex shrink-0 items-center gap-1 rounded-xl bg-emerald-950/[.035] p-1 text-sm">
           <Link
             to="/chauffeurs"
-            className="hidden rounded-lg px-3 py-2 text-muted-foreground hover:text-foreground sm:inline-flex"
+            className="landing-menu-link hidden rounded-lg px-3 py-2 font-medium text-muted-foreground transition hover:bg-white hover:text-foreground sm:inline-flex"
           >
             Trouver
           </Link>
           {!loading && session ? (
             <Link
               to={homeForRoles(roles)}
-              className="rounded-lg bg-primary px-3 py-2 font-medium text-primary-foreground sm:px-4"
+              className="landing-primary-button rounded-xl bg-primary px-3 py-2 font-semibold text-primary-foreground sm:px-4"
             >
               Mon espace
             </Link>
@@ -306,16 +314,17 @@ function Landing() {
               <Link
                 to="/auth"
                 search={{ mode: "signin" }}
-                className="rounded-lg px-2.5 py-2 text-muted-foreground hover:text-foreground sm:px-3"
+                className="landing-menu-link hidden rounded-lg px-2.5 py-2 font-medium text-muted-foreground transition hover:bg-white hover:text-foreground sm:inline-flex sm:px-3"
               >
                 Connexion
               </Link>
               <Link
                 to="/auth"
                 search={{ mode: "signup", role: "driver" }}
-                className="rounded-lg bg-primary px-3 py-2 font-medium text-primary-foreground sm:px-4"
+                className="landing-primary-button rounded-lg bg-primary px-3 py-2 font-semibold text-primary-foreground sm:px-4"
               >
-                Inscription
+                <span className="sm:hidden">Vitrine</span>
+                <span className="hidden sm:inline">Créer ma vitrine</span>
               </Link>
             </>
           )}
@@ -323,53 +332,55 @@ function Landing() {
       </header>
 
       {/* HERO */}
-      <section className="mx-auto w-full max-w-6xl px-4 pt-6 pb-10 sm:px-5 sm:pt-10 sm:pb-14">
-        <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-          <div className="min-w-0">
-            <p className="inline-flex max-w-full items-center gap-2 rounded-full border border-primary/25 bg-accent px-3 py-1 text-[11px] font-medium text-accent-foreground sm:text-xs">
+      <section className="landing-hero relative mx-auto mt-3 w-[calc(100%-1rem)] max-w-[1400px] overflow-hidden rounded-[2rem] px-4 pt-12 pb-12 sm:mt-5 sm:px-8 sm:pt-20 sm:pb-20 lg:px-14">
+        <div className="landing-orb landing-orb-one" aria-hidden />
+        <div className="landing-orb landing-orb-two" aria-hidden />
+        <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+          <div className="landing-reveal min-w-0">
+            <p className="inline-flex max-w-full items-center gap-2 rounded-full border border-emerald-300/20 bg-white/10 px-3.5 py-1.5 text-[11px] font-semibold text-emerald-100 backdrop-blur-md sm:text-xs">
               <Sparkles className="size-3.5 shrink-0" />
               <span className="truncate">Le réseau des chauffeurs indépendants</span>
             </p>
-            <h1 className="mt-4 max-w-3xl text-[1.75rem] leading-tight font-semibold text-balance sm:mt-5 sm:text-4xl lg:text-5xl">
-              Retrouvez les chauffeurs qui vous correspondent.
+            <h1 className="mt-5 max-w-3xl text-[2.35rem] leading-[1.02] font-semibold tracking-[-.055em] text-balance text-white sm:text-6xl lg:text-[4.6rem]">
+              Le bon chauffeur.<br /><span className="landing-gradient-text">Toujours à portée.</span>
             </h1>
-            <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:mt-4 sm:text-lg">
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-emerald-50/75 sm:text-lg">
               Découvrez leur vitrine, ajoutez vos chauffeurs préférés à votre réseau et
               retrouvez-les facilement quand vous en avez besoin.
             </p>
             <div className="mt-5 grid gap-2 sm:mt-7 sm:flex sm:flex-wrap sm:gap-3">
               <Link
                 to="/chauffeurs"
-                className="rounded-xl bg-primary px-5 py-3 text-center text-sm font-medium text-primary-foreground shadow-sm"
+                className="landing-hero-primary rounded-2xl bg-white px-6 py-3.5 text-center text-sm font-bold text-[#124735] shadow-xl shadow-black/10"
               >
                 Trouver un chauffeur
               </Link>
               <Link
                 to="/auth"
                 search={{ mode: "signup", role: "driver" }}
-                className="rounded-xl border border-border bg-card px-5 py-3 text-center text-sm font-medium"
+                className="landing-hero-secondary rounded-2xl border border-white/20 bg-white/10 px-6 py-3.5 text-center text-sm font-semibold text-white backdrop-blur-md"
               >
                 Créer ma vitrine chauffeur
               </Link>
             </div>
-            <ul className="mt-5 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-muted-foreground sm:mt-6 sm:flex sm:flex-wrap sm:gap-x-6 sm:text-sm">
+            <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs text-emerald-50/70 sm:mt-8 sm:flex sm:flex-wrap sm:gap-x-6 sm:text-sm">
               {heroPoints.map((t) => (
                 <li key={t} className="inline-flex min-w-0 items-center gap-1.5">
-                  <Check className="size-4 shrink-0 text-primary" />
-                  <span className="truncate">{t}</span>
+                  <Check className="size-4 shrink-0 text-emerald-300" />
+                  <span>{t}</span>
                 </li>
               ))}
             </ul>
           </div>
 
           {/* Aperçu visuel de profils ReLink */}
-          <div className="min-w-0">
-            <div className="grid grid-cols-2 gap-3">
+          <div className="landing-profile-stage min-w-0">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {previewCards.map((c) => (
                 <DriverPreviewCard key={c.name} card={c} />
               ))}
             </div>
-            <p className="mt-3 text-center text-[11px] text-muted-foreground">
+            <p className="mt-4 text-center text-[11px] text-emerald-50/55">
               Aperçu de vitrines ReLink et de leurs styles personnalisables.
             </p>
           </div>
@@ -377,12 +388,12 @@ function Landing() {
       </section>
 
       {/* POUR LES CLIENTS */}
-      <section className="border-y border-border bg-card/60 py-10 sm:py-14">
+      <section className="landing-section bg-white py-16 sm:py-24">
         <div className="mx-auto max-w-6xl px-4 sm:px-5">
           <p className="text-xs font-semibold tracking-wide text-primary uppercase">
             Pour les clients
           </p>
-          <h2 className="mt-2 text-xl font-semibold text-balance sm:text-2xl">
+          <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-[-.04em] text-balance sm:text-5xl">
             Vos chauffeurs, réunis au même endroit.
           </h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
@@ -392,8 +403,8 @@ function Landing() {
 
           <ul className="mt-6 grid gap-3 sm:grid-cols-2 sm:gap-4">
             {clientPoints.map((p) => (
-              <li key={p.title} className="surface flex min-w-0 gap-3 p-4">
-                <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+              <li key={p.title} className="landing-feature-card flex min-w-0 gap-4 rounded-3xl border border-emerald-950/8 bg-[#f7faf8] p-5 sm:p-6">
+                <span className="mt-0.5 flex size-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
                   <p.icon className="size-4" />
                 </span>
                 <span className="min-w-0">
@@ -418,8 +429,8 @@ function Landing() {
       </section>
 
       {/* COMMENT ÇA MARCHE */}
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-5 sm:py-14">
-        <h2 className="text-xl font-semibold text-balance sm:text-2xl">
+      <section className="landing-section mx-auto max-w-6xl px-4 py-16 sm:px-5 sm:py-24">
+        <h2 className="text-3xl font-semibold tracking-[-.04em] text-balance sm:text-5xl">
           Découvrez. Ajoutez. Retrouvez. Contactez.
         </h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
@@ -428,7 +439,7 @@ function Landing() {
 
         <ol className="relative mt-6 grid gap-3 border-l border-border pl-6 sm:grid-cols-2 sm:gap-4 sm:border-l-0 sm:pl-0 lg:grid-cols-4">
           {steps.map((s, i) => (
-            <li key={s.title} className="surface relative min-w-0 p-4 sm:p-5">
+            <li key={s.title} className="landing-step-card relative min-w-0 rounded-3xl border border-emerald-950/8 bg-white p-5 shadow-[0_20px_50px_-38px_rgba(13,55,40,.5)] sm:p-6">
               <span
                 className="absolute top-6 -left-[1.9rem] size-3 rounded-full border-2 border-background bg-primary sm:hidden"
                 aria-hidden
@@ -449,12 +460,12 @@ function Landing() {
       </section>
 
       {/* POUR LES CHAUFFEURS */}
-      <section className="border-y border-border bg-card/60 py-10 sm:py-14">
+      <section className="landing-section landing-driver-zone py-16 sm:py-24">
         <div className="mx-auto max-w-6xl px-4 sm:px-5">
           <p className="text-xs font-semibold tracking-wide text-primary uppercase">
             Pour les chauffeurs
           </p>
-          <h2 className="mt-2 text-xl font-semibold text-balance sm:text-2xl">
+          <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-[-.04em] text-balance sm:text-5xl">
             Votre vitrine professionnelle, à votre image.
           </h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
@@ -464,8 +475,8 @@ function Landing() {
 
           <ul className="mt-6 grid gap-3 sm:grid-cols-2 sm:gap-4">
             {driverPoints.map((p) => (
-              <li key={p.title} className="surface flex min-w-0 gap-3 p-4">
-                <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+              <li key={p.title} className="landing-feature-card flex min-w-0 gap-4 rounded-3xl border border-white/80 bg-white/80 p-5 backdrop-blur sm:p-6">
+                <span className="mt-0.5 flex size-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
                   <p.icon className="size-4" />
                 </span>
                 <span className="min-w-0">
@@ -477,9 +488,12 @@ function Landing() {
           </ul>
 
           {/* Thèmes */}
-          <div className="surface mt-6 p-4 sm:p-6">
-            <p className="text-sm font-medium">Choisissez le style de votre vitrine</p>
-            <div className="mt-3 flex flex-wrap gap-2">
+          <div className="landing-glass-panel mt-8 rounded-3xl border border-white/80 bg-white/75 p-5 backdrop-blur-xl sm:p-7">
+            <p className="text-sm font-semibold">Choisissez l'ambiance de votre vitrine</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Chaque couleur correspond à une identité visuelle différente.
+            </p>
+            <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
               {(
                 [
                   "relink_classic",
@@ -493,21 +507,28 @@ function Landing() {
                 return (
                   <span
                     key={id}
-                    className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs"
+                    className="landing-theme-choice flex items-center gap-3 rounded-2xl border border-emerald-950/10 bg-white px-3 py-3 text-xs"
                   >
                     <span
-                      className="size-3 rounded-full"
+                      className="size-8 shrink-0 rounded-xl shadow-inner ring-1 ring-black/5"
                       style={{ background: t.vars["--driver-primary"] }}
                       aria-hidden
                     />
-                    {t.name}
+                    <span className="min-w-0">
+                      <span className="block font-semibold text-foreground">
+                        {themeDescriptions[id].color}
+                      </span>
+                      <span className="block leading-tight text-muted-foreground">
+                        {themeDescriptions[id].mood}
+                      </span>
+                    </span>
                   </span>
                 );
               })}
             </div>
           </div>
 
-          <div className="surface mt-4 p-4 sm:p-6">
+          <div className="landing-glass-panel mt-4 rounded-3xl border border-white/80 bg-white/75 p-5 backdrop-blur-xl sm:p-7">
             <h3 className="font-semibold">Créez votre vitrine ReLink</h3>
             <p className="mt-1 text-sm text-muted-foreground">
               Quelques minutes suffisent pour commencer à construire votre présence professionnelle.
@@ -515,7 +536,7 @@ function Landing() {
             <Link
               to="/auth"
               search={{ mode: "signup", role: "driver" }}
-              className="mt-4 block rounded-xl bg-primary px-5 py-3 text-center text-sm font-medium text-primary-foreground sm:inline-block"
+              className="landing-primary-button mt-4 block rounded-xl bg-[#35a86f] px-5 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-emerald-900/10 sm:inline-block"
             >
               Créer ma vitrine
             </Link>
@@ -524,13 +545,13 @@ function Landing() {
       </section>
 
       {/* QR CODE */}
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-5 sm:py-14">
-        <div className="surface grid gap-6 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] lg:items-center">
+      <section className="landing-section mx-auto max-w-6xl px-4 py-16 sm:px-5 sm:py-24">
+        <div className="landing-qr-panel grid gap-8 overflow-hidden rounded-[2rem] p-6 text-white sm:p-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] lg:items-center">
           <div className="min-w-0">
-            <h2 className="text-xl font-semibold text-balance sm:text-2xl">
+            <h2 className="text-3xl font-semibold tracking-[-.04em] text-balance sm:text-5xl">
               Votre vitrine vous accompagne partout.
             </h2>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="mt-4 max-w-xl text-sm leading-relaxed text-emerald-50/70 sm:text-base">
               Dans votre véhicule, sur une carte de visite ou vos réseaux : partagez votre QR Code
               ou votre lien ReLink pour permettre à vos clients de retrouver votre profil.
             </p>
@@ -550,7 +571,7 @@ function Landing() {
             ].map((s) => (
               <li
                 key={s.label}
-                className="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-card p-3 sm:flex-col sm:gap-2 sm:p-4 sm:text-center"
+                className="landing-mini-step flex min-w-0 items-center gap-3 rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur sm:flex-col sm:gap-2 sm:p-5 sm:text-center"
               >
                 <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
                   <s.icon className="size-5" />
@@ -629,12 +650,12 @@ function Landing() {
       </section>
 
       {/* CTA FINAL */}
-      <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-5 sm:pb-16">
-        <div className="surface p-5 text-center sm:p-8">
-          <h2 className="text-xl font-semibold text-balance sm:text-3xl">
+      <section className="landing-section mx-auto max-w-6xl px-4 pb-16 sm:px-5 sm:pb-24">
+        <div className="landing-final-cta overflow-hidden rounded-[2rem] p-7 text-center text-white sm:p-14">
+          <h2 className="text-3xl font-semibold tracking-[-.04em] text-balance sm:text-5xl">
             Votre réseau commence ici.
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground">
+          <p className="mx-auto mt-4 max-w-2xl text-sm text-emerald-50/70 sm:text-base">
             Vous cherchez un chauffeur ? Découvrez les professionnels présents sur ReLink. Vous êtes
             chauffeur ? Créez votre vitrine et faites-vous connaître.
           </p>
@@ -648,7 +669,7 @@ function Landing() {
             <Link
               to="/auth"
               search={{ mode: "signup", role: "driver" }}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 py-3 text-sm font-medium"
+              className="landing-hero-primary inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white px-5 py-3 text-sm font-semibold text-[#124735] shadow-lg shadow-black/10"
             >
               <Share2 className="size-4" /> Créer ma vitrine
             </Link>

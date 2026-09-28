@@ -104,7 +104,7 @@ export const Route = createFileRoute("/chauffeur/$slug")({
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="surface p-5">
+    <section className="surface driver-public-section p-5 sm:p-6">
       <h2 className="text-base font-semibold">{title}</h2>
       <div className="mt-3 text-sm">{children}</div>
     </section>
@@ -458,29 +458,31 @@ function DriverPublicPage() {
   );
 
   return (
-    <BookingThemeScope theme={branding.data?.themeId} className="min-h-screen pb-28 sm:pb-10">
-      <div className="mx-auto max-w-lg space-y-3 px-4 py-6 md:max-w-2xl lg:max-w-6xl lg:px-8 lg:py-10">
+    <BookingThemeScope theme={branding.data?.themeId} className="driver-public-page min-h-screen pb-28 sm:pb-10">
+      <div className="driver-showcase-shell mx-auto max-w-lg space-y-4 px-4 py-5 md:max-w-2xl lg:max-w-6xl lg:px-8 lg:py-8">
         <Link
           to="/"
-          className="block text-center text-xs font-medium tracking-wide text-muted-foreground uppercase transition hover:opacity-80 active:scale-95 cursor-pointer"
+          className="driver-relink-mark mx-auto flex w-fit items-center gap-2 rounded-full border border-white/70 bg-white/75 px-4 py-2 text-center text-xs font-bold tracking-[.14em] text-muted-foreground uppercase shadow-sm backdrop-blur-xl transition hover:-translate-y-0.5 hover:text-foreground active:scale-95 cursor-pointer"
         >
           {BRAND.name}
         </Link>
 
         {/* En-tête desktop : identité + CTA immédiatement accessible */}
-        <div className="hidden lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-center lg:gap-6">
-          <ShowcaseHeader
-            data={showcase}
-            avatarUrl={avatarUrl}
-            subtitle={`${vehicleLabel} · ${vehicleSub} · ${experienceLabel}`}
-          />
-          <div className="surface p-5">{bookAction}</div>
+        <div className="driver-profile-hero hidden lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-center lg:gap-6 lg:rounded-[2rem] lg:p-5">
+          <div className="driver-identity-card">
+            <ShowcaseHeader
+              data={showcase}
+              avatarUrl={avatarUrl}
+              subtitle={`${vehicleLabel} · ${vehicleSub} · ${experienceLabel}`}
+            />
+          </div>
+          <div className="surface driver-book-action p-5">{bookAction}</div>
         </div>
 
         <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:items-start lg:gap-6">
           {/* Colonne principale (desktop) — sur mobile, l'ordre d'origine est conservé via order-* */}
           <div className="contents lg:block lg:space-y-4">
-            <div className="order-1 empty:hidden lg:hidden">
+            <div className="driver-identity-card order-1 empty:hidden lg:hidden">
               <ShowcaseHeader
                 data={showcase}
                 avatarUrl={avatarUrl}
@@ -520,7 +522,7 @@ function DriverPublicPage() {
               <ShowcaseHours week={hoursQuery.data ?? parseWorkingHours(null)} />
             </div>
             <div className="order-8 empty:hidden">
-              <section className="space-y-3">
+              <section className="driver-vehicle-panel space-y-3">
                 <VehicleShowcase
                   loading={vehiclePhotos.isLoading}
                   overlay={
@@ -580,7 +582,7 @@ function DriverPublicPage() {
             ) : null}
 
             <div className="order-13 empty:hidden lg:hidden">
-              <div className="surface p-5">{bookAction}</div>
+              <div className="surface driver-book-action p-5">{bookAction}</div>
             </div>
           </div>
         </div>
