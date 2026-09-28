@@ -450,6 +450,7 @@ export function AdminDriverServicesCard({ driverId }: { driverId: string }) {
     languages: [] as string[],
     departments: "",
     booking_theme: "relink_classic",
+    booking_theme_mode: "auto" as "auto" | "admin",
     woman_for_woman: false,
   });
 
@@ -458,7 +459,7 @@ export function AdminDriverServicesCard({ driverId }: { driverId: string }) {
     queryFn: async () => {
       const { data } = await supabase
         .from("driver_profiles")
-        .select("services, languages, service_departments, booking_theme, woman_for_woman")
+        .select("services, languages, service_departments, booking_theme, booking_theme_mode, woman_for_woman")
         .eq("user_id", driverId)
         .maybeSingle();
       return data;
@@ -472,6 +473,7 @@ export function AdminDriverServicesCard({ driverId }: { driverId: string }) {
         languages: (data.languages ?? []).slice(),
         departments: (data.service_departments ?? []).join(", "),
         booking_theme: data.booking_theme ?? "relink_classic",
+        booking_theme_mode: data.booking_theme_mode === "admin" ? "admin" : "auto",
         woman_for_woman: Boolean(data.woman_for_woman),
       });
   }, [data]);
@@ -497,6 +499,7 @@ export function AdminDriverServicesCard({ driverId }: { driverId: string }) {
           languages: form.languages,
           service_departments: departments,
           booking_theme: form.booking_theme,
+          booking_theme_mode: form.booking_theme_mode,
         })
         .eq("user_id", driverId);
       if (error) throw error;
@@ -573,10 +576,17 @@ export function AdminDriverServicesCard({ driverId }: { driverId: string }) {
         Thème de vitrine
         <select
           className="mt-1 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm"
-          value={form.booking_theme}
-          disabled={form.woman_for_woman}
-          onChange={(e) => setForm({ ...form, booking_theme: e.target.value })}
+          value={form.booking_theme_mode === "auto" ? "__auto__" : form.booking_theme}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              booking_theme_mode: e.target.value === "__auto__" ? "auto" : "admin",
+              booking_theme:
+                e.target.value === "__auto__" ? form.booking_theme : e.target.value,
+            })
+          }
         >
+          <option value="__auto__">Automatique (recommandé)</option>
           {BOOKING_THEMES.map((t) => (
             <option key={t.id} value={t.id}>
               {t.name}
@@ -584,11 +594,11 @@ export function AdminDriverServicesCard({ driverId }: { driverId: string }) {
           ))}
         </select>
       </label>
-      {form.woman_for_woman ? (
-        <p className="mt-1 text-xs text-muted-foreground">
-          Ce chauffeur est en mode Woman for Woman : le thème est imposé par le programme.
-        </p>
-      ) : null}
+      <p className="mt-1 text-xs text-muted-foreground">
+        {form.booking_theme_mode === "auto"
+          ? "La variante est calculée automatiquement selon le véhicule principal. Woman for Woman reste prioritaire."
+          : "Dérogation administrateur active : ce choix reste prioritaire sur la catégorie du véhicule."}
+      </p>
 
       <Button className="mt-4 min-h-10" disabled={busy} onClick={() => void save()}>
         Enregistrer les modifications
