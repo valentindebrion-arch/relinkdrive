@@ -7,7 +7,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Search, UserCog } from "lucide-react";
+import { ExternalLink, Search, UserCog } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AvatarPhoto } from "@/components/AvatarPhoto";
 import { PageHeader, EmptyState } from "@/components/Ui";
@@ -21,6 +21,7 @@ import {
   normalizeBillingStatus,
   type BillingStatus,
 } from "@/lib/subscription";
+import { BOOKING_THEMES } from "@/lib/booking-themes";
 
 export const Route = createFileRoute("/_authenticated/admin/chauffeurs/")({
   head: () => ({
@@ -91,6 +92,16 @@ type DriverRow = {
   phone: string | null;
   avatar_url: string | null;
   account_status: string;
+  booking_theme: string;
+  booking_theme_mode: "auto" | "admin";
+};
+
+const CATEGORY_LABELS: Record<string, string> = {
+  relink_classic: "Vert",
+  professional_blue: "Bleu",
+  dynamic_red: "Rouge",
+  luxury_black_gold: "Gold",
+  women_for_women: "Violine",
 };
 
 function Avatar({ name, url }: { name: string; url: string | null }) {
@@ -124,7 +135,7 @@ function AdminDrivers() {
       const { data: drivers, error } = await supabase
         .from("driver_profiles")
         .select(
-          "user_id, slug, city, zone, created_at, plan, billing_status, verification_status, business_name",
+          "user_id, slug, city, zone, created_at, plan, billing_status, verification_status, business_name, booking_theme, booking_theme_mode",
         )
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -152,6 +163,8 @@ function AdminDrivers() {
           phone: p?.phone ?? null,
           avatar_url: p?.avatar_url ?? null,
           account_status: p?.status ?? "active",
+          booking_theme: d.booking_theme ?? "relink_classic",
+          booking_theme_mode: d.booking_theme_mode === "admin" ? "admin" : "auto",
         };
       });
     },
@@ -177,6 +190,25 @@ function AdminDrivers() {
       void qc.invalidateQueries({ queryKey: ["admin"] });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erreur"),
+  });
+
+  const updateCategory = useMutation({
+    mutationFn: async ({ userId, value }: { userId: string; value: string }) => {
+      const automatic = value === "__auto__";
+      const { error } = await supabase
+        .from("driver_profiles")
+        .update({
+          booking_theme_mode: automatic ? "auto" : "admin",
+          ...(automatic ? {} : { booking_theme: value }),
+        })
+        .eq("user_id", userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Catégorie mise à jour.");
+      void qc.invalidateQueries({ queryKey: ["admin", "drivers", "directory"] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Mise à jour impossible"),
   });
 
   const rows = useMemo(() => {
@@ -308,9 +340,32 @@ function AdminDrivers() {
                     </td>
                     <td className="px-4 py-3">
                       <div
-                        className="flex flex-wrap justify-end gap-2"
+                        className="flex flex-wrap items-end justify-end gap-2"
                         onClick={(e) => e.stopPropagation()}
                       >
+                        <label className="grid gap-1 text-left text-[11px] text-muted-foreground">
+                          Catégorie
+                          <select
+                            className="h-9 min-w-36 rounded-lg border border-border bg-background px-2 text-xs text-foreground"
+                            value={d.booking_theme_mode === "auto" ? "__auto__" : d.booking_theme}
+                            disabled={updateCategory.isPending}
+                            onChange={(e) =>
+                              updateCategory.mutate({ userId: d.user_id, value: e.target.value })
+                            }
+                          >
+                            <option value="__auto__">Automatique</option>
+                            {BOOKING_THEMES.map((theme) => (
+                              <option key={theme.id} value={theme.id}>
+                                {CATEGORY_LABELS[theme.id] ?? theme.name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <Button asChild size="sm" variant="outline">
+                          <Link to="/chauffeur/$slug" params={{ slug: d.slug }} target="_blank">
+                            <ExternalLink className="size-4" /> Vitrine
+                          </Link>
+                        </Button>
                         <Button asChild size="sm">
                           <Link to="/admin/chauffeurs/$driverId" params={{ driverId: d.user_id }}>
                             <UserCog className="size-4" /> Voir / Gérer
@@ -389,7 +444,30 @@ function AdminDrivers() {
                     </div>
                   </div>
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-3 flex flex-wrap items-end gap-2">
+                  <label className="grid gap-1 text-[11px] text-muted-foreground">
+                    Catégorie
+                    <select
+                      className="h-9 min-w-36 rounded-lg border border-border bg-background px-2 text-xs text-foreground"
+                      value={d.booking_theme_mode === "auto" ? "__auto__" : d.booking_theme}
+                      disabled={updateCategory.isPending}
+                      onChange={(e) =>
+                        updateCategory.mutate({ userId: d.user_id, value: e.target.value })
+                      }
+                    >
+                      <option value="__auto__">Automatique</option>
+                      {BOOKING_THEMES.map((theme) => (
+                        <option key={theme.id} value={theme.id}>
+                          {CATEGORY_LABELS[theme.id] ?? theme.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <Button asChild size="sm" variant="outline">
+                    <Link to="/chauffeur/$slug" params={{ slug: d.slug }} target="_blank">
+                      <ExternalLink className="size-4" /> Vitrine
+                    </Link>
+                  </Button>
                   <Button
                     size="sm"
                     onClick={() =>
