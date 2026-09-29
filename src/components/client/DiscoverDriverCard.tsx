@@ -19,17 +19,33 @@ export type DiscoverDriver = {
   on_duty: boolean | null;
   woman_for_woman: boolean | null;
   rank_position?: number | null;
+  large_luggage_capacity?: number | null;
+  cabin_luggage_capacity?: number | null;
+  pets_policy?: string | null;
+  pets_allowed?: boolean | null;
+  child_seat?: boolean | null;
+  booster_seat?: boolean | null;
+  stroller_space?: boolean | null;
+  accessible?: boolean | null;
+  large_trunk?: boolean | null;
+  booking_theme?: string | null;
 };
 
 export function DiscoverDriverCard({
   driver,
   photoUrl,
   theme,
+  eyebrow,
+  badges = [],
+  actionLabel = "Profil",
 }: {
   driver: DiscoverDriver;
   photoUrl: string | null;
   /** Identité visuelle choisie par le chauffeur (accents uniquement). */
   theme?: string | null;
+  eyebrow?: string;
+  badges?: string[];
+  actionLabel?: string;
 }) {
   const accents = driverAccentVars(theme) as CSSProperties;
   const wfw = !!driver.woman_for_woman;
@@ -55,11 +71,16 @@ export function DiscoverDriverCard({
         ) : null}
       </div>
       <div className="px-4 py-4">
+        {eyebrow ? (
+          <p className="mb-1 text-[10px] font-black tracking-[.12em] text-primary uppercase">
+            {eyebrow}
+          </p>
+        ) : null}
         <div className="flex items-center justify-between gap-2">
           <span className="text-[15px] font-extrabold tracking-tight">{driver.display_name}</span>
           {driver.slug ? (
             <span className="flex shrink-0 items-center gap-0.5 rounded-full bg-primary/10 px-2.5 py-1.5 text-[12px] font-bold text-primary">
-              Profil
+              {actionLabel}
               <ChevronRight className="size-4 transition group-hover:translate-x-0.5" aria-hidden />
             </span>
           ) : null}
@@ -71,6 +92,18 @@ export function DiscoverDriverCard({
             <span>· {seats > 4 ? `Van · ${seats} places` : `Berline · ${seats} places`}</span>
           ) : null}
         </p>
+        {badges.length ? (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {badges.slice(0, 4).map((badge) => (
+              <span
+                key={badge}
+                className="rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10.5px] font-bold text-primary"
+              >
+                {badge}
+              </span>
+            ))}
+          </div>
+        ) : null}
         {/* Plus de statut manuel : la disponibilité se lit sur la vitrine (horaires). */}
       </div>
     </>

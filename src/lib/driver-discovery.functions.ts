@@ -2,6 +2,64 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+const VEHICLE_MATCH_FIELDS =
+  "driver_id, max_passengers, large_luggage_capacity, cabin_luggage_capacity, pets_policy, pets_allowed, child_seat, booster_seat, stroller_space, accessible, large_trunk, category, is_primary, created_at";
+
+async function addVehicleMatchFields<T extends { user_id: string }>(drivers: T[]) {
+  if (!drivers.length) return drivers;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const ids = drivers.map((driver) => driver.user_id);
+  const [{ data: vehicles }, { data: themes }] = await Promise.all([
+    supabaseAdmin
+      .from("vehicles")
+      .select(VEHICLE_MATCH_FIELDS)
+      .in("driver_id", ids)
+      .order("is_primary", { ascending: false })
+      .order("created_at", { ascending: true }),
+    supabaseAdmin.from("driver_profiles").select("user_id, booking_theme").in("user_id", ids),
+  ]);
+
+  const primaryByDriver = new Map<string, Record<string, unknown>>();
+  for (const vehicle of vehicles ?? []) {
+    if (!primaryByDriver.has(vehicle.driver_id)) {
+      primaryByDriver.set(vehicle.driver_id, {
+        max_passengers: vehicle.max_passengers,
+        large_luggage_capacity: vehicle.large_luggage_capacity,
+        cabin_luggage_capacity: vehicle.cabin_luggage_capacity,
+        pets_policy: vehicle.pets_policy,
+        pets_allowed: vehicle.pets_allowed,
+        child_seat: vehicle.child_seat,
+        booster_seat: vehicle.booster_seat,
+        stroller_space: vehicle.stroller_space,
+        accessible: vehicle.accessible,
+        large_trunk: vehicle.large_trunk,
+      });
+    }
+  }
+  const themeByDriver = new Map((themes ?? []).map((row) => [row.user_id, row.booking_theme]));
+  return drivers.map((driver) => ({
+    ...driver,
+    ...primaryByDriver.get(driver.user_id),
+    booking_theme: themeByDriver.get(driver.user_id) ?? null,
+  }));
+}
+
+/** Déduit le département du lieu de départ confirmé par le client. */
+export const resolveSearchDepartment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { origin: string }) =>
+    z.object({ origin: z.string().trim().min(3).max(200) }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { searchAddresses } = await import("@/lib/geo/provider.server");
+    const { departmentFromPostcode } = await import("@/lib/departments");
+    const [place] = await searchAddresses(data.origin, 1);
+    return {
+      department: departmentFromPostcode(place?.postcode ?? null),
+      city: place?.city ?? null,
+    };
+  });
+
 /**
  * Découverte des chauffeurs : mode « Mon département » (les chauffeurs qui
  * interviennent réellement dans le département du client, quelle que soit leur
@@ -44,10 +102,13 @@ export const discoverDrivers = createServerFn({ method: "POST" })
     const department = data.department ? data.department.toUpperCase() : null;
 
     if (data.scope === "all" || !department) {
+      const enriched = await addVehicleMatchFields(
+        drivers.map((d) => ({ ...d, departments: driverDepartments(d) })),
+      );
       return {
         scope: "all" as const,
         department,
-        drivers: drivers.map((d) => ({ ...d, departments: driverDepartments(d) })),
+        drivers: enriched,
       };
     }
 
@@ -66,5 +127,9 @@ export const discoverDrivers = createServerFn({ method: "POST" })
       // Classement purement qualitatif : aucune priorité à la commune du client.
       .sort((a, b) => (b.quality_score ?? 0) - (a.quality_score ?? 0));
 
-    return { scope: "department" as const, department, drivers: local };
+    return {
+      scope: "department" as const,
+      department,
+      drivers: await addVehicleMatchFields(local),
+    };
   });
