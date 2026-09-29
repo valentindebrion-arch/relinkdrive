@@ -133,8 +133,8 @@ export function formatSlots(slots: WorkingSlot[]) {
 }
 
 /**
- * Indication sobre hors horaires : « Disponible à partir de 8h » lorsque le
- * prochain créneau est facilement calculable, sinon `null`.
+ * Indication sobre hors horaires : « Prochain créneau : aujourd'hui à 8h »
+ * lorsque le prochain créneau est facilement calculable, sinon `null`.
  */
 export function nextOpeningLabel(week: WorkingDay[], now: Date = new Date()): string | null {
   const { day, minutes: current } = driverLocalNow(now);
@@ -148,9 +148,9 @@ export function nextOpeningLabel(week: WorkingDay[], now: Date = new Date()): st
     const next = i === 0 ? slots.find((s) => minutes(s.start) > current) : slots[0];
     if (!next) continue;
     const label = next.start.replace(":00", "h").replace(":", "h");
-    if (i === 0) return `Disponible à partir de ${label}`;
-    if (i === 1) return `Disponible demain à partir de ${label}`;
-    return `Disponible ${DAY_LABELS[d.day]?.toLowerCase()} à partir de ${label}`;
+    if (i === 0) return `Prochain créneau : aujourd'hui à ${label}`;
+    if (i === 1) return `Prochain créneau : demain à ${label}`;
+    return `Prochain créneau : ${DAY_LABELS[d.day]?.toLowerCase()} à ${label}`;
   }
   return null;
 }

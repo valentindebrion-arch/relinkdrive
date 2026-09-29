@@ -907,7 +907,7 @@
   background-size: 42px 42px;
   mask-image: linear-gradient(to bottom, black, transparent);
 }
-.client-home-heading { max-width: 72rem; width: 100%; margin-inline: auto; }
+.client-home-heading { max-width: 48rem; width: 100%; margin-inline: auto; }
 .client-home-driver-card {
   box-shadow: 0 28px 65px -40px rgba(7, 55, 35, .62);
   transition: transform 300ms cubic-bezier(.2,.8,.2,1), box-shadow 300ms ease;

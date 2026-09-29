@@ -1,5 +1,4 @@
 import { useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { Car, ChevronLeft, ChevronRight, QrCode } from "lucide-react";
 import { AvatarPhoto } from "@/components/AvatarPhoto";
 
@@ -13,7 +12,7 @@ export type HomeCardDriver = {
   frontPhotoUrl?: string | null;
   /** Calculé à partir des horaires habituels du chauffeur (aucun statut manuel). */
   available: boolean;
-  /** Indication sobre hors horaires (« Disponible à partir de 8h »). */
+  /** Indication sobre du prochain créneau déclaré par le chauffeur. */
   availabilityHint?: string | null;
   slug: string | null;
 };
@@ -41,9 +40,8 @@ function haptic() {
 }
 
 /**
- * Grande carte chauffeur de l'accueil : photo du véhicule, identité, note,
- * trajets effectués et disponibilité. Un seul chauffeur à la fois, navigable
- * par flèches ou par balayage horizontal.
+ * Grande carte chauffeur de l'accueil : photo du véhicule, identité et horaires.
+ * Un seul chauffeur à la fois, navigable par flèches ou par balayage horizontal.
  */
 export function HomeDriverCard({
   drivers,
@@ -128,16 +126,10 @@ export function HomeDriverCard({
               </div>
             )}
 
-            {driver ? (
-              <span className="absolute top-3 left-3 rounded-full border border-white/40 bg-black/30 px-3 py-1.5 text-[10px] font-bold tracking-wide text-white uppercase shadow-sm backdrop-blur-md">
-                Mon chauffeur
-              </span>
-            ) : null}
-
             {driver?.available ? (
               <span className="absolute top-3 right-3 flex items-center gap-1.5 rounded-full border border-white/50 bg-white/90 px-3 py-1.5 text-[11px] font-bold text-primary shadow-sm backdrop-blur">
                 <span className="status-dot-pulse size-1.5 rounded-full bg-primary" aria-hidden />
-                Disponible
+                Horaires en cours
               </span>
             ) : driver?.availabilityHint ? (
               <span className="absolute top-3 right-3 max-w-[52%] truncate rounded-full border border-white/50 bg-white/90 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground shadow-sm backdrop-blur">
@@ -191,15 +183,6 @@ export function HomeDriverCard({
                     {driver.vehicle ?? "Véhicule non renseigné"}
                   </p>
                 </div>
-                {driver.slug ? (
-                  <Link
-                    to="/chauffeur/$slug"
-                    params={{ slug: driver.slug }}
-                    className="shrink-0 rounded-xl bg-primary/10 px-3 py-2 text-[12px] font-bold text-primary transition hover:bg-primary/15"
-                  >
-                    Profil
-                  </Link>
-                ) : null}
               </>
             ) : (
               <>
@@ -219,16 +202,17 @@ export function HomeDriverCard({
       </div>
 
       {multiple ? (
-        <div className="mt-2 flex items-center justify-center gap-2">
-          <span className="flex items-center gap-1">
-            {drivers.map((d, i) => (
-              <span
-                key={d.id}
-                className={`size-1.5 rounded-full transition-colors ${
-                  i === index ? "bg-primary" : "bg-primary/25"
-                }`}
-              />
-            ))}
+        <div
+          className="mt-2 flex items-center justify-center gap-2.5"
+          role="status"
+          aria-live="polite"
+          aria-label={`Chauffeur ${index + 1} sur ${drivers.length}`}
+        >
+          <span className="h-1 w-12 overflow-hidden rounded-full bg-primary/15" aria-hidden>
+            <span
+              className="block h-full rounded-full bg-primary transition-[width] duration-300"
+              style={{ width: `${((index + 1) / drivers.length) * 100}%` }}
+            />
           </span>
           <span className="text-[11px] text-muted-foreground">
             {index + 1} sur {drivers.length} · Balayez pour changer

@@ -208,20 +208,22 @@ export function VehicleFacts({
         Le véhicule
       </p>
       <div key={driverKey} className={`flex min-w-0 max-w-full flex-col gap-2 ${anim}`}>
-        <ExteriorPhoto
-          imageKey={`${driverKey}:${facts?.vehicleId ?? "no-vehicle"}:${facts?.exteriorPhotoPath ?? "no-photo"}`}
-          url={facts?.exteriorPhotoUrl ?? null}
-          alt="Extérieur du véhicule"
-          loading={loading}
-          locked={locked ?? false}
-        />
-        <InteriorPhoto
-          imageKey={`${driverKey}:${facts?.vehicleId ?? "no-vehicle"}:${facts?.interiorPhotoPath ?? "no-photo"}`}
-          url={facts?.interiorPhotoUrl ?? null}
-          alt="Intérieur du véhicule"
-          loading={loading}
-          locked={locked ?? false}
-        />
+        <div className="grid min-w-0 grid-cols-2 gap-2">
+          <ExteriorPhoto
+            imageKey={`${driverKey}:${facts?.vehicleId ?? "no-vehicle"}:${facts?.exteriorPhotoPath ?? "no-photo"}`}
+            url={facts?.exteriorPhotoUrl ?? null}
+            alt="Extérieur du véhicule"
+            loading={loading}
+            locked={locked ?? false}
+          />
+          <InteriorPhoto
+            imageKey={`${driverKey}:${facts?.vehicleId ?? "no-vehicle"}:${facts?.interiorPhotoPath ?? "no-photo"}`}
+            url={facts?.interiorPhotoUrl ?? null}
+            alt="Intérieur du véhicule"
+            loading={loading}
+            locked={locked ?? false}
+          />
+        </div>
 
         <div className="flex min-w-0 flex-col gap-2 rounded-2xl border border-primary/25 bg-card p-3 shadow-[0_6px_18px_-16px_rgba(0,0,0,0.5)]">
           <div className="grid min-w-0 grid-cols-2 gap-x-3 gap-y-2 [overflow-wrap:anywhere] max-[300px]:grid-cols-1">

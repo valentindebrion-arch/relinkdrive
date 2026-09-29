@@ -228,11 +228,14 @@ function ClientHome() {
           {firstName ? `Bonjour ${firstName} 👋` : "Bonjour 👋"}
         </p>
         <h1 className="mt-0.5 text-[26px] leading-tight font-black tracking-[-.045em] sm:text-[30px]">
-          Mon réseau de chauffeurs
+          Mes chauffeurs
         </h1>
+        <p className="mt-1 text-[13px] text-muted-foreground">
+          Retrouvez vos chauffeurs de confiance en un instant.
+        </p>
       </div>
 
-      <main className="relative flex w-full min-w-0 flex-col gap-[var(--home-gap)] px-4 pt-[var(--home-gap)] pb-[calc(var(--home-tabbar-h)+env(safe-area-inset-bottom)+40px)]">
+      <main className="relative mx-auto flex w-full max-w-3xl min-w-0 flex-col gap-[var(--home-gap)] px-4 pt-[var(--home-gap)] pb-[calc(var(--home-tabbar-h)+env(safe-area-inset-bottom)+40px)]">
         {noDriver ? (
           <div
             className="home-rise overflow-hidden rounded-[1.75rem] border border-border/60 bg-card shadow-[0_10px_30px_-24px_rgba(0,0,0,0.55)]"
@@ -268,7 +271,10 @@ function ClientHome() {
           </div>
         )}
 
-        <section className="home-rise client-home-actions flex flex-col gap-3 sm:grid sm:grid-cols-2" style={{ animationDelay: "90ms" }}>
+        <section
+          className="home-rise client-home-actions flex flex-col gap-3 sm:grid sm:grid-cols-2"
+          style={{ animationDelay: "90ms" }}
+        >
           {noDriver ? (
             <>
               <Link
@@ -281,7 +287,7 @@ function ClientHome() {
                 to="/espace/scanner"
                 className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-primary/35 bg-card px-3 text-[14px] font-bold text-primary transition active:scale-[0.985]"
               >
-                <QrCode className="size-4" /> J'ai un QR code chauffeur
+                <QrCode className="size-4" /> Scanner un QR code
               </Link>
             </>
           ) : (
@@ -292,7 +298,7 @@ function ClientHome() {
                   params={{ slug: selectedDriver.slug }}
                   className="client-home-main-action flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-3 text-[15px] font-extrabold text-primary-foreground transition hover:bg-primary/90 active:scale-[0.985]"
                 >
-                  Voir le profil et contacter
+                  Voir et contacter {selectedDriver.name.split(" ")[0]}
                 </Link>
               ) : null}
               {selectedDriver?.slug ? (
@@ -315,11 +321,7 @@ function ClientHome() {
             driverSlug={selectedDriver?.slug ?? null}
             driverKey={selectedDriver?.id ?? (data.isLoading ? "loading" : "empty")}
             anim={
-              dir === "right"
-                ? "driver-card-in-right"
-                : dir === "left"
-                  ? "driver-card-in-left"
-                  : ""
+              dir === "right" ? "driver-card-in-right" : dir === "left" ? "driver-card-in-left" : ""
             }
             loading={data.isLoading || photosPending}
             locked={false}

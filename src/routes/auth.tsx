@@ -1,4 +1,5 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ArrowLeft } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 import { useEffect, useState } from "react";
@@ -92,6 +93,13 @@ function AuthPage() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
+        <Link
+          to="/"
+          className="mb-5 inline-flex min-h-10 items-center gap-2 rounded-full border border-border/70 bg-card/80 px-4 text-sm font-bold text-foreground shadow-sm backdrop-blur transition hover:border-primary/30 hover:bg-card hover:text-primary active:scale-[0.98]"
+        >
+          <ArrowLeft className="size-4" aria-hidden />
+          Retour à l'accueil
+        </Link>
         <div className="mb-6 flex justify-center">
           <BrandLogo size="lg" />
         </div>

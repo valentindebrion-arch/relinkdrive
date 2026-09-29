@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
-import { CircleUserRound, HelpCircle, Menu, Settings, X } from "lucide-react";
+import { CircleUserRound, HelpCircle, Menu, X } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { cn } from "@/lib/utils";
 
 const MENU = [
-  { to: "/espace/parametres", label: "Mon profil", icon: CircleUserRound },
-  { to: "/espace/parametres", label: "Paramètres", icon: Settings },
+  { to: "/espace/parametres", label: "Mon compte", icon: CircleUserRound },
   { to: "/aide", label: "Aide", icon: HelpCircle },
 ] as const;
 
