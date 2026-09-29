@@ -164,11 +164,12 @@ function matchesRequest(driver: SearchDriver, request: SearchRequest) {
 
 function savedDriverCoversDepartment(driver: SearchDriver, department: string | null) {
   if (!department) return true;
-  const explicit = (driver.service_departments ?? [])
-    .map((value) => departmentFromText(value))
-    .filter((value): value is string => !!value);
-  if (explicit.length) return explicit.includes(department);
-  const inferred = [...(driver.service_areas ?? []), driver.zone, driver.city]
+  const sectorLabels = driver.zone
+    ? [driver.zone]
+    : driver.service_areas?.length
+      ? driver.service_areas
+      : [driver.city];
+  const inferred = sectorLabels
     .map((value) => departmentFromText(value))
     .filter((value): value is string => !!value);
   // En l'absence de département exploitable, on conserve le chauffeur déjà

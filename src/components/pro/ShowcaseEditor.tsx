@@ -24,14 +24,12 @@ import {
   Share2,
   ShieldCheck,
   Trash2,
-  X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useDriverProfile, useMyVehicle } from "@/lib/driver-queries";
 import { ensureVehicleRowId } from "@/lib/vehicle-row";
 import { useSignedUrl, useSignedUrls } from "@/lib/storage";
-import { DEPARTMENT_NAMES } from "@/lib/departments";
 import { LANGUAGES, SERVICES, VEHICLE_CATEGORIES } from "@/lib/showcase";
 import { showcaseCompletion, showcaseFromOwnRows } from "@/lib/showcase-model";
 import { BRAND } from "@/lib/brand";
@@ -115,7 +113,6 @@ type Draft = {
   public_intro: string;
   city: string;
   zone: string;
-  service_departments: string[];
   stations: string;
   airports: string;
   long_distance: boolean;
@@ -209,7 +206,6 @@ const EMPTY_DRAFT: Draft = {
   public_intro: "",
   city: "",
   zone: "",
-  service_departments: [],
   stations: "",
   airports: "",
   long_distance: false,
@@ -298,7 +294,6 @@ export function ShowcaseEditor() {
       public_intro: (d["public_intro"] as string) ?? "",
       city: (d["city"] as string) ?? "",
       zone: (d["zone"] as string) ?? "",
-      service_departments: ((d["service_departments"] as string[]) ?? []).slice(),
       stations: ((d["stations"] as string[]) ?? []).join(", "),
       airports: ((d["airports"] as string[]) ?? []).join(", "),
       long_distance: !!d["long_distance"],
@@ -359,7 +354,7 @@ export function ShowcaseEditor() {
           public_intro: draft.public_intro || null,
           city: draft.city || null,
           zone: draft.zone || null,
-          service_departments: draft.service_departments,
+          service_departments: [],
           stations: draft.stations
             .split(",")
             .map((s) => s.trim())
@@ -444,7 +439,7 @@ export function ShowcaseEditor() {
         public_intro: draft.public_intro || null,
         city: draft.city || null,
         zone: draft.zone || null,
-        service_departments: draft.service_departments,
+        service_departments: [],
         stations: toList(draft.stations),
         airports: toList(draft.airports),
         long_distance: draft.long_distance,
@@ -678,7 +673,7 @@ export function ShowcaseEditor() {
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) =>
     setDraft((p) => ({ ...p, [key]: value }));
 
-  const toggleIn = (key: "services" | "languages" | "service_departments", value: string) =>
+  const toggleIn = (key: "services" | "languages", value: string) =>
     setDraft((p) => {
       const current = p[key];
       return {
@@ -968,11 +963,12 @@ export function ShowcaseEditor() {
             ) : null}
 
             {section === "sectors" ? (
-              <DepartmentPicker
-                selected={draft.service_departments}
-                onToggle={(code) => toggleIn("service_departments", code)}
-                onClear={() => set("service_departments", [])}
-              >
+              <div className="space-y-3">
+                <p className="rounded-2xl border border-primary/20 bg-primary/5 px-3.5 py-3 text-[11.5px] leading-snug text-muted-foreground">
+                  Votre zone géographique se règle dans <strong>Mes informations</strong>, via le
+                  champ « Agglomération / zone ». Cette section sert uniquement à préciser les gares
+                  et aéroports que vous desservez.
+                </p>
                 <Field label="Gares desservies (séparées par des virgules)">
                   <Input value={draft.stations} onChange={(e) => set("stations", e.target.value)} />
                 </Field>
@@ -984,7 +980,7 @@ export function ShowcaseEditor() {
                   checked={draft.long_distance}
                   onChange={(v) => set("long_distance", v)}
                 />
-              </DepartmentPicker>
+              </div>
             ) : null}
 
             {section === "services" ? (
@@ -1283,84 +1279,6 @@ function CheckRow({
       {label}
       {checked ? <Check className="size-4 text-primary" /> : null}
     </button>
-  );
-}
-
-function DepartmentPicker({
-  selected,
-  onToggle,
-  onClear,
-  children,
-}: {
-  selected: string[];
-  onToggle: (code: string) => void;
-  onClear: () => void;
-  children?: React.ReactNode;
-}) {
-  const [q, setQ] = useState("");
-  const entries = Object.entries(DEPARTMENT_NAMES).filter(([code, name]) => {
-    const s = q.trim().toLowerCase();
-    return !s || code.toLowerCase().startsWith(s) || name.toLowerCase().includes(s);
-  });
-  return (
-    <div className="space-y-3">
-      <div className="rounded-2xl border border-primary/20 bg-primary/5 p-3.5">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-sm font-black">Mes départements d’intervention</p>
-            <p className="mt-1 text-[11.5px] leading-snug text-muted-foreground">
-              Vous apparaîtrez dans les recherches de toutes les villes appartenant aux départements
-              sélectionnés.
-            </p>
-          </div>
-          {selected.length ? (
-            <button
-              type="button"
-              onClick={onClear}
-              className="shrink-0 text-[11px] font-bold text-destructive underline-offset-2 hover:underline"
-            >
-              Tout supprimer
-            </button>
-          ) : null}
-        </div>
-
-        {selected.length ? (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {selected.map((code) => (
-              <button
-                key={code}
-                type="button"
-                onClick={() => onToggle(code)}
-                aria-label={`Supprimer ${DEPARTMENT_NAMES[code] ?? code} de mes secteurs`}
-                className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-primary/25 bg-background px-3 text-[12px] font-bold text-foreground shadow-sm"
-              >
-                {DEPARTMENT_NAMES[code] ?? "Département"} ({code})
-                <X className="size-3.5 text-destructive" aria-hidden />
-              </button>
-            ))}
-          </div>
-        ) : (
-          <p className="mt-3 rounded-xl border border-dashed border-border bg-background px-3 py-2 text-[12px] font-semibold text-muted-foreground">
-            Aucun département sélectionné. Ajoutez au moins votre secteur principal ci-dessous.
-          </p>
-        )}
-      </div>
-
-      <Field label="Rechercher un département">
-        <Input value={q} placeholder="63, Puy-de-Dôme…" onChange={(e) => setQ(e.target.value)} />
-      </Field>
-      <div className="max-h-64 space-y-1 overflow-y-auto rounded-xl border border-border p-2">
-        {entries.map(([code, name]) => (
-          <CheckRow
-            key={code}
-            label={`${name} (${code})`}
-            checked={selected.includes(code)}
-            onToggle={() => onToggle(code)}
-          />
-        ))}
-      </div>
-      {children}
-    </div>
   );
 }
 

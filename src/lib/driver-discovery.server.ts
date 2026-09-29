@@ -7,9 +7,8 @@
  * intervenir dans ce département : la distance exacte à la commune du client
  * n'entre jamais en compte.
  *
- * Les départements d'intervention déclarés (`service_departments`) priment.
- * À défaut, on les déduit des zones d'intervention textuelles via la Base
- * Adresse Nationale, avec un cache en base (`geo_place_cache`).
+ * Le département est déduit de l'agglomération / zone renseignée dans la
+ * vitrine, via la Base Adresse Nationale et un cache (`geo_place_cache`).
  */
 import { searchAddresses } from "@/lib/geo/provider.server";
 import { departmentFromPostcode, departmentFromText } from "@/lib/departments";
@@ -106,30 +105,21 @@ export type DriverGeo = {
 
 /** Libellés géographiques déclarés par un chauffeur (zones puis ville). */
 export function driverAreas(driver: DriverGeo): string[] {
-  const declared = [...(driver.service_areas ?? []), driver.zone]
+  if (driver.zone && driver.zone.trim().length >= 3) return [driver.zone.trim()];
+  const legacy = (driver.service_areas ?? [])
     .filter((v): v is string => !!v && v.trim().length >= 3)
     .map((v) => v.trim());
-  if (declared.length) return declared;
+  if (legacy.length) return legacy;
   return driver.city && driver.city.trim().length >= 3 ? [driver.city.trim()] : [];
 }
 
 /**
- * Départements d'intervention d'un chauffeur :
- *  1. la liste explicitement déclarée ;
- *  2. sinon les codes lisibles dans ses zones (« 63 », « 63170 Aubière ») ;
- *  3. sinon le département des communes géocodées.
+ * Département d'intervention d'un chauffeur, déduit de son agglomération / zone
+ * (avec la ville principale et les anciennes zones comme solutions de repli).
  */
 export function driverDepartments(driver: DriverGeo, places?: Map<string, CachedPlace>): string[] {
   const codes = new Set<string>();
-  for (const raw of driver.service_departments ?? []) {
-    const code = departmentFromText(raw);
-    if (code) codes.add(code);
-  }
-  if (codes.size) return [...codes];
-
-  const labels = [...(driver.service_areas ?? []), driver.zone, driver.city].filter(
-    (v): v is string => !!v && v.trim().length >= 2,
-  );
+  const labels = driverAreas(driver);
   for (const label of labels) {
     const code = departmentFromText(label);
     if (code) codes.add(code);
