@@ -24,6 +24,7 @@ import {
   Share2,
   ShieldCheck,
   Trash2,
+  X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -164,7 +165,8 @@ const PHOTO_SLOTS = [
     field: "photo_side_url",
     kind: "side",
     label: "Vue 3/4 (côté)",
-    description: "Photographiez le véhicule entièrement de côté, avec toute la voiture visible dans le cadre.",
+    description:
+      "Photographiez le véhicule entièrement de côté, avec toute la voiture visible dans le cadre.",
   },
   {
     field: "photo_interior_url",
@@ -182,7 +184,8 @@ const PHOTO_SLOTS = [
     field: "photo_url",
     kind: "exterior",
     label: "Vue de profil",
-    description: "Photographiez le véhicule entier légèrement de biais, avec l'avant et le côté visibles.",
+    description:
+      "Photographiez le véhicule entier légèrement de biais, avec l'avant et le côté visibles.",
   },
   {
     field: "photo_trunk_url",
@@ -968,6 +971,7 @@ export function ShowcaseEditor() {
               <DepartmentPicker
                 selected={draft.service_departments}
                 onToggle={(code) => toggleIn("service_departments", code)}
+                onClear={() => set("service_departments", [])}
               >
                 <Field label="Gares desservies (séparées par des virgules)">
                   <Input value={draft.stations} onChange={(e) => set("stations", e.target.value)} />
@@ -1285,10 +1289,12 @@ function CheckRow({
 function DepartmentPicker({
   selected,
   onToggle,
+  onClear,
   children,
 }: {
   selected: string[];
   onToggle: (code: string) => void;
+  onClear: () => void;
   children?: React.ReactNode;
 }) {
   const [q, setQ] = useState("");
@@ -1298,6 +1304,48 @@ function DepartmentPicker({
   });
   return (
     <div className="space-y-3">
+      <div className="rounded-2xl border border-primary/20 bg-primary/5 p-3.5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-black">Mes départements d’intervention</p>
+            <p className="mt-1 text-[11.5px] leading-snug text-muted-foreground">
+              Vous apparaîtrez dans les recherches de toutes les villes appartenant aux départements
+              sélectionnés.
+            </p>
+          </div>
+          {selected.length ? (
+            <button
+              type="button"
+              onClick={onClear}
+              className="shrink-0 text-[11px] font-bold text-destructive underline-offset-2 hover:underline"
+            >
+              Tout supprimer
+            </button>
+          ) : null}
+        </div>
+
+        {selected.length ? (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {selected.map((code) => (
+              <button
+                key={code}
+                type="button"
+                onClick={() => onToggle(code)}
+                aria-label={`Supprimer ${DEPARTMENT_NAMES[code] ?? code} de mes secteurs`}
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-primary/25 bg-background px-3 text-[12px] font-bold text-foreground shadow-sm"
+              >
+                {DEPARTMENT_NAMES[code] ?? "Département"} ({code})
+                <X className="size-3.5 text-destructive" aria-hidden />
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-3 rounded-xl border border-dashed border-border bg-background px-3 py-2 text-[12px] font-semibold text-muted-foreground">
+            Aucun département sélectionné. Ajoutez au moins votre secteur principal ci-dessous.
+          </p>
+        )}
+      </div>
+
       <Field label="Rechercher un département">
         <Input value={q} placeholder="63, Puy-de-Dôme…" onChange={(e) => setQ(e.target.value)} />
       </Field>
@@ -1352,7 +1400,9 @@ function PhotoSlot({
       </button>
       <div className="flex items-start justify-between gap-2 px-2 py-1.5">
         <div className="min-w-0">
-          <span className="block truncate text-[11px] font-medium text-muted-foreground">{label}</span>
+          <span className="block truncate text-[11px] font-medium text-muted-foreground">
+            {label}
+          </span>
           {description ? (
             <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">{description}</p>
           ) : null}

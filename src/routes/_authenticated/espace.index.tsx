@@ -30,6 +30,7 @@ import { Label } from "@/components/ui/label";
 import { useSignedUrls } from "@/lib/storage";
 import { discoverDrivers, resolveSearchDepartment } from "@/lib/driver-discovery.functions";
 import { departmentFromText, departmentName } from "@/lib/departments";
+import { estimateDriverSearchTrips } from "@/lib/route-estimate.functions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/espace/")({
@@ -187,6 +188,7 @@ function matchBadges(driver: SearchDriver, request: SearchRequest) {
 function ClientHome() {
   const { user } = useAuth();
   const resolveDepartment = useServerFn(resolveSearchDepartment);
+  const estimateSearchTrips = useServerFn(estimateDriverSearchTrips);
   const [origin, setOrigin] = useState("");
   const [originConfirmed, setOriginConfirmed] = useState(false);
   const [destination, setDestination] = useState("");
@@ -374,6 +376,23 @@ function ClientHome() {
     () => [...savedMatches, ...otherMatches],
     [savedMatches, otherMatches],
   );
+  const estimateQuery = useQuery({
+    queryKey: [
+      "client-home-driver-estimates",
+      request?.origin,
+      request?.destination,
+      allMatches.map((driver) => driver.user_id).sort(),
+    ],
+    enabled: !!request && allMatches.length > 0 && !othersQuery.isLoading && !savedQuery.isLoading,
+    queryFn: () =>
+      estimateSearchTrips({
+        data: {
+          origin: request!.origin,
+          destination: request!.destination,
+          driverIds: allMatches.map((driver) => driver.user_id),
+        },
+      }),
+  });
   const photos = useSignedUrls(
     "vehicles",
     allMatches.map((driver) => driver.vehicle_photo_url),
@@ -738,6 +757,10 @@ function ClientHome() {
                   Résultats
                 </p>
                 <h2 className="text-[20px] font-black tracking-tight">Chauffeurs correspondants</h2>
+                <p className="mt-1 max-w-md text-[11px] leading-snug text-muted-foreground">
+                  Prix indicatifs calculés selon le trajet et la grille de chaque chauffeur. Le
+                  tarif définitif est convenu directement avec lui.
+                </p>
               </div>
               <p className="text-right text-[11px] text-muted-foreground">
                 {request.city ?? "Réseau ReLink"}
@@ -776,6 +799,8 @@ function ClientHome() {
                         eyebrow="Déjà dans mes chauffeurs"
                         badges={matchBadges(driver, request)}
                         actionLabel="Voir et contacter"
+                        estimate={estimateQuery.data?.estimates[driver.user_id] ?? null}
+                        estimateLoading={estimateQuery.isLoading}
                       />
                     ))}
                   </ResultSection>
@@ -794,6 +819,8 @@ function ClientHome() {
                         photoUrl={photoOf(driver)}
                         badges={matchBadges(driver, request)}
                         actionLabel="Voir et contacter"
+                        estimate={estimateQuery.data?.estimates[driver.user_id] ?? null}
+                        estimateLoading={estimateQuery.isLoading}
                       />
                     ))}
                   </ResultSection>

@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 /** Tarification Relink : 1,90 €/km, minimum 9 €, arrondi à l'euro supérieur (pourboire chauffeur). */
 export function priceForKm(km: number) {
@@ -78,6 +79,51 @@ export function applyMinimumFare(low: number, high: number, minimum: number | nu
   return { low: Math.round(finalLow), high: Math.round(finalHigh) };
 }
 
+/** Calcule une fois l'itinéraire puis applique la grille de chaque chauffeur trouvé. */
+export const estimateDriverSearchTrips = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { origin: string; destination: string; driverIds: string[] }) =>
+    z
+      .object({
+        origin: z.string().trim().min(3).max(200),
+        destination: z.string().trim().min(3).max(200),
+        driverIds: z.array(z.string().uuid()).max(200),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { calculateRoute } = await import("@/lib/geo/provider.server");
+    const route = await calculateRoute({ address: data.origin }, { address: data.destination });
+    if (!route) throw new Error("Itinéraire introuvable pour ces adresses");
+
+    if (!data.driverIds.length) {
+      return { distanceKm: route.distanceKm, durationMin: route.durationMin, estimates: {} };
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: tariffs, error } = await supabaseAdmin
+      .from("driver_tariffs")
+      .select("driver_id, price_per_km_ht, minimum_ht, pickup_pct")
+      .in("driver_id", data.driverIds);
+    if (error) throw new Error(error.message);
+
+    const estimates: Record<string, { low: number; high: number }> = {};
+    for (const tariff of tariffs ?? []) {
+      const perKm = Number(tariff.price_per_km_ht);
+      if (!Number.isFinite(perKm) || perKm <= 0) continue;
+      const minimum = tariff.minimum_ht == null ? null : Number(tariff.minimum_ht);
+      const pickupPct = Number(tariff.pickup_pct ?? 0);
+      const reference = Math.max(minimum ?? 0, route.distanceKm * perKm) * (1 + pickupPct / 100);
+      estimates[tariff.driver_id] = applyMinimumFare(
+        Math.max(5, Math.floor((reference * 0.9) / 5) * 5),
+        Math.ceil((reference * 1.15) / 5) * 5,
+        minimum,
+      );
+    }
+
+    return { distanceKm: route.distanceKm, durationMin: route.durationMin, estimates };
+  });
+
 export const estimateDriverTrip = createServerFn({ method: "POST" })
   .inputValidator((input: { slug: string; origin: string; destination: string }) =>
     z
@@ -115,7 +161,9 @@ export const estimateDriverTrip = createServerFn({ method: "POST" })
       const { data: pricing } = await supabasePublic.rpc("get_public_driver_pricing", {
         _slug: data.slug,
       });
-      const t = (pricing as { price_per_km?: number; minimum?: number; pickup_pct?: number }[])?.[0];
+      const t = (
+        pricing as { price_per_km?: number; minimum?: number; pickup_pct?: number }[]
+      )?.[0];
       if (t?.price_per_km) perKm = Number(t.price_per_km);
       if (t?.minimum != null) minimum = Number(t.minimum);
       pickupPct = Number(t?.pickup_pct ?? 0);

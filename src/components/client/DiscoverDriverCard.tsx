@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronRight, Sparkles } from "lucide-react";
+import { ChevronRight, Loader2, Route, Sparkles } from "lucide-react";
 import { WFW_LABEL } from "@/lib/woman-for-woman";
 import { cn } from "@/lib/utils";
 import { driverAccentVars } from "@/lib/booking-themes";
@@ -38,6 +38,8 @@ export function DiscoverDriverCard({
   eyebrow,
   badges = [],
   actionLabel = "Profil",
+  estimate,
+  estimateLoading = false,
 }: {
   driver: DiscoverDriver;
   photoUrl: string | null;
@@ -46,6 +48,8 @@ export function DiscoverDriverCard({
   eyebrow?: string;
   badges?: string[];
   actionLabel?: string;
+  estimate?: { low: number; high: number } | null;
+  estimateLoading?: boolean;
 }) {
   const accents = driverAccentVars(theme) as CSSProperties;
   const wfw = !!driver.woman_for_woman;
@@ -102,6 +106,20 @@ export function DiscoverDriverCard({
                 {badge}
               </span>
             ))}
+          </div>
+        ) : null}
+        {estimateLoading ? (
+          <p className="mt-3 flex items-center gap-1.5 border-t border-border pt-3 text-[11.5px] font-semibold text-muted-foreground">
+            <Loader2 className="size-3.5 animate-spin text-primary" aria-hidden /> Calcul du tarif…
+          </p>
+        ) : estimate ? (
+          <div className="mt-3 flex items-end justify-between gap-3 border-t border-border pt-3">
+            <p className="flex items-center gap-1.5 text-[11.5px] font-semibold text-muted-foreground">
+              <Route className="size-3.5 text-primary" aria-hidden /> Estimation indicative
+            </p>
+            <p className="shrink-0 text-[17px] font-black tracking-tight text-primary">
+              {estimate.low.toLocaleString("fr-FR")}–{estimate.high.toLocaleString("fr-FR")} €
+            </p>
           </div>
         ) : null}
         {/* Plus de statut manuel : la disponibilité se lit sur la vitrine (horaires). */}
