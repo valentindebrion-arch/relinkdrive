@@ -31,6 +31,7 @@ import { useSignedUrls } from "@/lib/storage";
 import { discoverDrivers, resolveSearchDepartment } from "@/lib/driver-discovery.functions";
 import { departmentFromText, departmentName } from "@/lib/departments";
 import { estimateDriverSearchTrips } from "@/lib/route-estimate.functions";
+import { DAY_LABELS, hasWorkingHours, parseWorkingHours } from "@/lib/working-hours";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/espace/")({
@@ -144,6 +145,10 @@ function formatDateLabel(value: string) {
 
 function matchesRequest(driver: SearchDriver, request: SearchRequest) {
   if ((driver.max_passengers ?? 0) < request.passengers) return false;
+  const requestedDay = (dateFromValue(request.date).getDay() + 6) % 7;
+  const week = parseWorkingHours(driver.working_hours);
+  if (!hasWorkingHours(week) || !week.find((day) => day.day === requestedDay)?.enabled)
+    return false;
   if (
     request.vehicleStyle !== "all" &&
     (driver.booking_theme ?? "relink_classic") !== request.vehicleStyle
@@ -178,7 +183,11 @@ function savedDriverCoversDepartment(driver: SearchDriver, department: string | 
 }
 
 function matchBadges(driver: SearchDriver, request: SearchRequest) {
-  const badges = [`${driver.max_passengers ?? request.passengers} places`];
+  const requestedDay = (dateFromValue(request.date).getDay() + 6) % 7;
+  const badges = [
+    `${driver.max_passengers ?? request.passengers} places`,
+    `Travaille le ${DAY_LABELS[requestedDay]?.toLowerCase()}`,
+  ];
   for (const need of request.needs) {
     const label = NEEDS.find((item) => item.value === need)?.shortLabel;
     if (label) badges.push(label);
@@ -290,20 +299,26 @@ function ClientHome() {
       const ids = (connections ?? []).map((connection) => connection.driver_id);
       if (!ids.length) return [] as SearchDriver[];
 
-      const [{ data: profiles }, { data: driverProfiles }, { data: vehicles }, { data: themes }] =
-        await Promise.all([
-          fetchConnectedProfiles(ids).then((profiles) => ({ data: profiles })),
-          supabase.rpc("get_connected_driver_profiles"),
-          supabase
-            .from("vehicles")
-            .select(
-              "driver_id, brand, model, category, photo_front_url, photo_url, photo_side_url, max_passengers, large_luggage_capacity, cabin_luggage_capacity, pets_policy, pets_allowed, child_seat, booster_seat, stroller_space, accessible, large_trunk, is_primary, created_at",
-            )
-            .in("driver_id", ids)
-            .order("is_primary", { ascending: false })
-            .order("created_at", { ascending: true }),
-          supabase.rpc("get_driver_themes", { _ids: ids }),
-        ]);
+      const [
+        { data: profiles },
+        { data: driverProfiles },
+        { data: vehicles },
+        { data: themes },
+        { data: workingHours },
+      ] = await Promise.all([
+        fetchConnectedProfiles(ids).then((profiles) => ({ data: profiles })),
+        supabase.rpc("get_connected_driver_profiles"),
+        supabase
+          .from("vehicles")
+          .select(
+            "driver_id, brand, model, category, photo_front_url, photo_url, photo_side_url, max_passengers, large_luggage_capacity, cabin_luggage_capacity, pets_policy, pets_allowed, child_seat, booster_seat, stroller_space, accessible, large_trunk, is_primary, created_at",
+          )
+          .in("driver_id", ids)
+          .order("is_primary", { ascending: false })
+          .order("created_at", { ascending: true }),
+        supabase.rpc("get_driver_themes", { _ids: ids }),
+        supabase.rpc("get_driver_working_hours", { _ids: ids }),
+      ]);
 
       return ids.flatMap((id) => {
         const profile = (profiles ?? []).find((item) => item.id === id);
@@ -328,6 +343,8 @@ function ClientHome() {
             woman_for_woman: driver.woman_for_woman,
             booking_theme:
               (themes ?? []).find((item) => item.user_id === id)?.booking_theme ?? null,
+            working_hours:
+              (workingHours ?? []).find((item) => item.user_id === id)?.working_hours ?? null,
             large_luggage_capacity: vehicle?.large_luggage_capacity ?? null,
             cabin_luggage_capacity: vehicle?.cabin_luggage_capacity ?? null,
             pets_policy: vehicle?.pets_policy ?? null,
@@ -759,8 +776,8 @@ function ClientHome() {
                 </p>
                 <h2 className="text-[20px] font-black tracking-tight">Chauffeurs correspondants</h2>
                 <p className="mt-1 max-w-md text-[11px] leading-snug text-muted-foreground">
-                  Prix indicatifs calculés selon le trajet et la grille de chaque chauffeur. Le
-                  tarif définitif est convenu directement avec lui.
+                  Chauffeurs travaillant habituellement le jour choisi. Les prix sont indicatifs et
+                  la disponibilité exacte reste à confirmer directement.
                 </p>
               </div>
               <p className="text-right text-[11px] text-muted-foreground">
@@ -781,7 +798,8 @@ function ClientHome() {
               <div className="mt-4 rounded-[1.5rem] border border-border bg-card p-6 text-center">
                 <p className="text-sm font-black">Aucun profil ne réunit tous ces critères</p>
                 <p className="mt-1 text-[13px] text-muted-foreground">
-                  Essayez de retirer un besoin spécifique ou d'élargir la capacité recherchée.
+                  Essayez une autre date, retirez un besoin spécifique ou élargissez la capacité
+                  recherchée.
                 </p>
               </div>
             ) : (

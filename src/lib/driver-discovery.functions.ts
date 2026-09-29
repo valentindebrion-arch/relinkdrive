@@ -16,7 +16,10 @@ async function addVehicleMatchFields<T extends { user_id: string }>(drivers: T[]
       .in("driver_id", ids)
       .order("is_primary", { ascending: false })
       .order("created_at", { ascending: true }),
-    supabaseAdmin.from("driver_profiles").select("user_id, booking_theme").in("user_id", ids),
+    supabaseAdmin
+      .from("driver_profiles")
+      .select("user_id, booking_theme, working_hours")
+      .in("user_id", ids),
   ]);
 
   const primaryByDriver = new Map<string, Record<string, unknown>>();
@@ -41,6 +44,8 @@ async function addVehicleMatchFields<T extends { user_id: string }>(drivers: T[]
     ...driver,
     ...primaryByDriver.get(driver.user_id),
     booking_theme: themeByDriver.get(driver.user_id) ?? null,
+    working_hours:
+      (themes ?? []).find((row) => row.user_id === driver.user_id)?.working_hours ?? null,
   }));
 }
 

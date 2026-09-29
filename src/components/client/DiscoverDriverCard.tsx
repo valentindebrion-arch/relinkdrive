@@ -29,6 +29,7 @@ export type DiscoverDriver = {
   accessible?: boolean | null;
   large_trunk?: boolean | null;
   booking_theme?: string | null;
+  working_hours?: unknown;
 };
 
 export function DiscoverDriverCard({
