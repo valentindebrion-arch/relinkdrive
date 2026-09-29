@@ -51,6 +51,18 @@ type SearchRequest = {
   city: string | null;
 };
 
+type SearchSession = {
+  origin: string;
+  originConfirmed: boolean;
+  destination: string;
+  destinationConfirmed: boolean;
+  date: string;
+  vehicleStyle: VehicleStyle;
+  passengers: number;
+  needs: Need[];
+  request: SearchRequest | null;
+};
+
 type SearchDriver = DiscoverDriver & {
   service_areas?: string[] | null;
   service_departments?: string[] | null;
@@ -87,6 +99,8 @@ const VEHICLE_STYLES: {
   { value: "dynamic_red", label: "Sport", shortLabel: "Sport", dotClass: "bg-red-500" },
   { value: "professional_blue", label: "Van", shortLabel: "Van", dotClass: "bg-blue-500" },
 ];
+
+const SEARCH_SESSION_PREFIX = "relink:client-driver-search:";
 
 function localDateValue(date: Date) {
   const year = date.getFullYear();
@@ -188,7 +202,69 @@ function ClientHome() {
   const [request, setRequest] = useState<SearchRequest | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [resolving, setResolving] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
   const resultsRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    setSessionReady(false);
+    setOrigin("");
+    setOriginConfirmed(false);
+    setDestination("");
+    setDestinationConfirmed(false);
+    setDate("");
+    setVehicleStyle("all");
+    setPassengers(1);
+    setNeeds([]);
+    setRequest(null);
+    try {
+      const stored = window.sessionStorage.getItem(`${SEARCH_SESSION_PREFIX}${user.id}`);
+      if (stored) {
+        const session = JSON.parse(stored) as SearchSession;
+        setOrigin(session.origin ?? "");
+        setOriginConfirmed(!!session.originConfirmed);
+        setDestination(session.destination ?? "");
+        setDestinationConfirmed(!!session.destinationConfirmed);
+        setDate(session.date ?? "");
+        setVehicleStyle(session.vehicleStyle ?? "all");
+        setPassengers(Math.max(1, Math.min(8, session.passengers || 1)));
+        setNeeds(Array.isArray(session.needs) ? session.needs : []);
+        setRequest(session.request ?? null);
+      }
+    } catch {
+      window.sessionStorage.removeItem(`${SEARCH_SESSION_PREFIX}${user.id}`);
+    } finally {
+      setSessionReady(true);
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.id || !sessionReady) return;
+    const session: SearchSession = {
+      origin,
+      originConfirmed,
+      destination,
+      destinationConfirmed,
+      date,
+      vehicleStyle,
+      passengers,
+      needs,
+      request,
+    };
+    window.sessionStorage.setItem(`${SEARCH_SESSION_PREFIX}${user.id}`, JSON.stringify(session));
+  }, [
+    user?.id,
+    sessionReady,
+    origin,
+    originConfirmed,
+    destination,
+    destinationConfirmed,
+    date,
+    vehicleStyle,
+    passengers,
+    needs,
+    request,
+  ]);
 
   useEffect(() => {
     if (!request) return;
