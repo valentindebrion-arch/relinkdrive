@@ -8,6 +8,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useBlocker } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import QRCode from "qrcode";
 import { toast } from "sonner";
 import {
@@ -21,6 +22,7 @@ import {
   MousePointerClick,
   Pencil,
   QrCode,
+  RotateCcw,
   Share2,
   ShieldCheck,
   Trash2,
@@ -33,6 +35,7 @@ import { useSignedUrl, useSignedUrls } from "@/lib/storage";
 import { LANGUAGES, SERVICES, VEHICLE_CATEGORIES } from "@/lib/showcase";
 import { showcaseCompletion, showcaseFromOwnRows } from "@/lib/showcase-model";
 import { BRAND } from "@/lib/brand";
+import { resetMyDriverShowcase } from "@/lib/driver-showcase-reset.functions";
 import {
   DEFAULT_BOOKING_THEME,
   normalizeBookingTheme,
@@ -241,6 +244,7 @@ export function ShowcaseEditor() {
   const driver = useDriverProfile();
   const vehicle = useMyVehicle();
   const qc = useQueryClient();
+  const resetShowcase = useServerFn(resetMyDriverShowcase);
 
   const [mode, setMode] = useState<"edit" | "preview">("edit");
   const [section, setSection] = useState<SectionKey | null>(null);
@@ -252,6 +256,9 @@ export function ShowcaseEditor() {
   const avatarInput = useRef<HTMLInputElement>(null);
   const qrRef = useRef<HTMLCanvasElement>(null);
   const [origin, setOrigin] = useState("");
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetConfirmation, setResetConfirmation] = useState("");
+  const [resetting, setResetting] = useState(false);
 
   const tariff = useQuery({
     queryKey: ["my-tariff", user?.id],
@@ -518,6 +525,19 @@ export function ShowcaseEditor() {
     void qc.invalidateQueries({ queryKey: ["my-vehicle"] });
     void qc.invalidateQueries({ queryKey: ["my-tariff"] });
     void qc.invalidateQueries({ queryKey: ["public-driver"] });
+  }
+
+  async function confirmReset() {
+    if (resetConfirmation !== "REINITIALISER" || resetting) return;
+    setResetting(true);
+    try {
+      await resetShowcase({ data: { confirmation: "REINITIALISER" } });
+      toast.success("Votre vitrine a été réinitialisée.");
+      window.location.reload();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "La réinitialisation a échoué.");
+      setResetting(false);
+    }
   }
 
   /* ------------------------------------------------------------- photos */
@@ -883,6 +903,25 @@ export function ShowcaseEditor() {
             </div>
           </section>
         ) : null}
+
+        {editing ? (
+          <section className="rounded-3xl border border-destructive/25 bg-destructive/5 p-5">
+            <h2 className="text-base font-semibold">Repartir avec une vitrine vide</h2>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              Efface le véhicule, les photos, les tarifs et toutes les informations publiques pour
+              reconstruire la vitrine. Le compte, l’abonnement, les factures et les justificatifs
+              sont conservés.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-4 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => setResetOpen(true)}
+            >
+              <RotateCcw className="size-4" /> Réinitialiser ma vitrine
+            </Button>
+          </section>
+        ) : null}
       </div>
 
       {/* Barre d'enregistrement */}
@@ -1223,6 +1262,50 @@ export function ShowcaseEditor() {
             </AlertDialogCancel>
             <AlertDialogAction onClick={() => blocker.proceed?.()}>
               Quitter sans enregistrer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={resetOpen}
+        onOpenChange={(open) => {
+          if (resetting) return;
+          setResetOpen(open);
+          if (!open) setResetConfirmation("");
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Réinitialiser toute la vitrine ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action efface définitivement les informations publiques, le véhicule, les photos
+              et les tarifs. Votre compte, votre abonnement, vos factures et vos justificatifs
+              seront conservés.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="reset-showcase-confirmation">
+              Saisissez <strong>REINITIALISER</strong> pour confirmer
+            </Label>
+            <Input
+              id="reset-showcase-confirmation"
+              value={resetConfirmation}
+              onChange={(event) => setResetConfirmation(event.target.value.toUpperCase())}
+              autoComplete="off"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={resetting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={resetConfirmation !== "REINITIALISER" || resetting}
+              onClick={(event) => {
+                event.preventDefault();
+                void confirmReset();
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {resetting ? "Réinitialisation…" : "Effacer ma vitrine"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
